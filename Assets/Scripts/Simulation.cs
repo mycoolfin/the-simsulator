@@ -13,15 +13,4 @@ public class Simulation : MonoBehaviour
     {
 
     }
-
-    private Genotype[] createRandomisedPopulation(int populationSize)
-    {
-        Genotype[] genomes = new Genotype[populationSize];
-        for (int i = 0; i < populationSize; i++)
-        {
-
-        }
-
-        return genomes;
-    }
 }

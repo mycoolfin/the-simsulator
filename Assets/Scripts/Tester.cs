@@ -1,44 +1,91 @@
 ﻿using UnityEngine;
-using System.Collections;
 
 public class Tester : MonoBehaviour
 {
     void Start()
     {
-        Physics.gravity = Vector3.zero;
-
-        // Create a test creature.
-        GameObject creature = new GameObject("Test Creature");
-        LimbNode root = LimbCreator.CreateLimb();
-        root.transform.parent = creature.transform;
-        root.Dimensions = new Vector3(0.3f, 0.3f, 2);
-
-        root.transform.position = new Vector3(0, 2, 0);
-        //root.transform.rotation = new Quaternion(0f, 0.2f, 0.4f, 1f);
-
-        root.transform.GetComponent<Rigidbody>().isKinematic = true;
-
-        LimbNode fll = root.AddChildLimb(0, 0f, 0.8f, 45f, 0f, 0f, new Vector3(0.1f, 0.1f, 1f), JointType.Rigid);
-        LimbNode frl = root.AddChildLimb(3, 0f, 0.8f, 45f, 0f, 0f, new Vector3(0.1f, 0.1f, 1f), JointType.Rigid);
-        LimbNode mll = root.AddChildLimb(0, 0f, 0f, 45f, 0f, 0f, new Vector3(0.1f, 0.1f, 1f), JointType.Rigid);
-        LimbNode mrl = root.AddChildLimb(3, 0f, 0f, 45f, 0f, 0f, new Vector3(0.1f, 0.1f, 1f), JointType.Rigid);
-        LimbNode bll = root.AddChildLimb(0, 0f, -0.8f, 45f, 0f, 0f, new Vector3(0.1f, 0.1f, 1f), JointType.Rigid);
-        LimbNode brl = root.AddChildLimb(3, 0f, -0.8f, 45f, 0f, 0f, new Vector3(0.1f, 0.1f, 1f), JointType.Rigid);
-        fll.AddChildLimb(5, 0f, 0f, 45f, 0f, 0f, new Vector3(0.1f, 0.1f, 1f), JointType.Revolute);
-        frl.AddChildLimb(5, 0f, 0f, 45f, 0f, 0f, new Vector3(0.1f, 0.1f, 1f), JointType.Twist);
-        mll.AddChildLimb(5, 0f, 0f, 45f, 0f, 0f, new Vector3(0.1f, 0.1f, 1f), JointType.BendTwist);
-        mrl.AddChildLimb(5, 0f, 0f, 45f, 0f, 0f, new Vector3(0.1f, 0.1f, 1f), JointType.TwistBend);
-        bll.AddChildLimb(5, 0f, 0f, 45f, 0f, 0f, new Vector3(0.1f, 0.1f, 1f), JointType.Spherical);
-        brl.AddChildLimb(5, 0f, 0f, 45f, 0f, 0f, new Vector3(0.1f, 0.1f, 1f), JointType.Revolute);
-
-        LimbNode antl = root.AddChildLimb(4, 1f, -1f, 0f, -20f, 0f, new Vector3(0.05f, 0.1f, 0.5f), JointType.Rigid);
-        LimbNode antr = root.AddChildLimb(4, 1f, 1f, 0f, 20f, 0f, new Vector3(0.05f, 0.1f, 0.5f), JointType.Rigid);
-
-
+        PhenotypeConstructionTest();
     }
 
-    void Update()
+    private void PhenotypeConstructionTest()
     {
+        GraphNode body = new()
+        {
+            dimensions = new Vector3(0.5f, 1f, 0.5f),
+            jointType = JointType.Rigid
+        };
+        GraphNode head = new()
+        {
+            dimensions = new Vector3(0.3f, 0.5f, 0.3f),
+            jointType = JointType.Twist,
+            jointLimits = new float[] { 90f }
+        };
+        GraphNode limb = new()
+        {
+            dimensions = new Vector3(0.1f, 0.1f, 1f),
+            jointType = JointType.TwistBend,
+            jointLimits = new float[] { 10f, 10f },
+            recursiveLimit = 1
+        };
 
+        GraphConnection headConnection = new()
+        {
+            childNode = head,
+            parentFace = 4,
+            position = new Vector2(0, 0),
+            orientation = new Vector3(0f, 0f, 0f),
+            scale = Vector3.one
+        };
+        GraphConnection leftArmConnection = new()
+        {
+            childNode = limb,
+            parentFace = 0,
+            position = new Vector2(0.8f, 0f),
+            orientation = new Vector3(30f, 0f, 0f),
+            scale = Vector3.one
+        };
+        GraphConnection rightArmConnection = new()
+        {
+            childNode = limb,
+            parentFace = 0,
+            position = new Vector2(0.8f, 0f),
+            orientation = new Vector3(30f, 0f, 0f),
+            scale = Vector3.one,
+            reflection = true
+        };
+        GraphConnection leftLegConnection = new()
+        {
+            childNode = limb,
+            parentFace = 1,
+            position = new Vector2(0f, -0.8f),
+            orientation = new Vector3(-30f, -90f, 0f),
+            scale = Vector3.one
+        };
+        GraphConnection rightLegConnection = new()
+        {
+            childNode = limb,
+            parentFace = 1,
+            position = new Vector2(0f, 0.8f),
+            orientation = new Vector3(-30f, 90f, 0f),
+            scale = Vector3.one
+        };
+        GraphConnection limbConnection = new()
+        {
+            childNode = limb,
+            parentFace = 5,
+            position = new Vector2(0f, 0f),
+            orientation = new Vector3(30f, 0f, 0f),
+            scale = new Vector3(1f, 1f, 1f)
+        };
+
+        GraphConnection[] bodyConnections = new[] { headConnection, leftArmConnection, rightArmConnection, leftLegConnection, rightLegConnection };
+        body.connections = bodyConnections;
+        GraphConnection[] limbConnections = new[] { limbConnection };
+        limb.connections = limbConnections;
+
+        GameObject creature = PhenotypeBuilder.ConstructPhenotype(body);
+        creature.transform.position = new Vector3(0, 5f, 0);
+
+        // Physics.gravity = Vector3.zero;
     }
 }
