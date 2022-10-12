@@ -4,8 +4,8 @@ public class LogNeuron : NeuronBase
 {
     public LogNeuron() : base(1) {}
     
-    public override float Evaluate()
+    protected override float Evaluate()
     {
-        return Mathf.Log(GetInputValues()[0]);
+        return Mathf.Log(GetWeightedInputValues()[0]);
     }
 }

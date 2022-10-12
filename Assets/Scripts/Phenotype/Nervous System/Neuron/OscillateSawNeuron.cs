@@ -4,9 +4,9 @@ public class OscillateSawNeuron : NeuronBase
 {
     public OscillateSawNeuron() : base(3) {}
 
-    public override float Evaluate()
+    protected override float Evaluate()
     {
-        float[] inputValues = GetInputValues();
+        float[] inputValues = GetWeightedInputValues();
         return (Time.time % ((1f + inputValues[0]) * inputValues[1])) * inputValues[2];
     }
 }

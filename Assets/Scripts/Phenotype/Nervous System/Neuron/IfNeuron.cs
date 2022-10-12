@@ -3,9 +3,9 @@ public class IfNeuron : NeuronBase
 {
     public IfNeuron() : base(3) {}
 
-    public override float Evaluate()
+    protected override float Evaluate()
     {
-        float[] inputValues = GetInputValues();
+        float[] inputValues = GetWeightedInputValues();
         return (inputValues[0] > 0) ? inputValues[1] : inputValues[2];
     }
 }

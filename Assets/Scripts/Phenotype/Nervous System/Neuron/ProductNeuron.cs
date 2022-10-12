@@ -3,9 +3,9 @@ public class ProductNeuron : NeuronBase
 {
     public ProductNeuron() : base(2) {}
 
-    public override float Evaluate()
+    protected override float Evaluate()
     {
-        float[] inputValues = GetInputValues();
+        float[] inputValues = GetWeightedInputValues();
         return inputValues[0] * inputValues[1];
     }
 }

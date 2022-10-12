@@ -4,8 +4,8 @@ public class CosNeuron : NeuronBase
 {
     public CosNeuron() : base(1) {}
 
-    public override float Evaluate()
+    protected override float Evaluate()
     {
-        return Mathf.Cos(GetInputValues()[0]);
+        return Mathf.Cos(GetWeightedInputValues()[0]);
     }
 }

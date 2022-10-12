@@ -3,9 +3,9 @@ public class DivideNeuron : NeuronBase
 {
     public DivideNeuron() : base(2) {}
 
-    public override float Evaluate()
+    protected override float Evaluate()
     {
-        float[] inputValues = GetInputValues();
+        float[] inputValues = GetWeightedInputValues();
         return (inputValues[1] == 0) ? 0 : inputValues[0] / inputValues[1];
     }
 }

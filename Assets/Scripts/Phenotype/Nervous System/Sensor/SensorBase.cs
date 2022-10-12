@@ -1,17 +1,14 @@
 ﻿using UnityEngine;
 
-public abstract class SensorBase : NervousSystemNode
+public abstract class SensorBase : ISignalEmitter
 {
-    public NervousSystemConnection[] outputs;
-
-    private float inputValue;
-
-    public float InputValue
+    private float outputValue;
+    public float OutputValue
     {
-        get { return inputValue; }
+        get { return outputValue; }
         set
         {
-            inputValue = Mathf.Clamp(value, -1f, 1f);
+            outputValue = Mathf.Clamp(value, -1f, 1f);
         }
     }
 }

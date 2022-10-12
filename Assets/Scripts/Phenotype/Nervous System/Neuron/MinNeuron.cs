@@ -4,8 +4,8 @@ public class MinNeuron : NeuronBase
 {
     public MinNeuron() : base(3) {}
 
-    public override float Evaluate()
+    protected override float Evaluate()
     {
-        return Mathf.Max(GetInputValues());
+        return Mathf.Max(GetWeightedInputValues());
     }
 }

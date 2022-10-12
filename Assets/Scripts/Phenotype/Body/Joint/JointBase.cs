@@ -18,8 +18,8 @@ public abstract class JointBase : MonoBehaviour
     protected float maximumJointStrength;
     protected float[] dofAngleLimits;
     protected int[] dofAxisIndices;
-    protected JointAngleSensor[] sensors;
-    protected JointAngleEffector[] effectors;
+    public JointAngleSensor[] sensors;
+    public JointAngleEffector[] effectors;
 
     public Vector3 angles;
     private Vector3 excitations;
@@ -73,10 +73,6 @@ public abstract class JointBase : MonoBehaviour
         return joint;
     }
 
-    public JointAngleSensor[] GetJointAngleSensors() { return sensors; }
-
-    public JointAngleEffector[] GetJointAngleEffectors() { return effectors; }
-
     private void Start()
     {
         intialOriginRotation = Quaternion.Inverse(transform.rotation) * joint.connectedBody.transform.rotation;
@@ -111,11 +107,11 @@ public abstract class JointBase : MonoBehaviour
             debugTertiaryExcitation = 0f;
         }
         if (effectors != null && effectors.Length > 0)
-            effectors[0].outputValue = debugPrimaryExcitation;
+            effectors[0].Excitation = debugPrimaryExcitation;
         if (effectors != null && effectors.Length > 1)
-            effectors[1].outputValue = debugSecondaryExcitation;
+            effectors[1].Excitation = debugSecondaryExcitation;
         if (effectors != null && effectors.Length > 2)
-            effectors[2].outputValue = debugTertiaryExcitation;
+            effectors[2].Excitation = debugTertiaryExcitation;
 
         primaryTorqueDisplay = primaryTorque;
         secondaryTorqueDisplay = secondaryTorque;
@@ -146,7 +142,7 @@ public abstract class JointBase : MonoBehaviour
         {
             for (int dofIndex = 0; dofIndex < sensors.Length; dofIndex++)
             {
-                sensors[dofIndex].InputValue = angles[dofIndex] / dofAngleLimits[dofIndex];
+                sensors[dofIndex].OutputValue = angles[dofIndex] / dofAngleLimits[dofIndex];
             }
         }
     }
@@ -157,7 +153,7 @@ public abstract class JointBase : MonoBehaviour
         {
             for (int dofIndex = 0; dofIndex < effectors.Length; dofIndex++)
             {
-                excitations[dofIndex] = effectors[dofIndex].outputValue;
+                excitations[dofIndex] = effectors[dofIndex].Excitation;
             }
         }
     }

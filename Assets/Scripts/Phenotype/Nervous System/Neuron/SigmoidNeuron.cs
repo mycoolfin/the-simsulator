@@ -5,8 +5,8 @@ public class SigmoidNeuron : NeuronBase
 {
     public SigmoidNeuron() : base(1) {}
 
-    public override float Evaluate()
+    protected override float Evaluate()
     {
-        return 1f / (1f + Mathf.Exp(GetInputValues()[0]));
+        return 1f / (1f + Mathf.Exp(GetWeightedInputValues()[0]));
     }
 }
