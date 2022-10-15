@@ -28,6 +28,8 @@ public abstract class JointBase : MonoBehaviour
 
     private Quaternion intialOriginRotation;
 
+    public float torqueMultiplier = 100f;
+
     // Debug.
     [Range(-1f, 1f)]
     public float debugPrimaryExcitation;
@@ -90,7 +92,7 @@ public abstract class JointBase : MonoBehaviour
         Vector3 secondaryTorque = maximumJointStrength * excitations[1] * secondaryAxis;
         Vector3 tertiaryTorque = maximumJointStrength * excitations[2] * tertiaryAxis;
 
-        GetComponent<Rigidbody>().AddTorque(primaryTorque + secondaryTorque + tertiaryTorque);
+        GetComponent<Rigidbody>().AddTorque((primaryTorque + secondaryTorque + tertiaryTorque) * torqueMultiplier);
 
         angles[0] = Vector3.SignedAngle(transform.rotation * primaryAxis, updatedOriginRotation * primaryAxis, primaryAxis);
         angles[1] = Vector3.SignedAngle(transform.rotation * secondaryAxis, updatedOriginRotation * secondaryAxis, secondaryAxis);
@@ -106,12 +108,12 @@ public abstract class JointBase : MonoBehaviour
             debugSecondaryExcitation = 0f;
             debugTertiaryExcitation = 0f;
         }
-        if (effectors != null && effectors.Length > 0)
-            effectors[0].Excitation = debugPrimaryExcitation;
-        if (effectors != null && effectors.Length > 1)
-            effectors[1].Excitation = debugSecondaryExcitation;
-        if (effectors != null && effectors.Length > 2)
-            effectors[2].Excitation = debugTertiaryExcitation;
+        // if (effectors != null && effectors.Length > 0)
+        //     effectors[0].Excitation = debugPrimaryExcitation;
+        // if (effectors != null && effectors.Length > 1)
+        //     effectors[1].Excitation = debugSecondaryExcitation;
+        // if (effectors != null && effectors.Length > 2)
+        //     effectors[2].Excitation = debugTertiaryExcitation;
 
         primaryTorqueDisplay = primaryTorque;
         secondaryTorqueDisplay = secondaryTorque;
@@ -142,7 +144,7 @@ public abstract class JointBase : MonoBehaviour
         {
             for (int dofIndex = 0; dofIndex < sensors.Length; dofIndex++)
             {
-                sensors[dofIndex].OutputValue = angles[dofIndex] / dofAngleLimits[dofIndex];
+                sensors[dofIndex].OutputValue = dofAngleLimits[dofIndex] == 0 ? 0 : angles[dofIndex] / dofAngleLimits[dofIndex];
             }
         }
     }

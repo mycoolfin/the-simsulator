@@ -6,7 +6,7 @@ public class InterpolateNeuron : NeuronBase
     
     protected override float Evaluate()
     {
-        float[] inputValues = GetWeightedInputValues();
+        float[] inputValues = WeightedInputValues;
         return Mathf.Lerp(inputValues[0], inputValues[1], inputValues[2]);
     }
 }

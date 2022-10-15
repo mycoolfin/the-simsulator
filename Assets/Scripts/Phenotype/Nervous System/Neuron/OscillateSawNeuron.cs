@@ -6,7 +6,7 @@ public class OscillateSawNeuron : NeuronBase
 
     protected override float Evaluate()
     {
-        float[] inputValues = GetWeightedInputValues();
-        return (Time.time % ((1f + inputValues[0]) * inputValues[1])) * inputValues[2];
+        float[] inputValues = WeightedInputValues;
+        return (inputValues[0] == -1f || inputValues[1] == 0) ? 0 : (Time.time % ((1f + inputValues[0]) * inputValues[1])) * inputValues[2];
     }
 }

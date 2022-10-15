@@ -42,6 +42,18 @@ public abstract class NeuronBase : ISignalEmitter, ISignalReceiver
                 throw new System.ArgumentOutOfRangeException("Expected " + numberOfInputs.ToString() + " inputs");
         }
     }
+    private float?[] inputOverrides;
+    public float?[] InputOverrides
+    {
+        get { return inputOverrides; }
+        set
+        {
+            if (value.Length == numberOfInputs)
+                inputOverrides = value;
+            else
+                throw new System.ArgumentOutOfRangeException("Expected " + numberOfInputs.ToString() + " input overrides");
+        }
+    }
     private float[] weights;
     public float[] Weights
     {
@@ -54,6 +66,10 @@ public abstract class NeuronBase : ISignalEmitter, ISignalReceiver
                 throw new System.ArgumentOutOfRangeException("Expected " + numberOfInputs.ToString() + " weights");
         }
     }
+    public float[] WeightedInputValues
+    {
+        get { return Inputs.Select((input, i) => (inputOverrides[i] ?? input.OutputValue) * Weights[0]).ToArray(); }
+    }
     public float OutputValue { get; set; }
     private float nextOutputValue;
 
@@ -61,6 +77,7 @@ public abstract class NeuronBase : ISignalEmitter, ISignalReceiver
     {
         this.numberOfInputs = numberOfInputs;
         Inputs = new ISignalEmitter[numberOfInputs];
+        InputOverrides = new float?[numberOfInputs];
         Weights = new float[numberOfInputs];
     }
 
@@ -143,11 +160,6 @@ public abstract class NeuronBase : ISignalEmitter, ISignalReceiver
         }
         neuron.Weights = weights;
         return neuron;
-    }
-
-    protected float[] GetWeightedInputValues()
-    {
-        return Inputs.Select((input, i) => input.OutputValue * Weights[0]).ToArray();
     }
 
     protected abstract float Evaluate();

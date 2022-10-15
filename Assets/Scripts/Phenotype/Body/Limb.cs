@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class Limb : MonoBehaviour
 {
+    private Vector3 unscaledDimensions;
     public Vector3 Dimensions
     {
         get { return transform.localScale; }
@@ -39,6 +40,9 @@ public class Limb : MonoBehaviour
             limb.neuronInputPreferences[i] = limbNode.neurons[i].inputPreferences;
         }
 
+        limb.unscaledDimensions = limbNode.dimensions;
+        limb.Dimensions = limbNode.dimensions;
+
         limb.childLimbs = new List<Limb>();
 
         return limb;
@@ -63,7 +67,8 @@ public class Limb : MonoBehaviour
          * Quaternion.AngleAxis(limbConnection.orientation.x, Vector3.right)
          * Quaternion.FromToRotation(Vector3.forward, localParentFaceNormal);
 
-        Vector3 childDimensions = Vector3.Scale(childLimbNode.dimensions, limbConnection.scale);
+        Vector3 existingScaling = Vector3.Scale(transform.localScale, new Vector3(1/unscaledDimensions.x, 1/unscaledDimensions.y, 1/unscaledDimensions.z));
+        Vector3 childDimensions = Vector3.Scale(Vector3.Scale(childLimbNode.dimensions, existingScaling), limbConnection.scale);
         Quaternion childRotation = transform.rotation * localChildRotation;
         Vector3 childPosition = transform.TransformPoint(localParentAnchorPoint) + (childRotation * Vector3.forward * childDimensions.z / 2f);
 
@@ -94,6 +99,8 @@ public class Limb : MonoBehaviour
         float parentCrossSectionalArea = transform.localScale[(perpendicularAxis + 1) % 3] * transform.localScale[(perpendicularAxis + 2) % 3];
         float maximumJointStrength = Mathf.Min(childCrossSectionalArea, parentCrossSectionalArea);
         childLimb.joint = JointBase.CreateJoint(childLimbNode.jointType, childLimb.gameObject, GetComponent<Rigidbody>(), maximumJointStrength, childLimbNode.jointLimits);
+        for (int i = 0; i < childLimb.joint.effectors.Length; i++)
+            childLimb.joint.effectors[i].Weights = childLimbNode.jointEffectorWeights[i];
         childLimb.jointEffectorInputPreferences = childLimbNode.jointEffectorInputPreferences;
 
         return childLimb;

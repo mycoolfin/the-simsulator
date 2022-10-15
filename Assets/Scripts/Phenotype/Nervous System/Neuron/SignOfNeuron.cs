@@ -6,6 +6,6 @@ public class SignOfNeuron : NeuronBase
 
     protected override float Evaluate()
     {
-        return Mathf.Sign(GetWeightedInputValues()[0]);
+        return Mathf.Sign(WeightedInputValues[0]);
     }
 }

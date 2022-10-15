@@ -6,6 +6,6 @@ public class CosNeuron : NeuronBase
 
     protected override float Evaluate()
     {
-        return Mathf.Cos(GetWeightedInputValues()[0]);
+        return Mathf.Cos(WeightedInputValues[0]);
     }
 }

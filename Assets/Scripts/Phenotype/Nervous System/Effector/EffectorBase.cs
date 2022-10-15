@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Linq;
+using UnityEngine;
 
 public abstract class EffectorBase : ISignalReceiver
 {
@@ -17,15 +18,31 @@ public abstract class EffectorBase : ISignalReceiver
         }
     }
     public float[] Weights { get; set; }
+    private float?[] inputOverrides;
+    public float?[] InputOverrides
+    {
+        get { return inputOverrides; }
+        set
+        {
+            if (value.Length == numberOfInputs)
+                inputOverrides = value;
+            else
+                throw new System.ArgumentOutOfRangeException("Expected " + numberOfInputs.ToString() + " input overrides");
+        }
+    }
+    public float[] WeightedInputValues
+    {
+        get { return Inputs.Select((input, i) => (inputOverrides[i] ?? input.OutputValue) * Weights[i]).ToArray(); }
+    }
     public float Excitation
     {
-        get { Debug.Log(inputs[0].OutputValue + " : " + Weights[0]);return inputs[0].OutputValue * Weights[0]; }
-        set { inputs[0].OutputValue = Weights[0] == 0 ? 0 : value / Weights[0]; } // Debugging override.
+        get { return Mathf.Clamp(WeightedInputValues[0], -1f, 1f); }
     }
 
     protected EffectorBase()
     {
         Inputs = new ISignalEmitter[numberOfInputs];
+        InputOverrides = new float?[numberOfInputs];
         Weights = new float[numberOfInputs];
     }
 }

@@ -6,7 +6,7 @@ public class SumThresholdNeuron : NeuronBase
 
     protected override float Evaluate()
     {
-        float[] inputValues = GetWeightedInputValues();
+        float[] inputValues = WeightedInputValues;
         return Mathf.Min(inputValues[0] + inputValues[1], inputValues[2]);
     }
 }

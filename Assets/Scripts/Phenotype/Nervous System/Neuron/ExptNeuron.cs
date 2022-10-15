@@ -6,6 +6,6 @@ public class ExptNeuron : NeuronBase
 
     protected override float Evaluate()
     {
-        return Mathf.Exp(GetWeightedInputValues()[0]);
+        return Mathf.Exp(WeightedInputValues[0]);
     }
 }

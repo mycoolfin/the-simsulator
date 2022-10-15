@@ -8,7 +8,7 @@ public class SmoothNeuron : NeuronBase
 
     protected override float Evaluate()
     {
-        float[] inputValues = GetWeightedInputValues();
+        float[] inputValues = WeightedInputValues;
         float diff = inputValues[0] - smoothedValue;
         smoothedValue += Mathf.Sign(diff) * Mathf.Min(Mathf.Abs(diff), Mathf.Abs(inputValues[0]));
         return smoothedValue; 

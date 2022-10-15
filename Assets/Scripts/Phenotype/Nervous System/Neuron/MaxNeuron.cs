@@ -6,6 +6,6 @@ public class MaxNeuron : NeuronBase
 
     protected override float Evaluate()
     {
-        return Mathf.Max(GetWeightedInputValues());
+        return Mathf.Max(WeightedInputValues);
     }
 }

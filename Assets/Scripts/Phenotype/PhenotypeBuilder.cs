@@ -33,7 +33,6 @@ public static class PhenotypeBuilder
             limbContainer = new("Creature");
             limb = Limb.CreateLimb(node);
             limb.transform.parent = limbContainer.transform;
-            limb.Dimensions = node.dimensions;
         }
         else
         {

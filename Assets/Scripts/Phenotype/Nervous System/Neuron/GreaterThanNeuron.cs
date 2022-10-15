@@ -5,7 +5,7 @@ public class GreaterThanNeuron : NeuronBase
 
     protected override float Evaluate()
     {
-        float[] inputValues = GetWeightedInputValues();
+        float[] inputValues = WeightedInputValues;
         return inputValues[0] > inputValues[1] ? 1.0f : -1.0f;
     }
 }

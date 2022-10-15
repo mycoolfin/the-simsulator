@@ -5,7 +5,7 @@ public class ProductNeuron : NeuronBase
 
     protected override float Evaluate()
     {
-        float[] inputValues = GetWeightedInputValues();
+        float[] inputValues = WeightedInputValues;
         return inputValues[0] * inputValues[1];
     }
 }
