@@ -2,7 +2,7 @@
 
 public class ExptNeuron : NeuronBase
 {
-    public ExptNeuron() : base(1) {}
+    protected override NeuronType TypeOfNeuron => NeuronType.Expt;
 
     protected override float Evaluate()
     {

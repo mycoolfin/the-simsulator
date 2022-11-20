@@ -2,7 +2,7 @@
 
 public class MinNeuron : NeuronBase
 {
-    public MinNeuron() : base(3) {}
+    protected override NeuronType TypeOfNeuron => NeuronType.Min;
 
     protected override float Evaluate()
     {

@@ -1,7 +1,6 @@
-﻿
-public class DivideNeuron : NeuronBase
+﻿public class DivideNeuron : NeuronBase
 {
-    public DivideNeuron() : base(2) {}
+    protected override NeuronType TypeOfNeuron => NeuronType.Divide;
 
     protected override float Evaluate()
     {

@@ -13,7 +13,7 @@ public abstract class EffectorBase : ISignalReceiver
             if (value.Length == numberOfInputs)
                 inputs = value;
             else
-                throw new System.ArgumentOutOfRangeException("Expected " + numberOfInputs.ToString() + " inputs.");
+                throw new System.ArgumentException("Expected " + numberOfInputs.ToString() + " inputs.");
 
         }
     }
@@ -27,7 +27,7 @@ public abstract class EffectorBase : ISignalReceiver
             if (value.Length == numberOfInputs)
                 inputOverrides = value;
             else
-                throw new System.ArgumentOutOfRangeException("Expected " + numberOfInputs.ToString() + " input overrides");
+                throw new System.ArgumentException("Expected " + numberOfInputs.ToString() + " input overrides");
         }
     }
     public float[] WeightedInputValues

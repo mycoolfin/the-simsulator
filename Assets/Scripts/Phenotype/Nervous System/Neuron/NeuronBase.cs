@@ -1,45 +1,18 @@
 ﻿using System.Linq;
 
-public enum NeuronType
-{
-    Abs,
-    Atan,
-    Cos,
-    Differentiate,
-    Divide,
-    Expt,
-    GreaterThan,
-    If,
-    Integrate,
-    Interpolate,
-    Log,
-    Max,
-    Memory,
-    Min,
-    OscillateSaw,
-    OscillateWave,
-    Product,
-    Sigmoid,
-    SignOf,
-    Sin,
-    Smooth,
-    Sum,
-    SumThreshold
-}
-
 public abstract class NeuronBase : ISignalEmitter, ISignalReceiver
 {
-    protected readonly int numberOfInputs;
+    protected abstract NeuronType TypeOfNeuron { get; }
     private ISignalEmitter[] inputs;
     public ISignalEmitter[] Inputs
     {
         get { return inputs; }
         set
         {
-            if (value.Length == numberOfInputs)
+            if (value.Length == TypeOfNeuron.NumberOfInputs())
                 inputs = value;
             else
-                throw new System.ArgumentOutOfRangeException("Expected " + numberOfInputs.ToString() + " inputs");
+                throw new System.ArgumentException("Expected " + TypeOfNeuron.NumberOfInputs().ToString() + " inputs, got " + value.Length);
         }
     }
     private float?[] inputOverrides;
@@ -48,10 +21,10 @@ public abstract class NeuronBase : ISignalEmitter, ISignalReceiver
         get { return inputOverrides; }
         set
         {
-            if (value.Length == numberOfInputs)
+            if (value.Length == TypeOfNeuron.NumberOfInputs())
                 inputOverrides = value;
             else
-                throw new System.ArgumentOutOfRangeException("Expected " + numberOfInputs.ToString() + " input overrides");
+                throw new System.ArgumentException("Expected " + TypeOfNeuron.NumberOfInputs().ToString() + " input overrides, got " + value.Length);
         }
     }
     private float[] weights;
@@ -60,10 +33,10 @@ public abstract class NeuronBase : ISignalEmitter, ISignalReceiver
         get { return weights; }
         set
         {
-            if (value.Length == numberOfInputs)
+            if (value.Length == TypeOfNeuron.NumberOfInputs())
                 weights = value;
             else
-                throw new System.ArgumentOutOfRangeException("Expected " + numberOfInputs.ToString() + " weights");
+                throw new System.ArgumentException("Expected " + TypeOfNeuron.NumberOfInputs().ToString() + " weights, got " + value.Length);
         }
     }
     public float[] WeightedInputValues
@@ -73,12 +46,11 @@ public abstract class NeuronBase : ISignalEmitter, ISignalReceiver
     public float OutputValue { get; set; }
     private float nextOutputValue;
 
-    protected NeuronBase(int numberOfInputs)
+    protected NeuronBase()
     {
-        this.numberOfInputs = numberOfInputs;
-        Inputs = new ISignalEmitter[numberOfInputs];
-        InputOverrides = new float?[numberOfInputs];
-        Weights = new float[numberOfInputs];
+        Inputs = new ISignalEmitter[TypeOfNeuron.NumberOfInputs()];
+        InputOverrides = new float?[TypeOfNeuron.NumberOfInputs()];
+        Weights = new float[TypeOfNeuron.NumberOfInputs()];
     }
 
     public static NeuronBase CreateNeuron(NeuronType neuronType, float[] weights)
@@ -95,9 +67,9 @@ public abstract class NeuronBase : ISignalEmitter, ISignalReceiver
             case NeuronType.Cos:
                 neuron = new CosNeuron();
                 break;
-            // case NeuronType.Differentiate:
-            //     neuron = new DifferentiateNeuron();
-            //     break;
+            case NeuronType.Differentiate:
+                neuron = new DifferentiateNeuron();
+                break;
             case NeuronType.Divide:
                 neuron = new DivideNeuron();
                 break;
@@ -108,11 +80,11 @@ public abstract class NeuronBase : ISignalEmitter, ISignalReceiver
                 neuron = new GreaterThanNeuron();
                 break;
             case NeuronType.If:
-                neuron = new AbsNeuron();
+                neuron = new IfNeuron();
                 break;
-            // case NeuronType.Integrate:
-            //     neuron = new IntegrateNeuron();
-            //     break;
+            case NeuronType.Integrate:
+                neuron = new IntegrateNeuron();
+                break;
             case NeuronType.Interpolate:
                 neuron = new InterpolateNeuron();
                 break;

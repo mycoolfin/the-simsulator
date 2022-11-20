@@ -2,7 +2,7 @@
 
 public class BendTwistJoint : JointBase
 {
-    protected override int DegreesOfFreedom => 2;
+    protected override JointType TypeOfJoint => JointType.BendTwist;
 
     public override void Initialise(Rigidbody connectedBody, float maximumJointStrength, float[] dofAngleLimits)
     {
@@ -10,9 +10,10 @@ public class BendTwistJoint : JointBase
 
         InitialiseDOFs(dofAngleLimits);
 
-        joint = gameObject.AddComponent<ConfigurableJoint>();
-        joint.connectedBody = connectedBody;
+        ApplyCommonJointSettings(connectedBody, maximumJointStrength);
+
         joint.anchor = new Vector3(0, 0, -0.5f);
+        joint.axis = Vector3.right;
         joint.secondaryAxis = Vector3.forward;
         joint.xMotion = ConfigurableJointMotion.Locked;
         joint.yMotion = ConfigurableJointMotion.Locked;

@@ -2,7 +2,7 @@
 
 public class RevoluteJoint : JointBase
 {
-    protected override int DegreesOfFreedom => 1;
+    protected override JointType TypeOfJoint => JointType.Revolute;
 
     public override void Initialise(Rigidbody connectedBody, float maximumJointStrength, float[] dofAngleLimits)
     {
@@ -10,8 +10,8 @@ public class RevoluteJoint : JointBase
 
         InitialiseDOFs(dofAngleLimits);
 
-        joint = gameObject.AddComponent<ConfigurableJoint>();
-        joint.connectedBody = connectedBody;
+        ApplyCommonJointSettings(connectedBody, maximumJointStrength);
+
         joint.anchor = new Vector3(0, 0, -0.5f);
         joint.xMotion = ConfigurableJointMotion.Locked;
         joint.yMotion = ConfigurableJointMotion.Locked;

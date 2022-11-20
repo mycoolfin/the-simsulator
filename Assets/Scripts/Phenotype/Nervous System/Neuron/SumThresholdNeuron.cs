@@ -2,7 +2,7 @@
 
 public class SumThresholdNeuron : NeuronBase
 {
-    public SumThresholdNeuron() : base(3) {}
+    protected override NeuronType TypeOfNeuron => NeuronType.SumThreshold;
 
     protected override float Evaluate()
     {

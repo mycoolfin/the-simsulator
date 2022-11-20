@@ -2,7 +2,7 @@
 
 public class CosNeuron : NeuronBase
 {
-    public CosNeuron() : base(1) {}
+    protected override NeuronType TypeOfNeuron => NeuronType.Cos;
 
     protected override float Evaluate()
     {

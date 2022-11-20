@@ -2,7 +2,7 @@
 
 public class SinNeuron : NeuronBase
 {
-    public SinNeuron() : base(1) {}
+    protected override NeuronType TypeOfNeuron => NeuronType.Sin;
     
     protected override float Evaluate()
     {

@@ -2,12 +2,14 @@
 
 public class RigidJoint : JointBase
 {
-    protected override int DegreesOfFreedom => 0;
+    protected override JointType TypeOfJoint => JointType.Rigid;
 
     public override void Initialise(Rigidbody connectedBody, float maximumJointStrength, float[] dofAngleLimits)
     {
-        joint = gameObject.AddComponent<ConfigurableJoint>();
-        joint.connectedBody = connectedBody;
+        InitialiseDOFs(dofAngleLimits);
+
+        ApplyCommonJointSettings(connectedBody, maximumJointStrength);
+
         joint.anchor = new Vector3(0, 0, -0.5f);
         joint.xMotion = ConfigurableJointMotion.Locked;
         joint.yMotion = ConfigurableJointMotion.Locked;
@@ -15,7 +17,5 @@ public class RigidJoint : JointBase
         joint.angularXMotion = ConfigurableJointMotion.Locked;
         joint.angularYMotion = ConfigurableJointMotion.Locked;
         joint.angularZMotion = ConfigurableJointMotion.Locked;
-
-        this.maximumJointStrength = maximumJointStrength;
     }
 }

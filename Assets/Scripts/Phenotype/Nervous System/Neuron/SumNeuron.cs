@@ -1,7 +1,6 @@
-﻿
-public class SumNeuron : NeuronBase
+﻿public class SumNeuron : NeuronBase
 {
-    public SumNeuron() : base(2) {}
+    protected override NeuronType TypeOfNeuron => NeuronType.Sum;
 
     protected override float Evaluate()
     {

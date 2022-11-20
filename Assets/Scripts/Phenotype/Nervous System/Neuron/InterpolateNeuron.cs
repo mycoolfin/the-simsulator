@@ -2,7 +2,7 @@
 
 public class InterpolateNeuron : NeuronBase
 {
-    public InterpolateNeuron() : base(3) {}
+    protected override NeuronType TypeOfNeuron => NeuronType.Interpolate;
     
     protected override float Evaluate()
     {

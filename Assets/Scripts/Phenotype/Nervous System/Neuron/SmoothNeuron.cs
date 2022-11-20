@@ -2,7 +2,7 @@
 
 public class SmoothNeuron : NeuronBase
 {
-    public SmoothNeuron() : base(2) {}
+    protected override NeuronType TypeOfNeuron => NeuronType.Smooth;
 
     float smoothedValue = 0;
 
@@ -10,7 +10,7 @@ public class SmoothNeuron : NeuronBase
     {
         float[] inputValues = WeightedInputValues;
         float diff = inputValues[0] - smoothedValue;
-        smoothedValue += Mathf.Sign(diff) * Mathf.Min(Mathf.Abs(diff), Mathf.Abs(inputValues[0]));
+        smoothedValue += Mathf.Sign(diff) * Mathf.Min(Mathf.Abs(diff), Mathf.Abs(inputValues[1]));
         return smoothedValue; 
     }
 }

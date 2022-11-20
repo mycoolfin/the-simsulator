@@ -2,16 +2,14 @@
 
 public class TwistBendJoint : JointBase
 {
-    protected override int DegreesOfFreedom => 2;
+    protected override JointType TypeOfJoint => JointType.TwistBend;
 
     public override void Initialise(Rigidbody connectedBody, float maximumJointStrength, float[] dofAngleLimits)
     {
-        this.maximumJointStrength = maximumJointStrength;
-
         InitialiseDOFs(dofAngleLimits);
 
-        joint = gameObject.AddComponent<ConfigurableJoint>();
-        joint.connectedBody = connectedBody;
+        ApplyCommonJointSettings(connectedBody, maximumJointStrength);
+
         joint.axis = Vector3.forward;
         joint.secondaryAxis = Vector3.right;
         joint.anchor = new Vector3(0, 0, -0.5f);

@@ -2,7 +2,7 @@
 
 public class SignOfNeuron : NeuronBase
 {
-    public SignOfNeuron() : base(1) {}
+    protected override NeuronType TypeOfNeuron => NeuronType.SignOf;
 
     protected override float Evaluate()
     {

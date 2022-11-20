@@ -1,19 +1,8 @@
 ﻿using UnityEngine;
 
-public enum JointType
-{
-    Rigid,
-    Revolute,
-    Twist,
-    Universal,
-    BendTwist,
-    TwistBend,
-    Spherical
-}
-
 public abstract class JointBase : MonoBehaviour
 {
-    protected abstract int DegreesOfFreedom { get; }
+    protected abstract JointType TypeOfJoint { get; }
     protected ConfigurableJoint joint;
     protected float maximumJointStrength;
     protected float[] dofAngleLimits;
@@ -28,9 +17,8 @@ public abstract class JointBase : MonoBehaviour
 
     private Quaternion intialOriginRotation;
 
-    public float torqueMultiplier = 100f;
-
     // Debug.
+    public bool useDebugExcitations;
     [Range(-1f, 1f)]
     public float debugPrimaryExcitation;
     [Range(-1f, 1f)]
@@ -38,9 +26,9 @@ public abstract class JointBase : MonoBehaviour
     [Range(-1f, 1f)]
     public float debugTertiaryExcitation;
     public bool resetExcitations;
-    public Vector3 primaryTorqueDisplay;
-    public Vector3 secondaryTorqueDisplay;
-    public Vector3 tertiaryTorqueDisplay;
+    public Vector3 primaryStrengthDisplay;
+    public Vector3 secondaryStrengthDisplay;
+    public Vector3 tertiaryStrengthDisplay;
 
     public static JointBase CreateJoint(JointType jointType, GameObject gameObject, Rigidbody connectedBody, float maximumJointStrength, float[] dofAngleLimits)
     {
@@ -56,8 +44,9 @@ public abstract class JointBase : MonoBehaviour
             case JointType.Twist:
                 joint = gameObject.AddComponent<TwistJoint>();
                 break;
-            case JointType.Universal:
-                joint = gameObject.AddComponent<UniversalJoint>();
+            case JointType.Universal: // broken
+                // joint = gameObject.AddComponent<UniversalJoint>();
+                joint = gameObject.AddComponent<RevoluteJoint>();
                 break;
             case JointType.BendTwist:
                 joint = gameObject.AddComponent<BendTwistJoint>();
@@ -88,11 +77,21 @@ public abstract class JointBase : MonoBehaviour
         Vector3 secondaryAxis = transform.rotation * joint.secondaryAxis;
         Vector3 tertiaryAxis = transform.rotation * Vector3.Cross(joint.axis, joint.secondaryAxis);
 
-        Vector3 primaryTorque = maximumJointStrength * excitations[0] * primaryAxis;
-        Vector3 secondaryTorque = maximumJointStrength * excitations[1] * secondaryAxis;
-        Vector3 tertiaryTorque = maximumJointStrength * excitations[2] * tertiaryAxis;
+        float primaryExcitation = useDebugExcitations ? debugPrimaryExcitation : (float.IsNaN(excitations[0]) ? 0f : excitations[0]);
+        float secondaryExcitation = useDebugExcitations ? debugSecondaryExcitation : (float.IsNaN(excitations[1]) ? 0f : excitations[1]);
+        float tertiaryExcitation = useDebugExcitations ? debugTertiaryExcitation : (float.IsNaN(excitations[2]) ? 0f : excitations[2]);
 
-        GetComponent<Rigidbody>().AddTorque((primaryTorque + secondaryTorque + tertiaryTorque) * torqueMultiplier);
+        // Vector3 primaryTorque = maximumJointStrength * primaryExcitation * primaryAxis;
+        // Vector3 secondaryTorque = maximumJointStrength * secondaryExcitation * secondaryAxis;
+        // Vector3 tertiaryTorque = maximumJointStrength * tertiaryExcitation * tertiaryAxis;
+
+        // GetComponent<Rigidbody>().AddTorque((primaryTorque + secondaryTorque + tertiaryTorque) * JointParameters.TorqueMultiplier);
+
+        joint.targetAngularVelocity = new Vector3(
+            primaryExcitation * JointParameters.AngularVelocityMultiplier,
+            secondaryExcitation * JointParameters.AngularVelocityMultiplier,
+            tertiaryExcitation * JointParameters.AngularVelocityMultiplier
+        );
 
         angles[0] = Vector3.SignedAngle(transform.rotation * primaryAxis, updatedOriginRotation * primaryAxis, primaryAxis);
         angles[1] = Vector3.SignedAngle(transform.rotation * secondaryAxis, updatedOriginRotation * secondaryAxis, secondaryAxis);
@@ -108,34 +107,46 @@ public abstract class JointBase : MonoBehaviour
             debugSecondaryExcitation = 0f;
             debugTertiaryExcitation = 0f;
         }
-        // if (effectors != null && effectors.Length > 0)
-        //     effectors[0].Excitation = debugPrimaryExcitation;
-        // if (effectors != null && effectors.Length > 1)
-        //     effectors[1].Excitation = debugSecondaryExcitation;
-        // if (effectors != null && effectors.Length > 2)
-        //     effectors[2].Excitation = debugTertiaryExcitation;
 
-        primaryTorqueDisplay = primaryTorque;
-        secondaryTorqueDisplay = secondaryTorque;
-        tertiaryTorqueDisplay = tertiaryTorque;
+        primaryStrengthDisplay = joint.targetAngularVelocity.x * primaryAxis;
+        secondaryStrengthDisplay = joint.targetAngularVelocity.y * secondaryAxis;
+        tertiaryStrengthDisplay = joint.targetAngularVelocity.z * tertiaryAxis;
     }
 
     protected void InitialiseDOFs(float[] dofAngleLimits)
     {
-        if (dofAngleLimits?.Length != DegreesOfFreedom)
-            throw new System.Exception("Cannot initialise joint - number of DOF Angle Limits must equal " + DegreesOfFreedom.ToString());
+        int dof = TypeOfJoint.DegreesOfFreedom();
+        if (dofAngleLimits?.Length != dof)
+            throw new System.Exception("Cannot initialise joint - number of DOF Angle Limits must equal " + dof.ToString());
 
         this.dofAngleLimits = dofAngleLimits;
-        sensors = new JointAngleSensor[DegreesOfFreedom];
-        for (int i = 0; i < DegreesOfFreedom; i++)
+        sensors = new JointAngleSensor[dof];
+        for (int i = 0; i < dof; i++)
         {
             sensors[i] = new JointAngleSensor();
         }
-        effectors = new JointAngleEffector[DegreesOfFreedom];
-        for (int i = 0; i < DegreesOfFreedom; i++)
+        effectors = new JointAngleEffector[dof];
+        for (int i = 0; i < dof; i++)
         {
             effectors[i] = new JointAngleEffector();
         }
+    }
+
+    protected void ApplyCommonJointSettings(Rigidbody connectedBody, float maximumJointStrength)
+    {
+        joint = gameObject.AddComponent<ConfigurableJoint>();
+        joint.connectedBody = connectedBody;
+        joint.projectionMode = JointProjectionMode.PositionAndRotation;
+        // joint.projectionDistance = 0.01f;
+        // joint.projectionAngle = 5f;
+        // joint.enablePreprocessing = false;
+        joint.rotationDriveMode = RotationDriveMode.Slerp;
+        joint.slerpDrive = new JointDrive
+        {
+            positionSpring = 0.01f,
+            positionDamper = 100000f,
+            maximumForce = maximumJointStrength * JointParameters.StrengthMultiplier
+        };
     }
 
     private void UpdateSensors()
@@ -164,8 +175,8 @@ public abstract class JointBase : MonoBehaviour
     {
         Gizmos.DrawSphere(transform.TransformPoint(joint.anchor), Mathf.Min(transform.localScale.x / 10, transform.localScale.y / 10));
 
-        Debug.DrawLine(transform.TransformPoint(joint.anchor), transform.TransformPoint(joint.anchor) + primaryTorqueDisplay / maximumJointStrength, Color.magenta);
-        Debug.DrawLine(transform.TransformPoint(joint.anchor), transform.TransformPoint(joint.anchor) + secondaryTorqueDisplay / maximumJointStrength, Color.yellow);
-        Debug.DrawLine(transform.TransformPoint(joint.anchor), transform.TransformPoint(joint.anchor) + tertiaryTorqueDisplay / maximumJointStrength, Color.cyan);
+        Debug.DrawLine(transform.TransformPoint(joint.anchor), transform.TransformPoint(joint.anchor) + primaryStrengthDisplay / maximumJointStrength, Color.magenta);
+        Debug.DrawLine(transform.TransformPoint(joint.anchor), transform.TransformPoint(joint.anchor) + secondaryStrengthDisplay / maximumJointStrength, Color.yellow);
+        Debug.DrawLine(transform.TransformPoint(joint.anchor), transform.TransformPoint(joint.anchor) + tertiaryStrengthDisplay / maximumJointStrength, Color.cyan);
     }
 }

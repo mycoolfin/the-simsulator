@@ -2,7 +2,7 @@
 
 public class SigmoidNeuron : NeuronBase
 {
-    public SigmoidNeuron() : base(1) {}
+    protected override NeuronType TypeOfNeuron => NeuronType.Sigmoid;
 
     protected override float Evaluate()
     {

@@ -2,7 +2,7 @@
 
 public class AtanNeuron : NeuronBase
 {
-    public AtanNeuron() : base(1) {}
+    protected override NeuronType TypeOfNeuron => NeuronType.Atan;
 
     protected override float Evaluate()
     {

@@ -2,7 +2,7 @@
 
 public class OscillateWaveNeuron : NeuronBase
 {
-    public OscillateWaveNeuron() : base(3) {}
+    protected override NeuronType TypeOfNeuron => NeuronType.OscillateWave;
 
     protected override float Evaluate()
     {

@@ -1,30 +1,16 @@
-using System.Linq;
-
 public class Brain
 {
     public NeuronBase[] neurons;
+    public float[][] neuronInputPreferences;
 
-    public Brain(NeuronNode[] neuronNodes, Limb[] limbs)
+    public Brain(NeuronDefinition[] neuronDefinitions)
     {
-        neurons = new NeuronBase[neuronNodes.Length];
-        float[][] neuronInputPreferences = new float[neuronNodes.Length][];
-        for (int i = 0; i < neuronNodes.Length; i++)
+        neurons = new NeuronBase[neuronDefinitions.Length];
+        neuronInputPreferences = new float[neuronDefinitions.Length][];
+        for (int i = 0; i < neuronDefinitions.Length; i++)
         {
-            neurons[i] = NeuronBase.CreateNeuron(neuronNodes[i].type, neuronNodes[i].inputWeights);
-            neuronInputPreferences[i] = neuronNodes[i].inputPreferences;
+            neurons[i] = NeuronBase.CreateNeuron(neuronDefinitions[i].type, neuronDefinitions[i].inputWeights);
+            neuronInputPreferences[i] = neuronDefinitions[i].inputPreferences;
         }
-        ConfigureBrainNeurons(limbs, neuronInputPreferences);
-    }
-
-    public void ConfigureBrainNeurons(Limb[] limbs, float[][] inputPreferences)
-    {
-        // The pool of emitters to choose from.
-        // Brain signal receivers can connect to signal emitters located anywhere.
-        ISignalEmitter[] emitterPool = neurons
-        .Concat(limbs.SelectMany(limb => limb.neurons))
-        .Concat(limbs.Where(limb => limb.joint != null).SelectMany(limb => limb.joint.sensors as ISignalEmitter[]))
-        .ToArray();
-
-        NervousSystem.ConfigureSignalReceivers(neurons, inputPreferences, emitterPool);
     }
 }

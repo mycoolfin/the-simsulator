@@ -1,7 +1,6 @@
-﻿
-public class IfNeuron : NeuronBase
+﻿public class IfNeuron : NeuronBase
 {
-    public IfNeuron() : base(3) {}
+    protected override NeuronType TypeOfNeuron => NeuronType.If;
 
     protected override float Evaluate()
     {

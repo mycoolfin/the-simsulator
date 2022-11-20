@@ -1,7 +1,6 @@
-﻿
-public class GreaterThanNeuron : NeuronBase
+﻿public class GreaterThanNeuron : NeuronBase
 {
-    public GreaterThanNeuron() : base(2) {}
+    protected override NeuronType TypeOfNeuron => NeuronType.GreaterThan;
 
     protected override float Evaluate()
     {

@@ -1,7 +1,6 @@
-﻿
-public class ProductNeuron : NeuronBase
+﻿public class ProductNeuron : NeuronBase
 {
-    public ProductNeuron() : base(2) {}
+    protected override NeuronType TypeOfNeuron => NeuronType.Product;
 
     protected override float Evaluate()
     {

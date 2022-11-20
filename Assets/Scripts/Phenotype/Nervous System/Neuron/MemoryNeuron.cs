@@ -1,7 +1,6 @@
-﻿
-public class MemoryNeuron : NeuronBase
+﻿public class MemoryNeuron : NeuronBase
 {
-    public MemoryNeuron() : base(2) {}
+    protected override NeuronType TypeOfNeuron => NeuronType.Memory;
 
     private float storedValue = 0f;
     

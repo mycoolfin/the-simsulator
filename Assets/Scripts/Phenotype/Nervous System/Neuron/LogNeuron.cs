@@ -2,10 +2,10 @@
 
 public class LogNeuron : NeuronBase
 {
-    public LogNeuron() : base(1) {}
+    protected override NeuronType TypeOfNeuron => NeuronType.Log;
     
     protected override float Evaluate()
     {
-        return Mathf.Log(WeightedInputValues[0]);
+        return Mathf.Log(Mathf.Abs(WeightedInputValues[0]));
     }
 }
