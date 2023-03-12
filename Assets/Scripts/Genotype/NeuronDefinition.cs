@@ -67,17 +67,17 @@ public static class NeuronTypeExtensions
 public struct NeuronDefinition
 {
     public readonly NeuronType type;
-    public readonly float[] inputPreferences;
-    public readonly float[] inputWeights;
+    public readonly List<float> inputPreferences;
+    public readonly List<float> inputWeights;
 
-    public NeuronDefinition(NeuronType type, float[] inputPreferences, float[] inputWeights)
+    public NeuronDefinition(NeuronType type, List<float> inputPreferences, List<float> inputWeights)
     {
-        if (inputPreferences.Length != inputWeights.Length)
+        if (inputPreferences.Count != inputWeights.Count)
             throw new System.ArgumentException("Input parameters are improperly specified");
 
         this.type = type;
-        this.inputPreferences = inputPreferences.Select(x => Mathf.Clamp(x, 0f, 1f)).ToArray();
-        this.inputWeights = inputWeights.Select(x => Mathf.Clamp(x, NeuronDefinitionParameters.MinWeight, NeuronDefinitionParameters.MaxWeight)).ToArray();
+        this.inputPreferences = inputPreferences.Select(x => Mathf.Clamp(x, 0f, 1f)).ToList();
+        this.inputWeights = inputWeights.Select(x => Mathf.Clamp(x, NeuronDefinitionParameters.MinWeight, NeuronDefinitionParameters.MaxWeight)).ToList();
     }
 
     public NeuronDefinition CreateCopy()
@@ -96,12 +96,12 @@ public struct NeuronDefinition
 
         int numberOfInputs = type.NumberOfInputs();
 
-        float[] inputPreferences = new float[numberOfInputs];
-        float[] inputWeights = new float[numberOfInputs];
+        List<float> inputPreferences = new List<float>();
+        List<float> inputWeights = new List<float>();
         for (int i = 0; i < numberOfInputs; i++)
         {
-            inputPreferences[i] = UnityEngine.Random.Range(0f, 1f);
-            inputWeights[i] = UnityEngine.Random.Range(NeuronDefinitionGenerationParameters.MinWeight, NeuronDefinitionGenerationParameters.MaxWeight);
+            inputPreferences.Add(UnityEngine.Random.Range(0f, 1f));
+            inputWeights.Add(UnityEngine.Random.Range(NeuronDefinitionGenerationParameters.MinWeight, NeuronDefinitionGenerationParameters.MaxWeight));
         }
         return new NeuronDefinition(type, inputPreferences, inputWeights);
     }

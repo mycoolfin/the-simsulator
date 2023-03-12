@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -8,9 +9,9 @@ public class NervousSystemDisplay : MonoBehaviour
     public VisualTreeAsset nervousSystemSection;
     public VisualTreeAsset nervousSystemNode;
 
-    private SensorBase[] sensors;
-    private NeuronBase[] neurons;
-    private EffectorBase[] effectors;
+    private List<SensorBase> sensors;
+    private List<NeuronBase> neurons;
+    private List<EffectorBase> effectors;
 
     private List<VisualElement> nodes;
     private List<Action> updateFunctions;
@@ -28,14 +29,14 @@ public class NervousSystemDisplay : MonoBehaviour
         VisualElement brainSection = nervousSystemSection.Instantiate();
         scrollView.Add(brainSection);
         VisualElement brainNeuronsPanel = brainSection.Q<VisualElement>("neurons");
-        for (int i = 0; i < phenotype.brain.neurons.Length; i++)
+        for (int i = 0; i < phenotype.brain.neurons.Count; i++)
             brainNeuronsPanel.Add(InstantiateNervousSystemNode(phenotype.brain.neurons[i].GetType().Name, phenotype.brain.neurons[i], phenotype.brain.neurons[i]));
 
         foreach (Limb limb in phenotype.limbs)
         {
-            sensors = limb.joint?.sensors ?? new SensorBase[0];
+            sensors = limb.joint?.sensors.Cast<SensorBase>().ToList() ?? new List<SensorBase>();
             neurons = limb.neurons;
-            effectors = limb.joint?.effectors ?? new EffectorBase[0];
+            effectors = limb.joint?.effectors.Cast<EffectorBase>().ToList() ?? new List<EffectorBase>();
 
             VisualElement section = nervousSystemSection.Instantiate();
             scrollView.Add(section);
@@ -44,11 +45,11 @@ public class NervousSystemDisplay : MonoBehaviour
             VisualElement neuronsPanel = section.Q<VisualElement>("neurons");
             VisualElement effectorsPanel = section.Q<VisualElement>("effectors");
 
-            for (int i = 0; i < sensors.Length; i++)
+            for (int i = 0; i < sensors.Count; i++)
                 sensorsPanel.Add(InstantiateNervousSystemNode(sensors[i].GetType().Name, null, sensors[i]));
-            for (int i = 0; i < neurons.Length; i++)
+            for (int i = 0; i < neurons.Count; i++)
                 neuronsPanel.Add(InstantiateNervousSystemNode(neurons[i].GetType().Name, neurons[i], neurons[i]));
-            for (int i = 0; i < effectors.Length; i++)
+            for (int i = 0; i < effectors.Count; i++)
                 effectorsPanel.Add(InstantiateNervousSystemNode(effectors[i].GetType().Name, effectors[i], null));
         }
 
@@ -72,11 +73,11 @@ public class NervousSystemDisplay : MonoBehaviour
 
         Action updateFunction = () =>
         {
-            float[] inputValues = selfReceiver?.WeightedInputValues;
+            List<float> inputValues = selfReceiver?.GetWeightedInputValues();
             float? outputValue = selfEmitter?.OutputValue;
-            input1Label.text = inputValues?.Length > 0 ? inputValues[0].ToString("0.00") : "";
-            input2Label.text = inputValues?.Length > 1 ? inputValues[1].ToString("0.00") : "";
-            input3Label.text = inputValues?.Length > 2 ? inputValues[2].ToString("0.00") : "";
+            input1Label.text = inputValues?.Count > 0 ? inputValues[0].ToString("0.00") : "";
+            input2Label.text = inputValues?.Count > 1 ? inputValues[1].ToString("0.00") : "";
+            input3Label.text = inputValues?.Count > 2 ? inputValues[2].ToString("0.00") : "";
             outputLabel.text = outputValue?.ToString("0.00") ?? "";
         };
         updateFunctions.Add(updateFunction);
@@ -98,13 +99,13 @@ public class NervousSystemDisplay : MonoBehaviour
 
         foreach (TemplateContainer node in nodes)
         {
-            (ISignalEmitter[] inputs, ISignalEmitter output) = ((ISignalEmitter[], ISignalEmitter))node.userData;
+            (List<ISignalEmitter> inputs, ISignalEmitter output) = ((List<ISignalEmitter>, ISignalEmitter))node.userData;
 
-            for (int i = 0; i < inputs?.Length; i++)
+            for (int i = 0; i < inputs?.Count; i++)
             {
                 foreach (TemplateContainer otherNode in nodes)
                 {
-                    (ISignalEmitter[] otherInputs, ISignalEmitter otherOutput) = ((ISignalEmitter[], ISignalEmitter))otherNode.userData;
+                    (List<ISignalEmitter> otherInputs, ISignalEmitter otherOutput) = ((List<ISignalEmitter>, ISignalEmitter))otherNode.userData;
                     if (otherOutput != null && inputs[i] == otherOutput)
                     {
                         VisualElement inputLabel = node.Q("input-" + (i + 1));

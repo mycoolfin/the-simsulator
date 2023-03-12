@@ -1,4 +1,6 @@
+using System.Linq;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using UnityEngine;
 
 public static class Mutation
@@ -7,11 +9,12 @@ public static class Mutation
     {
         return Genotype.RemoveUnconnectedNodes(new Genotype(
             MutateNeuronDefinitions(genotype.brainNeuronDefinitions),
-            MutateLimbNodes(genotype.limbNodes)
+            MutateLimbNodes(genotype.limbNodes),
+            genotype.lineage
         ));
     }
 
-    private static NeuronDefinition[] MutateNeuronDefinitions(NeuronDefinition[] neuronDefinitions)
+    private static ReadOnlyCollection<NeuronDefinition> MutateNeuronDefinitions(ReadOnlyCollection<NeuronDefinition> neuronDefinitions)
     {
         List<NeuronDefinition> newNeuronDefinitions = new List<NeuronDefinition>();
 
@@ -24,7 +27,7 @@ public static class Mutation
         if (Chance(MutationParameters.AddNeuron))
             newNeuronDefinitions.Add(NeuronDefinition.CreateRandom());
 
-        return newNeuronDefinitions.ToArray();
+        return newNeuronDefinitions.AsReadOnly();
     }
 
     private static NeuronDefinition MutateNeuronDefinition(NeuronDefinition neuronDefinition)
@@ -32,16 +35,16 @@ public static class Mutation
         NeuronType type = Chance(MutationParameters.ChangeNeuronType) ? (NeuronType)MutateEnum(neuronDefinition.type) : neuronDefinition.type;
         int numberOfInputs = type.NumberOfInputs();
 
-        float[] inputPreferences = new float[numberOfInputs];
-        float[] inputWeights = new float[numberOfInputs];
+        List<float> inputPreferences = new List<float>();
+        List<float> inputWeights = new List<float>();
         for (int i = 0; i < numberOfInputs; i++)
         {
-            inputPreferences[i] = i < neuronDefinition.inputPreferences.Length && Chance(MutationParameters.ChangeNeuronInputPreference)
+            inputPreferences.Add(i < neuronDefinition.inputPreferences.Count && Chance(MutationParameters.ChangeNeuronInputPreference)
             ? MutateScalar(neuronDefinition.inputPreferences[i])
-            : Random.Range(0f, 1f);
-            inputWeights[i] = i < neuronDefinition.inputWeights.Length && Chance(MutationParameters.ChangeNeuronInputWeight)
+            : Random.Range(0f, 1f));
+            inputWeights.Add(i < neuronDefinition.inputWeights.Count && Chance(MutationParameters.ChangeNeuronInputWeight)
             ? MutateScalar(neuronDefinition.inputWeights[i])
-            : Random.Range(NeuronDefinitionGenerationParameters.MinWeight, NeuronDefinitionGenerationParameters.MaxWeight);
+            : Random.Range(NeuronDefinitionGenerationParameters.MinWeight, NeuronDefinitionGenerationParameters.MaxWeight));
         }
 
         return new NeuronDefinition(
@@ -51,18 +54,18 @@ public static class Mutation
         );
     }
 
-    private static LimbNode[] MutateLimbNodes(LimbNode[] limbNodes)
+    private static ReadOnlyCollection<LimbNode> MutateLimbNodes(ReadOnlyCollection<LimbNode> limbNodes)
     {
-        LimbNode[] newLimbNodes = new LimbNode[limbNodes.Length + 1];
+        List<LimbNode> newLimbNodes = limbNodes.ToList();
 
         // Always add a new node. It will be garbage collected unless an existing node
         // mutates a connection to it.
-        newLimbNodes[newLimbNodes.Length - 1] = LimbNode.CreateRandom(null);
+        newLimbNodes.Add(LimbNode.CreateRandom(null));
 
-        for (int i = 0; i < limbNodes.Length; i++)
-            newLimbNodes[i] = MutateLimbNode(limbNodes[i], newLimbNodes.Length);
+        for (int i = 0; i < limbNodes.Count; i++)
+            newLimbNodes[i] = MutateLimbNode(limbNodes[i], newLimbNodes.Count);
 
-        return newLimbNodes;
+        return newLimbNodes.AsReadOnly();
     }
 
     private static LimbNode MutateLimbNode(LimbNode limbNode, int numLimbNodes)
@@ -77,8 +80,8 @@ public static class Mutation
 
         int recursiveLimit = Chance(MutationParameters.ChangeRecursiveLimit) ? MutateScalar(limbNode.recursiveLimit) : limbNode.recursiveLimit;
 
-        NeuronDefinition[] neuronDefinitions = MutateNeuronDefinitions(limbNode.neuronDefinitions);
-        LimbConnection[] connections = MutateLimbConnections(limbNode.connections, numLimbNodes);
+        ReadOnlyCollection<NeuronDefinition> neuronDefinitions = MutateNeuronDefinitions(limbNode.neuronDefinitions);
+        ReadOnlyCollection<LimbConnection> connections = MutateLimbConnections(limbNode.connections, numLimbNodes);
 
         return new LimbNode(
             dimensions,
@@ -94,46 +97,43 @@ public static class Mutation
         JointType type = Chance(MutationParameters.ChangeJointType) ? (JointType)MutateEnum(jointDefinition.type) : jointDefinition.type;
         int degreesOfFreedom = type.DegreesOfFreedom();
 
-        float[] limits = new float[degreesOfFreedom];
+        List<float> limits = new List<float>();
         for (int i = 0; i < degreesOfFreedom; i++)
         {
-            limits[i] = i < jointDefinition.limits.Length && Chance(MutationParameters.ChangeJointLimit)
+            limits.Add(i < jointDefinition.limits.Count && Chance(MutationParameters.ChangeJointLimit)
             ? Mathf.Abs(MutateScalar(jointDefinition.limits[i]))
-            : Random.Range(JointDefinitionGenerationParameters.MinAngle, JointDefinitionGenerationParameters.MaxAngle);
+            : Random.Range(JointDefinitionGenerationParameters.MinAngle, JointDefinitionGenerationParameters.MaxAngle));
         }
 
-        float[][] effectorInputPreferences = new float[degreesOfFreedom][];
-        float[][] effectorInputWeights = new float[degreesOfFreedom][];
+        List<ReadOnlyCollection<float>> effectorInputPreferences = new List<ReadOnlyCollection<float>>();
+        List<ReadOnlyCollection<float>> effectorInputWeights = new List<ReadOnlyCollection<float>>();
         for (int i = 0; i < degreesOfFreedom; i++)
         {
-            float[] inputPreferences = new float[1] {
-                i < jointDefinition.effectorInputPreferences.Length && Chance(MutationParameters.ChangeJointEffectorInputPreference)
+            ReadOnlyCollection<float> inputPreferences = (new List<float> {
+                i < jointDefinition.effectorInputPreferences.Count && Chance(MutationParameters.ChangeJointEffectorInputPreference)
                 ? MutateScalar(jointDefinition.effectorInputPreferences[i][0])
                 : Random.Range(0f, 1f)
-            };
-            float[] inputWeights = new float[1] {
-                i < jointDefinition.effectorInputWeights.Length && Chance(MutationParameters.ChangeJointEffectorInputWeight)
+            }).AsReadOnly();
+            ReadOnlyCollection<float> inputWeights = (new List<float> {
+                i < jointDefinition.effectorInputWeights.Count && Chance(MutationParameters.ChangeJointEffectorInputWeight)
                 ? MutateScalar(jointDefinition.effectorInputWeights[i][0])
                 : Random.Range(JointDefinitionGenerationParameters.MinWeight, JointDefinitionGenerationParameters.MaxWeight)
-            };
-            effectorInputPreferences[i] = inputPreferences;
-            effectorInputWeights[i] = inputWeights;
+            }).AsReadOnly();
+            effectorInputPreferences.Add(inputPreferences);
+            effectorInputWeights.Add(inputWeights);
         }
 
         return new JointDefinition(
             type,
-            limits,
-            effectorInputPreferences,
-            effectorInputWeights
+            limits.AsReadOnly(),
+            effectorInputPreferences.AsReadOnly(),
+            effectorInputWeights.AsReadOnly()
         );
     }
 
-    private static LimbConnection[] MutateLimbConnections(LimbConnection[] limbConnections, int numLimbNodes)
+    private static ReadOnlyCollection<LimbConnection> MutateLimbConnections(ReadOnlyCollection<LimbConnection> limbConnections, int numLimbNodes)
     {
-        List<LimbConnection> newLimbConnections = new List<LimbConnection>();
-
-        foreach (LimbConnection limbConnection in limbConnections)
-            newLimbConnections.Add(MutateLimbConnection(limbConnection, numLimbNodes));
+        List<LimbConnection> newLimbConnections = limbConnections.Select(x => MutateLimbConnection(x, numLimbNodes)).ToList();
 
         if (newLimbConnections.Count > 0 && Chance(MutationParameters.RemoveLimbConnection))
             newLimbConnections.RemoveAt(Random.Range(0, newLimbConnections.Count));
@@ -141,7 +141,7 @@ public static class Mutation
         if (Chance(MutationParameters.AddLimbConnection))
             newLimbConnections.Add(LimbConnection.CreateRandom(Random.Range(0, numLimbNodes)));
 
-        return newLimbConnections.ToArray();
+        return newLimbConnections.AsReadOnly();
     }
 
     private static LimbConnection MutateLimbConnection(LimbConnection limbConnection, int numLimbNodes)

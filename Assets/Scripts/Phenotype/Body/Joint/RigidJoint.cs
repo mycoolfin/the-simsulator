@@ -1,15 +1,12 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 
 public class RigidJoint : JointBase
 {
     protected override JointType TypeOfJoint => JointType.Rigid;
 
-    public override void Initialise(Rigidbody connectedBody, float maximumJointStrength, float[] dofAngleLimits)
+    public override void ApplySpecificJointSettings(List<float> dofAngleLimits)
     {
-        InitialiseDOFs(dofAngleLimits);
-
-        ApplyCommonJointSettings(connectedBody, maximumJointStrength);
-
         joint.anchor = new Vector3(0, 0, -0.5f);
         joint.xMotion = ConfigurableJointMotion.Locked;
         joint.yMotion = ConfigurableJointMotion.Locked;

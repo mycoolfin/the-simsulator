@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 
 public class MinNeuron : NeuronBase
 {
@@ -6,6 +7,7 @@ public class MinNeuron : NeuronBase
 
     protected override float Evaluate()
     {
-        return Mathf.Max(WeightedInputValues);
+        List<float> inputValues = GetWeightedInputValues();
+        return Mathf.Min(inputValues[0], inputValues[1], inputValues[2]);
     }
 }

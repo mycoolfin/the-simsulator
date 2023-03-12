@@ -1,16 +1,19 @@
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+
 public class Brain
 {
-    public NeuronBase[] neurons;
-    public float[][] neuronInputPreferences;
+    public List<NeuronBase> neurons;
+    public List<List<float>> neuronInputPreferences;
 
-    public Brain(NeuronDefinition[] neuronDefinitions)
+    public Brain(ReadOnlyCollection<NeuronDefinition> neuronDefinitions)
     {
-        neurons = new NeuronBase[neuronDefinitions.Length];
-        neuronInputPreferences = new float[neuronDefinitions.Length][];
-        for (int i = 0; i < neuronDefinitions.Length; i++)
+        neurons = new List<NeuronBase>();
+        neuronInputPreferences = new List<List<float>>();
+        for (int i = 0; i < neuronDefinitions.Count; i++)
         {
-            neurons[i] = NeuronBase.CreateNeuron(neuronDefinitions[i].type, neuronDefinitions[i].inputWeights);
-            neuronInputPreferences[i] = neuronDefinitions[i].inputPreferences;
+            neurons.Add(NeuronBase.CreateNeuron(neuronDefinitions[i].type, neuronDefinitions[i].inputWeights));
+            neuronInputPreferences.Add(neuronDefinitions[i].inputPreferences);
         }
     }
 }

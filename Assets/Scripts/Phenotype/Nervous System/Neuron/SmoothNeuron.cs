@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 
 public class SmoothNeuron : NeuronBase
 {
@@ -8,7 +9,7 @@ public class SmoothNeuron : NeuronBase
 
     protected override float Evaluate()
     {
-        float[] inputValues = WeightedInputValues;
+        List<float> inputValues = GetWeightedInputValues();
         float diff = inputValues[0] - smoothedValue;
         smoothedValue += Mathf.Sign(diff) * Mathf.Min(Mathf.Abs(diff), Mathf.Abs(inputValues[1]));
         return smoothedValue; 

@@ -1,5 +1,6 @@
 using System.Linq;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using UnityEngine;
 
 public static class Reproduction
@@ -18,11 +19,17 @@ public static class Reproduction
 
         // Apply reproduction method.
         if (methodChoice <= ReproductionParameters.CrossoverProbability)
+        {
             child = Crossover(parent1, parent2);
+        }
         else if (methodChoice <= ReproductionParameters.CrossoverProbability + ReproductionParameters.GraftingProbability)
+        {
             child = Grafting(parent1, parent2);
+        }
         else
-            child = parent1;
+        {
+            child = Asexual(parent1);
+        }
 
         // Apply mutations.
         child = Mutation.Mutate(child);
@@ -32,82 +39,104 @@ public static class Reproduction
 
     private static Genotype Crossover(Genotype parent1, Genotype parent2)
     {
-        List<LimbNode> newLimbNodes = new List<LimbNode>();
+        List<LimbNode> crossedOverLimbNodes = new List<LimbNode>();
 
         // Copy nodes from a parent to the child, alternating the donor parent after each specified crossover interval.
-        bool copyFromParent1 = parent1.limbNodes.Length < parent2.limbNodes.Length;
-        for (int i = 0; i < Mathf.Max(parent1.limbNodes.Length, parent2.limbNodes.Length); i++)
+        bool copyFromParent1 = parent1.limbNodes.Count < parent2.limbNodes.Count;
+        for (int i = 0; i < Mathf.Max(parent1.limbNodes.Count, parent2.limbNodes.Count); i++)
         {
             if (i > 0 && i % ReproductionParameters.CrossoverInterval == 0)
                 copyFromParent1 = !copyFromParent1;
 
             Genotype copySource = copyFromParent1 ? parent1 : parent2;
-            if (copySource.limbNodes.Length > i)
-                newLimbNodes.Add(copySource.limbNodes[i]);
+            if (copySource.limbNodes.Count > i)
+                crossedOverLimbNodes.Add(copySource.limbNodes[i]);
             else
                 break;
         }
 
         // Reassign node connections that now point out of bounds.
-        foreach (LimbNode node in newLimbNodes)
+        ReadOnlyCollection<LimbNode> newLimbNodes = crossedOverLimbNodes.Select(node =>
         {
-            for (int i = 0; i < node.connections.Length; i++)
+            ReadOnlyCollection<LimbConnection> newConnections = node.connections.Select(connection =>
             {
-                if (node.connections[i].childNodeId >= newLimbNodes.Count)
-                    node.connections[i] = new(
-                        Random.Range(0, newLimbNodes.Count),
-                        node.connections[i].parentFace,
-                        node.connections[i].position,
-                        node.connections[i].orientation,
-                        node.connections[i].scale,
-                        node.connections[i].reflection,
-                        node.connections[i].terminalOnly
+                if (connection.childNodeId >= crossedOverLimbNodes.Count)
+                    return new(
+                        Random.Range(0, crossedOverLimbNodes.Count),
+                        connection.parentFace,
+                        connection.position,
+                        connection.orientation,
+                        connection.scale,
+                        connection.reflection,
+                        connection.terminalOnly
                     );
-            }
-        }
+                else
+                    return connection;
+            }).ToList().AsReadOnly();
 
-        return Genotype.RemoveUnconnectedNodes(new Genotype((NeuronDefinition[])parent1.brainNeuronDefinitions.Clone(), newLimbNodes.ToArray()));
+            return node.CreateCopy(newConnections);
+        }).ToList().AsReadOnly();
+
+        return Genotype.RemoveUnconnectedNodes(new Genotype
+        (
+            parent1.brainNeuronDefinitions,
+            newLimbNodes,
+            ConcatLineage(parent1.lineage, "G" + parent1.id + " X " + "G" + parent2.id)
+        ));
     }
 
     private static Genotype Grafting(Genotype recipient, Genotype donor)
     {
-        int numRecipientNodes = recipient.limbNodes.Length;
-        int numDonorNodes = donor.limbNodes.Length;
-        LimbNode[] nodeRow = new LimbNode[numRecipientNodes + numDonorNodes];
-
-        for (int i = 0; i < numRecipientNodes; i++)
-            nodeRow[i] = recipient.limbNodes[i].CreateCopy(null);
+        List<LimbNode> nodeRow = recipient.limbNodes.Select(recipientNode => recipientNode.CreateCopy(null)).ToList();
 
         // Randomly choose a source connection from the recipient side.
-        int[] graftCandidateIds = nodeRow.Take(numRecipientNodes).Select((node, i) => node.connections.Length > 0 ? i : -1).Where(i => i != -1).ToArray();
-        int graftCandidateId = graftCandidateIds[Random.Range(0, graftCandidateIds.Length)];
-        int connectionId = Random.Range(0, nodeRow[graftCandidateId].connections.Length);
+        List<int> graftCandidateIds = recipient.limbNodes.Select((node, i) => node.connections.Count > 0 ? i : -1).Where(i => i != -1).ToList();
+        int graftCandidateId = graftCandidateIds[Random.Range(0, graftCandidateIds.Count)];
+        int connectionId = Random.Range(0, recipient.limbNodes[graftCandidateId].connections.Count);
 
         // Randomly choose a destination node from the donor side.
-        int graftDestination = Random.Range(numRecipientNodes, numDonorNodes);
+        int graftDestinationId = Random.Range(recipient.limbNodes.Count, recipient.limbNodes.Count + donor.limbNodes.Count);
 
         // Graft the source connection to the destination node.
         LimbNode graftCandidate = recipient.limbNodes[graftCandidateId];
         nodeRow[graftCandidateId] = graftCandidate.CreateCopy(graftCandidate.connections.Select((connection, i) =>
         {
             if (i == connectionId)
-                return graftCandidate.connections[i].CreateCopy(graftDestination);
+                return graftCandidate.connections[i].CreateCopy(graftDestinationId);
             else
                 return graftCandidate.connections[i];
-        }).ToArray());
+        }).ToList().AsReadOnly());
 
         // Adjust nodes copied from graft donor to account for new length of node list.
-        int idOffset = nodeRow.Length - numDonorNodes;
-        for (int i = 0; i < numDonorNodes; i++)
+        foreach (LimbNode donorNode in donor.limbNodes)
         {
-            LimbNode donorNode = donor.limbNodes[i];
-            nodeRow[i + numRecipientNodes] = donorNode.CreateCopy(donorNode.connections.Select(connection =>
+            nodeRow.Add(donorNode.CreateCopy(donorNode.connections.Select(connection =>
             {
-                int adjustedChildNodeId = connection.childNodeId + numRecipientNodes;
+                int adjustedChildNodeId = connection.childNodeId + recipient.limbNodes.Count;
                 return connection.CreateCopy(adjustedChildNodeId);
-            }).ToArray());
+            }).ToList().AsReadOnly()));
         }
 
-        return Genotype.RemoveUnconnectedNodes(new Genotype((NeuronDefinition[])recipient.brainNeuronDefinitions.Clone(), nodeRow));
+        return Genotype.RemoveUnconnectedNodes(new Genotype
+        (
+            recipient.brainNeuronDefinitions,
+            nodeRow.AsReadOnly(),
+            ConcatLineage(recipient.lineage, "G" + recipient.id + " <- " + "G" + donor.id)
+        ));
+    }
+
+    private static Genotype Asexual(Genotype parent1)
+    {
+        return new Genotype
+        (
+            parent1.brainNeuronDefinitions,
+            parent1.limbNodes,
+            ConcatLineage(parent1.lineage, "G" + parent1.id + " +")
+        );
+    }
+
+    private static ReadOnlyCollection<string> ConcatLineage(ReadOnlyCollection<string> lineage, string nextEvent)
+    {
+        return lineage.ToList().Concat(new List<string>() { nextEvent }).ToList().AsReadOnly();
     }
 }

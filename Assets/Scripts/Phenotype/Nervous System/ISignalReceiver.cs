@@ -1,8 +1,9 @@
+using System.Collections.Generic;
 
 public interface ISignalReceiver
 {
-    ISignalEmitter[] Inputs { get; }
-    float?[] InputOverrides { get; }
-    float[] Weights { get; }
-    float[] WeightedInputValues { get; }
+    List<ISignalEmitter> Inputs { get; }
+    List<float?> InputOverrides { get; }
+    List<float> Weights { get; }
+    List<float> GetWeightedInputValues();
 }

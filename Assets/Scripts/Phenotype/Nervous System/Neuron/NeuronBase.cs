@@ -1,59 +1,60 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 
 public abstract class NeuronBase : ISignalEmitter, ISignalReceiver
 {
     protected abstract NeuronType TypeOfNeuron { get; }
-    private ISignalEmitter[] inputs;
-    public ISignalEmitter[] Inputs
+    private List<ISignalEmitter> inputs;
+    public List<ISignalEmitter> Inputs
     {
         get { return inputs; }
         set
         {
-            if (value.Length == TypeOfNeuron.NumberOfInputs())
+            if (value.Count == TypeOfNeuron.NumberOfInputs())
                 inputs = value;
             else
-                throw new System.ArgumentException("Expected " + TypeOfNeuron.NumberOfInputs().ToString() + " inputs, got " + value.Length);
+                throw new System.ArgumentException("Expected " + TypeOfNeuron.NumberOfInputs().ToString() + " inputs, got " + value.Count);
         }
     }
-    private float?[] inputOverrides;
-    public float?[] InputOverrides
+    private List<float?> inputOverrides;
+    public List<float?> InputOverrides
     {
         get { return inputOverrides; }
         set
         {
-            if (value.Length == TypeOfNeuron.NumberOfInputs())
+            if (value.Count == TypeOfNeuron.NumberOfInputs())
                 inputOverrides = value;
             else
-                throw new System.ArgumentException("Expected " + TypeOfNeuron.NumberOfInputs().ToString() + " input overrides, got " + value.Length);
+                throw new System.ArgumentException("Expected " + TypeOfNeuron.NumberOfInputs().ToString() + " input overrides, got " + value.Count);
         }
     }
-    private float[] weights;
-    public float[] Weights
+    private List<float> weights;
+    public List<float> Weights
     {
         get { return weights; }
         set
         {
-            if (value.Length == TypeOfNeuron.NumberOfInputs())
+            if (value.Count == TypeOfNeuron.NumberOfInputs())
                 weights = value;
             else
-                throw new System.ArgumentException("Expected " + TypeOfNeuron.NumberOfInputs().ToString() + " weights, got " + value.Length);
+                throw new System.ArgumentException("Expected " + TypeOfNeuron.NumberOfInputs().ToString() + " weights, got " + value.Count);
         }
     }
-    public float[] WeightedInputValues
+    public List<float> GetWeightedInputValues()
     {
-        get { return Inputs.Select((input, i) => (inputOverrides[i] ?? input.OutputValue) * Weights[0]).ToArray(); }
+        return Inputs.Select((input, i) => (inputOverrides[i] ?? input.OutputValue) * Weights[0]).ToList();
     }
     public float OutputValue { get; set; }
     private float nextOutputValue;
 
     protected NeuronBase()
     {
-        Inputs = new ISignalEmitter[TypeOfNeuron.NumberOfInputs()];
-        InputOverrides = new float?[TypeOfNeuron.NumberOfInputs()];
-        Weights = new float[TypeOfNeuron.NumberOfInputs()];
+        Inputs = new ISignalEmitter[TypeOfNeuron.NumberOfInputs()].ToList();
+        InputOverrides = new float?[TypeOfNeuron.NumberOfInputs()].ToList();
+        Weights = new float[TypeOfNeuron.NumberOfInputs()].ToList();
     }
 
-    public static NeuronBase CreateNeuron(NeuronType neuronType, float[] weights)
+    public static NeuronBase CreateNeuron(NeuronType neuronType, List<float> weights)
     {
         NeuronBase neuron;
         switch (neuronType)

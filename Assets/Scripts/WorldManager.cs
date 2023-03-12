@@ -19,11 +19,14 @@ public class WorldManager : MonoBehaviour
 
     public GameObject ground;
     public bool simulateFluid;
-    public float fluidViscosity;
+    public float fluidDensity;
     public bool gravity;
     private Vector3 defaultGravity = new Vector3(0f, -9.81f, 0f);
 
-    private void Update()
+
+    public bool test = false;
+
+    private void FixedUpdate()
     {
         Physics.gravity = gravity ? defaultGravity : Vector3.zero;
     }

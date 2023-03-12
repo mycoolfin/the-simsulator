@@ -6,6 +6,6 @@ public class AbsNeuron : NeuronBase
 
     protected override float Evaluate()
     {
-        return Mathf.Abs(WeightedInputValues[0]);
+        return Mathf.Abs(GetWeightedInputValues()[0]);
     }
 }

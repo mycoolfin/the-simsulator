@@ -1,17 +1,12 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 
 public class TwistJoint : JointBase
 {
     protected override JointType TypeOfJoint => JointType.Twist;
 
-    public override void Initialise(Rigidbody connectedBody, float maximumJointStrength, float[] dofAngleLimits)
+    public override void ApplySpecificJointSettings(List<float> dofAngleLimits)
     {
-        this.maximumJointStrength = maximumJointStrength;
-
-        InitialiseDOFs(dofAngleLimits);
-
-        ApplyCommonJointSettings(connectedBody, maximumJointStrength);
-
         joint.axis = Vector3.forward;
         joint.secondaryAxis = Vector3.right;
         joint.anchor = new Vector3(0, 0, -0.5f);

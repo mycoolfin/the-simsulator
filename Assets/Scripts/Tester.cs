@@ -1,4 +1,7 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq;
+using UnityEngine;
 
 public class Tester : MonoBehaviour
 {
@@ -18,7 +21,6 @@ public class Tester : MonoBehaviour
 
     private void OffspringTest()
     {
-
         Genotype parent1 = Worm();
         Genotype parent2 = Genotype.CreateRandom();
         Genotype child = Reproduction.CreateOffspring(parent1, parent2);
@@ -54,47 +56,57 @@ public class Tester : MonoBehaviour
         // Time.timeScale = 10;
     }
 
-    private Genotype Jointed()
-    {
-        LimbConnection connection = new(0, 5, Vector2.zero, Vector3.zero, new Vector3(0.8f, 0.8f, 0.8f), false, false);
-        LimbNode segment = new(new Vector3(10f, 10f, 20f), new JointDefinition(JointType.TwistBend, new float[] { 90f, 90f }, new float[][] { new float[] { Random.Range(0f, 1f) }, new float[] { Random.Range(0f, 1f) } }, new float[][] { new float[] { 1f }, new float[] { 1f } }), 1, new NeuronDefinition[] { }, new LimbConnection[] { connection });
-        LimbNode[] limbNodes = new[] { segment };
-        NeuronDefinition[] brainNeuronDefinitions = new NeuronDefinition[] { };
-        return new Genotype(brainNeuronDefinitions, limbNodes);
-    }
+    // private Genotype Jointed()
+    // {
+    //     LimbConnection connection = new(0, 5, Vector2.zero, Vector3.zero, new Vector3(0.8f, 0.8f, 0.8f), false, false);
+    //     LimbNode segment = new(new Vector3(10f, 10f, 20f), new JointDefinition(JointType.TwistBend, new List<float> { 90f, 90f }, new List<List<float>> { new List<float> { Random.Range(0f, 1f) }, new List<float> { Random.Range(0f, 1f) } }, new List<List<float>> { new List<float> { 1f }, new List<float> { 1f } }), 1, new List<NeuronDefinition> { }, new LimbConnection[] { connection });
+    //     List<LimbNode> limbNodes = new() { segment };
+    //     List<NeuronDefinition> brainNeuronDefinitions = new List<NeuronDefinition> { };
+    //     return new Genotype(brainNeuronDefinitions, limbNodes);
+    // }
 
     private Genotype Worm()
     {
-        NeuronDefinition product = new(NeuronType.Product, new float[2] { Random.Range(0f, 1f), Random.Range(0f, 1f) }, new float[2] { Random.Range(-10f, 10f), Random.Range(-10f, 10f) });
 
-        LimbConnection connection = new(0, 5, Vector2.zero, Vector3.zero, new Vector3(0.8f, 0.8f, 0.8f), false, false);
-        LimbNode segment = new(new Vector3(1f, 1f, 2f), new JointDefinition(JointType.TwistBend, new float[] { 90f, 90f }, new float[][] { new float[] { Random.Range(0f, 1f) }, new float[] { Random.Range(0f, 1f) } }, new float[][] { new float[] { 1f }, new float[] { 1f } }), 20, new NeuronDefinition[] { product }, new LimbConnection[] { connection });
-        LimbNode[] limbNodes = new[] { segment };
+        NeuronDefinition wave = new(NeuronType.OscillateWave,
+         (new List<float> { 1f, 1f, 1f }),
+         (new List<float> { 2f, 1f, 1f })
+         );
 
+        LimbConnection connection = new(0, 5, Vector2.zero, Vector3.zero, new Vector3(0.9f, 1f, 1f), false, false);
+        LimbNode segment = new(new Vector3(2f, 0.1f, 0.7f),
+        new JointDefinition(
+            JointType.Revolute,
+            (new List<float> { 45f }).AsReadOnly(),
+             (new List<ReadOnlyCollection<float>> { (new List<float> { 0.40f } ).AsReadOnly() } ).AsReadOnly(),
+             (new List<ReadOnlyCollection<float>> { (new List<float> { 1f } ).AsReadOnly() } ).AsReadOnly()),
+              15,
+               (new List<NeuronDefinition> {  }).AsReadOnly(),
+                (new List<LimbConnection> { connection }).AsReadOnly());
+        List<LimbNode> limbNodes = new() { segment };
 
-        NeuronDefinition oscSaw = new(NeuronType.OscillateSaw, new float[3] { Random.Range(0f, 1f), Random.Range(0f, 1f), Random.Range(0f, 1f) }, new float[3] { Random.Range(-10f, 10f), Random.Range(-10f, 10f), Random.Range(-10f, 10f) });
-        NeuronDefinition[] brainNeuronDefinitions = new NeuronDefinition[] { oscSaw };
+        List<NeuronDefinition> brainNeuronDefinitions = new List<NeuronDefinition> { wave };
 
-        return new Genotype(brainNeuronDefinitions, limbNodes);
+        return new Genotype(brainNeuronDefinitions.AsReadOnly(), limbNodes.AsReadOnly(), null);
     }
 
-    private Genotype Human()
-    {
-        LimbConnection headConnection = new(1, 4, Vector2.zero, Vector3.zero, Vector3.one, false, false);
-        LimbConnection leftArmConnection = new(2, 0, new Vector2(0.8f, 0f), new Vector3(30f, 0f, 0f), Vector3.one, false, false);
-        LimbConnection rightArmConnection = new(2, 0, new Vector2(0.8f, 0f), new Vector3(30f, 0f, 0f), Vector3.one, true, false);
-        LimbConnection leftLegConnection = new(2, 1, new Vector2(0f, -0.8f), new Vector3(-30f, -90f, 0f), Vector3.one, false, false);
-        LimbConnection rightLegConnection = new(2, 1, new Vector2(0f, 0.8f), new Vector3(-30f, -90f, 0f), Vector3.one, false, false);
-        LimbConnection limbConnection = new(2, 5, new Vector2(0f, 0f), new Vector3(30f, 0f, 0f), Vector3.one, false, false);
+    //     private Genotype Human()
+    //     {
+    //         LimbConnection headConnection = new(1, 4, Vector2.zero, Vector3.zero, Vector3.one, false, false);
+    //         LimbConnection leftArmConnection = new(2, 0, new Vector2(0.8f, 0f), new Vector3(30f, 0f, 0f), Vector3.one, false, false);
+    //         LimbConnection rightArmConnection = new(2, 0, new Vector2(0.8f, 0f), new Vector3(30f, 0f, 0f), Vector3.one, true, false);
+    //         LimbConnection leftLegConnection = new(2, 1, new Vector2(0f, -0.8f), new Vector3(-30f, -90f, 0f), Vector3.one, false, false);
+    //         LimbConnection rightLegConnection = new(2, 1, new Vector2(0f, 0.8f), new Vector3(-30f, -90f, 0f), Vector3.one, false, false);
+    //         LimbConnection limbConnection = new(2, 5, new Vector2(0f, 0f), new Vector3(30f, 0f, 0f), Vector3.one, false, false);
 
-        LimbNode body = new(new Vector3(0.5f, 0.5f, 0.5f), new JointDefinition(JointType.Rigid, null, null, null), 0, null, new LimbConnection[] { headConnection, leftArmConnection, rightArmConnection, leftLegConnection, rightLegConnection });
-        LimbNode head = new(new Vector3(0.3f, 0.3f, 0.4f), new JointDefinition(JointType.Twist, new float[] { 90f }, new float[][] { new float[] { Random.Range(0f, 1f) } }, new float[][] { new float[] { Random.Range(-10f, 10f) } }), 0, null, null);
-        LimbNode limb = new(new Vector3(0.1f, 0.1f, 0.4f), new JointDefinition(JointType.TwistBend, new float[] { 10f, 10f }, new float[][] { new float[] { Random.Range(0f, 1f) }, new float[] { Random.Range(0f, 1f) } }, new float[][] { new float[] { Random.Range(-10f, 10f) }, new float[] { Random.Range(-10f, 10f) } }), 1, null, new[] { limbConnection });
-        LimbNode[] limbNodes = new[] { body, head, limb };
+    //         LimbNode body = new(new Vector3(0.5f, 0.5f, 0.5f), new JointDefinition(JointType.Rigid, null, null, null), 0, null, new LimbConnection[] { headConnection, leftArmConnection, rightArmConnection, leftLegConnection, rightLegConnection });
+    //         LimbNode head = new(new Vector3(0.3f, 0.3f, 0.4f), new JointDefinition(JointType.Twist, new List<float> { 90f }, new List<List<float>> { new List<float> { Random.Range(0f, 1f) } }, new List<List<float>> { new List<float> { Random.Range(-10f, 10f) } }), 0, null, null);
+    //         LimbNode limb = new(new Vector3(0.1f, 0.1f, 0.4f), new JointDefinition(JointType.TwistBend, new List<float> { 10f, 10f }, new List<List<float>> { new List<float> { Random.Range(0f, 1f) }, new List<float> { Random.Range(0f, 1f) } }, new List<List<float>> { new List<float> { Random.Range(-10f, 10f) }, new List<float> { Random.Range(-10f, 10f) } }), 1, null, new() { limbConnection });
+    //         List<LimbNode> limbNodes = new() { body, head, limb };
 
-        NeuronDefinition testNeuron = new(NeuronType.OscillateSaw, new float[3] { Random.Range(0f, 1f), Random.Range(0f, 1f), Random.Range(0f, 1f) }, new float[3] { Random.Range(-10f, 10f), Random.Range(-10f, 10f), Random.Range(-10f, 10f) });
-        NeuronDefinition[] brainNeuronDefinitions = new[] { testNeuron };
+    //         NeuronDefinition testNeuron = new(NeuronType.OscillateSaw, new float[3] { Random.Range(0f, 1f), Random.Range(0f, 1f), Random.Range(0f, 1f) }, new float[3] { Random.Range(-10f, 10f), Random.Range(-10f, 10f), Random.Range(-10f, 10f) });
+    //         List<NeuronDefinition> brainNeuronDefinitions = new() { testNeuron };
 
-        return new Genotype(brainNeuronDefinitions, limbNodes);
-    }
+    //         return new Genotype(brainNeuronDefinitions, limbNodes);
+    //     }
 }

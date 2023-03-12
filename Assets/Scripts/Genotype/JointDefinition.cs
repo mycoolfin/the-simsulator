@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using UnityEngine;
 
 public enum JointType
@@ -34,19 +35,19 @@ public static class JointTypeExtensions
 public struct JointDefinition
 {
     public readonly JointType type;
-    public readonly float[] limits;
-    public readonly float[][] effectorInputPreferences;
-    public readonly float[][] effectorInputWeights;
+    public readonly ReadOnlyCollection<float> limits;
+    public readonly ReadOnlyCollection<ReadOnlyCollection<float>> effectorInputPreferences;
+    public readonly ReadOnlyCollection<ReadOnlyCollection<float>> effectorInputWeights;
 
-    public JointDefinition(JointType type, float[] limits, float[][] effectorInputPreferences, float[][] effectorInputWeights)
+    public JointDefinition(JointType type, ReadOnlyCollection<float> limits, ReadOnlyCollection<ReadOnlyCollection<float>> effectorInputPreferences, ReadOnlyCollection<ReadOnlyCollection<float>> effectorInputWeights)
     {
-        if (limits?.Length != effectorInputPreferences?.Length || limits?.Length != effectorInputWeights?.Length)
+        if (limits?.Count != effectorInputPreferences?.Count || limits?.Count != effectorInputWeights?.Count)
             throw new System.ArgumentException("Joint parameters are improperly specified");
 
         this.type = type;
-        this.limits = limits.Select(x => Mathf.Clamp(x, JointDefinitionGenerationParameters.MinAngle, JointDefinitionGenerationParameters.MaxAngle)).ToArray();
-        this.effectorInputPreferences = effectorInputPreferences.Select(x => x.Select(y => Mathf.Clamp(y, 0f, 1f)).ToArray()).ToArray();
-        this.effectorInputWeights = effectorInputWeights.Select(x => x.Select(y => Mathf.Clamp(y, JointDefinitionGenerationParameters.MinWeight, JointDefinitionGenerationParameters.MaxWeight)).ToArray()).ToArray();
+        this.limits = limits.Select(x => Mathf.Clamp(x, JointDefinitionGenerationParameters.MinAngle, JointDefinitionGenerationParameters.MaxAngle)).ToList().AsReadOnly();
+        this.effectorInputPreferences = effectorInputPreferences.Select(x => x.Select(y => Mathf.Clamp(y, 0f, 1f)).ToList().AsReadOnly()).ToList().AsReadOnly();
+        this.effectorInputWeights = effectorInputWeights.Select(x => x.Select(y => Mathf.Clamp(y, JointDefinitionGenerationParameters.MinWeight, JointDefinitionGenerationParameters.MaxWeight)).ToList().AsReadOnly()).ToList().AsReadOnly();
     }
 
     public JointDefinition CreateCopy()
@@ -66,17 +67,17 @@ public struct JointDefinition
 
         int jointDof = type.DegreesOfFreedom();
 
-        float[] limits = new float[jointDof];
-        float[][] effectorInputPreferences = new float[jointDof][];
-        float[][] effectorInputWeights = new float[jointDof][];
+        List<float> limits = new List<float>();
+        List<ReadOnlyCollection<float>> effectorInputPreferences = new List<ReadOnlyCollection<float>>();
+        List<ReadOnlyCollection<float>> effectorInputWeights = new List<ReadOnlyCollection<float>>();
 
         for (int i = 0; i < jointDof; i++)
         {
-            limits[i] = UnityEngine.Random.Range(JointDefinitionGenerationParameters.MinAngle, JointDefinitionGenerationParameters.MaxAngle);
-            effectorInputPreferences[i] = new float[] { UnityEngine.Random.Range(0f, 1f) };
-            effectorInputWeights[i] = new float[] { UnityEngine.Random.Range(JointDefinitionGenerationParameters.MinWeight, JointDefinitionGenerationParameters.MaxWeight) };
+            limits.Add(UnityEngine.Random.Range(JointDefinitionGenerationParameters.MinAngle, JointDefinitionGenerationParameters.MaxAngle));
+            effectorInputPreferences.Add((new List<float> { UnityEngine.Random.Range(0f, 1f) }).AsReadOnly());
+            effectorInputWeights.Add((new List<float> { UnityEngine.Random.Range(JointDefinitionGenerationParameters.MinWeight, JointDefinitionGenerationParameters.MaxWeight) }).AsReadOnly());
         }
 
-        return new JointDefinition(type, limits, effectorInputPreferences, effectorInputWeights);
+        return new JointDefinition(type, limits.AsReadOnly(), effectorInputPreferences.AsReadOnly(), effectorInputWeights.AsReadOnly());
     }
 }

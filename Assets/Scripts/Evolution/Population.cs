@@ -1,22 +1,28 @@
+using System.Collections.Generic;
+
+public class AssessableGenotype
+{
+    public Genotype genotype;
+    public float? fitness;
+}
+
 public class Population
 {
-    public int size;
-    public Genotype[] genotypes;
-    public float[] fitnesses;
+    public List<AssessableGenotype> assessableGenotypes;
+
+    public Population() { }
 
     public Population(int populationSize)
     {
-        this.size = populationSize;
-        this.genotypes = new Genotype[populationSize];
-        this.fitnesses = new float[populationSize];
+        assessableGenotypes = new();
         for (int i = 0; i < populationSize; i++)
-            this.genotypes[i] = Genotype.CreateRandom();
+            this.assessableGenotypes.Add(new() { genotype = Genotype.CreateRandom() });
     }
 
-    public Population(Genotype[] genotypes)
+    public Population(List<Genotype> genotypes)
     {
-        this.size = genotypes.Length;
-        this.genotypes = genotypes;
-        this.fitnesses = new float[genotypes.Length];
+        assessableGenotypes = new();
+        for (int i = 0; i < genotypes.Count; i++)
+            this.assessableGenotypes.Add(new() { genotype = genotypes[i] });
     }
 }

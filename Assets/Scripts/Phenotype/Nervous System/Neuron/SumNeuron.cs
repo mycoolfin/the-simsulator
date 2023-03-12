@@ -1,10 +1,12 @@
-﻿public class SumNeuron : NeuronBase
+﻿using System.Collections.Generic;
+
+public class SumNeuron : NeuronBase
 {
     protected override NeuronType TypeOfNeuron => NeuronType.Sum;
 
     protected override float Evaluate()
     {
-        float[] inputValues = WeightedInputValues;
+        List<float> inputValues = GetWeightedInputValues();
         return inputValues[0] + inputValues[1];
     }
 }

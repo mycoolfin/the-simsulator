@@ -6,6 +6,6 @@ public class SinNeuron : NeuronBase
     
     protected override float Evaluate()
     {
-        return Mathf.Sin(WeightedInputValues[0]);
+        return Mathf.Sin(GetWeightedInputValues()[0]);
     }
 }

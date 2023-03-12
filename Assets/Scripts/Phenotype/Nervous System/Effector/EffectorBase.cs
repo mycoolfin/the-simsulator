@@ -1,48 +1,49 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public abstract class EffectorBase : ISignalReceiver
 {
     private readonly int numberOfInputs = 1;
-    private ISignalEmitter[] inputs;
-    public ISignalEmitter[] Inputs
+    private List<ISignalEmitter> inputs;
+    public List<ISignalEmitter> Inputs
     {
         get { return inputs; }
         set
         {
-            if (value.Length == numberOfInputs)
+            if (value.Count == numberOfInputs)
                 inputs = value;
             else
-                throw new System.ArgumentException("Expected " + numberOfInputs.ToString() + " inputs.");
+                throw new System.ArgumentException("Expected " + numberOfInputs.ToString() + " inputs, got " + value.Count + ".");
 
         }
     }
-    public float[] Weights { get; set; }
-    private float?[] inputOverrides;
-    public float?[] InputOverrides
+    public List<float> Weights { get; set; }
+    private List<float?> inputOverrides;
+    public List<float?> InputOverrides
     {
         get { return inputOverrides; }
         set
         {
-            if (value.Length == numberOfInputs)
+            if (value.Count == numberOfInputs)
                 inputOverrides = value;
             else
-                throw new System.ArgumentException("Expected " + numberOfInputs.ToString() + " input overrides");
+                throw new System.ArgumentException("Expected " + numberOfInputs.ToString() + " input overrides, got " + value.Count + ".");
         }
     }
-    public float[] WeightedInputValues
+    public List<float> GetWeightedInputValues()
     {
-        get { return Inputs.Select((input, i) => (inputOverrides[i] ?? input.OutputValue) * Weights[i]).ToArray(); }
+        return Inputs.Select((input, i) => (inputOverrides[i] ?? input.OutputValue) * Weights[i]).ToList();
     }
-    public float Excitation
+    public float GetExcitation()
     {
-        get { return Mathf.Clamp(WeightedInputValues[0], -1f, 1f); }
+        return Mathf.Clamp(GetWeightedInputValues()[0], -1f, 1f);
     }
 
     protected EffectorBase()
     {
-        Inputs = new ISignalEmitter[numberOfInputs];
-        InputOverrides = new float?[numberOfInputs];
-        Weights = new float[numberOfInputs];
+        Inputs = new ISignalEmitter[numberOfInputs].ToList();
+        InputOverrides = new float?[numberOfInputs].ToList();
+        Weights = new float[numberOfInputs].ToList();
     }
 }

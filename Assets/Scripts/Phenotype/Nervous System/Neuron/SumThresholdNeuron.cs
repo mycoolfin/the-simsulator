@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 
 public class SumThresholdNeuron : NeuronBase
 {
@@ -6,7 +7,7 @@ public class SumThresholdNeuron : NeuronBase
 
     protected override float Evaluate()
     {
-        float[] inputValues = WeightedInputValues;
+        List<float> inputValues = GetWeightedInputValues();
         return Mathf.Min(inputValues[0] + inputValues[1], inputValues[2]);
     }
 }

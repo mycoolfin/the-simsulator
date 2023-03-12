@@ -1,9 +1,13 @@
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class Phenotype : MonoBehaviour
 {
+    public Genotype genotype;
+    public List<string> lineage;
     public Brain brain;
-    public Limb[] limbs;
+    public List<Limb> limbs;
 
     public float fitness;
 
@@ -12,6 +16,7 @@ public class Phenotype : MonoBehaviour
     private void Start()
     {
         meshRenderers = GetComponentsInChildren<MeshRenderer>();
+        lineage = genotype.lineage.ToList();
     }
 
     private void FixedUpdate()
@@ -48,7 +53,7 @@ public class Phenotype : MonoBehaviour
 
     public bool IsValid()
     {
-        bool atLeastTwoLimbs = this.limbs.Length > 1;
+        bool atLeastTwoLimbs = this.limbs.Count > 1;
 
         Bounds phenotypeBounds = GetBounds();
         bool validSize = phenotypeBounds.extents.x < PhenotypeParameters.MaxSize && phenotypeBounds.extents.y < PhenotypeParameters.MaxSize && phenotypeBounds.extents.z < PhenotypeParameters.MaxSize;

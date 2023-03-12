@@ -1,3 +1,6 @@
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq;
 using UnityEngine;
 
 public static class PhenotypeBuilder
@@ -9,19 +12,22 @@ public static class PhenotypeBuilder
 
         // Create limbs.
         GameObject limbContainer = RecursivelyAddLimbs(genotype.limbNodes, null, null, 0);
-        Limb[] limbs = limbContainer.GetComponentsInChildren<Limb>();
+        List<Limb> limbs = limbContainer.GetComponentsInChildren<Limb>().ToList();
 
         // Wire up nervous system.
         NervousSystem.Configure(brain, limbs);
 
         Phenotype phenotype = limbContainer.AddComponent<Phenotype>();
+        phenotype.genotype = genotype;
         phenotype.brain = brain;
         phenotype.limbs = limbs;
+
+        phenotype.gameObject.name = "P of G" + genotype.id;
 
         return phenotype;
     }
 
-    private static GameObject RecursivelyAddLimbs(LimbNode[] limbNodes, LimbConnection? connectionToParent, Limb parentLimb, int nodeRecursionCount)
+    private static GameObject RecursivelyAddLimbs(ReadOnlyCollection<LimbNode> limbNodes, LimbConnection? connectionToParent, Limb parentLimb, int nodeRecursionCount)
     {
         GameObject limbContainer = null;
 
@@ -31,7 +37,7 @@ public static class PhenotypeBuilder
         Limb limb;
         if (connectionToParent == null) // Create a new creature.
         {
-            limbContainer = new("Creature " + Random.Range(1, 1000));
+            limbContainer = new();
             limb = Limb.CreateLimb(node);
             limb.name = "Limb 1";
             limb.transform.parent = limbContainer.transform;

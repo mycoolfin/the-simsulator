@@ -54,8 +54,9 @@ public static class LimbParameters
 
 public static class JointParameters
 {
-    public const float StrengthMultiplier = 50f;
-    public const float AngularVelocityMultiplier = 10f;
+    public const float StrengthMultiplier = 1f;
+    public const float AngularVelocityMultiplier = 1f;
+    public const float SmoothingMultiplier = 10f;
 }
 
 public static class LimbNodeParameters
@@ -79,7 +80,7 @@ public static class NervousSystemParameters
 
 public static class PhenotypeParameters
 {
-    public const float MaxSize = 20f;
+    public const float MaxSize = 10f;
 }
 
 public static class PhenotypeBuilderParameters

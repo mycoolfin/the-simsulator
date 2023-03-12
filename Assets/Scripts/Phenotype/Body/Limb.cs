@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class Limb : MonoBehaviour
@@ -15,10 +16,10 @@ public class Limb : MonoBehaviour
     }
 
     public JointBase joint;
-    public float[][] jointEffectorInputPreferences;
+    public List<List<float>> jointEffectorInputPreferences;
 
-    public NeuronBase[] neurons;
-    public float[][] neuronInputPreferences;
+    public List<NeuronBase> neurons;
+    public List<List<float>> neuronInputPreferences;
 
     public Limb parentLimb;
     public List<Limb> childLimbs;
@@ -28,16 +29,17 @@ public class Limb : MonoBehaviour
         Limb limb = Instantiate(ResourceManager.Instance.limbPrefab).GetComponent<Limb>();
 
         // Add the limb neurons, but don't wire them up until later (when we have a complete morphology to reference).
-        limb.neurons = new NeuronBase[limbNode.neuronDefinitions.Length];
-        limb.neuronInputPreferences = new float[limbNode.neuronDefinitions.Length][];
-        for (int i = 0; i < limbNode.neuronDefinitions.Length; i++)
+        limb.neurons = new List<NeuronBase>();
+        limb.neuronInputPreferences = new List<List<float>>();
+        for (int i = 0; i < limbNode.neuronDefinitions.Count; i++)
         {
-            limb.neurons[i] = NeuronBase.CreateNeuron(limbNode.neuronDefinitions[i].type, limbNode.neuronDefinitions[i].inputWeights);
-            limb.neuronInputPreferences[i] = limbNode.neuronDefinitions[i].inputPreferences;
+            limb.neurons.Add(NeuronBase.CreateNeuron(limbNode.neuronDefinitions[i].type, limbNode.neuronDefinitions[i].inputWeights));
+            limb.neuronInputPreferences.Add(limbNode.neuronDefinitions[i].inputPreferences);
         }
 
-        limb.unscaledDimensions = limbNode.dimensions;
-        limb.Dimensions = limbNode.dimensions;
+        Vector3 clampedDimensions = ClampDimensions(limbNode.dimensions);
+        limb.unscaledDimensions = clampedDimensions;
+        limb.Dimensions = clampedDimensions;
 
         limb.childLimbs = new List<Limb>();
 
@@ -64,22 +66,26 @@ public class Limb : MonoBehaviour
          * Quaternion.FromToRotation(Vector3.forward, localParentFaceNormal);
 
         Vector3 existingScaling = Vector3.Scale(transform.localScale, new Vector3(1f / unscaledDimensions.x, 1f / unscaledDimensions.y, 1f / unscaledDimensions.z));
-        Vector3 childDimensions = Vector3.Scale(Vector3.Scale(childLimbNode.dimensions, existingScaling), limbConnection.scale);
-
-        // If the new limb has invalid dimensions, abandon creation.
-        if (!ValidDimensions(childDimensions))
-            return null;
+        Vector3 childDimensions = ClampDimensions(Vector3.Scale(Vector3.Scale(childLimbNode.dimensions, existingScaling), limbConnection.scale));
 
         Quaternion childRotation = transform.rotation * localChildRotation;
         Vector3 childPosition = transform.TransformPoint(localParentAnchorPoint) + (childRotation * Vector3.forward * childDimensions.z / 2f);
 
-        // If the new limb intersects with an existing limb on this creature that is not its parent, abandon creation.
-        foreach (Collider col in Physics.OverlapBox(childPosition, childDimensions / 2f, childRotation))
+        // If the new limb intersects with an existing limb on this creature, abandon creation.
+        Collider[] looseCheck = Physics.OverlapBox(childPosition, childDimensions / 4f, childRotation);
+        if (looseCheck.Any(col =>
         {
             Limb collidedLimb = col.gameObject.GetComponent<Limb>();
-            if (collidedLimb != null && (collidedLimb.transform.parent == transform.parent && collidedLimb != this))
-                return null;
-        }
+            return collidedLimb != null && collidedLimb.transform.parent == transform.parent;
+        }))
+            return null;
+        Collider[] strictCheck = Physics.OverlapBox(childPosition, childDimensions / 2f, childRotation);
+        if (strictCheck.Any(col =>
+        {
+            Limb collidedLimb = col.gameObject.GetComponent<Limb>();
+            return collidedLimb != null && collidedLimb.transform.parent == transform.parent && collidedLimb != this;
+        }))
+            return null;
 
         // Create the limb.
         Limb childLimb = CreateLimb(childLimbNode);
@@ -94,20 +100,22 @@ public class Limb : MonoBehaviour
         float childCrossSectionalArea = childLimb.transform.localScale.x * childLimb.transform.localScale.y;
         float parentCrossSectionalArea = transform.localScale[(perpendicularAxis + 1) % 3] * transform.localScale[(perpendicularAxis + 2) % 3];
         float maximumJointStrength = Mathf.Min(childCrossSectionalArea, parentCrossSectionalArea);
-        childLimb.joint = JointBase.CreateJoint(childLimbNode.jointDefinition.type, childLimb.gameObject, GetComponent<Rigidbody>(), maximumJointStrength, childLimbNode.jointDefinition.limits);
-        for (int i = 0; i < childLimb.joint.effectors.Length; i++)
-            childLimb.joint.effectors[i].Weights = childLimbNode.jointDefinition.effectorInputWeights[i];
-        childLimb.jointEffectorInputPreferences = childLimbNode.jointDefinition.effectorInputPreferences;
+        childLimb.joint = JointBase.CreateJoint(childLimbNode.jointDefinition.type, childLimb.gameObject, GetComponent<Rigidbody>(), maximumJointStrength, childLimbNode.jointDefinition.limits.ToList());
+        for (int i = 0; i < childLimb.joint.effectors.Count; i++)
+            childLimb.joint.effectors[i].Weights = childLimbNode.jointDefinition.effectorInputWeights[i].ToList();
+        childLimb.jointEffectorInputPreferences = childLimbNode.jointDefinition.effectorInputPreferences.Select(x => x.ToList()).ToList();
 
-        Physics.SyncTransforms(); // Runs a physics frame to ensure that colliders are positioned correctly for potential children.
+        Physics.SyncTransforms(); // Ensure that colliders are positioned correctly for potential children.
 
         return childLimb;
     }
 
-    private bool ValidDimensions(Vector3 dimensions)
+    private static Vector3 ClampDimensions(Vector3 dimensions)
     {
-        return dimensions.x > LimbParameters.MinScale && dimensions.x < LimbParameters.MaxScale &&
-            dimensions.y > LimbParameters.MinScale && dimensions.y < LimbParameters.MaxScale &&
-            dimensions.z > LimbParameters.MinScale && dimensions.z < LimbParameters.MaxScale;
+        return new Vector3(
+            Mathf.Clamp(dimensions.x, LimbParameters.MinScale, LimbParameters.MaxScale),
+            Mathf.Clamp(dimensions.y, LimbParameters.MinScale, LimbParameters.MaxScale),
+            Mathf.Clamp(dimensions.z, LimbParameters.MinScale, LimbParameters.MaxScale)
+        );
     }
 }

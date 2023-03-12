@@ -1,4 +1,6 @@
-﻿public class MemoryNeuron : NeuronBase
+﻿using System.Collections.Generic;
+
+public class MemoryNeuron : NeuronBase
 {
     protected override NeuronType TypeOfNeuron => NeuronType.Memory;
 
@@ -6,7 +8,7 @@
     
     protected override float Evaluate()
     {
-        float[] inputValues = WeightedInputValues;
+        List<float> inputValues = GetWeightedInputValues();
         if (inputValues[0] > 0)
             storedValue = inputValues[1];
         return storedValue;

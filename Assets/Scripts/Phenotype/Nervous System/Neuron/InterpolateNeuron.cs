@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+
+using UnityEngine;
 
 public class InterpolateNeuron : NeuronBase
 {
@@ -6,7 +8,7 @@ public class InterpolateNeuron : NeuronBase
     
     protected override float Evaluate()
     {
-        float[] inputValues = WeightedInputValues;
+        List<float> inputValues = GetWeightedInputValues();
         return Mathf.Lerp(inputValues[0], inputValues[1], inputValues[2]);
     }
 }

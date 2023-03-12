@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 
 public class DifferentiateNeuron : NeuronBase
 {
@@ -8,7 +9,7 @@ public class DifferentiateNeuron : NeuronBase
 
     protected override float Evaluate()
     {
-        float[] inputValues = WeightedInputValues;
+        List<float> inputValues = GetWeightedInputValues();
         float diff = inputValues[0] - storedValue;
         float newValue = storedValue + diff * Mathf.Abs(inputValues[1]);
         if (!float.IsNaN(newValue))

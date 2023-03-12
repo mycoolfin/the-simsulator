@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 
 public class IntegrateNeuron : NeuronBase
 {
@@ -8,7 +9,7 @@ public class IntegrateNeuron : NeuronBase
 
     protected override float Evaluate()
     {
-        float[] inputValues = WeightedInputValues;
+        List<float> inputValues = GetWeightedInputValues();
         float newValue = storedValue + inputValues[0] - (Mathf.Abs(inputValues[1]) * storedValue);
         if (!float.IsNaN(newValue))
             storedValue = newValue;

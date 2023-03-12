@@ -1,10 +1,12 @@
-﻿public class GreaterThanNeuron : NeuronBase
+﻿using System.Collections.Generic;
+
+public class GreaterThanNeuron : NeuronBase
 {
     protected override NeuronType TypeOfNeuron => NeuronType.GreaterThan;
 
     protected override float Evaluate()
     {
-        float[] inputValues = WeightedInputValues;
+        List<float> inputValues = GetWeightedInputValues();
         return inputValues[0] > inputValues[1] ? 1.0f : -1.0f;
     }
 }
