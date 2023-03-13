@@ -60,7 +60,7 @@ public class FluidForces : MonoBehaviour
                     float surfaceArea = (surfaceAreas[face % 3] / 4);
                     Vector3 pointVelocity = rb.GetPointVelocity(faceQuadrantCenter);
                     float dragForce = GetSurfaceDragForce(faceQuadrantCenter, directions[face], pointVelocity, surfaceArea);
-                    rb.AddForceAtPosition(dragForce * (WorldManager.Instance.test ? pointVelocity.normalized : directions[face]), faceQuadrantCenter);
+                    rb.AddForceAtPosition(dragForce * directions[face], faceQuadrantCenter);
                     quadrantVelocities[face][quadrant] = pointVelocity;
                 }
             }
@@ -113,11 +113,11 @@ public class FluidForces : MonoBehaviour
                     float surfaceArea = (surfaceAreas[face % 3] / 4);
                     Vector3 pointVelocity = rb.GetPointVelocity(faceQuadrantCenter);
                     float dragForce = GetSurfaceDragForce(faceQuadrantCenter, directions[face], pointVelocity, surfaceArea);
-                    Gizmos.color = (WorldManager.Instance.test ? Color.cyan : Color.magenta);
+                    Gizmos.color = Color.magenta;
                     if (dragForce != 0)
                     {
                         Gizmos.DrawCube(faceQuadrantCenter, Vector3.one * 0.1f);
-                        Gizmos.DrawLine(faceQuadrantCenter, faceQuadrantCenter - Mathf.Max(-rb.mass, dragForce) * (WorldManager.Instance.test ? pointVelocity.normalized : directions[face]));
+                        Gizmos.DrawLine(faceQuadrantCenter, faceQuadrantCenter - Mathf.Max(-rb.mass, dragForce) * directions[face]);
                     }
                 }
             }

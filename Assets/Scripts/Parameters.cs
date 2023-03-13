@@ -67,8 +67,8 @@ public static class LimbNodeParameters
 
 public static class LimbConnectionParameters
 {
-    public const float MinAngle = -90f;
-    public const float MaxAngle = 90f;
+    public const float MinAngle = -45f;
+    public const float MaxAngle = 45f;
 }
 
 public static class NervousSystemParameters

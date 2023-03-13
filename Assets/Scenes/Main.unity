@@ -210,7 +210,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 583422337}
   m_LocalRotation: {x: 0.40821788, y: -0.23456968, z: 0.10938163, w: 0.8754261}
-  m_LocalPosition: {x: 0, y: 3, z: 0}
+  m_LocalPosition: {x: 0, y: 100, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -276,10 +276,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ground: {fileID: 1577311695}
+  timeScale: 1
+  minimumFps: 30
+  throttledTimeScale: 0
   simulateFluid: 1
   fluidDensity: 1
   gravity: 0
-  test: 0
+  useComputeShaderForNNs: 0
 --- !u!1 &1035819349
 GameObject:
   m_ObjectHideFlags: 0
@@ -296,7 +299,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &1035819350
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -403,7 +406,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1294992365
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -416,12 +419,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f067e36067e8e4fa59fd2ff398dcb853, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  trial: 1
-  numberOfIterations: 100
-  populationSize: 50
+  trial: 0
+  numberOfIterations: 500
+  populationSize: 100
   survivalRatio: 0.2
-  timeScale: 1
+  pauseIterating: 0
   exitEarly: 0
+  colourByRelativeFitness: 0
+  filterByPotentialSurvivors: 0
   iterationsRemaining: 0
   bestFitness: 0
 --- !u!4 &1294992366

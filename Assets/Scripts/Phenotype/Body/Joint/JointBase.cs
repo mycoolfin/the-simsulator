@@ -84,6 +84,14 @@ public abstract class JointBase : MonoBehaviour
 
     private void FixedUpdate()
     {
+        if (!joint)
+        {
+            // Decouple the limb.
+            transform.parent = null;
+            Destroy(this);
+            return;
+        }
+
         Quaternion updatedOriginRotation = joint.connectedBody.transform.rotation * Quaternion.Inverse(intialOriginRotation);
 
         // Calculate axes and axis angles.
@@ -152,21 +160,18 @@ public abstract class JointBase : MonoBehaviour
     {
         joint = gameObject.AddComponent<ConfigurableJoint>();
         joint.connectedBody = connectedBody;
-        joint.projectionMode = JointProjectionMode.PositionAndRotation;
-        joint.enablePreprocessing = false;
+        joint.enablePreprocessing = true;
         joint.rotationDriveMode = RotationDriveMode.XYAndZ;
-        joint.angularXDrive = new JointDrive
+        JointDrive jointDrive = new JointDrive
         {
             positionSpring = 10f,
             positionDamper = maximumJointStrength * JointParameters.StrengthMultiplier * 10f,
             maximumForce = maximumJointStrength * JointParameters.StrengthMultiplier * 100f
         };
-        joint.angularYZDrive = new JointDrive
-        {
-            positionSpring = 10f,
-            positionDamper = maximumJointStrength * JointParameters.StrengthMultiplier * 10f,
-            maximumForce = maximumJointStrength * JointParameters.StrengthMultiplier * 100f
-        };
+        joint.angularXDrive = jointDrive;
+        joint.angularYZDrive = jointDrive;
+        joint.breakForce = maximumJointStrength * 10000f;
+        joint.breakTorque = maximumJointStrength * 1000f;
     }
 
     private void UpdateSensors()
@@ -211,6 +216,9 @@ public abstract class JointBase : MonoBehaviour
 
     private void OnDrawGizmosSelected()
     {
+        if (!joint)
+            return;
+
         Gizmos.DrawSphere(transform.TransformPoint(joint.anchor), Mathf.Min(transform.localScale.x / 10, transform.localScale.y / 10));
 
         Debug.DrawLine(transform.TransformPoint(joint.anchor), transform.TransformPoint(joint.anchor) + primaryStrengthDisplay, Color.red);

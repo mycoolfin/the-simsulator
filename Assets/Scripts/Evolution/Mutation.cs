@@ -7,11 +7,12 @@ public static class Mutation
 {
     public static Genotype Mutate(Genotype genotype)
     {
-        return Genotype.RemoveUnconnectedNodes(new Genotype(
+        return new Genotype(
+            genotype.id,
+            genotype.lineage,
             MutateNeuronDefinitions(genotype.brainNeuronDefinitions),
-            MutateLimbNodes(genotype.limbNodes),
-            genotype.lineage
-        ));
+            MutateLimbNodes(genotype.limbNodes)
+        );
     }
 
     private static ReadOnlyCollection<NeuronDefinition> MutateNeuronDefinitions(ReadOnlyCollection<NeuronDefinition> neuronDefinitions)

@@ -71,21 +71,21 @@ public class Limb : MonoBehaviour
         Quaternion childRotation = transform.rotation * localChildRotation;
         Vector3 childPosition = transform.TransformPoint(localParentAnchorPoint) + (childRotation * Vector3.forward * childDimensions.z / 2f);
 
-        // If the new limb intersects with an existing limb on this creature, abandon creation.
-        Collider[] looseCheck = Physics.OverlapBox(childPosition, childDimensions / 4f, childRotation);
-        if (looseCheck.Any(col =>
-        {
-            Limb collidedLimb = col.gameObject.GetComponent<Limb>();
-            return collidedLimb != null && collidedLimb.transform.parent == transform.parent;
-        }))
-            return null;
-        Collider[] strictCheck = Physics.OverlapBox(childPosition, childDimensions / 2f, childRotation);
-        if (strictCheck.Any(col =>
-        {
-            Limb collidedLimb = col.gameObject.GetComponent<Limb>();
-            return collidedLimb != null && collidedLimb.transform.parent == transform.parent && collidedLimb != this;
-        }))
-            return null;
+        // // If the new limb intersects with an existing limb on this creature, abandon creation.
+        // Collider[] looseCheck = Physics.OverlapBox(childPosition, childDimensions / 4f, childRotation);
+        // if (looseCheck.Any(col =>
+        // {
+        //     Limb collidedLimb = col.gameObject.GetComponent<Limb>();
+        //     return collidedLimb != null && collidedLimb.transform.parent == transform.parent;
+        // }))
+        //     return null;
+        // Collider[] strictCheck = Physics.OverlapBox(childPosition, childDimensions / 2f, childRotation);
+        // if (strictCheck.Any(col =>
+        // {
+        //     Limb collidedLimb = col.gameObject.GetComponent<Limb>();
+        //     return collidedLimb != null && collidedLimb.transform.parent == transform.parent && collidedLimb != this;
+        // }))
+        //     return null;
 
         // Create the limb.
         Limb childLimb = CreateLimb(childLimbNode);
@@ -106,6 +106,11 @@ public class Limb : MonoBehaviour
         childLimb.jointEffectorInputPreferences = childLimbNode.jointDefinition.effectorInputPreferences.Select(x => x.ToList()).ToList();
 
         Physics.SyncTransforms(); // Ensure that colliders are positioned correctly for potential children.
+
+        // Disable collisions with all other limbs on this body.
+        Collider thisCol = childLimb.GetComponent<Collider>();
+        foreach (Collider col in transform.parent.GetComponentsInChildren<Collider>())
+            Physics.IgnoreCollision(thisCol, col);
 
         return childLimb;
     }

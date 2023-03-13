@@ -77,12 +77,13 @@ public static class Reproduction
             return node.CreateCopy(newConnections);
         }).ToList().AsReadOnly();
 
-        return Genotype.RemoveUnconnectedNodes(new Genotype
+        return new Genotype
         (
+            null,
+            ConcatLineage(parent1.lineage, "G" + parent1.id + " X " + "G" + parent2.id),
             parent1.brainNeuronDefinitions,
-            newLimbNodes,
-            ConcatLineage(parent1.lineage, "G" + parent1.id + " X " + "G" + parent2.id)
-        ));
+            newLimbNodes
+        );
     }
 
     private static Genotype Grafting(Genotype recipient, Genotype donor)
@@ -117,21 +118,23 @@ public static class Reproduction
             }).ToList().AsReadOnly()));
         }
 
-        return Genotype.RemoveUnconnectedNodes(new Genotype
+        return new Genotype
         (
+            null,
+            ConcatLineage(recipient.lineage, "G" + recipient.id + " <- " + "G" + donor.id),
             recipient.brainNeuronDefinitions,
-            nodeRow.AsReadOnly(),
-            ConcatLineage(recipient.lineage, "G" + recipient.id + " <- " + "G" + donor.id)
-        ));
+            nodeRow.AsReadOnly()
+        );
     }
 
     private static Genotype Asexual(Genotype parent1)
     {
         return new Genotype
         (
+            null,
+            ConcatLineage(parent1.lineage, "G" + parent1.id + " +"),
             parent1.brainNeuronDefinitions,
-            parent1.limbNodes,
-            ConcatLineage(parent1.lineage, "G" + parent1.id + " +")
+            parent1.limbNodes
         );
     }
 

@@ -12,19 +12,27 @@ public enum TrialType
 
 public class EvolutionSimulator : MonoBehaviour
 {
-    [Header("Simulation Parameters")]
+    [Header("Initialisation Parameters")]
     public TrialType trial = TrialType.Running;
     public int numberOfIterations;
     public int populationSize;
     [Range(0f, 1f)]
     public float survivalRatio;
-    [Range(0f, 5f)]
-    public float timeScale;
+    private int maxSurvivors;
+
+    [Header("Runtime Parameters")]
+    public bool pauseIterating;
     public bool exitEarly;
+
+    [Header("Visualisation Parameters")]
+    public bool colourByRelativeFitness;
+    public bool filterByPotentialSurvivors;
 
     [Header("Outputs")]
     public int iterationsRemaining;
     public float bestFitness;
+
+    private Population population;
 
     private void Start()
     {
@@ -51,7 +59,7 @@ public class EvolutionSimulator : MonoBehaviour
 
     private void Update()
     {
-        Time.timeScale = timeScale;
+        VisualisePopulation();
     }
 
     private IEnumerator Run(int numberOfIterations, int populationSize, float survivalRatio, AssessmentFunction assessmentFunction)
@@ -62,37 +70,49 @@ public class EvolutionSimulator : MonoBehaviour
         List<float> averageFitnesses = new List<float>();
         iterationsRemaining = numberOfIterations;
 
-        Population population = new Population(populationSize);
-        int maxSurvivors = Mathf.CeilToInt(populationSize * survivalRatio);
+        population = new Population(populationSize);
+        maxSurvivors = Mathf.CeilToInt(populationSize * survivalRatio);
 
         for (int i = 0; i < numberOfIterations; i++)
         {
             yield return StartCoroutine(AssessFitnesses(population, assessmentFunction));
 
-            Population survivors = SelectSurvivors(population, maxSurvivors);
-            int survivorCount = survivors.assessableGenotypes.Count;
+            List<Individual> survivors = SelectSurvivors(population, maxSurvivors);
+            int survivorCount = survivors.Count;
 
-            if (survivorCount > 0 && survivors.assessableGenotypes[0].fitness > bestFitness)
+            if (survivorCount > 0 && survivors[0].fitness > bestFitness)
             {
-                bestGenotype = survivors.assessableGenotypes[0].genotype;
-                bestFitness = (float)survivors.assessableGenotypes[0].fitness;
+                bestGenotype = survivors[0].genotype;
+                bestFitness = (float)survivors[0].fitness;
             }
 
             bestFitnesses.Add(bestFitness);
-            averageFitnesses.Add(population.assessableGenotypes.Average(x => x.fitness ?? 0));
+            averageFitnesses.Add(population.individuals.Average(x => x.fitness));
 
             Debug.Log("Iteration " + (i + 1) + ": Best fitness = " + bestFitnesses.Last() + ", Average Fitness = " + averageFitnesses.Last());
 
-            population = ProduceNextGeneration(populationSize, populationSize - maxSurvivors, survivors);
+            while (pauseIterating)
+                yield return null;
+
+            ResetWorld();
+
+            yield return null; // Gives time for cleanup to complete.
 
             iterationsRemaining--;
 
             if (exitEarly)
                 break;
+
+            population = ProduceNextGeneration(populationSize, populationSize - maxSurvivors, survivors);
         }
 
+        Debug.Log("Finished.");
+
         if (bestGenotype != null)
-            ParadeGenotype((Genotype)bestGenotype, assessmentFunction);
+        {
+            Phenotype phenotype = PhenotypeBuilder.ConstructPhenotype((Genotype)bestGenotype);
+            Debug.Break();
+        }
     }
 
     private IEnumerator AssessFitnesses(Population population, AssessmentFunction assessmentFunction)
@@ -101,33 +121,16 @@ public class EvolutionSimulator : MonoBehaviour
 
         Physics.simulationMode = SimulationMode.Script;
 
-        for (int i = 0; i < population.assessableGenotypes.Count; i++)
+        foreach (Individual individual in population.individuals)
         {
-            Phenotype phenotype = PhenotypeBuilder.ConstructPhenotype(population.assessableGenotypes[i].genotype);
-            if (phenotype.IsValid())
-            {
-                foreach (Collider col in phenotype.GetComponentsInChildren<Collider>())
-                    foreach (Phenotype otherPhenotype in FindObjectsOfType<Phenotype>())
-                        if (otherPhenotype != phenotype)
-                            foreach (Collider otherCol in otherPhenotype.GetComponentsInChildren<Collider>())
-                                Physics.IgnoreCollision(col, otherCol);
-
-                int index = i;
-                assessors.Add(assessmentFunction(phenotype, bestFitness, fitnessScore =>
-                {
-                    population.assessableGenotypes[index].fitness = fitnessScore;
-                    UnityEngine.Object.Destroy(phenotype.gameObject);
-                }
-                ));
-            }
+            individual.phenotype = PhenotypeBuilder.ConstructPhenotype(individual.genotype);
+            if (individual.phenotype.IsValid())
+                assessors.Add(assessmentFunction(individual));
             else
-            {
-                population.assessableGenotypes[i].fitness = 0f;
-                UnityEngine.Object.Destroy(phenotype.gameObject);
-            }
+                UnityEngine.Object.Destroy(individual.phenotype.gameObject);
         }
 
-        yield return null; // Ensure the phenotypes are completely destroyed.
+        yield return null; // Ensure the invalid phenotypes are completely destroyed.
 
         Physics.simulationMode = SimulationMode.FixedUpdate;
 
@@ -136,30 +139,22 @@ public class EvolutionSimulator : MonoBehaviour
         // Wait for all coroutines to finish.
         foreach (Coroutine coroutine in coroutines)
             yield return coroutine;
-
-        yield return null; // Ensure the phenotypes are completely destroyed.
     }
 
-    private Population SelectSurvivors(Population population, int maxSurvivors)
+    private List<Individual> SelectSurvivors(Population population, int maxSurvivors)
     {
-        Population survivors = new Population();
-
-        survivors.assessableGenotypes = population.assessableGenotypes
+        return population.individuals
         .FindAll(x => x.fitness > 0)
         .OrderByDescending(x => x.fitness)
         .Take(maxSurvivors)
         .ToList();
-
-        return survivors;
     }
 
-    private Population ProduceNextGeneration(int populationSize, int maxChildren, Population seedPopulation)
+    private Population ProduceNextGeneration(int populationSize, int maxChildren, List<Individual> seedIndividuals)
     {
-        Population nextGeneration = new Population();
+        Population nextGeneration = new Population(seedIndividuals.Select(x => x.genotype).ToList());
 
-        nextGeneration.assessableGenotypes = seedPopulation.assessableGenotypes.ToList();
-
-        float totalFitness = nextGeneration.assessableGenotypes.Sum(x => x.fitness ?? 0);
+        float totalFitness = seedIndividuals.Sum(x => x.fitness);
         if (totalFitness > 0)
         {
             for (int i = 0; i < maxChildren; i++)
@@ -171,22 +166,22 @@ public class EvolutionSimulator : MonoBehaviour
                 float parent2Value = UnityEngine.Random.value;
 
                 float wheelLocation = 0f;
-                for (int j = 0; j < nextGeneration.assessableGenotypes.Count; j++)
+                foreach (Individual seedIndividual in seedIndividuals)
                 {
-                    float fitnessRatio = (nextGeneration.assessableGenotypes[j].fitness ?? 0) / totalFitness;
+                    float fitnessRatio = seedIndividual.fitness / totalFitness;
                     float segmentStart = wheelLocation;
                     float segmentEnd = wheelLocation + fitnessRatio;
                     if (parent1Value >= segmentStart && parent1Value <= segmentEnd)
-                        parent1 = nextGeneration.assessableGenotypes[j].genotype;
+                        parent1 = seedIndividual.genotype;
                     if (parent2Value >= segmentStart && parent2Value <= segmentEnd)
-                        parent2 = nextGeneration.assessableGenotypes[j].genotype;
+                        parent2 = seedIndividual.genotype;
                     wheelLocation = segmentEnd;
 
                     if (parent1 != null && parent2 != null)
                         break;
                 }
 
-                nextGeneration.assessableGenotypes.Add(new()
+                nextGeneration.individuals.Add(new()
                 {
                     genotype = Reproduction.CreateOffspring((Genotype)parent1, (Genotype)parent2)
                 });
@@ -194,9 +189,9 @@ public class EvolutionSimulator : MonoBehaviour
         }
 
         // Ensure population size stays the same - fill gaps with randomly generated genotypes if necessary.
-        int populationDiscrepancy = populationSize - nextGeneration.assessableGenotypes.Count;
+        int populationDiscrepancy = populationSize - nextGeneration.individuals.Count;
         for (int j = 0; j < populationDiscrepancy; j++)
-            nextGeneration.assessableGenotypes.Add(new()
+            nextGeneration.individuals.Add(new()
             {
                 genotype = Genotype.CreateRandom()
             });
@@ -206,11 +201,58 @@ public class EvolutionSimulator : MonoBehaviour
         return nextGeneration;
     }
 
-    private void ParadeGenotype(Genotype genotype, AssessmentFunction assessmentFunction)
+    private void ResetWorld()
     {
-        timeScale = 1f;
-        Phenotype phenotype = PhenotypeBuilder.ConstructPhenotype(genotype);
-        Debug.Break();
-        StartCoroutine(assessmentFunction(phenotype, bestFitness, fitnessScore => { Debug.Log("Best Genotype's Fitness: " + fitnessScore); }));
+        // Destroy all phenotypes.
+        foreach (Individual individual in population.individuals)
+        {
+            if (individual.phenotype != null)
+                Destroy(individual.phenotype.gameObject);
+        }
+
+        // Destroy any detached limbs.
+        foreach (Limb limb in FindObjectsOfType<Limb>())
+        {
+            Destroy(limb.gameObject);
+        }
+    }
+
+    private void VisualisePopulation()
+    {
+        if (population == null)
+            return;
+
+        List<Individual> survivors = SelectSurvivors(population, maxSurvivors);
+        Individual currentBestIndividual = survivors.Count > 0 ? survivors[0] : null;
+
+        float currentAverageFitness = 0f;
+        if (colourByRelativeFitness)
+            currentAverageFitness = population.individuals.Average(x => x.fitness);
+
+        foreach (Individual individual in population.individuals)
+        {
+            if (individual.phenotype == null)
+                continue;
+
+            if (filterByPotentialSurvivors)
+                individual.phenotype.SetVisible(survivors.Contains(individual));
+            else
+                individual.phenotype.SetVisible(true);
+
+            if (colourByRelativeFitness)
+            {
+                if (individual.fitness == 0f)
+                    individual.phenotype.SetRGB(1f, 0f, 0f);
+                else if (individual == currentBestIndividual)
+                    individual.phenotype.SetRGB(0f, 1f, 1f);
+                else
+                {
+                    float x = (float)Math.Exp(-(1 / currentAverageFitness) * individual.fitness);
+                    individual.phenotype.SetRGB(x, 1f - x, 0f);
+                }
+            }
+            else
+                individual.phenotype.SetRGB(1f, 1f, 1f);
+        }
     }
 }

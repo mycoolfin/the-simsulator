@@ -1,28 +1,29 @@
 using System.Collections.Generic;
 
-public class AssessableGenotype
+public class Individual
 {
     public Genotype genotype;
-    public float? fitness;
+    public Phenotype phenotype;
+    public float fitness = 0f;
 }
 
 public class Population
 {
-    public List<AssessableGenotype> assessableGenotypes;
+    public List<Individual> individuals;
 
     public Population() { }
 
     public Population(int populationSize)
     {
-        assessableGenotypes = new();
+        individuals = new();
         for (int i = 0; i < populationSize; i++)
-            this.assessableGenotypes.Add(new() { genotype = Genotype.CreateRandom() });
+            this.individuals.Add(new() { genotype = Genotype.CreateRandom() });
     }
 
     public Population(List<Genotype> genotypes)
     {
-        assessableGenotypes = new();
+        individuals = new();
         for (int i = 0; i < genotypes.Count; i++)
-            this.assessableGenotypes.Add(new() { genotype = genotypes[i] });
+            this.individuals.Add(new() { genotype = genotypes[i] });
     }
 }

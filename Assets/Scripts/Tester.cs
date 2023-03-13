@@ -87,7 +87,7 @@ public class Tester : MonoBehaviour
 
         List<NeuronDefinition> brainNeuronDefinitions = new List<NeuronDefinition> { wave };
 
-        return new Genotype(brainNeuronDefinitions.AsReadOnly(), limbNodes.AsReadOnly(), null);
+        return new Genotype(null, null, brainNeuronDefinitions.AsReadOnly(), limbNodes.AsReadOnly());
     }
 
     //     private Genotype Human()
