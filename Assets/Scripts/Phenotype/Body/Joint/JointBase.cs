@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public abstract class JointBase : MonoBehaviour
@@ -32,46 +33,47 @@ public abstract class JointBase : MonoBehaviour
     public Vector3 secondaryStrengthDisplay;
     public Vector3 tertiaryStrengthDisplay;
 
-    public static JointBase CreateJoint(JointType jointType, GameObject gameObject, Rigidbody connectedBody, float maximumJointStrength, List<float> dofAngleLimits)
+    public static JointBase CreateJoint(JointType jointType, GameObject gameObject, Rigidbody connectedBody, float maximumJointStrength, List<float> dofAngleLimits, bool reflectedX, bool reflectedY, bool reflectedZ)
     {
-        JointBase joint;
+        JointBase j;
         switch (jointType)
         {
             case JointType.Rigid:
-                joint = gameObject.AddComponent<RigidJoint>();
+                j = gameObject.AddComponent<RigidJoint>();
                 break;
             case JointType.Revolute:
-                joint = gameObject.AddComponent<RevoluteJoint>();
+                j = gameObject.AddComponent<RevoluteJoint>();
                 break;
             case JointType.Twist:
-                joint = gameObject.AddComponent<TwistJoint>();
+                j = gameObject.AddComponent<TwistJoint>();
                 break;
             case JointType.Universal: // broken
                 // joint = gameObject.AddComponent<UniversalJoint>();
-                joint = gameObject.AddComponent<RigidJoint>();
+                j = gameObject.AddComponent<RigidJoint>();
                 dofAngleLimits = new List<float> { };
                 break;
             case JointType.BendTwist:
-                joint = gameObject.AddComponent<BendTwistJoint>();
+                j = gameObject.AddComponent<BendTwistJoint>();
                 break;
             case JointType.TwistBend:
-                joint = gameObject.AddComponent<TwistBendJoint>();
+                j = gameObject.AddComponent<TwistBendJoint>();
                 break;
             case JointType.Spherical: // broken
                 // joint = gameObject.AddComponent<SphericalJoint>();
-                joint = gameObject.AddComponent<RigidJoint>();
+                j = gameObject.AddComponent<RigidJoint>();
                 dofAngleLimits = new List<float> { };
                 break;
             default:
                 throw new System.ArgumentException("Unknown joint type '" + jointType + "'");
         }
 
-        joint.maximumJointStrength = maximumJointStrength;
-        joint.InitialiseDOFs(dofAngleLimits);
-        joint.InitialiseJoint(connectedBody, maximumJointStrength);
-        joint.ApplySpecificJointSettings(dofAngleLimits);
+        j.maximumJointStrength = maximumJointStrength;
+        j.InitialiseDOFs(dofAngleLimits);
+        j.InitialiseJoint(connectedBody, maximumJointStrength);
+        j.ApplySpecificJointSettings(dofAngleLimits);
+        j.ApplyReflections(reflectedX, reflectedY, reflectedZ);
 
-        return joint;
+        return j;
     }
 
     private void Start()
@@ -84,10 +86,10 @@ public abstract class JointBase : MonoBehaviour
 
     private void FixedUpdate()
     {
-        if (!joint)
+        if (!joint) // Joint broke.
         {
-            // Decouple the limb.
-            transform.parent = null;
+            // Detach limb.
+            GetComponentInParent<Phenotype>().DetachLimb(GetComponent<Limb>());
             Destroy(this);
             return;
         }
@@ -160,18 +162,29 @@ public abstract class JointBase : MonoBehaviour
     {
         joint = gameObject.AddComponent<ConfigurableJoint>();
         joint.connectedBody = connectedBody;
+        joint.enableCollision = true;
         joint.enablePreprocessing = true;
         joint.rotationDriveMode = RotationDriveMode.XYAndZ;
         JointDrive jointDrive = new JointDrive
         {
-            positionSpring = 10f,
-            positionDamper = maximumJointStrength * JointParameters.StrengthMultiplier * 10f,
+            positionSpring = maximumJointStrength * JointParameters.StrengthMultiplier * 100f,
+            positionDamper = maximumJointStrength * JointParameters.StrengthMultiplier * 20f,
             maximumForce = maximumJointStrength * JointParameters.StrengthMultiplier * 100f
         };
         joint.angularXDrive = jointDrive;
         joint.angularYZDrive = jointDrive;
         joint.breakForce = maximumJointStrength * 10000f;
         joint.breakTorque = maximumJointStrength * 1000f;
+    }
+
+    protected void ApplyReflections(bool reflectedX, bool reflectedY, bool reflectedZ)
+    {
+        int reflectedCount = new List<bool>() { reflectedX, reflectedY, reflectedZ }.Count(x => x == true);
+        if (reflectedCount == 1 || reflectedCount == 3)
+        {
+            joint.axis = Vector3.Reflect(joint.axis, Vector3.forward);
+            joint.secondaryAxis = Vector3.Reflect(joint.secondaryAxis, Vector3.forward);
+        }
     }
 
     private void UpdateSensors()
@@ -196,16 +209,6 @@ public abstract class JointBase : MonoBehaviour
             }
         }
     }
-
-    // private float GetWeaknessFactor(int dofIndex, float signOfDriveDirection)
-    // {
-    //     float weaknessZoneSize = 10f;
-    //     float facingLimit = signOfDriveDirection * dofAngleLimits[dofIndex];
-    //     float weaknessZoneStart = facingLimit - signOfDriveDirection * Mathf.Min(Mathf.Abs(facingLimit), weaknessZoneSize);
-    //     float howCloseToEdge = Mathf.InverseLerp(weaknessZoneStart, facingLimit, angles[dofIndex]);
-    //     float weaknessFactor = 1f - Mathf.Pow(howCloseToEdge, 3);
-    //     return weaknessFactor;
-    // }
 
     private float GetAngleAroundAxis(Vector3 planeNormal, Vector3 a, Vector3 b)
     {

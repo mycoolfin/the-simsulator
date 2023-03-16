@@ -61,15 +61,7 @@ public static class Reproduction
             ReadOnlyCollection<LimbConnection> newConnections = node.connections.Select(connection =>
             {
                 if (connection.childNodeId >= crossedOverLimbNodes.Count)
-                    return new(
-                        Random.Range(0, crossedOverLimbNodes.Count),
-                        connection.parentFace,
-                        connection.position,
-                        connection.orientation,
-                        connection.scale,
-                        connection.reflection,
-                        connection.terminalOnly
-                    );
+                    return connection.CreateCopy(Random.Range(0, crossedOverLimbNodes.Count));
                 else
                     return connection;
             }).ToList().AsReadOnly();

@@ -18,4 +18,5 @@ public class ResourceManager : MonoBehaviour
     }
 
     public GameObject limbPrefab;
+    public Material deadLimbMaterial;
 }

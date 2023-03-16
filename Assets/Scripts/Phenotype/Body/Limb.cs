@@ -4,6 +4,12 @@ using UnityEngine;
 
 public class Limb : MonoBehaviour
 {
+    public BoxCollider fullBodyCollider;
+    public BoxCollider xyMidwayCollider;
+    public BoxCollider yzMidwayCollider;
+    public BoxCollider xzMidwayCollider;
+    private List<BoxCollider> usedMidwayColliders;
+
     private Vector3 unscaledDimensions;
     public Vector3 Dimensions
     {
@@ -11,7 +17,7 @@ public class Limb : MonoBehaviour
         set
         {
             transform.localScale = value;
-            GetComponent<Rigidbody>().mass = value.x * value.y * value.z; // Mass is proportional to volume.
+            GetComponent<Rigidbody>().mass = Mathf.Abs(value.x * value.y * value.z); // Mass is proportional to volume.
         }
     }
 
@@ -24,7 +30,147 @@ public class Limb : MonoBehaviour
     public Limb parentLimb;
     public List<Limb> childLimbs;
 
-    public static Limb CreateLimb(LimbNode limbNode)
+    private bool reflectedX;
+    private bool reflectedY;
+    private bool reflectedZ;
+
+    public Limb AddChildLimb(string name, LimbNode childLimbNode, int parentFace, Vector2 position, Vector3 orientation, Vector3 scale, bool reflectX, bool reflectY, bool reflectZ)
+    {
+        // Find the local position and rotation that attaches the back face of the new limb to the chosen face of the parent limb.
+        int perpendicularAxis = parentFace % 3;
+        Vector3 localParentFaceNormal = Vector3.zero;
+        localParentFaceNormal[perpendicularAxis] = parentFace > 2 ? 1f : -1f;
+
+        Vector3 localParentAnchorPoint = Vector3.one;
+        localParentAnchorPoint[perpendicularAxis] *= parentFace > 2 ? 0.5f : -0.5f;
+        localParentAnchorPoint[(perpendicularAxis + 1) % 3] *= 0.5f * position[0];
+        localParentAnchorPoint[(perpendicularAxis + 2) % 3] *= 0.5f * position[1];
+
+        // Apply limb rotations.
+        Quaternion localChildRotation = Quaternion.AngleAxis(orientation.z, Vector3.forward)
+         * Quaternion.AngleAxis(orientation.y, Vector3.up)
+         * Quaternion.AngleAxis(orientation.x, Vector3.right)
+         * Quaternion.FromToRotation(Vector3.forward, localParentFaceNormal);
+
+        Vector3 existingScaling = Vector3.Scale(transform.localScale, new Vector3(1f / unscaledDimensions.x, 1f / unscaledDimensions.y, 1f / unscaledDimensions.z));
+        Vector3 childDimensions = ClampDimensions(Vector3.Scale(Vector3.Scale(childLimbNode.dimensions, existingScaling), scale));
+
+        // Apply reflections.
+        if (reflectX)
+        {
+            localParentAnchorPoint = Vector3.Reflect(localParentAnchorPoint, Vector3.right);
+            localChildRotation = ReflectRotation(localChildRotation, Vector3.right);
+        }
+        if (reflectY)
+        {
+            localParentAnchorPoint = Vector3.Reflect(localParentAnchorPoint, Vector3.up);
+            localChildRotation = ReflectRotation(localChildRotation, Vector3.up);
+        }
+        if (reflectZ)
+        {
+            localParentAnchorPoint = Vector3.Reflect(localParentAnchorPoint, Vector3.forward);
+            localChildRotation = ReflectRotation(localChildRotation, Vector3.forward);
+        }
+
+        // Correct for parent reflections.
+        int reflectedCount = new List<bool>() { reflectedX, reflectedY, reflectedZ }.Count(x => x == true);
+        if (reflectedCount == 1 || reflectedCount == 3)
+        {
+            localParentAnchorPoint = Vector3.Reflect(localParentAnchorPoint, Vector3.right);
+            localChildRotation = ReflectRotation(localChildRotation, Vector3.right);
+        }
+
+        Quaternion childRotation = transform.rotation * localChildRotation;
+        Vector3 childPosition = transform.TransformPoint(localParentAnchorPoint) + (childRotation * Vector3.forward * childDimensions.z / 2f);
+
+        // Abandon creation if the new limb would intersect an existing, non-parent limb, or the relevant parent midway collider.
+        List<BoxCollider> parentLimbMidwayColliders = new List<BoxCollider> { yzMidwayCollider, xzMidwayCollider, xyMidwayCollider };
+        Collider[] fullBodyCollisions = Physics.OverlapBox(childPosition, childDimensions / 2f, childRotation);
+        foreach (Collider col in fullBodyCollisions)
+        {
+            Limb collidedLimb = col.gameObject.GetComponent<Limb>();
+            bool collidedWithAnotherLimb = collidedLimb != null && collidedLimb.transform.parent == transform.parent && collidedLimb != this;
+            bool collidedWithTheParentMidwayCollider = col == parentLimbMidwayColliders[perpendicularAxis];
+            if (collidedWithAnotherLimb || collidedWithTheParentMidwayCollider)
+                return null;
+        }
+
+        // Abandon creation if the relevant child midway collider intersects the parent limb.
+        Vector3 childMidwayColliderDimensions = Vector3.Scale(xyMidwayCollider.size, childDimensions);
+        Collider[] midwayColliderCollisions = Physics.OverlapBox(childPosition, childMidwayColliderDimensions / 1.9f, childRotation);
+        foreach (Collider col in midwayColliderCollisions)
+        {
+            Limb collidedLimb = col.gameObject.GetComponent<Limb>();
+            if (collidedLimb == this)
+                return null;
+        }
+
+        // Create the limb.
+        Limb childLimb = CreateLimb(name, childLimbNode);
+        childLimbs.Add(childLimb);
+        childLimb.parentLimb = this;
+        childLimb.transform.parent = transform.parent;
+        childLimb.transform.position = childPosition;
+        childLimb.transform.rotation = childRotation;
+        childLimb.Dimensions = childDimensions;
+        childLimb.reflectedX = reflectedX ^ reflectX;
+        childLimb.reflectedY = reflectedY ^ reflectY;
+        childLimb.reflectedZ = reflectedZ ^ reflectZ;
+
+        // Add and configure the joint between the child and the parent.
+        float childCrossSectionalArea = childLimb.transform.localScale.x * childLimb.transform.localScale.y;
+        float parentCrossSectionalArea = transform.localScale[(perpendicularAxis + 1) % 3] * transform.localScale[(perpendicularAxis + 2) % 3];
+        float maximumJointStrength = Mathf.Min(childCrossSectionalArea, parentCrossSectionalArea);
+        childLimb.joint = JointBase.CreateJoint(
+            childLimbNode.jointDefinition.type,
+            childLimb.gameObject,
+            GetComponent<Rigidbody>(),
+            maximumJointStrength,
+            childLimbNode.jointDefinition.limits.ToList(),
+            childLimb.reflectedX,
+            childLimb.reflectedY,
+            childLimb.reflectedZ
+        );
+        for (int i = 0; i < childLimb.joint.effectors.Count; i++)
+            childLimb.joint.effectors[i].Weights = childLimbNode.jointDefinition.effectorInputWeights[i].ToList();
+        childLimb.jointEffectorInputPreferences = childLimbNode.jointDefinition.effectorInputPreferences.Select(x => x.ToList()).ToList();
+
+        // Enable parent/child interpenetration.
+        Physics.IgnoreCollision(fullBodyCollider, childLimb.fullBodyCollider);
+        Physics.IgnoreCollision(fullBodyCollider, childLimb.yzMidwayCollider);
+        Physics.IgnoreCollision(fullBodyCollider, childLimb.xzMidwayCollider);
+        for (int i = 0; i < 3; i++)
+        {
+            if (i != perpendicularAxis) // Ignore the midway colliders that run parallel to the perpendicular axis.
+            {
+                Physics.IgnoreCollision(childLimb.fullBodyCollider, parentLimbMidwayColliders[i]);
+                Physics.IgnoreCollision(childLimb.xyMidwayCollider, parentLimbMidwayColliders[i]);
+                Physics.IgnoreCollision(childLimb.yzMidwayCollider, parentLimbMidwayColliders[i]);
+                Physics.IgnoreCollision(childLimb.xzMidwayCollider, parentLimbMidwayColliders[i]);
+            }
+        }
+
+        // Note which midway colliders have been used so that we can disable the unused ones later.
+        if (!usedMidwayColliders.Contains(parentLimbMidwayColliders[perpendicularAxis]))
+            usedMidwayColliders.Add(parentLimbMidwayColliders[perpendicularAxis]);
+        if (!childLimb.usedMidwayColliders.Contains(childLimb.xyMidwayCollider))
+            childLimb.usedMidwayColliders.Add(childLimb.xyMidwayCollider);
+
+        // Ensure that colliders are positioned correctly for potential children.
+        Physics.SyncTransforms();
+
+        return childLimb;
+    }
+
+    public void Optimise()
+    {
+        // Disable unused colliders.
+        if (!usedMidwayColliders.Contains(xyMidwayCollider)) xyMidwayCollider.enabled = false;
+        if (!usedMidwayColliders.Contains(yzMidwayCollider)) yzMidwayCollider.enabled = false;
+        if (!usedMidwayColliders.Contains(xzMidwayCollider)) xzMidwayCollider.enabled = false;
+    }
+
+    public static Limb CreateLimb(string name, LimbNode limbNode)
     {
         Limb limb = Instantiate(ResourceManager.Instance.limbPrefab).GetComponent<Limb>();
 
@@ -37,90 +183,33 @@ public class Limb : MonoBehaviour
             limb.neuronInputPreferences.Add(limbNode.neuronDefinitions[i].inputPreferences);
         }
 
+        limb.usedMidwayColliders = new List<BoxCollider>();
+
         Vector3 clampedDimensions = ClampDimensions(limbNode.dimensions);
         limb.unscaledDimensions = clampedDimensions;
         limb.Dimensions = clampedDimensions;
 
         limb.childLimbs = new List<Limb>();
 
+        limb.name = name;
+
+        // Ensure that colliders are positioned correctly for potential children.
+        Physics.SyncTransforms();
+
         return limb;
-    }
-
-    public Limb AddChildLimb(LimbNode childLimbNode, LimbConnection limbConnection)
-    {
-        // Find the local position and rotation that attaches the back face of the new limb to the chosen face of the parent limb.
-        int parentFace = limbConnection.reflection ? (limbConnection.parentFace + 3) % 6 : limbConnection.parentFace;
-        int perpendicularAxis = parentFace % 3;
-        Vector3 localParentFaceNormal = Vector3.zero;
-        localParentFaceNormal[perpendicularAxis] = parentFace > 2 ? 1f : -1f;
-
-        Vector3 localParentAnchorPoint = Vector3.one;
-        localParentAnchorPoint[perpendicularAxis] *= parentFace > 2 ? 0.5f : -0.5f;
-        localParentAnchorPoint[(perpendicularAxis + 1) % 3] *= 0.5f * limbConnection.position[0];
-        localParentAnchorPoint[(perpendicularAxis + 2) % 3] *= 0.5f * limbConnection.position[1];
-
-        // Apply limb rotations.
-        Quaternion localChildRotation = Quaternion.AngleAxis(limbConnection.orientation.z, Vector3.forward)
-         * Quaternion.AngleAxis(limbConnection.orientation.y, Vector3.up)
-         * Quaternion.AngleAxis(limbConnection.orientation.x, Vector3.right)
-         * Quaternion.FromToRotation(Vector3.forward, localParentFaceNormal);
-
-        Vector3 existingScaling = Vector3.Scale(transform.localScale, new Vector3(1f / unscaledDimensions.x, 1f / unscaledDimensions.y, 1f / unscaledDimensions.z));
-        Vector3 childDimensions = ClampDimensions(Vector3.Scale(Vector3.Scale(childLimbNode.dimensions, existingScaling), limbConnection.scale));
-
-        Quaternion childRotation = transform.rotation * localChildRotation;
-        Vector3 childPosition = transform.TransformPoint(localParentAnchorPoint) + (childRotation * Vector3.forward * childDimensions.z / 2f);
-
-        // // If the new limb intersects with an existing limb on this creature, abandon creation.
-        // Collider[] looseCheck = Physics.OverlapBox(childPosition, childDimensions / 4f, childRotation);
-        // if (looseCheck.Any(col =>
-        // {
-        //     Limb collidedLimb = col.gameObject.GetComponent<Limb>();
-        //     return collidedLimb != null && collidedLimb.transform.parent == transform.parent;
-        // }))
-        //     return null;
-        // Collider[] strictCheck = Physics.OverlapBox(childPosition, childDimensions / 2f, childRotation);
-        // if (strictCheck.Any(col =>
-        // {
-        //     Limb collidedLimb = col.gameObject.GetComponent<Limb>();
-        //     return collidedLimb != null && collidedLimb.transform.parent == transform.parent && collidedLimb != this;
-        // }))
-        //     return null;
-
-        // Create the limb.
-        Limb childLimb = CreateLimb(childLimbNode);
-        childLimbs.Add(childLimb);
-        childLimb.parentLimb = this;
-        childLimb.transform.parent = transform.parent;
-        childLimb.transform.position = childPosition;
-        childLimb.transform.rotation = childRotation;
-        childLimb.Dimensions = childDimensions;
-
-        // Add and configure the joint between the child and the parent.
-        float childCrossSectionalArea = childLimb.transform.localScale.x * childLimb.transform.localScale.y;
-        float parentCrossSectionalArea = transform.localScale[(perpendicularAxis + 1) % 3] * transform.localScale[(perpendicularAxis + 2) % 3];
-        float maximumJointStrength = Mathf.Min(childCrossSectionalArea, parentCrossSectionalArea);
-        childLimb.joint = JointBase.CreateJoint(childLimbNode.jointDefinition.type, childLimb.gameObject, GetComponent<Rigidbody>(), maximumJointStrength, childLimbNode.jointDefinition.limits.ToList());
-        for (int i = 0; i < childLimb.joint.effectors.Count; i++)
-            childLimb.joint.effectors[i].Weights = childLimbNode.jointDefinition.effectorInputWeights[i].ToList();
-        childLimb.jointEffectorInputPreferences = childLimbNode.jointDefinition.effectorInputPreferences.Select(x => x.ToList()).ToList();
-
-        Physics.SyncTransforms(); // Ensure that colliders are positioned correctly for potential children.
-
-        // Disable collisions with all other limbs on this body.
-        Collider thisCol = childLimb.GetComponent<Collider>();
-        foreach (Collider col in transform.parent.GetComponentsInChildren<Collider>())
-            Physics.IgnoreCollision(thisCol, col);
-
-        return childLimb;
     }
 
     private static Vector3 ClampDimensions(Vector3 dimensions)
     {
         return new Vector3(
-            Mathf.Clamp(dimensions.x, LimbParameters.MinScale, LimbParameters.MaxScale),
-            Mathf.Clamp(dimensions.y, LimbParameters.MinScale, LimbParameters.MaxScale),
-            Mathf.Clamp(dimensions.z, LimbParameters.MinScale, LimbParameters.MaxScale)
+            Mathf.Clamp(dimensions.x, LimbParameters.MinSize, LimbParameters.MaxSize),
+            Mathf.Clamp(dimensions.y, LimbParameters.MinSize, LimbParameters.MaxSize),
+            Mathf.Clamp(dimensions.z, LimbParameters.MinSize, LimbParameters.MaxSize)
         );
+    }
+
+    private static Quaternion ReflectRotation(Quaternion source, Vector3 normal)
+    {
+        return Quaternion.LookRotation(Vector3.Reflect(source * Vector3.forward, normal), Vector3.Reflect(source * Vector3.up, normal));
     }
 }

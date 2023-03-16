@@ -1,4 +1,6 @@
 using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public delegate IEnumerator AssessmentFunction(Individual individual);
@@ -38,6 +40,9 @@ public static class Assessment
                 float phenotypeLength = Mathf.Max(bounds.extents.x * 2, bounds.extents.y * 2, bounds.extents.z * 2);
                 float lengthsTravelled = planarDisplacement / phenotypeLength;
                 individual.fitness = lengthsTravelled;
+
+                if (individual.phenotype.lostLimbs)
+                    individual.fitness = 0;
             }
         }
     }
@@ -46,9 +51,18 @@ public static class Assessment
     {
         DisablePhenotypeCollisions(individual.phenotype);
 
-        int runtimeSeconds = 20;
+        int settleSeconds = 5;
+        int runtimeSeconds = 15;
         int fitnessUpdateIntervals = 100;
         float intervalLength = (float)runtimeSeconds / (float)fitnessUpdateIntervals;
+
+        yield return new WaitForSeconds(settleSeconds);
+
+        // Kill momentum.
+        List<Rigidbody> rigidbodies = individual.phenotype.GetComponentsInChildren<Rigidbody>().ToList();
+        rigidbodies.ForEach(x => { x.isKinematic = true; });
+        yield return new WaitForFixedUpdate();
+        rigidbodies.ForEach(x => { x.isKinematic = false; });
 
         Vector3 startPosition = individual.phenotype.GetBounds().center;
 
@@ -63,6 +77,9 @@ public static class Assessment
             float phenotypeLength = Mathf.Max(bounds.extents.x * 2, bounds.extents.y * 2, bounds.extents.z * 2);
             float lengthsTravelled = displacement / phenotypeLength;
             individual.fitness = lengthsTravelled;
+
+            if (individual.phenotype.lostLimbs)
+                individual.fitness = 0;
         }
     }
 

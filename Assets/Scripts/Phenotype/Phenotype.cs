@@ -8,15 +8,15 @@ public class Phenotype : MonoBehaviour
     public List<string> lineage;
     public Brain brain;
     public List<Limb> limbs;
+    private List<MeshRenderer> meshRenderers;
+    public ComputeShader neuronComputeShader;
 
-    public float fitness;
-
-    private MeshRenderer[] meshRenderers;
+    public bool lostLimbs;
 
     private void Start()
     {
-        meshRenderers = GetComponentsInChildren<MeshRenderer>();
-        lineage = genotype.lineage.ToList();
+        meshRenderers = GetComponentsInChildren<MeshRenderer>().ToList();
+        lineage = genotype.lineage.ToList(); // TODO: Remove this once we work out how to display genotype in inspector.
     }
 
     private void FixedUpdate()
@@ -41,10 +41,10 @@ public class Phenotype : MonoBehaviour
 
     public Bounds GetBounds()
     {
-        Collider[] colliders = GetComponentsInChildren<Collider>();
-        if (colliders.Length == 0) return new Bounds(transform.position, Vector3.zero);
+        List<BoxCollider> colliders = limbs.Select(limb => limb.fullBodyCollider).ToList();
+        if (colliders.Count == 0) return new Bounds(transform.position, Vector3.zero);
         Bounds bounds = colliders[0].bounds;
-        foreach (Collider r in colliders)
+        foreach (BoxCollider r in colliders)
         {
             bounds.Encapsulate(r.bounds);
         }
@@ -79,5 +79,17 @@ public class Phenotype : MonoBehaviour
         {
             meshRenderer.enabled = visible;
         }
+    }
+
+    public void DetachLimb(Limb limb)
+    {
+        limb.transform.parent = null;
+        limbs.Remove(limb);
+        MeshRenderer limbMeshRenderer = limb.GetComponent<MeshRenderer>();
+        meshRenderers.Remove(limbMeshRenderer);
+        limbMeshRenderer.material = ResourceManager.Instance.deadLimbMaterial;
+        WorldManager.Instance.AddGameObjectToTrashCan(limb.gameObject);
+
+        lostLimbs = true;
     }
 }

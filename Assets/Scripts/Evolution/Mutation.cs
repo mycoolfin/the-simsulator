@@ -168,7 +168,9 @@ public static class Mutation
             Chance(MutationParameters.ChangeLimbConnectionScale) ? MutateScalar(limbConnection.scale.z) : limbConnection.scale.z
         );
 
-        bool reflection = Chance(MutationParameters.ChangeLimbConnectionReflection) ? !limbConnection.reflection : limbConnection.reflection;
+        bool reflectionX = Chance(MutationParameters.ChangeLimbConnectionReflection) ? !limbConnection.reflectionX : limbConnection.reflectionX;
+        bool reflectionY = Chance(MutationParameters.ChangeLimbConnectionReflection) ? !limbConnection.reflectionY : limbConnection.reflectionY;
+        bool reflectionZ = Chance(MutationParameters.ChangeLimbConnectionReflection) ? !limbConnection.reflectionZ : limbConnection.reflectionZ;
 
         bool terminalOnly = Chance(MutationParameters.ChangeLimbConnectionTerminalOnly) ? !limbConnection.terminalOnly : limbConnection.terminalOnly;
 
@@ -178,7 +180,9 @@ public static class Mutation
             position,
             orientation,
             scale,
-            reflection,
+            reflectionX,
+            reflectionY,
+            reflectionZ,
             terminalOnly
         );
     }

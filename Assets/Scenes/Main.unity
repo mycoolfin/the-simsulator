@@ -248,6 +248,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   limbPrefab: {fileID: 1305211240185183231, guid: a2314fdf759364d75859e15e34135ed7, type: 3}
+  deadLimbMaterial: {fileID: 2100000, guid: 78e12521bd4ff462fa6b241bb1e84830, type: 2}
 --- !u!4 &958854963
 Transform:
   m_ObjectHideFlags: 0
@@ -276,13 +277,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ground: {fileID: 1577311695}
+  trashCan: []
   timeScale: 1
   minimumFps: 30
   throttledTimeScale: 0
-  simulateFluid: 1
+  simulateFluid: 0
   fluidDensity: 1
-  gravity: 0
+  gravity: 1
   useComputeShaderForNNs: 0
+  goodFluid: 1
 --- !u!1 &1035819349
 GameObject:
   m_ObjectHideFlags: 0
@@ -299,7 +302,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1035819350
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -320,7 +323,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1035819349}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1.4706743, y: -0.12916875, z: 0.82109165}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -406,7 +409,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &1294992365
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -425,7 +428,7 @@ MonoBehaviour:
   survivalRatio: 0.2
   pauseIterating: 0
   exitEarly: 0
-  colourByRelativeFitness: 0
+  colourByRelativeFitness: 1
   filterByPotentialSurvivors: 0
   iterationsRemaining: 0
   bestFitness: 0
@@ -462,7 +465,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!64 &1577311696
 MeshCollider:
   m_ObjectHideFlags: 0

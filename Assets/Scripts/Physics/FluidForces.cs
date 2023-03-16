@@ -5,8 +5,9 @@ public class FluidForces : MonoBehaviour
     private Rigidbody rb;
     private Bounds bounds;
     private Vector3 surfaceAreas;
+    private Vector3[] facePositions;
     private Vector3[][] quadrantPositions;
-    private Vector3[][] quadrantVelocities;
+    private Vector3[][] quadrantForceVectors;
 
     private void Start()
     {
@@ -19,8 +20,9 @@ public class FluidForces : MonoBehaviour
             transform.localScale.x * transform.localScale.y
         );
 
+        facePositions = new Vector3[6];
         quadrantPositions = new Vector3[6][];
-        quadrantVelocities = new Vector3[6][];
+        quadrantForceVectors = new Vector3[6][];
         for (int face = 0; face < 6; face++)
         {
             int perpendicularAxis = face % 3;
@@ -31,9 +33,10 @@ public class FluidForces : MonoBehaviour
             localFaceCenter[perpendicularAxis] *= face > 2 ? 0.5f : -0.5f;
             localFaceCenter[(perpendicularAxis + 1) % 3] = 0f;
             localFaceCenter[(perpendicularAxis + 2) % 3] = 0f;
+            facePositions[face] = localFaceCenter;
 
             quadrantPositions[face] = new Vector3[4];
-            quadrantVelocities[face] = new Vector3[4];
+            quadrantForceVectors[face] = new Vector3[4];
             for (int quadrant = 0; quadrant < 4; quadrant++)
             {
                 Vector3 localFaceQuadrant = localFaceCenter;
@@ -52,26 +55,29 @@ public class FluidForces : MonoBehaviour
 
             Vector3[] directions = GetTransformDirections();
 
-            for (int face = 0; face < 6; face++)
+            for (int face = 0; face < 3; face++)
             {
+                // If one face is experiencing drag, no need to calculate forces for its opposing face.
+                Vector3 faceCenter = transform.TransformPoint(facePositions[face]);
+                int activeFace = Vector3.Dot(-rb.GetPointVelocity(faceCenter), directions[face]) < 0 ? face : face + 3;
+                float quadrantSurfaceArea = (surfaceAreas[activeFace % 3] / 4);
+
+                // Splitting each face into quadrants allows for more accurate torque application.
                 for (int quadrant = 0; quadrant < 4; quadrant++)
                 {
-                    Vector3 faceQuadrantCenter = transform.TransformPoint(quadrantPositions[face][quadrant]);
-                    float surfaceArea = (surfaceAreas[face % 3] / 4);
+                    Vector3 faceQuadrantCenter = transform.TransformPoint(quadrantPositions[activeFace][quadrant]);
                     Vector3 pointVelocity = rb.GetPointVelocity(faceQuadrantCenter);
-                    float dragForce = GetSurfaceDragForce(faceQuadrantCenter, directions[face], pointVelocity, surfaceArea);
-                    rb.AddForceAtPosition(dragForce * directions[face], faceQuadrantCenter);
-                    quadrantVelocities[face][quadrant] = pointVelocity;
+                    float velocityRelativeToFluid = Vector3.Dot(-pointVelocity, directions[activeFace]);
+                    float dragForce = 0.5f * WorldManager.Instance.fluidDensity * -Mathf.Pow(velocityRelativeToFluid, 2) * quadrantSurfaceArea;
+
+                    Vector3 dragForceVector = dragForce * pointVelocity.normalized;
+                    quadrantForceVectors[activeFace][quadrant] = dragForceVector;
+                    quadrantForceVectors[(activeFace + 3) % 6][quadrant] = Vector3.zero;
+
+                    rb.AddForceAtPosition(dragForceVector, faceQuadrantCenter);
                 }
             }
         }
-    }
-
-    private float GetSurfaceDragForce(Vector3 surfaceCenter, Vector3 surfaceNormal, Vector3 velocity, float surfaceArea)
-    {
-        float relativeFlowVelocity = Vector3.Dot(-velocity, surfaceNormal);
-        float dragForce = relativeFlowVelocity < 0f ? 0.5f * WorldManager.Instance.fluidDensity * -Mathf.Pow(relativeFlowVelocity, 2) * surfaceArea : 0f;
-        return dragForce;
     }
 
     private Vector3[] GetTransformDirections()
@@ -102,22 +108,23 @@ public class FluidForces : MonoBehaviour
 
     private void OnDrawGizmosSelected()
     {
+        if (!this.enabled) return;
         if (WorldManager.Instance.simulateFluid)
         {
+            if (rb.IsSleeping() || GetMassNormalizedKE() < rb.sleepThreshold) return;
+
+            Gizmos.color = Color.cyan;
+
             Vector3[] directions = GetTransformDirections();
             for (int face = 0; face < 6; face++)
             {
                 for (int quadrant = 0; quadrant < 4; quadrant++)
                 {
                     Vector3 faceQuadrantCenter = transform.TransformPoint(quadrantPositions[face][quadrant]);
-                    float surfaceArea = (surfaceAreas[face % 3] / 4);
-                    Vector3 pointVelocity = rb.GetPointVelocity(faceQuadrantCenter);
-                    float dragForce = GetSurfaceDragForce(faceQuadrantCenter, directions[face], pointVelocity, surfaceArea);
-                    Gizmos.color = Color.magenta;
-                    if (dragForce != 0)
+                    if (quadrantForceVectors[face][quadrant].magnitude != 0)
                     {
                         Gizmos.DrawCube(faceQuadrantCenter, Vector3.one * 0.1f);
-                        Gizmos.DrawLine(faceQuadrantCenter, faceQuadrantCenter - Mathf.Max(-rb.mass, dragForce) * directions[face]);
+                        Gizmos.DrawLine(faceQuadrantCenter, faceQuadrantCenter - quadrantForceVectors[face][quadrant]);
                     }
                 }
             }

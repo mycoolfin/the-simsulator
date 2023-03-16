@@ -64,7 +64,7 @@ public class EvolutionSimulator : MonoBehaviour
 
     private IEnumerator Run(int numberOfIterations, int populationSize, float survivalRatio, AssessmentFunction assessmentFunction)
     {
-        Genotype? bestGenotype = null;
+        Individual bestIndividual = null;
         bestFitness = 0f;
         List<float> bestFitnesses = new List<float>();
         List<float> averageFitnesses = new List<float>();
@@ -82,7 +82,7 @@ public class EvolutionSimulator : MonoBehaviour
 
             if (survivorCount > 0 && survivors[0].fitness > bestFitness)
             {
-                bestGenotype = survivors[0].genotype;
+                bestIndividual = survivors[0];
                 bestFitness = (float)survivors[0].fitness;
             }
 
@@ -108,9 +108,11 @@ public class EvolutionSimulator : MonoBehaviour
 
         Debug.Log("Finished.");
 
-        if (bestGenotype != null)
+        if (bestIndividual != null)
         {
-            Phenotype phenotype = PhenotypeBuilder.ConstructPhenotype((Genotype)bestGenotype);
+            bestIndividual.phenotype = PhenotypeBuilder.ConstructPhenotype(bestIndividual.genotype);
+            StartCoroutine(assessmentFunction(bestIndividual));
+            Time.timeScale = 1f;
             Debug.Break();
         }
     }
@@ -210,11 +212,8 @@ public class EvolutionSimulator : MonoBehaviour
                 Destroy(individual.phenotype.gameObject);
         }
 
-        // Destroy any detached limbs.
-        foreach (Limb limb in FindObjectsOfType<Limb>())
-        {
-            Destroy(limb.gameObject);
-        }
+        // Empty the trash can.
+        WorldManager.Instance.EmptyTrashCan();
     }
 
     private void VisualisePopulation()

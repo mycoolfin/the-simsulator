@@ -35,11 +35,11 @@ public static class NervousSystem
         List<ISignalEmitter> emitterPool = new List<ISignalEmitter>()
         .Concat(limb.joint?.sensors.Cast<ISignalEmitter>() ?? new List<ISignalEmitter>())
         .Concat(limb.neurons)
-        .Concat(limb.childLimbs.Where(childLimb => childLimb.joint != null).SelectMany(childLimb => childLimb.joint?.sensors))
-        .Concat(limb.childLimbs.Where(childLimb => childLimb.joint != null).SelectMany(childLimb => childLimb.neurons))
         .Concat(limb.parentLimb?.joint?.sensors.Cast<ISignalEmitter>() ?? new List<ISignalEmitter>())
         .Concat(limb.parentLimb?.neurons.Cast<ISignalEmitter>() ?? new List<ISignalEmitter>())
         .Concat(brain.neurons)
+        .Concat(limb.childLimbs.Where(childLimb => childLimb.joint != null).SelectMany(childLimb => childLimb.joint?.sensors))
+        .Concat(limb.childLimbs.Where(childLimb => childLimb.joint != null).SelectMany(childLimb => childLimb.neurons))
         .ToList();
 
         // The receivers in this limb.

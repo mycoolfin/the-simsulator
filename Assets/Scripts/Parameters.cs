@@ -48,8 +48,8 @@ public static class NeuronDefinitionParameters
 
 public static class LimbParameters
 {
-    public const float MinScale = 0.1f;
-    public const float MaxScale = 2f;
+    public const float MinSize = 0.1f;
+    public const float MaxSize = 2f;
 }
 
 public static class JointParameters
@@ -85,7 +85,7 @@ public static class PhenotypeParameters
 
 public static class PhenotypeBuilderParameters
 {
-    public const int MaxLimbs = 10;
+    public const int MaxLimbs = 16;
 }
 
 public static class ReproductionParameters

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public class WorldManager : MonoBehaviour
@@ -19,6 +20,8 @@ public class WorldManager : MonoBehaviour
 
     [Header("World Objects")]
     public GameObject ground;
+    public List<GameObject> trashCan;
+
     [Header("Parameters")]
     [Range(0f, 5f)]
     public float timeScale;
@@ -33,6 +36,7 @@ public class WorldManager : MonoBehaviour
 
     private void Start()
     {
+        trashCan = new List<GameObject>();
         throttledTimeScale = timeScale;
     }
 
@@ -58,5 +62,16 @@ public class WorldManager : MonoBehaviour
     public void EnableGround(bool enabled)
     {
         ground.SetActive(enabled);
+    }
+
+    public void AddGameObjectToTrashCan(GameObject junk)
+    {
+        trashCan.Add(junk);
+    }
+
+    public void EmptyTrashCan()
+    {
+        foreach (GameObject trash in trashCan)
+            Destroy(trash);
     }
 }
