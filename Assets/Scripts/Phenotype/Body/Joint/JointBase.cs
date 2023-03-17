@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections.ObjectModel;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
@@ -16,7 +17,7 @@ public abstract class JointBase : MonoBehaviour
     private Vector3 excitations;
     private Vector3 previousAngularVelocity;
 
-    public abstract void ApplySpecificJointSettings(List<float> dofAngleLimits);
+    public abstract void ApplySpecificJointSettings();
 
     private Quaternion intialOriginRotation;
 
@@ -33,10 +34,10 @@ public abstract class JointBase : MonoBehaviour
     public Vector3 secondaryStrengthDisplay;
     public Vector3 tertiaryStrengthDisplay;
 
-    public static JointBase CreateJoint(JointType jointType, GameObject gameObject, Rigidbody connectedBody, float maximumJointStrength, List<float> dofAngleLimits, bool reflectedX, bool reflectedY, bool reflectedZ)
+    public static JointBase CreateJoint(JointDefinition jointDefinition, GameObject gameObject, Rigidbody connectedBody, float maximumJointStrength, List<float> dofAngleLimits, bool reflectedX, bool reflectedY, bool reflectedZ)
     {
         JointBase j;
-        switch (jointType)
+        switch (jointDefinition.type)
         {
             case JointType.Rigid:
                 j = gameObject.AddComponent<RigidJoint>();
@@ -64,13 +65,18 @@ public abstract class JointBase : MonoBehaviour
                 dofAngleLimits = new List<float> { };
                 break;
             default:
-                throw new System.ArgumentException("Unknown joint type '" + jointType + "'");
+                throw new System.ArgumentException("Unknown joint type '" + jointDefinition.type + "'");
         }
 
         j.maximumJointStrength = maximumJointStrength;
-        j.InitialiseDOFs(dofAngleLimits);
+
+        // Constrain the degrees of freedom depending on the joint type.
+        j.dofAngleLimits = dofAngleLimits.Take(j.TypeOfJoint.DegreesOfFreedom()).ToList();
+
+        j.InitialiseSensors();
+        j.InitialiseEffectors(jointDefinition.axisDefinitions.Select(a => a.inputDefinition).ToList().AsReadOnly());
         j.InitialiseJoint(connectedBody, maximumJointStrength);
-        j.ApplySpecificJointSettings(dofAngleLimits);
+        j.ApplySpecificJointSettings();
         j.ApplyReflections(reflectedX, reflectedY, reflectedZ);
 
         return j;
@@ -139,22 +145,21 @@ public abstract class JointBase : MonoBehaviour
         tertiaryStrengthDisplay = e[2] * tertiaryAxis;
     }
 
-    protected void InitialiseDOFs(List<float> dofAngleLimits)
+    protected void InitialiseSensors()
     {
-        int dof = TypeOfJoint.DegreesOfFreedom();
-        if (dofAngleLimits?.Count != dof)
-            throw new System.Exception("Cannot initialise joint - number of DOF Angle Limits must equal " + dof.ToString());
-
-        this.dofAngleLimits = dofAngleLimits;
         sensors = new List<JointAngleSensor>();
-        for (int i = 0; i < dof; i++)
+        for (int i = 0; i < dofAngleLimits.Count; i++)
         {
             sensors.Add(new JointAngleSensor());
         }
+    }
+
+    protected void InitialiseEffectors(ReadOnlyCollection<SignalReceiverInputDefinition> inputDefinitions)
+    {
         effectors = new List<JointAngleEffector>();
-        for (int i = 0; i < dof; i++)
+        for (int i = 0; i < dofAngleLimits.Count; i++)
         {
-            effectors.Add(new JointAngleEffector());
+            effectors.Add(EffectorBase.CreateEffector(EffectorType.JointAngle, inputDefinitions) as JointAngleEffector);
         }
     }
 
@@ -173,8 +178,10 @@ public abstract class JointBase : MonoBehaviour
         };
         joint.angularXDrive = jointDrive;
         joint.angularYZDrive = jointDrive;
-        joint.breakForce = maximumJointStrength * 10000f;
-        joint.breakTorque = maximumJointStrength * 1000f;
+
+        // We want joints to break if they start to glitch out. These values may need to be fine tuned.
+        joint.breakForce = maximumJointStrength * JointParameters.StrengthMultiplier * 10000f;
+        joint.breakTorque = maximumJointStrength * JointParameters.StrengthMultiplier * 1000f;
     }
 
     protected void ApplyReflections(bool reflectedX, bool reflectedY, bool reflectedZ)

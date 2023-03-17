@@ -1,11 +1,10 @@
-﻿using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class BendTwistJoint : JointBase
 {
     protected override JointType TypeOfJoint => JointType.BendTwist;
 
-    public override void ApplySpecificJointSettings(List<float> dofAngleLimits)
+    public override void ApplySpecificJointSettings()
     {
         joint.anchor = new Vector3(0, 0, -0.5f);
         joint.axis = Vector3.right;

@@ -6,24 +6,34 @@ using UnityEngine;
 [System.Serializable]
 public struct Genotype
 {
-    static int latestId = 1;
+    private static int latestId = 1;
 
-    public readonly int id;
+    public readonly string id;
     public readonly ReadOnlyCollection<string> lineage;
     public readonly ReadOnlyCollection<NeuronDefinition> brainNeuronDefinitions;
     public readonly ReadOnlyCollection<LimbNode> limbNodes;
 
-    public Genotype(int? id, ReadOnlyCollection<string> lineage, ReadOnlyCollection<NeuronDefinition> brainNeuronDefinitions, ReadOnlyCollection<LimbNode> limbNodes)
+    public Genotype(string id, ReadOnlyCollection<string> lineage, ReadOnlyCollection<NeuronDefinition> brainNeuronDefinitions, ReadOnlyCollection<LimbNode> limbNodes)
     {
-        this.id = id != null ? (int)id : latestId++;
-        this.lineage = lineage == null ? (new List<string> { "G" + this.id + " created" }).AsReadOnly() : lineage;
+        bool validBrainNeuronDefinitions = brainNeuronDefinitions.Count >= GenotypeParameters.MinBrainNeurons && brainNeuronDefinitions.Count <= GenotypeParameters.MaxBrainNeurons;
+        if (!validBrainNeuronDefinitions)
+            throw new System.ArgumentException("The number of brain neuron definitions must be between " + GenotypeParameters.MinBrainNeurons
+            + " and " + GenotypeParameters.MaxBrainNeurons + ". Specified: " + brainNeuronDefinitions.Count);
+
+        bool validLimbNodes = limbNodes.Count >= GenotypeParameters.MinLimbNodes && limbNodes.Count <= GenotypeParameters.MaxLimbNodes;
+        if (!validLimbNodes)
+            throw new System.ArgumentException("The number of limb nodes must be between " + GenotypeParameters.MinLimbNodes
+            + " and " + GenotypeParameters.MaxLimbNodes + ". Specified: " + limbNodes.Count);
+
+        this.id = id != null ? id : "G" + latestId++;
+        this.lineage = lineage == null ? (new List<string> { this.id + " created" }).AsReadOnly() : lineage;
         this.limbNodes = RemoveUnconnectedLimbNodes(limbNodes);
         this.brainNeuronDefinitions = brainNeuronDefinitions == null ? new List<NeuronDefinition>().AsReadOnly() : brainNeuronDefinitions;
     }
 
     public static Genotype CreateRandom()
     {
-        int numberOfLimbNodes = Random.Range(GenotypeGenerationParameters.MinLimbNodes, GenotypeGenerationParameters.MaxLimbNodes);
+        int numberOfLimbNodes = Random.Range(GenotypeParameters.MinLimbNodes, GenotypeParameters.MaxLimbNodes);
         List<LimbNode> limbNodes = new List<LimbNode>();
 
         for (int i = 0; i < numberOfLimbNodes; i++)
@@ -45,7 +55,7 @@ public struct Genotype
             limbNodes.Add(LimbNode.CreateRandom(limbConnections));
         }
 
-        int numberOfBrainNeurons = Random.Range(GenotypeGenerationParameters.MinBrainNeurons, GenotypeGenerationParameters.MaxBrainNeurons);
+        int numberOfBrainNeurons = Random.Range(GenotypeParameters.MinBrainNeurons, GenotypeParameters.MaxBrainNeurons);
         List<NeuronDefinition> brainNeuronDefinitions = new List<NeuronDefinition>();
         for (int i = 0; i < numberOfBrainNeurons; i++)
             brainNeuronDefinitions.Add(NeuronDefinition.CreateRandom());

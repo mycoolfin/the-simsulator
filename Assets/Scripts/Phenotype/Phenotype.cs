@@ -26,6 +26,14 @@ public class Phenotype : MonoBehaviour
 
     private void UpdateNeurons()
     {
+        if (WorldManager.Instance.useComputeShaderForNNs)
+            UpdateNeuronsGPU();
+        else
+            UpdateNeuronsCPU();
+    }
+
+    private void UpdateNeuronsCPU()
+    {
         foreach (NeuronBase neuron in brain.neurons)
             neuron.PropagatePhaseOne();
         foreach (Limb limb in limbs)
@@ -37,6 +45,72 @@ public class Phenotype : MonoBehaviour
         foreach (Limb limb in limbs)
             foreach (NeuronBase neuron in limb.neurons)
                 neuron.PropagatePhaseTwo();
+    }
+
+    private void UpdateNeuronsGPU()
+    {
+
+        // ///// Map up weighted neuron inputs in parallel
+
+        // // Serialise neuron data.
+        // List<float> neuronInputs = new List<float>(); // TODO
+        // List<float> neuronWeights = new List<float>(); // TODO
+        // List<float> neuronOutputs = new List<float>(); // TODO
+
+        // ComputeBuffer neuronInputsBuffer = new ComputeBuffer(neuronInputs.Count, sizeof(float));
+        // ComputeBuffer neuronWeightsBuffer = new ComputeBuffer(neuronWeights.Count, sizeof(float));
+        // ComputeBuffer neuronOutputsBuffer = new ComputeBuffer(neuronOutputs.Count, sizeof(float));
+        // neuronInputsBuffer.SetData(neuronInputs);
+        // neuronWeightsBuffer.SetData(neuronWeights);
+        // neuronOutputsBuffer.SetData(neuronOutputs);
+
+        // neuronComputeShader.SetBuffer(0, "neuronInputs", neuronInputsBuffer);
+        // neuronComputeShader.SetBuffer(0, "neuronWeights", neuronWeightsBuffer);
+        // neuronComputeShader.SetBuffer(0, "neuronOutputs", neuronOutputsBuffer);
+
+        // // Generate random indices for droplet placement
+        // int[] randomIndices = new int[numErosionIterations];
+        // for (int i = 0; i < numErosionIterations; i++)
+        // {
+        //     int randomX = Random.Range(erosionBrushRadius, mapSize + erosionBrushRadius);
+        //     int randomY = Random.Range(erosionBrushRadius, mapSize + erosionBrushRadius);
+        //     randomIndices[i] = randomY * mapSize + randomX;
+        // }
+
+        // // Send random indices to compute shader
+        // ComputeBuffer randomIndexBuffer = new ComputeBuffer(randomIndices.Length, sizeof(int));
+        // randomIndexBuffer.SetData(randomIndices);
+        // erosion.SetBuffer(0, "randomIndices", randomIndexBuffer);
+
+        // // Heightmap buffer
+        // ComputeBuffer mapBuffer = new ComputeBuffer(map.Length, sizeof(float));
+        // mapBuffer.SetData(map);
+        // erosion.SetBuffer(0, "map", mapBuffer);
+
+        // // Settings
+        // erosion.SetInt("borderSize", erosionBrushRadius);
+        // erosion.SetInt("mapSize", mapSizeWithBorder);
+        // erosion.SetInt("brushLength", brushIndexOffsets.Count);
+        // erosion.SetInt("maxLifetime", maxLifetime);
+        // erosion.SetFloat("inertia", inertia);
+        // erosion.SetFloat("sedimentCapacityFactor", sedimentCapacityFactor);
+        // erosion.SetFloat("minSedimentCapacity", minSedimentCapacity);
+        // erosion.SetFloat("depositSpeed", depositSpeed);
+        // erosion.SetFloat("erodeSpeed", erodeSpeed);
+        // erosion.SetFloat("evaporateSpeed", evaporateSpeed);
+        // erosion.SetFloat("gravity", gravity);
+        // erosion.SetFloat("startSpeed", startSpeed);
+        // erosion.SetFloat("startWater", startWater);
+
+        // // Run compute shader
+        // erosion.Dispatch(0, numThreads, 1, 1);
+        // mapBuffer.GetData(map);
+
+        // // Release buffers
+        // mapBuffer.Release();
+        // randomIndexBuffer.Release();
+        // neuronInputsBuffer.Release();
+        // brushWeightBuffer.Release();
     }
 
     public Bounds GetBounds()

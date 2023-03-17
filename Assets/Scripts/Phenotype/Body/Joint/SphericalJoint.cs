@@ -5,7 +5,7 @@ public class SphericalJoint : JointBase
 {
     protected override JointType TypeOfJoint => JointType.Spherical;
 
-    public override void ApplySpecificJointSettings(List<float> dofAngleLimits)
+    public override void ApplySpecificJointSettings()
     {
         joint.anchor = new Vector3(0, 0, -0.5f);
         joint.xMotion = ConfigurableJointMotion.Locked;

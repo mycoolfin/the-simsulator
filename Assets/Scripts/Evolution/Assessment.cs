@@ -76,7 +76,7 @@ public static class Assessment
             float displacement = Vector3.Distance(startPosition, currentPosition);
             float phenotypeLength = Mathf.Max(bounds.extents.x * 2, bounds.extents.y * 2, bounds.extents.z * 2);
             float lengthsTravelled = displacement / phenotypeLength;
-            individual.fitness = lengthsTravelled;
+            individual.fitness = displacement;
 
             if (individual.phenotype.lostLimbs)
                 individual.fitness = 0;

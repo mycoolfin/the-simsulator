@@ -24,7 +24,7 @@ public static class PhenotypeBuilder
         phenotype.brain = brain;
         phenotype.limbs = limbs;
 
-        phenotype.gameObject.name = "P of G" + genotype.id;
+        phenotype.gameObject.name = genotype.id;
 
         return phenotype;
     }

@@ -22,10 +22,8 @@ public class Limb : MonoBehaviour
     }
 
     public JointBase joint;
-    public List<List<float>> jointEffectorInputPreferences;
 
     public List<NeuronBase> neurons;
-    public List<List<float>> neuronInputPreferences;
 
     public Limb parentLimb;
     public List<Limb> childLimbs;
@@ -122,18 +120,15 @@ public class Limb : MonoBehaviour
         float parentCrossSectionalArea = transform.localScale[(perpendicularAxis + 1) % 3] * transform.localScale[(perpendicularAxis + 2) % 3];
         float maximumJointStrength = Mathf.Min(childCrossSectionalArea, parentCrossSectionalArea);
         childLimb.joint = JointBase.CreateJoint(
-            childLimbNode.jointDefinition.type,
+            childLimbNode.jointDefinition,
             childLimb.gameObject,
             GetComponent<Rigidbody>(),
             maximumJointStrength,
-            childLimbNode.jointDefinition.limits.ToList(),
+            childLimbNode.jointDefinition.axisDefinitions.Select(a => a.limit).ToList(),
             childLimb.reflectedX,
             childLimb.reflectedY,
             childLimb.reflectedZ
         );
-        for (int i = 0; i < childLimb.joint.effectors.Count; i++)
-            childLimb.joint.effectors[i].Weights = childLimbNode.jointDefinition.effectorInputWeights[i].ToList();
-        childLimb.jointEffectorInputPreferences = childLimbNode.jointDefinition.effectorInputPreferences.Select(x => x.ToList()).ToList();
 
         // Enable parent/child interpenetration.
         Physics.IgnoreCollision(fullBodyCollider, childLimb.fullBodyCollider);
@@ -176,11 +171,9 @@ public class Limb : MonoBehaviour
 
         // Add the limb neurons, but don't wire them up until later (when we have a complete morphology to reference).
         limb.neurons = new List<NeuronBase>();
-        limb.neuronInputPreferences = new List<List<float>>();
         for (int i = 0; i < limbNode.neuronDefinitions.Count; i++)
         {
-            limb.neurons.Add(NeuronBase.CreateNeuron(limbNode.neuronDefinitions[i].type, limbNode.neuronDefinitions[i].inputWeights));
-            limb.neuronInputPreferences.Add(limbNode.neuronDefinitions[i].inputPreferences);
+            limb.neurons.Add(NeuronBase.CreateNeuron(limbNode.neuronDefinitions[i]));
         }
 
         limb.usedMidwayColliders = new List<BoxCollider>();

@@ -285,7 +285,6 @@ MonoBehaviour:
   fluidDensity: 1
   gravity: 1
   useComputeShaderForNNs: 0
-  goodFluid: 1
 --- !u!1 &1035819349
 GameObject:
   m_ObjectHideFlags: 0
@@ -422,7 +421,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f067e36067e8e4fa59fd2ff398dcb853, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  trial: 0
+  trial: 1
   numberOfIterations: 500
   populationSize: 100
   survivalRatio: 0.2

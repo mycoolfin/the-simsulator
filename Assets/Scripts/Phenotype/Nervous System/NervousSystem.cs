@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -21,7 +22,7 @@ public static class NervousSystem
         .Concat(limbs.SelectMany(limb => limb.neurons))
         .ToList();
 
-        NervousSystem.ConfigureSignalReceivers(brain.neurons.Cast<ISignalReceiver>().ToList(), brain.neuronInputPreferences, emitterPool);
+        NervousSystem.ConfigureSignalReceivers(brain.neurons.Cast<ISignalReceiver>().ToList(), emitterPool);
     }
 
     private static void ConfigureLimbNervousSystem(Limb limb, Brain brain)
@@ -47,26 +48,22 @@ public static class NervousSystem
         .Concat(limb.joint?.effectors.Cast<ISignalReceiver>() ?? new List<ISignalReceiver>())
         .ToList();
 
-        // The input preferences of each receiver.
-        List<List<float>> inputPreferences = limb.neuronInputPreferences
-        .Concat(limb.jointEffectorInputPreferences ?? new List<List<float>>())
-        .ToList();
-
-        NervousSystem.ConfigureSignalReceivers(limbSignalReceivers, inputPreferences, emitterPool);
+        NervousSystem.ConfigureSignalReceivers(limbSignalReceivers, emitterPool);
     }
 
-    private static void ConfigureSignalReceivers(List<ISignalReceiver> receivers, List<List<float>> inputPreferences, List<ISignalEmitter> emitters)
+    private static void ConfigureSignalReceivers(List<ISignalReceiver> receivers, List<ISignalEmitter> emitters)
     {
         for (int receiverIndex = 0; receiverIndex < receivers.Count; receiverIndex++)
         {
             ISignalReceiver receiver = receivers[receiverIndex];
-            List<float> receiverInputPreferences = inputPreferences[receiverIndex];
             for (int inputSlotIndex = 0; inputSlotIndex < receiver.Inputs.Count; inputSlotIndex++)
             {
+                receiver.Weights[inputSlotIndex] = receiver.InputDefinitions[inputSlotIndex].weight;
+
                 // Input preferences are in the range (0.0 to 1.0).
                 // < switchThreshold -> the receiver will choose from the emitter pool.
                 // > switchThreshold -> the receiver will take a constant value.
-                float inputPreference = receiverInputPreferences[inputSlotIndex];
+                float inputPreference = receiver.InputDefinitions[inputSlotIndex].preference;
                 if (inputPreference < NervousSystemParameters.SwitchThreshold)
                 {
                     // Map this receiver's input preference to an emitter in the provided selection pool.

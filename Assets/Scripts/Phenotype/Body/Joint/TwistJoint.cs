@@ -5,7 +5,7 @@ public class TwistJoint : JointBase
 {
     protected override JointType TypeOfJoint => JointType.Twist;
 
-    public override void ApplySpecificJointSettings(List<float> dofAngleLimits)
+    public override void ApplySpecificJointSettings()
     {
         joint.axis = Vector3.forward;
         joint.secondaryAxis = Vector3.right;

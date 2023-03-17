@@ -13,11 +13,22 @@ public struct LimbNode
 
     public LimbNode(Vector3 dimensions, JointDefinition jointDefinition, int recursiveLimit, ReadOnlyCollection<NeuronDefinition> neuronDefinitions, ReadOnlyCollection<LimbConnection> connections)
     {
-        this.dimensions = new Vector3(
-            Mathf.Clamp(dimensions.x, LimbNodeParameters.MinSize, LimbNodeParameters.MaxSize),
-            Mathf.Clamp(dimensions.y, LimbNodeParameters.MinSize, LimbNodeParameters.MaxSize),
-            Mathf.Clamp(dimensions.z, LimbNodeParameters.MinSize, LimbNodeParameters.MaxSize)
-        );
+        bool validDimensions = dimensions.x >= LimbNodeParameters.MinSize && dimensions.x <= LimbNodeParameters.MaxSize
+                             && dimensions.y >= LimbNodeParameters.MinSize && dimensions.y <= LimbNodeParameters.MaxSize
+                             && dimensions.z >= LimbNodeParameters.MinSize && dimensions.z <= LimbNodeParameters.MaxSize;
+        if (!validDimensions)
+            throw new System.ArgumentException("Dimensions out of bounds. Specified: " + dimensions);
+
+        bool validRecursiveLimit = recursiveLimit >= 0 && recursiveLimit <= LimbNodeParameters.MaxRecursiveLimit;
+        if (!validRecursiveLimit)
+            throw new System.ArgumentException("Recursive limit must be between 0 and " + LimbNodeParameters.MaxRecursiveLimit + ". Specified: " + recursiveLimit);
+
+        bool validNeuronDefinitions = neuronDefinitions.Count >= LimbNodeParameters.MinNeurons && neuronDefinitions.Count <= LimbNodeParameters.MaxNeurons;
+        if (!validNeuronDefinitions)
+            throw new System.ArgumentException("The number of neuron definitions must be between " + LimbNodeParameters.MinNeurons
+            + " and " + LimbNodeParameters.MaxNeurons + ". Specified: " + neuronDefinitions.Count);
+
+        this.dimensions = dimensions;
         this.jointDefinition = jointDefinition;
         this.recursiveLimit = recursiveLimit;
         this.neuronDefinitions = neuronDefinitions == null ? new List<NeuronDefinition>().AsReadOnly() : neuronDefinitions;
@@ -38,16 +49,16 @@ public struct LimbNode
     public static LimbNode CreateRandom(ReadOnlyCollection<LimbConnection> connections)
     {
         Vector3 dimensions = new(
-            Random.Range(LimbNodeGenerationParameters.MinSize, LimbNodeGenerationParameters.MaxSize),
-            Random.Range(LimbNodeGenerationParameters.MinSize, LimbNodeGenerationParameters.MaxSize),
-            Random.Range(LimbNodeGenerationParameters.MinSize, LimbNodeGenerationParameters.MaxSize)
+            Random.Range(LimbNodeParameters.MinSize, LimbNodeParameters.MaxSize),
+            Random.Range(LimbNodeParameters.MinSize, LimbNodeParameters.MaxSize),
+            Random.Range(LimbNodeParameters.MinSize, LimbNodeParameters.MaxSize)
         );
 
         JointDefinition jointDefinition = JointDefinition.CreateRandom();
 
-        int recursiveLimit = Random.Range(LimbNodeGenerationParameters.MinRecursiveLimit, LimbNodeGenerationParameters.MaxRecursiveLimit);
+        int recursiveLimit = Random.Range(0, LimbNodeParameters.MaxRecursiveLimit);
 
-        int numberOfNeurons = Random.Range(LimbNodeGenerationParameters.MinNeurons, LimbNodeGenerationParameters.MaxNeurons);
+        int numberOfNeurons = Random.Range(LimbNodeParameters.MinNeurons, LimbNodeParameters.MaxNeurons);
         List<NeuronDefinition> neuronDefinitions = new List<NeuronDefinition>();
         for (int i = 0; i < numberOfNeurons; i++)
             neuronDefinitions.Add(NeuronDefinition.CreateRandom());

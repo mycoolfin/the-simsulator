@@ -1,9 +1,22 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections.ObjectModel;
+using System.Collections.Generic;
 using System.Linq;
 
 public abstract class NeuronBase : ISignalEmitter, ISignalReceiver
 {
     protected abstract NeuronType TypeOfNeuron { get; }
+    private ReadOnlyCollection<SignalReceiverInputDefinition> inputDefinitions;
+    public ReadOnlyCollection<SignalReceiverInputDefinition> InputDefinitions
+    {
+        get { return inputDefinitions; }
+        set
+        {
+            if (value.Count == TypeOfNeuron.NumberOfInputs())
+                inputDefinitions = value;
+            else
+                throw new System.ArgumentException("Expected " + TypeOfNeuron.NumberOfInputs().ToString() + " input definitions, got " + value.Count);
+        }
+    }
     private List<ISignalEmitter> inputs;
     public List<ISignalEmitter> Inputs
     {
@@ -49,15 +62,16 @@ public abstract class NeuronBase : ISignalEmitter, ISignalReceiver
 
     protected NeuronBase()
     {
+        InputDefinitions = new SignalReceiverInputDefinition[TypeOfNeuron.NumberOfInputs()].ToList().AsReadOnly();
         Inputs = new ISignalEmitter[TypeOfNeuron.NumberOfInputs()].ToList();
         InputOverrides = new float?[TypeOfNeuron.NumberOfInputs()].ToList();
         Weights = new float[TypeOfNeuron.NumberOfInputs()].ToList();
     }
 
-    public static NeuronBase CreateNeuron(NeuronType neuronType, List<float> weights)
+    public static NeuronBase CreateNeuron(NeuronDefinition neuronDefinition)
     {
         NeuronBase neuron;
-        switch (neuronType)
+        switch (neuronDefinition.type)
         {
             case NeuronType.Abs:
                 neuron = new AbsNeuron();
@@ -129,9 +143,9 @@ public abstract class NeuronBase : ISignalEmitter, ISignalReceiver
                 neuron = new SumThresholdNeuron();
                 break;
             default:
-                throw new System.ArgumentException("Unknown neuron type '" + neuronType + "'");
+                throw new System.ArgumentException("Unknown neuron type '" + neuronDefinition.type + "'");
         }
-        neuron.Weights = weights;
+        neuron.inputDefinitions = neuronDefinition.inputDefinitions;
         return neuron;
     }
 
