@@ -1,25 +1,48 @@
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using UnityEngine;
 
 [Serializable]
-public struct JointDefinition
+public class JointDefinition : IDefinition
 {
-    public readonly JointType type;
-    public readonly ReadOnlyCollection<JointAxisDefinition> axisDefinitions;
+    [SerializeField] private JointType type;
+    [SerializeField] private List<JointAxisDefinition> axisDefinitions;
 
-    public JointDefinition(JointType type, ReadOnlyCollection<JointAxisDefinition> axisDefinitions)
+    public JointType Type => type;
+    public ReadOnlyCollection<JointAxisDefinition> AxisDefinitions => axisDefinitions.AsReadOnly();
+
+    public JointDefinition(JointType type, IList<JointAxisDefinition> axisDefinitions)
+    {
+        ValidateJointType(type);
+        ValidateJointAxisDefinitions(axisDefinitions);
+
+        this.type = type;
+        this.axisDefinitions = axisDefinitions.ToList();
+    }
+
+    private static void ValidateJointType(JointType type)
     {
         bool validJointType = Enum.IsDefined(typeof(JointType), type);
         if (!validJointType)
             throw new ArgumentException("Unknown joint type. Specified: " + type);
+    }
 
+    private static void ValidateJointAxisDefinitions(IList<JointAxisDefinition> axisDefinitions)
+    {
         bool validAxisDefinitions = axisDefinitions.Count == 3;
         if (!validAxisDefinitions)
             throw new ArgumentException("Expected 3 axis definitions. Specified: " + axisDefinitions.Count);
 
-        this.type = type;
-        this.axisDefinitions = axisDefinitions;
+        foreach (JointAxisDefinition axisDefinition in axisDefinitions)
+            axisDefinition.Validate();
+    }
+
+    public void Validate()
+    {
+        ValidateJointType(type);
+        ValidateJointAxisDefinitions(axisDefinitions);
     }
 
     public JointDefinition CreateCopy()
@@ -41,7 +64,7 @@ public struct JointDefinition
                 JointAxisDefinition.CreateRandom(),
                 JointAxisDefinition.CreateRandom(),
                 JointAxisDefinition.CreateRandom()
-            }.AsReadOnly()
+            }
         );
     }
 }

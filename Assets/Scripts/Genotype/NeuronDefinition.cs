@@ -1,25 +1,48 @@
 using System;
+using System.Linq;
 using System.Collections.ObjectModel;
 using System.Collections.Generic;
+using UnityEngine;
 
 [Serializable]
-public struct NeuronDefinition
+public class NeuronDefinition : IDefinition
 {
-    public readonly NeuronType type;
-    public readonly ReadOnlyCollection<SignalReceiverInputDefinition> inputDefinitions;
+    [SerializeField] private NeuronType type;
+    [SerializeField] private List<InputDefinition> inputDefinitions;
 
-    public NeuronDefinition(NeuronType type, ReadOnlyCollection<SignalReceiverInputDefinition> inputDefinitions)
+    public NeuronType Type => type;
+    public ReadOnlyCollection<InputDefinition> InputDefinitions => inputDefinitions.AsReadOnly();
+
+    public NeuronDefinition(NeuronType type, IList<InputDefinition> inputDefinitions)
+    {
+        ValidateNeuronType(type);
+        ValidateInputDefinitions(inputDefinitions);
+
+        this.type = type;
+        this.inputDefinitions = inputDefinitions.ToList();
+    }
+
+    private static void ValidateNeuronType(NeuronType type)
     {
         bool validNeuronType = Enum.IsDefined(typeof(NeuronType), type);
         if (!validNeuronType)
             throw new ArgumentException("Unknown neuron type. Specified: " + type);
+    }
 
-        bool validInputDefinitions = inputDefinitions.Count == 3;
-        if (!validInputDefinitions)
+    private static void ValidateInputDefinitions(IList<InputDefinition> inputDefinitions)
+    {
+        bool validInputDefinitionsCount = inputDefinitions.Count == 3;
+        if (!validInputDefinitionsCount)
             throw new ArgumentException("Expected 3 input definitions. Specified: " + inputDefinitions.Count);
 
-        this.type = type;
-        this.inputDefinitions = inputDefinitions;
+        foreach (InputDefinition inputDefinition in inputDefinitions)
+            inputDefinition.Validate();
+    }
+
+    public void Validate()
+    {
+        ValidateNeuronType(type);
+        ValidateInputDefinitions(inputDefinitions);
     }
 
     public static NeuronDefinition CreateRandom()
@@ -29,11 +52,11 @@ public struct NeuronDefinition
 
         return new NeuronDefinition(
             type,
-            new List<SignalReceiverInputDefinition> {
-                SignalReceiverInputDefinition.CreateRandom(),
-                SignalReceiverInputDefinition.CreateRandom(),
-                SignalReceiverInputDefinition.CreateRandom()
-            }.AsReadOnly()
+            new List<InputDefinition> {
+                InputDefinition.CreateRandom(),
+                InputDefinition.CreateRandom(),
+                InputDefinition.CreateRandom()
+            }
         );
     }
 }

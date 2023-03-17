@@ -162,8 +162,8 @@ public class EvolutionSimulator : MonoBehaviour
             for (int i = 0; i < maxChildren; i++)
             {
                 // Choose parents, weighted by relative fitness.
-                Genotype? parent1 = null;
-                Genotype? parent2 = null;
+                Genotype parent1 = null;
+                Genotype parent2 = null;
                 float parent1Value = UnityEngine.Random.value;
                 float parent2Value = UnityEngine.Random.value;
 
@@ -185,7 +185,7 @@ public class EvolutionSimulator : MonoBehaviour
 
                 nextGeneration.individuals.Add(new()
                 {
-                    genotype = Reproduction.CreateOffspring((Genotype)parent1, (Genotype)parent2)
+                    genotype = Reproduction.CreateOffspring(parent1, parent2)
                 });
             }
         }

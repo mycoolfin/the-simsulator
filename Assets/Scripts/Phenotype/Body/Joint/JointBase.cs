@@ -37,7 +37,7 @@ public abstract class JointBase : MonoBehaviour
     public static JointBase CreateJoint(JointDefinition jointDefinition, GameObject gameObject, Rigidbody connectedBody, float maximumJointStrength, List<float> dofAngleLimits, bool reflectedX, bool reflectedY, bool reflectedZ)
     {
         JointBase j;
-        switch (jointDefinition.type)
+        switch (jointDefinition.Type)
         {
             case JointType.Rigid:
                 j = gameObject.AddComponent<RigidJoint>();
@@ -49,7 +49,7 @@ public abstract class JointBase : MonoBehaviour
                 j = gameObject.AddComponent<TwistJoint>();
                 break;
             case JointType.Universal: // broken
-                // joint = gameObject.AddComponent<UniversalJoint>();
+                // j = gameObject.AddComponent<UniversalJoint>();
                 j = gameObject.AddComponent<RigidJoint>();
                 dofAngleLimits = new List<float> { };
                 break;
@@ -60,12 +60,12 @@ public abstract class JointBase : MonoBehaviour
                 j = gameObject.AddComponent<TwistBendJoint>();
                 break;
             case JointType.Spherical: // broken
-                // joint = gameObject.AddComponent<SphericalJoint>();
+                // j = gameObject.AddComponent<SphericalJoint>();
                 j = gameObject.AddComponent<RigidJoint>();
                 dofAngleLimits = new List<float> { };
                 break;
             default:
-                throw new System.ArgumentException("Unknown joint type '" + jointDefinition.type + "'");
+                throw new System.ArgumentException("Unknown joint type '" + jointDefinition.Type + "'");
         }
 
         j.maximumJointStrength = maximumJointStrength;
@@ -74,7 +74,7 @@ public abstract class JointBase : MonoBehaviour
         j.dofAngleLimits = dofAngleLimits.Take(j.TypeOfJoint.DegreesOfFreedom()).ToList();
 
         j.InitialiseSensors();
-        j.InitialiseEffectors(jointDefinition.axisDefinitions.Select(a => a.inputDefinition).ToList().AsReadOnly());
+        j.InitialiseEffectors(jointDefinition.AxisDefinitions.Select(a => a.InputDefinition).ToList().AsReadOnly());
         j.InitialiseJoint(connectedBody, maximumJointStrength);
         j.ApplySpecificJointSettings();
         j.ApplyReflections(reflectedX, reflectedY, reflectedZ);
@@ -135,6 +135,7 @@ public abstract class JointBase : MonoBehaviour
         // Debug.
         if (resetExcitations)
         {
+            resetExcitations = false;
             debugPrimaryExcitation = 0f;
             debugSecondaryExcitation = 0f;
             debugTertiaryExcitation = 0f;
@@ -154,7 +155,7 @@ public abstract class JointBase : MonoBehaviour
         }
     }
 
-    protected void InitialiseEffectors(ReadOnlyCollection<SignalReceiverInputDefinition> inputDefinitions)
+    protected void InitialiseEffectors(ReadOnlyCollection<InputDefinition> inputDefinitions)
     {
         effectors = new List<JointAngleEffector>();
         for (int i = 0; i < dofAngleLimits.Count; i++)

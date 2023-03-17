@@ -5,8 +5,8 @@ using System.Linq;
 public abstract class NeuronBase : ISignalEmitter, ISignalReceiver
 {
     protected abstract NeuronType TypeOfNeuron { get; }
-    private ReadOnlyCollection<SignalReceiverInputDefinition> inputDefinitions;
-    public ReadOnlyCollection<SignalReceiverInputDefinition> InputDefinitions
+    private ReadOnlyCollection<InputDefinition> inputDefinitions;
+    public ReadOnlyCollection<InputDefinition> InputDefinitions
     {
         get { return inputDefinitions; }
         set
@@ -62,7 +62,7 @@ public abstract class NeuronBase : ISignalEmitter, ISignalReceiver
 
     protected NeuronBase()
     {
-        InputDefinitions = new SignalReceiverInputDefinition[TypeOfNeuron.NumberOfInputs()].ToList().AsReadOnly();
+        InputDefinitions = new InputDefinition[TypeOfNeuron.NumberOfInputs()].ToList().AsReadOnly();
         Inputs = new ISignalEmitter[TypeOfNeuron.NumberOfInputs()].ToList();
         InputOverrides = new float?[TypeOfNeuron.NumberOfInputs()].ToList();
         Weights = new float[TypeOfNeuron.NumberOfInputs()].ToList();
@@ -71,7 +71,7 @@ public abstract class NeuronBase : ISignalEmitter, ISignalReceiver
     public static NeuronBase CreateNeuron(NeuronDefinition neuronDefinition)
     {
         NeuronBase neuron;
-        switch (neuronDefinition.type)
+        switch (neuronDefinition.Type)
         {
             case NeuronType.Abs:
                 neuron = new AbsNeuron();
@@ -143,9 +143,9 @@ public abstract class NeuronBase : ISignalEmitter, ISignalReceiver
                 neuron = new SumThresholdNeuron();
                 break;
             default:
-                throw new System.ArgumentException("Unknown neuron type '" + neuronDefinition.type + "'");
+                throw new System.ArgumentException("Unknown neuron type '" + neuronDefinition.Type + "'");
         }
-        neuron.inputDefinitions = neuronDefinition.inputDefinitions;
+        neuron.inputDefinitions = neuronDefinition.InputDefinitions;
         return neuron;
     }
 

@@ -1,4 +1,3 @@
-using System.Collections.ObjectModel;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -58,12 +57,12 @@ public static class NervousSystem
             ISignalReceiver receiver = receivers[receiverIndex];
             for (int inputSlotIndex = 0; inputSlotIndex < receiver.Inputs.Count; inputSlotIndex++)
             {
-                receiver.Weights[inputSlotIndex] = receiver.InputDefinitions[inputSlotIndex].weight;
+                receiver.Weights[inputSlotIndex] = receiver.InputDefinitions[inputSlotIndex].Weight;
 
                 // Input preferences are in the range (0.0 to 1.0).
                 // < switchThreshold -> the receiver will choose from the emitter pool.
                 // > switchThreshold -> the receiver will take a constant value.
-                float inputPreference = receiver.InputDefinitions[inputSlotIndex].preference;
+                float inputPreference = receiver.InputDefinitions[inputSlotIndex].Preference;
                 if (inputPreference < NervousSystemParameters.SwitchThreshold)
                 {
                     // Map this receiver's input preference to an emitter in the provided selection pool.

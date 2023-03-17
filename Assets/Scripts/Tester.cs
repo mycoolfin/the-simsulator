@@ -5,13 +5,6 @@ public class Tester : MonoBehaviour
 {
     void Start()
     {
-        // Phenotype j = PhenotypeBuilder.ConstructPhenotype(Jointed());
-        // j.transform.position = new Vector3(0, 3, 0);
-        // j.GetComponentInChildren<Rigidbody>().isKinematic = true;
-        // Physics.SyncTransforms();
-        // Physics.gravity = Vector3.zero;
-
-
         Phenotype parent1Phenotype = PhenotypeBuilder.ConstructPhenotype(Worm());
         parent1Phenotype.transform.rotation *= Quaternion.Euler(0f, 0f, 180f);
         parent1Phenotype.transform.position = new Vector3(0, -parent1Phenotype.GetBounds().center.y + parent1Phenotype.GetBounds().extents.y * 2, 0);
@@ -22,9 +15,9 @@ public class Tester : MonoBehaviour
     {
         NeuronDefinition wave = new(
             NeuronType.OscillateWave,
-            new List<SignalReceiverInputDefinition>()
+            new List<InputDefinition>()
             {
-                new(1f, 2f),
+                new(1f, 5f),
                 new(1f, 1f),
                 new(1f, 1f)
             }.AsReadOnly()
@@ -35,9 +28,9 @@ public class Tester : MonoBehaviour
                 JointType.Revolute,
                 new List<JointAxisDefinition>()
                 {
-                    new(45f, new SignalReceiverInputDefinition(0.2f, 1f)),
-                    new(0f, new SignalReceiverInputDefinition(0f, 0f)),
-                    new(0f, new SignalReceiverInputDefinition(0f, 0f))
+                    new(45f, new InputDefinition(0.2f, 1f)),
+                    new(0f, new InputDefinition(0f, 0f)),
+                    new(0f, new InputDefinition(0f, 0f))
                 }.AsReadOnly()
             ),
             5,

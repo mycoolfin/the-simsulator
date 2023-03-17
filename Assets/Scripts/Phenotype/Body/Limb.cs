@@ -51,7 +51,7 @@ public class Limb : MonoBehaviour
          * Quaternion.FromToRotation(Vector3.forward, localParentFaceNormal);
 
         Vector3 existingScaling = Vector3.Scale(transform.localScale, new Vector3(1f / unscaledDimensions.x, 1f / unscaledDimensions.y, 1f / unscaledDimensions.z));
-        Vector3 childDimensions = ClampDimensions(Vector3.Scale(Vector3.Scale(childLimbNode.dimensions, existingScaling), scale));
+        Vector3 childDimensions = ClampDimensions(Vector3.Scale(Vector3.Scale(childLimbNode.Dimensions, existingScaling), scale));
 
         // Apply reflections.
         if (reflectX)
@@ -120,11 +120,11 @@ public class Limb : MonoBehaviour
         float parentCrossSectionalArea = transform.localScale[(perpendicularAxis + 1) % 3] * transform.localScale[(perpendicularAxis + 2) % 3];
         float maximumJointStrength = Mathf.Min(childCrossSectionalArea, parentCrossSectionalArea);
         childLimb.joint = JointBase.CreateJoint(
-            childLimbNode.jointDefinition,
+            childLimbNode.JointDefinition,
             childLimb.gameObject,
             GetComponent<Rigidbody>(),
             maximumJointStrength,
-            childLimbNode.jointDefinition.axisDefinitions.Select(a => a.limit).ToList(),
+            childLimbNode.JointDefinition.AxisDefinitions.Select(a => a.Limit).ToList(),
             childLimb.reflectedX,
             childLimb.reflectedY,
             childLimb.reflectedZ
@@ -170,15 +170,11 @@ public class Limb : MonoBehaviour
         Limb limb = Instantiate(ResourceManager.Instance.limbPrefab).GetComponent<Limb>();
 
         // Add the limb neurons, but don't wire them up until later (when we have a complete morphology to reference).
-        limb.neurons = new List<NeuronBase>();
-        for (int i = 0; i < limbNode.neuronDefinitions.Count; i++)
-        {
-            limb.neurons.Add(NeuronBase.CreateNeuron(limbNode.neuronDefinitions[i]));
-        }
+        limb.neurons = limbNode.NeuronDefinitions.Select(neuronDefinition => NeuronBase.CreateNeuron(neuronDefinition)).ToList();
 
         limb.usedMidwayColliders = new List<BoxCollider>();
 
-        Vector3 clampedDimensions = ClampDimensions(limbNode.dimensions);
+        Vector3 clampedDimensions = ClampDimensions(limbNode.Dimensions);
         limb.unscaledDimensions = clampedDimensions;
         limb.Dimensions = clampedDimensions;
 

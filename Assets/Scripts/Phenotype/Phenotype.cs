@@ -5,7 +5,6 @@ using UnityEngine;
 public class Phenotype : MonoBehaviour
 {
     public Genotype genotype;
-    public List<string> lineage;
     public Brain brain;
     public List<Limb> limbs;
     private List<MeshRenderer> meshRenderers;
@@ -13,10 +12,20 @@ public class Phenotype : MonoBehaviour
 
     public bool lostLimbs;
 
+    public bool saveGenotypeToFile;
+
     private void Start()
     {
         meshRenderers = GetComponentsInChildren<MeshRenderer>().ToList();
-        lineage = genotype.lineage.ToList(); // TODO: Remove this once we work out how to display genotype in inspector.
+    }
+
+    private void Update()
+    {
+        if (saveGenotypeToFile)
+        {
+            saveGenotypeToFile = false;
+            GenotypeSerializer.WriteGenotypeToFile(genotype, genotype.Id + ".genotype.json");
+        }
     }
 
     private void FixedUpdate()

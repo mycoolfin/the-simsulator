@@ -29,8 +29,8 @@ public static class Mutation
         Genotype newGenotype = genotype;
         for (int i = 0; i < numberOfMutations; i++)
         {
-            ReadOnlyCollection<LimbNode> limbNodes = newGenotype.limbNodes;
-            ReadOnlyCollection<NeuronDefinition> brainNeuronDefinitions = newGenotype.brainNeuronDefinitions;
+            ReadOnlyCollection<LimbNode> limbNodes = newGenotype.LimbNodes;
+            ReadOnlyCollection<NeuronDefinition> brainNeuronDefinitions = newGenotype.BrainNeuronDefinitions;
             List<string> path = new();
             WeightedActionList mutationChoices = new WeightedActionList
             {
@@ -42,8 +42,9 @@ public static class Mutation
             mutationChoices.ChooseAction();
 
             newGenotype = new(
-                genotype.id,
-                newGenotype.lineage.Concat(new List<string>() { "M - " + string.Join(" ", path) }).ToList().AsReadOnly(),
+                genotype.Id,
+                // newGenotype.Lineage.Concat(new List<string>() { "M - " + string.Join(" ", path) }).ToList().AsReadOnly(),
+                genotype.Lineage,
                 brainNeuronDefinitions,
                 limbNodes
             );
@@ -72,15 +73,15 @@ public static class Mutation
     {
         path.Add("LimbNode");
 
-        Vector3 dimensions = limbNode.dimensions;
-        JointDefinition jointDefinition = limbNode.jointDefinition;
-        int recursiveLimit = limbNode.recursiveLimit;
+        Vector3 dimensions = limbNode.Dimensions;
+        JointDefinition jointDefinition = limbNode.JointDefinition;
+        int recursiveLimit = limbNode.RecursiveLimit;
 
-        JointType jointType = limbNode.jointDefinition.type;
-        ReadOnlyCollection<JointAxisDefinition> jointAxisDefinitions = limbNode.jointDefinition.axisDefinitions;
+        JointType jointType = limbNode.JointDefinition.Type;
+        ReadOnlyCollection<JointAxisDefinition> jointAxisDefinitions = limbNode.JointDefinition.AxisDefinitions;
 
-        ReadOnlyCollection<NeuronDefinition> neuronDefinitions = limbNode.neuronDefinitions;
-        ReadOnlyCollection<LimbConnection> connections = limbNode.connections;
+        ReadOnlyCollection<NeuronDefinition> neuronDefinitions = limbNode.NeuronDefinitions;
+        ReadOnlyCollection<LimbConnection> connections = limbNode.Connections;
 
         WeightedActionList mutationChoices = new WeightedActionList
         {
@@ -139,16 +140,16 @@ public static class Mutation
     {
         path.Add("JointAxisDefinition");
 
-        float limit = jointAxisDefinition.limit;
-        SignalReceiverInputDefinition inputDefinition = jointAxisDefinition.inputDefinition;
+        float limit = jointAxisDefinition.Limit;
+        InputDefinition inputDefinition = jointAxisDefinition.InputDefinition;
         WeightedActionList mutationChoices = new WeightedActionList
         {
             (MutationParameters.JointAxisDefinition.ChangeJointLimit, new System.Action(() => {
                 limit = MutateScalar(limit, JointDefinitionParameters.MinAngle, JointDefinitionParameters.MaxAngle);
                 path.Add("Limit");
         })),
-            (MutationParameters.JointAxisDefinition.ChangeSignalReceiverInputDefinition, new System.Action(() =>
-                inputDefinition = MutateSignalReceiverInputDefinition(path, inputDefinition)))
+            (MutationParameters.JointAxisDefinition.ChangeInputDefinition, new System.Action(() =>
+                inputDefinition = MutateInputDefinition(path, inputDefinition)))
         };
 
         mutationChoices.ChooseAction();
@@ -163,16 +164,16 @@ public static class Mutation
     {
         path.Add("NeuronDefinition");
 
-        NeuronType type = neuronDefinition.type;
-        ReadOnlyCollection<SignalReceiverInputDefinition> inputDefinitions = neuronDefinition.inputDefinitions;
+        NeuronType type = neuronDefinition.Type;
+        ReadOnlyCollection<InputDefinition> inputDefinitions = neuronDefinition.InputDefinitions;
         WeightedActionList mutationChoices = new WeightedActionList
         {
             (MutationParameters.NeuronDefinition.ChangeNeuronType, new System.Action(() => {
                 type = (NeuronType)MutateEnum(type);
                 path.Add("NeuronType");
             })),
-            (MutationParameters.NeuronDefinition.ChangeSignalReceiverInputDefinition, new System.Action(() =>
-                inputDefinitions = MutateItemInCollection(path, inputDefinitions, MutateSignalReceiverInputDefinition)))
+            (MutationParameters.NeuronDefinition.ChangeInputDefinition, new System.Action(() =>
+                inputDefinitions = MutateItemInCollection(path, inputDefinitions, MutateInputDefinition)))
         };
 
         mutationChoices.ChooseAction();
@@ -183,20 +184,20 @@ public static class Mutation
         );
     }
 
-    private static SignalReceiverInputDefinition MutateSignalReceiverInputDefinition(List<string> path, SignalReceiverInputDefinition signalReceiverInputDefinition)
+    private static InputDefinition MutateInputDefinition(List<string> path, InputDefinition inputDefinition)
     {
-        path.Add("SignalReceiverInputDefinition");
+        path.Add("InputDefinition");
 
-        float preference = signalReceiverInputDefinition.preference;
-        float weight = signalReceiverInputDefinition.weight;
+        float preference = inputDefinition.Preference;
+        float weight = inputDefinition.Weight;
         WeightedActionList mutationChoices = new WeightedActionList
         {
-            (MutationParameters.SignalReceiverInputDefinition.ChangeSignalReceiverInputPreference, new System.Action(() => {
+            (MutationParameters.InputDefinition.ChangeInputDefinitionPreference, new System.Action(() => {
                 preference = MutateScalar(preference, 0f, 1f);
                 path.Add("Preference");
             })),
-            (MutationParameters.SignalReceiverInputDefinition.ChangeSignalReceiverInputWeight, new System.Action(() => {
-                weight = MutateScalar(weight, NeuronDefinitionParameters.MinWeight, NeuronDefinitionParameters.MaxWeight);
+            (MutationParameters.InputDefinition.ChangeInputDefinitionWeight, new System.Action(() => {
+                weight = MutateScalar(weight, InputDefinitionParameters.MinWeight, InputDefinitionParameters.MaxWeight);
                 path.Add("Weight");
             }))
         };
@@ -213,15 +214,15 @@ public static class Mutation
     {
         path.Add("LimbConnection");
 
-        int childNodeId = limbConnection.childNodeId;
-        int parentFace = limbConnection.parentFace;
-        Vector2 position = limbConnection.position;
-        Vector3 orientation = limbConnection.orientation;
-        Vector3 scale = limbConnection.scale;
-        bool reflectionX = limbConnection.reflectionX;
-        bool reflectionY = limbConnection.reflectionY;
-        bool reflectionZ = limbConnection.reflectionZ;
-        bool terminalOnly = limbConnection.terminalOnly;
+        int childNodeId = limbConnection.ChildNodeId;
+        int parentFace = limbConnection.ParentFace;
+        Vector2 position = limbConnection.Position;
+        Vector3 orientation = limbConnection.Orientation;
+        Vector3 scale = limbConnection.Scale;
+        bool reflectionX = limbConnection.ReflectionX;
+        bool reflectionY = limbConnection.ReflectionY;
+        bool reflectionZ = limbConnection.ReflectionZ;
+        bool terminalOnly = limbConnection.TerminalOnly;
         WeightedActionList mutationChoices = new WeightedActionList
         {
             (MutationParameters.LimbConnection.ChangeChildNode, new System.Action(() =>  {

@@ -6,8 +6,8 @@ using UnityEngine;
 public abstract class EffectorBase : ISignalReceiver
 {
     protected abstract EffectorType TypeOfEffector { get; }
-    private ReadOnlyCollection<SignalReceiverInputDefinition> inputDefinitions;
-    public ReadOnlyCollection<SignalReceiverInputDefinition> InputDefinitions
+    private ReadOnlyCollection<InputDefinition> inputDefinitions;
+    public ReadOnlyCollection<InputDefinition> InputDefinitions
     {
         get { return inputDefinitions; }
         set
@@ -55,13 +55,13 @@ public abstract class EffectorBase : ISignalReceiver
 
     protected EffectorBase()
     {
-        InputDefinitions = new SignalReceiverInputDefinition[TypeOfEffector.NumberOfInputs()].ToList().AsReadOnly();
+        InputDefinitions = new InputDefinition[TypeOfEffector.NumberOfInputs()].ToList().AsReadOnly();
         Inputs = new ISignalEmitter[TypeOfEffector.NumberOfInputs()].ToList();
         InputOverrides = new float?[TypeOfEffector.NumberOfInputs()].ToList();
         Weights = new float[TypeOfEffector.NumberOfInputs()].ToList();
     }
 
-    public static EffectorBase CreateEffector(EffectorType type, ReadOnlyCollection<SignalReceiverInputDefinition> inputDefinitions)
+    public static EffectorBase CreateEffector(EffectorType type, ReadOnlyCollection<InputDefinition> inputDefinitions)
     {
         EffectorBase effector;
         switch (type)

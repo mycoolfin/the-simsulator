@@ -4,31 +4,57 @@ using System.Collections.ObjectModel;
 using UnityEngine;
 
 [System.Serializable]
-public struct Genotype
+public class Genotype : IDefinition
 {
     private static int latestId = 1;
 
-    public readonly string id;
-    public readonly ReadOnlyCollection<string> lineage;
-    public readonly ReadOnlyCollection<NeuronDefinition> brainNeuronDefinitions;
-    public readonly ReadOnlyCollection<LimbNode> limbNodes;
+    [SerializeField] private string id;
+    [SerializeField] private List<string> lineage;
+    [SerializeField] private List<NeuronDefinition> brainNeuronDefinitions;
+    [SerializeField] private List<LimbNode> limbNodes;
 
-    public Genotype(string id, ReadOnlyCollection<string> lineage, ReadOnlyCollection<NeuronDefinition> brainNeuronDefinitions, ReadOnlyCollection<LimbNode> limbNodes)
+    public string Id => id;
+    public ReadOnlyCollection<string> Lineage => lineage.AsReadOnly();
+    public ReadOnlyCollection<NeuronDefinition> BrainNeuronDefinitions => brainNeuronDefinitions.AsReadOnly();
+    public ReadOnlyCollection<LimbNode> LimbNodes => limbNodes.AsReadOnly();
+
+    public Genotype(string id, IList<string> lineage, IList<NeuronDefinition> brainNeuronDefinitions, IList<LimbNode> limbNodes)
     {
-        bool validBrainNeuronDefinitions = brainNeuronDefinitions.Count >= GenotypeParameters.MinBrainNeurons && brainNeuronDefinitions.Count <= GenotypeParameters.MaxBrainNeurons;
-        if (!validBrainNeuronDefinitions)
+        ValidateBrainNeuronDefinitions(brainNeuronDefinitions);
+        ValidateLimbNodes(limbNodes);
+
+        this.id = id != null ? id : "G" + latestId++;
+        this.lineage = lineage == null ? (new List<string> { this.id + " created" }) : lineage.ToList();
+        this.limbNodes = RemoveUnconnectedLimbNodes(limbNodes);
+        this.brainNeuronDefinitions = brainNeuronDefinitions == null ? new List<NeuronDefinition>() : brainNeuronDefinitions.ToList();
+    }
+
+    private static void ValidateBrainNeuronDefinitions(IList<NeuronDefinition> brainNeuronDefinitions)
+    {
+        bool validBrainNeuronDefinitionsCount = brainNeuronDefinitions.Count >= GenotypeParameters.MinBrainNeurons && brainNeuronDefinitions.Count <= GenotypeParameters.MaxBrainNeurons;
+        if (!validBrainNeuronDefinitionsCount)
             throw new System.ArgumentException("The number of brain neuron definitions must be between " + GenotypeParameters.MinBrainNeurons
             + " and " + GenotypeParameters.MaxBrainNeurons + ". Specified: " + brainNeuronDefinitions.Count);
 
-        bool validLimbNodes = limbNodes.Count >= GenotypeParameters.MinLimbNodes && limbNodes.Count <= GenotypeParameters.MaxLimbNodes;
-        if (!validLimbNodes)
+        foreach (NeuronDefinition neuronDefinition in brainNeuronDefinitions)
+            neuronDefinition.Validate();
+    }
+
+    private static void ValidateLimbNodes(IList<LimbNode> limbNodes)
+    {
+        bool validLimbNodesCount = limbNodes.Count >= GenotypeParameters.MinLimbNodes && limbNodes.Count <= GenotypeParameters.MaxLimbNodes;
+        if (!validLimbNodesCount)
             throw new System.ArgumentException("The number of limb nodes must be between " + GenotypeParameters.MinLimbNodes
             + " and " + GenotypeParameters.MaxLimbNodes + ". Specified: " + limbNodes.Count);
 
-        this.id = id != null ? id : "G" + latestId++;
-        this.lineage = lineage == null ? (new List<string> { this.id + " created" }).AsReadOnly() : lineage;
-        this.limbNodes = RemoveUnconnectedLimbNodes(limbNodes);
-        this.brainNeuronDefinitions = brainNeuronDefinitions == null ? new List<NeuronDefinition>().AsReadOnly() : brainNeuronDefinitions;
+        foreach (LimbNode limbNode in limbNodes)
+            limbNode.Validate();
+    }
+
+    public void Validate()
+    {
+        ValidateBrainNeuronDefinitions(brainNeuronDefinitions);
+        ValidateLimbNodes(limbNodes);
     }
 
     public static Genotype CreateRandom()
@@ -51,7 +77,7 @@ public struct Genotype
                 else
                     break;
             }
-            ReadOnlyCollection<LimbConnection> limbConnections = connectedNodeIds.Select(id => LimbConnection.CreateRandom(id)).ToList().AsReadOnly();
+            List<LimbConnection> limbConnections = connectedNodeIds.Select(id => LimbConnection.CreateRandom(id)).ToList();
             limbNodes.Add(LimbNode.CreateRandom(limbConnections));
         }
 
@@ -60,10 +86,10 @@ public struct Genotype
         for (int i = 0; i < numberOfBrainNeurons; i++)
             brainNeuronDefinitions.Add(NeuronDefinition.CreateRandom());
 
-        return new Genotype(null, null, brainNeuronDefinitions.AsReadOnly(), limbNodes.AsReadOnly());
+        return new Genotype(null, null, brainNeuronDefinitions, limbNodes);
     }
 
-    public static ReadOnlyCollection<LimbNode> RemoveUnconnectedLimbNodes(ReadOnlyCollection<LimbNode> limbNodes)
+    public static List<LimbNode> RemoveUnconnectedLimbNodes(IList<LimbNode> limbNodes)
     {
         LimbNode root = limbNodes[0];
         List<int> visitedNodeIds = RecursivelyTraverseLimbNodes(limbNodes, null, 0);
@@ -75,19 +101,19 @@ public struct Genotype
         List<LimbNode> newLimbNodes = new List<LimbNode>();
         for (int i = 0; i < visitedNodeIds.Count; i++)
         {
-            ReadOnlyCollection<LimbConnection> connections = limbNodes[visitedNodeIds[i]].connections
+            List<LimbConnection> connections = limbNodes[visitedNodeIds[i]].Connections
             .Select(oldConnection =>
             {
-                int precedingUnconnectedNodesCount = unconnectedNodeIds.Count(id => id < oldConnection.childNodeId);
-                return oldConnection.CreateCopy(oldConnection.childNodeId - precedingUnconnectedNodesCount);
-            }).ToList().AsReadOnly();
+                int precedingUnconnectedNodesCount = unconnectedNodeIds.Count(id => id < oldConnection.ChildNodeId);
+                return oldConnection.CreateCopy(oldConnection.ChildNodeId - precedingUnconnectedNodesCount);
+            }).ToList();
             newLimbNodes.Add(limbNodes[visitedNodeIds[i]].CreateCopy(connections));
         }
 
-        return newLimbNodes.AsReadOnly();
+        return newLimbNodes;
     }
 
-    private static List<int> RecursivelyTraverseLimbNodes(ReadOnlyCollection<LimbNode> limbNodes, List<int> visitedNodeIds, int nodeId)
+    private static List<int> RecursivelyTraverseLimbNodes(IList<LimbNode> limbNodes, List<int> visitedNodeIds, int nodeId)
     {
         if (visitedNodeIds == null)
             visitedNodeIds = new List<int>();
@@ -96,8 +122,8 @@ public struct Genotype
         {
             visitedNodeIds.Add(nodeId);
 
-            foreach (LimbConnection connection in limbNodes[nodeId].connections)
-                RecursivelyTraverseLimbNodes(limbNodes, visitedNodeIds, connection.childNodeId);
+            foreach (LimbConnection connection in limbNodes[nodeId].Connections)
+                RecursivelyTraverseLimbNodes(limbNodes, visitedNodeIds, connection.ChildNodeId);
         }
 
         return visitedNodeIds;

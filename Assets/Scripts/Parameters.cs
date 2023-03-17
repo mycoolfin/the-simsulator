@@ -33,11 +33,9 @@ public static class JointDefinitionParameters
 {
     public const float MinAngle = 0f;
     public const float MaxAngle = 90f;
-    public const float MinWeight = -1f;
-    public const float MaxWeight = 1f;
 }
 
-public static class NeuronDefinitionParameters
+public static class InputDefinitionParameters
 {
     public const float MinWeight = -10f;
     public const float MaxWeight = 10f;
@@ -107,7 +105,7 @@ public static class MutationParameters
     public static class JointAxisDefinition
     {
         public const float ChangeJointLimit = 1f;
-        public const float ChangeSignalReceiverInputDefinition = 1f;
+        public const float ChangeInputDefinition = 1f;
     }
 
     public static class LimbConnection
@@ -128,12 +126,12 @@ public static class MutationParameters
         public const float AddNeuron = 1f;
         public const float RemoveNeuron = 1f;
         public const float ChangeNeuronType = 1f;
-        public const float ChangeSignalReceiverInputDefinition = 1f;
+        public const float ChangeInputDefinition = 1f;
     }
 
-    public static class SignalReceiverInputDefinition
+    public static class InputDefinition
     {
-        public const float ChangeSignalReceiverInputPreference = 1f;
-        public const float ChangeSignalReceiverInputWeight = 1f;
+        public const float ChangeInputDefinitionPreference = 1f;
+        public const float ChangeInputDefinitionWeight = 1f;
     }
 }

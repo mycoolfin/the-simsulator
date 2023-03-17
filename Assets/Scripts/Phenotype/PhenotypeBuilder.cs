@@ -9,10 +9,10 @@ public static class PhenotypeBuilder
     public static Phenotype ConstructPhenotype(Genotype genotype)
     {
         // Create brain.
-        Brain brain = new Brain(genotype.brainNeuronDefinitions);
+        Brain brain = new Brain(genotype.BrainNeuronDefinitions);
 
         // Create limbs.
-        GameObject limbContainer = RecursivelyAddLimbs(genotype.limbNodes, null, null, 0);
+        GameObject limbContainer = RecursivelyAddLimbs(genotype.LimbNodes, null, null, 0);
         List<Limb> limbs = limbContainer.GetComponentsInChildren<Limb>().ToList();
         limbs.ForEach(limb => limb.Optimise());
 
@@ -24,16 +24,16 @@ public static class PhenotypeBuilder
         phenotype.brain = brain;
         phenotype.limbs = limbs;
 
-        phenotype.gameObject.name = genotype.id;
+        phenotype.gameObject.name = genotype.Id;
 
         return phenotype;
     }
 
-    private static GameObject RecursivelyAddLimbs(ReadOnlyCollection<LimbNode> limbNodes, LimbConnection? connectionToParent, Limb parentLimb, int nodeRecursionCount)
+    private static GameObject RecursivelyAddLimbs(ReadOnlyCollection<LimbNode> limbNodes, LimbConnection connectionToParent, Limb parentLimb, int nodeRecursionCount)
     {
         GameObject limbContainer = null;
 
-        int nodeId = connectionToParent == null ? 0 : ((LimbConnection)connectionToParent).childNodeId;
+        int nodeId = connectionToParent == null ? 0 : ((LimbConnection)connectionToParent).ChildNodeId;
         LimbNode node = limbNodes[nodeId];
 
         List<Limb> newLimbs = new List<Limb>();
@@ -46,13 +46,12 @@ public static class PhenotypeBuilder
         }
         else
         {
-            LimbConnection connection = (LimbConnection)connectionToParent;
             int numberOfLimbs = parentLimb.transform.parent.GetComponentsInChildren<Limb>().Length;
 
             bool canBeginReflectedSubtrees = nodeRecursionCount == 0 || nodeRecursionCount == 1 && numberOfLimbs == 1;
-            bool beginReflectedX = canBeginReflectedSubtrees && connection.reflectionX;
-            bool beginReflectedY = canBeginReflectedSubtrees && connection.reflectionY;
-            bool beginReflectedZ = canBeginReflectedSubtrees && connection.reflectionZ;
+            bool beginReflectedX = canBeginReflectedSubtrees && connectionToParent.ReflectionX;
+            bool beginReflectedY = canBeginReflectedSubtrees && connectionToParent.ReflectionY;
+            bool beginReflectedZ = canBeginReflectedSubtrees && connectionToParent.ReflectionZ;
 
             int reflectedLimbsToAdd = (int)Mathf.Pow(2, Convert.ToInt32(beginReflectedX) + Convert.ToInt32(beginReflectedY) + Convert.ToInt32(beginReflectedZ));
             if (numberOfLimbs + 1 + reflectedLimbsToAdd > PhenotypeBuilderParameters.MaxLimbs)
@@ -62,10 +61,10 @@ public static class PhenotypeBuilder
             Limb limb = parentLimb.AddChildLimb(
                 "Limb " + (numberOfLimbs + 1),
                 node,
-                connection.parentFace,
-                connection.position,
-                connection.orientation,
-                connection.scale,
+                connectionToParent.ParentFace,
+                connectionToParent.Position,
+                connectionToParent.Orientation,
+                connectionToParent.Scale,
                 false, false, false
             );
             if (limb == null)
@@ -91,10 +90,10 @@ public static class PhenotypeBuilder
                     Limb reflectedLimb = parentLimb.AddChildLimb(
                         "Limb " + limbId + reflectionString,
                         node,
-                        connection.parentFace,
-                        connection.position,
-                        connection.orientation,
-                        connection.scale,
+                        connectionToParent.ParentFace,
+                        connectionToParent.Position,
+                        connectionToParent.Orientation,
+                        connectionToParent.Scale,
                         reflectX,
                         reflectY,
                         reflectZ
@@ -107,12 +106,12 @@ public static class PhenotypeBuilder
             }
         }
 
-        bool recursionLimitReached = nodeRecursionCount >= node.recursiveLimit;
+        bool recursionLimitReached = nodeRecursionCount >= node.RecursiveLimit;
 
-        foreach (LimbConnection connection in node.connections)
+        foreach (LimbConnection connection in node.Connections)
         {
-            bool nextNodeIsThisNode = nodeId == connection.childNodeId;
-            if ((!recursionLimitReached && !connection.terminalOnly) || (recursionLimitReached && connection.terminalOnly) || (recursionLimitReached && !nextNodeIsThisNode))
+            bool nextNodeIsThisNode = nodeId == connection.ChildNodeId;
+            if ((!recursionLimitReached && !connection.TerminalOnly) || (recursionLimitReached && connection.TerminalOnly) || (recursionLimitReached && !nextNodeIsThisNode))
                 foreach (Limb newLimb in newLimbs)
                     RecursivelyAddLimbs(limbNodes, connection, newLimb, nodeRecursionCount + (nextNodeIsThisNode ? 1 : 0));
         }
