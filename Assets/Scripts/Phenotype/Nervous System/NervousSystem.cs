@@ -1,6 +1,5 @@
-using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
+using System.Collections.Generic;
 
 public static class NervousSystem
 {
@@ -13,69 +12,162 @@ public static class NervousSystem
 
     private static void ConfigureBrainNeurons(Brain brain, List<Limb> limbs)
     {
-        // The pool of emitters to choose from.
-        // Brain signal receivers can connect to signal emitters located anywhere.
-        List<ISignalEmitter> emitterPool = new List<ISignalEmitter>()
-        .Concat(brain.neurons)
-        .Concat(limbs.Where(limb => limb.joint != null).SelectMany(limb => limb.joint.sensors))
-        .Concat(limbs.SelectMany(limb => limb.neurons))
-        .ToList();
+        // Only create lists as needed.
+        List<ISignalEmitter> brainEmitters = null;
 
-        NervousSystem.ConfigureSignalReceivers(brain.neurons.Cast<ISignalReceiver>().ToList(), emitterPool);
+        brain.neurons.ToList()
+        .ForEach(receiver =>
+        {
+            for (int inputSlot = 0; inputSlot < receiver.Inputs.Count; inputSlot++)
+            {
+                // Set input weight.
+                receiver.Weights[inputSlot] = receiver.InputDefinitions[inputSlot].Weight;
+
+                // Connect this input slot to its specified signal emitter.
+                EmitterSetLocation emitterSetLocation = receiver.InputDefinitions[inputSlot].EmitterSetLocation;
+                string instanceId = receiver.InputDefinitions[inputSlot].InstanceId;
+                int emitterIndex = receiver.InputDefinitions[inputSlot].EmitterIndex;
+                switch (emitterSetLocation)
+                {
+                    case EmitterSetLocation.None:
+                        break;
+                    case EmitterSetLocation.Brain:
+                        if (brainEmitters == null)
+                            brainEmitters = brain.neurons.Cast<ISignalEmitter>().ToList();
+                        ConnectInBrain(receiver, inputSlot, brainEmitters, emitterIndex);
+                        break;
+                    case EmitterSetLocation.LimbInstances:
+                        Limb limb = limbs.Find(l => l.instanceId == instanceId);
+                        ConnectInLimbInstance(receiver, inputSlot, GetLimbSignalEmitters(limb), emitterIndex);
+                        break;
+                }
+            }
+        });
     }
 
     private static void ConfigureLimbNervousSystem(Limb limb, Brain brain)
     {
-        // The pool of emitters to choose from.
-        // Limb signal receivers can connect to signal emitters located in:
-        // - This limb
-        // - The parent limb
-        // - A child limb
-        // - The brain
-        List<ISignalEmitter> emitterPool = new List<ISignalEmitter>()
-        .Concat(limb.joint?.sensors.Cast<ISignalEmitter>() ?? new List<ISignalEmitter>())
-        .Concat(limb.neurons)
-        .Concat(limb.parentLimb?.joint?.sensors.Cast<ISignalEmitter>() ?? new List<ISignalEmitter>())
-        .Concat(limb.parentLimb?.neurons.Cast<ISignalEmitter>() ?? new List<ISignalEmitter>())
-        .Concat(brain.neurons)
-        .Concat(limb.childLimbs.Where(childLimb => childLimb.joint != null).SelectMany(childLimb => childLimb.joint?.sensors))
-        .Concat(limb.childLimbs.Where(childLimb => childLimb.joint != null).SelectMany(childLimb => childLimb.neurons))
-        .ToList();
+        // Only create lists as needed.
+        List<ISignalEmitter> sameLimbEmitters = null;
+        List<ISignalEmitter> brainEmitters = null;
+        List<ISignalEmitter> parentLimbEmitters = null;
+        List<List<ISignalEmitter>> emittersPerChild = null;
 
-        // The receivers in this limb.
-        List<ISignalReceiver> limbSignalReceivers = limb.neurons
+        limb.neurons
         .Concat(limb.joint?.effectors.Cast<ISignalReceiver>() ?? new List<ISignalReceiver>())
-        .ToList();
-
-        NervousSystem.ConfigureSignalReceivers(limbSignalReceivers, emitterPool);
-    }
-
-    private static void ConfigureSignalReceivers(List<ISignalReceiver> receivers, List<ISignalEmitter> emitters)
-    {
-        for (int receiverIndex = 0; receiverIndex < receivers.Count; receiverIndex++)
+        .ToList()
+        .ForEach((System.Action<ISignalReceiver>)(receiver =>
         {
-            ISignalReceiver receiver = receivers[receiverIndex];
-            for (int inputSlotIndex = 0; inputSlotIndex < receiver.Inputs.Count; inputSlotIndex++)
+            for (int inputSlot = 0; inputSlot < receiver.Inputs.Count; inputSlot++)
             {
-                receiver.Weights[inputSlotIndex] = receiver.InputDefinitions[inputSlotIndex].Weight;
+                // Set input weight.
+                receiver.Weights[inputSlot] = receiver.InputDefinitions[inputSlot].Weight;
 
-                // Input preferences are in the range (0.0 to 1.0).
-                // < switchThreshold -> the receiver will choose from the emitter pool.
-                // > switchThreshold -> the receiver will take a constant value.
-                float inputPreference = receiver.InputDefinitions[inputSlotIndex].Preference;
-                if (inputPreference < NervousSystemParameters.SwitchThreshold)
+                // Connect this input slot to its specified signal emitter.
+                EmitterSetLocation emitterSetLocation = receiver.InputDefinitions[inputSlot].EmitterSetLocation;
+                int childLimbIndex = receiver.InputDefinitions[inputSlot].ChildLimbIndex;
+                int emitterIndex = receiver.InputDefinitions[inputSlot].EmitterIndex;
+                switch (emitterSetLocation)
                 {
-                    // Map this receiver's input preference to an emitter in the provided selection pool.
-                    // That emitter then becomes the receiver's input in this slot.
-                    int choiceIndex = Mathf.RoundToInt(Mathf.Lerp(0, emitters.Count - 1, Mathf.InverseLerp(0f, NervousSystemParameters.SwitchThreshold, inputPreference)));
-                    receiver.Inputs[inputSlotIndex] = emitters[choiceIndex];
-                }
-                else
-                {
-                    float constantValue = Mathf.Lerp(NervousSystemParameters.MinConstantValue, NervousSystemParameters.MaxConstantValue, Mathf.InverseLerp(NervousSystemParameters.SwitchThreshold, 1f, inputPreference));
-                    receiver.InputOverrides[inputSlotIndex] = constantValue;
+                    case EmitterSetLocation.None:
+                        break;
+                    case EmitterSetLocation.SameLimb:
+                        if (sameLimbEmitters == null)
+                            sameLimbEmitters = GetLimbSignalEmitters(limb);
+                        ConnectInSameLimb(receiver, inputSlot, sameLimbEmitters, emitterIndex);
+                        break;
+                    case EmitterSetLocation.Brain:
+                        if (brainEmitters == null)
+                            brainEmitters = brain.neurons.Cast<ISignalEmitter>().ToList();
+                        ConnectInBrain(receiver, inputSlot, brainEmitters, emitterIndex);
+                        break;
+                    case EmitterSetLocation.ParentLimb:
+                        if (parentLimbEmitters == null)
+                            parentLimbEmitters = GetLimbSignalEmitters(limb.parentLimb);
+                        ConnectInParentLimb(receiver, inputSlot, parentLimbEmitters, emitterIndex);
+                        break;
+                    case EmitterSetLocation.ChildLimbs:
+                        if (emittersPerChild == null)
+                            emittersPerChild = limb.childLimbs.Select(childLimb => GetLimbSignalEmitters(childLimb)).ToList();
+                        ConnectInChildLimb(receiver, inputSlot, emittersPerChild, childLimbIndex, emitterIndex, limb);
+                        break;
                 }
             }
+        }));
+    }
+
+    private static void ConnectInSameLimb(ISignalReceiver receiver, int inputSlot, List<ISignalEmitter> emitters, int emitterIndex)
+    {
+        if (emitters == null)
+            throw new System.Exception("THIS SHOULD NOT HAPPEN!");
+        else if (emitterIndex >= emitters.Count)
+        {
+            // Should only occur in a root limb that is missing joint sensors.
+            receiver.Weights[inputSlot] = 0f;
         }
+        else
+            receiver.Inputs[inputSlot] = emitters[emitterIndex];
+    }
+
+    private static void ConnectInBrain(ISignalReceiver receiver, int inputSlot, List<ISignalEmitter> emitters, int emitterIndex)
+    {
+        if (emitters == null)
+            throw new System.Exception("THIS SHOULD NOT HAPPEN!");
+        else if (emitterIndex >= emitters.Count)
+            throw new System.Exception("THIS SHOULD NOT HAPPEN! " + emitterIndex + " : " + emitters.Count);
+        else
+            receiver.Inputs[inputSlot] = emitters[emitterIndex];
+    }
+
+    private static void ConnectInParentLimb(ISignalReceiver receiver, int inputSlot, List<ISignalEmitter> emitters, int emitterIndex)
+    {
+        if (emitters == null)
+        {
+            // Should only occur when the receiver limb is root (and therefore has no parent), and this limb is in a recursive chain.
+            receiver.Weights[inputSlot] = 0f;
+        }
+        else if (emitterIndex >= emitters.Count)
+        {
+            // Should only occur when the source limb is a root limb that is missing joint sensors.
+            receiver.Weights[inputSlot] = 0f;
+        }
+        else
+            receiver.Inputs[inputSlot] = emitters[emitterIndex];
+    }
+
+    private static void ConnectInChildLimb(ISignalReceiver receiver, int inputSlot, List<List<ISignalEmitter>> emittersPerChild, int childLimbIndex, int emitterIndex, Limb limb)
+    {
+        if (emittersPerChild == null)
+            throw new System.Exception("THIS SHOULD NOT HAPPEN!");
+        else if (childLimbIndex >= emittersPerChild.Count || emittersPerChild[childLimbIndex] == null)
+        {
+            // The specified child limb was not present. This should only be due to the child limb being...
+            //   - in a recursive loop (the limb at the end won't have a child), or
+            //   - not in a recursive loop, and marked terminal only, or
+            //   - a limb that failed during phenotype creation due to limits / collisions.
+            receiver.Weights[inputSlot] = 0f;
+        }
+        else if (emitterIndex >= emittersPerChild[childLimbIndex].Count)
+            throw new System.Exception("THIS SHOULD NOT HAPPEN! " + " childIndex: " + childLimbIndex + " emittersPerChild(" + emittersPerChild.Count + "): " + string.Join(", ", emittersPerChild.Select(e => e?.Count.ToString() ?? "null")) + " emitterIndex: " + emitterIndex);
+        else
+            receiver.Inputs[inputSlot] = emittersPerChild[childLimbIndex][emitterIndex];
+    }
+
+    private static void ConnectInLimbInstance(ISignalReceiver receiver, int inputSlot, List<ISignalEmitter> emitters, int emitterIndex)
+    {
+        if (emitters == null)
+        {
+            // Limb instance creation failed.
+            receiver.Weights[inputSlot] = 0f;
+        }
+        else if (emitterIndex >= emitters.Count)
+            throw new System.Exception("THIS SHOULD NOT HAPPEN! " + emitterIndex + " : " + emitters.Count);
+        else
+            receiver.Inputs[inputSlot] = emitters[emitterIndex];
+    }
+
+    private static List<ISignalEmitter> GetLimbSignalEmitters(Limb limb)
+    {
+        return limb?.neurons.Concat(limb.joint?.sensors.Cast<ISignalEmitter>() ?? new List<ISignalEmitter>()).ToList();
     }
 }

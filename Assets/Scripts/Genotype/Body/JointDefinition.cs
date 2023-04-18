@@ -5,7 +5,7 @@ using System.Collections.ObjectModel;
 using UnityEngine;
 
 [Serializable]
-public class JointDefinition : IDefinition
+public class JointDefinition
 {
     [SerializeField] private JointType type;
     [SerializeField] private List<JointAxisDefinition> axisDefinitions;
@@ -15,55 +15,32 @@ public class JointDefinition : IDefinition
 
     public JointDefinition(JointType type, IList<JointAxisDefinition> axisDefinitions)
     {
-        ValidateJointType(type);
-        ValidateJointAxisDefinitions(axisDefinitions);
-
         this.type = type;
         this.axisDefinitions = axisDefinitions.ToList();
     }
 
-    private static void ValidateJointType(JointType type)
+    public void Validate(EmitterAvailabilityMap emitterAvailabilityMap)
     {
         bool validJointType = Enum.IsDefined(typeof(JointType), type);
         if (!validJointType)
             throw new ArgumentException("Unknown joint type. Specified: " + type);
-    }
 
-    private static void ValidateJointAxisDefinitions(IList<JointAxisDefinition> axisDefinitions)
-    {
         bool validAxisDefinitions = axisDefinitions.Count == 3;
         if (!validAxisDefinitions)
             throw new ArgumentException("Expected 3 axis definitions. Specified: " + axisDefinitions.Count);
 
         foreach (JointAxisDefinition axisDefinition in axisDefinitions)
-            axisDefinition.Validate();
+            axisDefinition.Validate(emitterAvailabilityMap);
     }
 
-    public void Validate()
+    public static JointDefinition CreateRandom(EmitterAvailabilityMap emitterAvailabilityMap, JointType type)
     {
-        ValidateJointType(type);
-        ValidateJointAxisDefinitions(axisDefinitions);
-    }
-
-    public JointDefinition CreateCopy()
-    {
-        return new JointDefinition(
-            type,
-            axisDefinitions
-        );
-    }
-
-    public static JointDefinition CreateRandom()
-    {
-        Array jointTypes = Enum.GetValues(typeof(JointType));
-        JointType type = (JointType)jointTypes.GetValue(UnityEngine.Random.Range(0, jointTypes.Length));
-
-        return new JointDefinition(
+        return new(
             type,
             new List<JointAxisDefinition> {
-                JointAxisDefinition.CreateRandom(),
-                JointAxisDefinition.CreateRandom(),
-                JointAxisDefinition.CreateRandom()
+                JointAxisDefinition.CreateRandom(emitterAvailabilityMap),
+                JointAxisDefinition.CreateRandom(emitterAvailabilityMap),
+                JointAxisDefinition.CreateRandom(emitterAvailabilityMap)
             }
         );
     }

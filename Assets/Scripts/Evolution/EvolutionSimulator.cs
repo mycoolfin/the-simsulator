@@ -110,7 +110,7 @@ public class EvolutionSimulator : MonoBehaviour
 
         if (bestIndividual != null)
         {
-            bestIndividual.phenotype = PhenotypeBuilder.ConstructPhenotype(bestIndividual.genotype);
+            bestIndividual.phenotype = Phenotype.Construct(bestIndividual.genotype);
             StartCoroutine(assessmentFunction(bestIndividual));
             Time.timeScale = 1f;
             Debug.Break();
@@ -125,7 +125,7 @@ public class EvolutionSimulator : MonoBehaviour
 
         foreach (Individual individual in population.individuals)
         {
-            individual.phenotype = PhenotypeBuilder.ConstructPhenotype(individual.genotype);
+            individual.phenotype = Phenotype.Construct(individual.genotype);
             if (individual.phenotype.IsValid())
                 assessors.Add(assessmentFunction(individual));
             else

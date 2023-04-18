@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [Serializable]
-public class NeuronDefinition : IDefinition
+public class NeuronDefinition
 {
     [SerializeField] private NeuronType type;
     [SerializeField] private List<InputDefinition> inputDefinitions;
@@ -15,47 +15,35 @@ public class NeuronDefinition : IDefinition
 
     public NeuronDefinition(NeuronType type, IList<InputDefinition> inputDefinitions)
     {
-        ValidateNeuronType(type);
-        ValidateInputDefinitions(inputDefinitions);
-
         this.type = type;
         this.inputDefinitions = inputDefinitions.ToList();
     }
 
-    private static void ValidateNeuronType(NeuronType type)
+    public void Validate(EmitterAvailabilityMap emitterAvailabilityMap)
     {
         bool validNeuronType = Enum.IsDefined(typeof(NeuronType), type);
         if (!validNeuronType)
             throw new ArgumentException("Unknown neuron type. Specified: " + type);
-    }
 
-    private static void ValidateInputDefinitions(IList<InputDefinition> inputDefinitions)
-    {
         bool validInputDefinitionsCount = inputDefinitions.Count == 3;
         if (!validInputDefinitionsCount)
             throw new ArgumentException("Expected 3 input definitions. Specified: " + inputDefinitions.Count);
 
         foreach (InputDefinition inputDefinition in inputDefinitions)
-            inputDefinition.Validate();
+            inputDefinition.Validate(emitterAvailabilityMap);
     }
 
-    public void Validate()
-    {
-        ValidateNeuronType(type);
-        ValidateInputDefinitions(inputDefinitions);
-    }
-
-    public static NeuronDefinition CreateRandom()
+    public static NeuronDefinition CreateRandom(EmitterAvailabilityMap emitterAvailabilityMap)
     {
         Array neuronTypes = Enum.GetValues(typeof(NeuronType));
         NeuronType type = (NeuronType)neuronTypes.GetValue(UnityEngine.Random.Range(0, neuronTypes.Length));
 
-        return new NeuronDefinition(
+        return new(
             type,
             new List<InputDefinition> {
-                InputDefinition.CreateRandom(),
-                InputDefinition.CreateRandom(),
-                InputDefinition.CreateRandom()
+                InputDefinition.CreateRandom(emitterAvailabilityMap),
+                InputDefinition.CreateRandom(emitterAvailabilityMap),
+                InputDefinition.CreateRandom(emitterAvailabilityMap)
             }
         );
     }

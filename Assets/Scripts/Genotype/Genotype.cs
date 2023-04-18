@@ -1,10 +1,11 @@
+using System;
 using System.Linq;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using UnityEngine;
 
-[System.Serializable]
-public class Genotype : IDefinition
+[Serializable]
+public class Genotype
 {
     private static int latestId = 1;
 
@@ -18,80 +19,96 @@ public class Genotype : IDefinition
     public ReadOnlyCollection<NeuronDefinition> BrainNeuronDefinitions => brainNeuronDefinitions.AsReadOnly();
     public ReadOnlyCollection<LimbNode> LimbNodes => limbNodes.AsReadOnly();
 
-    public Genotype(string id, IList<string> lineage, IList<NeuronDefinition> brainNeuronDefinitions, IList<LimbNode> limbNodes)
+    private List<InstancedLimbNode> instancedLimbNodes;
+    public ReadOnlyCollection<InstancedLimbNode> InstancedLimbNodes
     {
-        ValidateBrainNeuronDefinitions(brainNeuronDefinitions);
-        ValidateLimbNodes(limbNodes);
-
-        this.id = id != null ? id : "G" + latestId++;
-        this.lineage = lineage == null ? (new List<string> { this.id + " created" }) : lineage.ToList();
-        this.limbNodes = RemoveUnconnectedLimbNodes(limbNodes);
-        this.brainNeuronDefinitions = brainNeuronDefinitions == null ? new List<NeuronDefinition>() : brainNeuronDefinitions.ToList();
+        get
+        {
+            if (instancedLimbNodes == null)
+                instancedLimbNodes = InstancedLimbNode.DeriveInstancedLimbNodes(limbNodes);
+            return instancedLimbNodes.AsReadOnly();
+        }
     }
 
-    private static void ValidateBrainNeuronDefinitions(IList<NeuronDefinition> brainNeuronDefinitions)
+    private Genotype(string id, IList<string> lineage, IList<NeuronDefinition> brainNeuronDefinitions, IList<LimbNode> limbNodes, IList<InstancedLimbNode> instancedLimbNodes)
     {
-        bool validBrainNeuronDefinitionsCount = brainNeuronDefinitions.Count >= GenotypeParameters.MinBrainNeurons && brainNeuronDefinitions.Count <= GenotypeParameters.MaxBrainNeurons;
-        if (!validBrainNeuronDefinitionsCount)
+        this.id = !string.IsNullOrEmpty(id) ? id : "G" + latestId++;
+        this.lineage = lineage == null ? (new List<string> { this.id + " created" }) : lineage.ToList();
+        this.limbNodes = limbNodes.ToList();
+        this.brainNeuronDefinitions = brainNeuronDefinitions == null ? new List<NeuronDefinition>() : brainNeuronDefinitions.ToList();
+        this.instancedLimbNodes = instancedLimbNodes == null ? null : instancedLimbNodes.ToList();
+    }
+
+    public static Genotype Construct(string id, IList<string> lineage, IList<NeuronDefinition> brainNeuronDefinitions, IList<LimbNode> limbNodes)
+    {
+        Genotype genotype = new Genotype(id, lineage, brainNeuronDefinitions, limbNodes, null);
+        genotype.PruneUnconnectedElements();
+        return genotype;
+    }
+
+    public void Validate()
+    {
+        bool validNeuronDefinitionsCount = brainNeuronDefinitions.Count >= GenotypeParameters.MinBrainNeurons && brainNeuronDefinitions.Count <= GenotypeParameters.MaxBrainNeurons;
+        if (!validNeuronDefinitionsCount)
             throw new System.ArgumentException("The number of brain neuron definitions must be between " + GenotypeParameters.MinBrainNeurons
             + " and " + GenotypeParameters.MaxBrainNeurons + ". Specified: " + brainNeuronDefinitions.Count);
 
         foreach (NeuronDefinition neuronDefinition in brainNeuronDefinitions)
-            neuronDefinition.Validate();
-    }
+            neuronDefinition.Validate(EmitterAvailabilityMap.GenerateMapForBrain(brainNeuronDefinitions.Count, InstancedLimbNodes));
 
-    private static void ValidateLimbNodes(IList<LimbNode> limbNodes)
-    {
         bool validLimbNodesCount = limbNodes.Count >= GenotypeParameters.MinLimbNodes && limbNodes.Count <= GenotypeParameters.MaxLimbNodes;
         if (!validLimbNodesCount)
             throw new System.ArgumentException("The number of limb nodes must be between " + GenotypeParameters.MinLimbNodes
             + " and " + GenotypeParameters.MaxLimbNodes + ". Specified: " + limbNodes.Count);
 
-        foreach (LimbNode limbNode in limbNodes)
-            limbNode.Validate();
-    }
-
-    public void Validate()
-    {
-        ValidateBrainNeuronDefinitions(brainNeuronDefinitions);
-        ValidateLimbNodes(limbNodes);
+        for (int i = 0; i < limbNodes.Count; i++)
+            limbNodes[i].Validate(EmitterAvailabilityMap.GenerateMapForLimbNode(brainNeuronDefinitions.Count, limbNodes.Cast<ILimbNodeEssentialInfo>().ToList(), i));
     }
 
     public static Genotype CreateRandom()
     {
-        int numberOfLimbNodes = Random.Range(GenotypeParameters.MinLimbNodes, GenotypeParameters.MaxLimbNodes);
-        List<LimbNode> limbNodes = new List<LimbNode>();
+        int numberOfBrainNeurons = UnityEngine.Random.Range(GenotypeParameters.MinBrainNeurons, GenotypeParameters.MaxBrainNeurons + 1);
+        int numberOfLimbNodes = UnityEngine.Random.Range(GenotypeParameters.MinLimbNodes, GenotypeParameters.MaxLimbNodes + 1);
 
+        List<ILimbNodeEssentialInfo> unfinishedLimbNodes = new();
         for (int i = 0; i < numberOfLimbNodes; i++)
         {
             List<int> connectedNodeIds = new List<int>();
             for (int attemptNum = 0; attemptNum < GenotypeGenerationParameters.MaxConnectionAttempts; attemptNum++)
             {
                 bool attemptSuccess;
-                if (i == 0 && attemptNum == 0) // Guarantee at least one connection.
+                if (i == 0 && attemptNum == 0) // Guarantee at least one connection for the root node.
                     attemptSuccess = true;
                 else
-                    attemptSuccess = Random.Range(0f, 1f) > GenotypeGenerationParameters.ConnectionAttemptChance;
+                    attemptSuccess = UnityEngine.Random.value > GenotypeGenerationParameters.ConnectionAttemptChance;
                 if (attemptSuccess)
-                    connectedNodeIds.Add(Random.Range(0, numberOfLimbNodes));
+                    connectedNodeIds.Add(UnityEngine.Random.Range(0, numberOfLimbNodes));
                 else
                     break;
             }
-            List<LimbConnection> limbConnections = connectedNodeIds.Select(id => LimbConnection.CreateRandom(id)).ToList();
-            limbNodes.Add(LimbNode.CreateRandom(limbConnections));
+            List<LimbConnection> connections = connectedNodeIds.Select(id => LimbConnection.CreateRandom(id)).ToList();
+            unfinishedLimbNodes.Add(UnfinishedLimbNode.CreateRandom(connections));
         }
 
-        int numberOfBrainNeurons = Random.Range(GenotypeParameters.MinBrainNeurons, GenotypeParameters.MaxBrainNeurons);
-        List<NeuronDefinition> brainNeuronDefinitions = new List<NeuronDefinition>();
-        for (int i = 0; i < numberOfBrainNeurons; i++)
-            brainNeuronDefinitions.Add(NeuronDefinition.CreateRandom());
+        List<LimbNode> limbNodes = new List<LimbNode>();
+        for (int i = 0; i < unfinishedLimbNodes.Count; i++)
+        {
+            EmitterAvailabilityMap emitterAvailabilityMap = EmitterAvailabilityMap.GenerateMapForLimbNode(numberOfBrainNeurons, unfinishedLimbNodes, i);
+            UnfinishedLimbNode unfinishedLimbNode = (UnfinishedLimbNode)unfinishedLimbNodes[i];
+            limbNodes.Add(LimbNode.CreateRandom(emitterAvailabilityMap, unfinishedLimbNode));
+        }
 
-        return new Genotype(null, null, brainNeuronDefinitions, limbNodes);
+        List<InstancedLimbNode> instancedLimbNodes = InstancedLimbNode.DeriveInstancedLimbNodes(limbNodes);
+
+        List<NeuronDefinition> brainNeuronDefinitions = new();
+        for (int i = 0; i < numberOfBrainNeurons; i++)
+            brainNeuronDefinitions.Add(NeuronDefinition.CreateRandom(EmitterAvailabilityMap.GenerateMapForBrain(numberOfBrainNeurons, instancedLimbNodes)));
+
+        return new Genotype(null, null, brainNeuronDefinitions, limbNodes, instancedLimbNodes);
     }
 
-    public static List<LimbNode> RemoveUnconnectedLimbNodes(IList<LimbNode> limbNodes)
+    private void PruneUnconnectedElements()
     {
-        LimbNode root = limbNodes[0];
         List<int> visitedNodeIds = RecursivelyTraverseLimbNodes(limbNodes, null, 0);
         List<int> unconnectedNodeIds = new List<int>();
         for (int i = 0; i < limbNodes.Count; i++)
@@ -109,14 +126,12 @@ public class Genotype : IDefinition
             }).ToList();
             newLimbNodes.Add(limbNodes[visitedNodeIds[i]].CreateCopy(connections));
         }
-
-        return newLimbNodes;
     }
 
     private static List<int> RecursivelyTraverseLimbNodes(IList<LimbNode> limbNodes, List<int> visitedNodeIds, int nodeId)
     {
         if (visitedNodeIds == null)
-            visitedNodeIds = new List<int>();
+            visitedNodeIds = new();
 
         if (!visitedNodeIds.Contains(nodeId))
         {

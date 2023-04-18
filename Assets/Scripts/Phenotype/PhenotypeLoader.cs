@@ -24,7 +24,7 @@ public class PhenotypeLoader : MonoBehaviour
             spawnPhenotype = false;
             if (isGenotypeLoaded)
             {
-                Phenotype p = PhenotypeBuilder.ConstructPhenotype(loadedGenotype);
+                Phenotype p = Phenotype.Construct(loadedGenotype);
                 p.transform.position = phenotypeSpawnPosition;
                 Debug.Log("Spawned phenotype from " + loadedGenotype.Id);
             }

@@ -51,7 +51,6 @@ public abstract class JointBase : MonoBehaviour
             case JointType.Universal: // broken
                 // j = gameObject.AddComponent<UniversalJoint>();
                 j = gameObject.AddComponent<RigidJoint>();
-                dofAngleLimits = new List<float> { };
                 break;
             case JointType.BendTwist:
                 j = gameObject.AddComponent<BendTwistJoint>();
@@ -62,7 +61,6 @@ public abstract class JointBase : MonoBehaviour
             case JointType.Spherical: // broken
                 // j = gameObject.AddComponent<SphericalJoint>();
                 j = gameObject.AddComponent<RigidJoint>();
-                dofAngleLimits = new List<float> { };
                 break;
             default:
                 throw new System.ArgumentException("Unknown joint type '" + jointDefinition.Type + "'");

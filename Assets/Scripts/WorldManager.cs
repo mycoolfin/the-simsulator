@@ -32,7 +32,6 @@ public class WorldManager : MonoBehaviour
     public float fluidDensity;
     public bool gravity;
     private Vector3 defaultGravity = new Vector3(0f, -9.81f, 0f);
-    public bool useComputeShaderForNNs = false;
 
     private void Start()
     {

@@ -34,14 +34,24 @@ public static class Mutation
             List<string> path = new();
             WeightedActionList mutationChoices = new WeightedActionList
             {
-                (MutationParameters.Root.ChangeLimbNodes, new System.Action(() => limbNodes = MutateLimbNodes(path, limbNodes))),
+                (MutationParameters.Root.ChangeLimbNodes, new System.Action(() => limbNodes = MutateLimbNodes(path, limbNodes, brainNeuronDefinitions))),
                 (MutationParameters.Root.ChangeBrainNeuronDefinitions, new System.Action(() =>
-                    brainNeuronDefinitions = MutateItemInCollection(path, brainNeuronDefinitions, MutateNeuronDefinition))),
+                    brainNeuronDefinitions = MutateItemInCollection(path, brainNeuronDefinitions,
+                        (List<string> path, NeuronDefinition neuronDefinition) =>
+                            MutateNeuronDefinition(
+                                path,
+                                EmitterAvailabilityMap.GenerateMapForBrain(
+                                    brainNeuronDefinitions.Count,
+                                    newGenotype.InstancedLimbNodes
+                                ),
+                                neuronDefinition
+                        )))
+                ),
             };
 
             mutationChoices.ChooseAction();
 
-            newGenotype = new(
+            newGenotype = Genotype.Construct(
                 genotype.Id,
                 // newGenotype.Lineage.Concat(new List<string>() { "M - " + string.Join(" ", path) }).ToList().AsReadOnly(),
                 genotype.Lineage,
@@ -53,23 +63,35 @@ public static class Mutation
         return newGenotype;
     }
 
-    private static ReadOnlyCollection<LimbNode> MutateLimbNodes(List<string> path, ReadOnlyCollection<LimbNode> limbNodes)
+    private static ReadOnlyCollection<LimbNode> MutateLimbNodes(List<string> path, ReadOnlyCollection<LimbNode> limbNodes,
+        ReadOnlyCollection<NeuronDefinition> brainNeuronDefinitions)
     {
         List<LimbNode> newLimbNodes = limbNodes.ToList();
 
         if (limbNodes.Count < GenotypeParameters.MaxLimbNodes)
         {
             // If we can, always add a new node. It will be garbage collected unless an existing node mutates a connection to it.
-            newLimbNodes.Add(LimbNode.CreateRandom(null));
+            UnfinishedLimbNode unfinishedLimbNode = UnfinishedLimbNode.CreateRandom(null);
+            List<ILimbNodeEssentialInfo> tempLimbNodes = limbNodes.Cast<ILimbNodeEssentialInfo>().ToList();
+            tempLimbNodes.Add(unfinishedLimbNode);
+            newLimbNodes.Add(LimbNode.CreateRandom(
+                EmitterAvailabilityMap.GenerateMapForLimbNode(brainNeuronDefinitions.Count, tempLimbNodes, tempLimbNodes.Count - 1),
+                unfinishedLimbNode
+            ));
         }
 
-        int index = Random.Range(0, limbNodes.Count);
-        newLimbNodes[index] = MutateLimbNode(path, limbNodes[index], newLimbNodes.Count);
+        int nodeId = Random.Range(0, limbNodes.Count); // Don't include new node in selection.
+        newLimbNodes[nodeId] = MutateLimbNode(
+            path,
+            EmitterAvailabilityMap.GenerateMapForLimbNode(brainNeuronDefinitions.Count, newLimbNodes.Cast<ILimbNodeEssentialInfo>().ToList(), nodeId),
+            limbNodes[nodeId],
+            newLimbNodes.Count
+        );
 
         return newLimbNodes.AsReadOnly();
     }
 
-    private static LimbNode MutateLimbNode(List<string> path, LimbNode limbNode, int numLimbNodes)
+    private static LimbNode MutateLimbNode(List<string> path, EmitterAvailabilityMap emitterAvailabilityMap, LimbNode limbNode, int numLimbNodes)
     {
         path.Add("LimbNode");
 
@@ -94,7 +116,8 @@ public static class Mutation
                 path.Add("JointType");
             })),
             (MutationParameters.LimbNode.ChangeJointAxisDefinition, new System.Action(() =>
-                jointAxisDefinitions = MutateItemInCollection(path, jointAxisDefinitions, MutateJointAxisDefinition)
+                jointAxisDefinitions = MutateItemInCollection(path, jointAxisDefinitions,
+                    (List<string> path, JointAxisDefinition j) => MutateJointAxisDefinition(path, emitterAvailabilityMap, j))
             )),
             (MutationParameters.LimbNode.ChangeRecursiveLimit, new System.Action(() => {
                 recursiveLimit = MutateScalar(recursiveLimit, 0, LimbNodeParameters.MaxRecursiveLimit);
@@ -120,7 +143,9 @@ public static class Mutation
                     path.Add("[FAILED]");
             })),
             (MutationParameters.LimbNode.ChangeNeuronDefinition, new System.Action(() =>
-                neuronDefinitions = MutateItemInCollection(path, neuronDefinitions, MutateNeuronDefinition))),
+                neuronDefinitions = MutateItemInCollection(path, neuronDefinitions,
+                    (List<string> path, NeuronDefinition n) => MutateNeuronDefinition(path, emitterAvailabilityMap, n))
+            )),
             (MutationParameters.LimbNode.ChangeLimbConnection, new System.Action(() =>
                 connections = MutateItemInCollection(path, connections, (List<string> path, LimbConnection c) => MutateLimbConnection(path, c, numLimbNodes))))
         };
@@ -136,7 +161,7 @@ public static class Mutation
         );
     }
 
-    private static JointAxisDefinition MutateJointAxisDefinition(List<string> path, JointAxisDefinition jointAxisDefinition)
+    private static JointAxisDefinition MutateJointAxisDefinition(List<string> path, EmitterAvailabilityMap emitterAvailabilityMap, JointAxisDefinition jointAxisDefinition)
     {
         path.Add("JointAxisDefinition");
 
@@ -147,9 +172,10 @@ public static class Mutation
             (MutationParameters.JointAxisDefinition.ChangeJointLimit, new System.Action(() => {
                 limit = MutateScalar(limit, JointDefinitionParameters.MinAngle, JointDefinitionParameters.MaxAngle);
                 path.Add("Limit");
-        })),
+            })),
             (MutationParameters.JointAxisDefinition.ChangeInputDefinition, new System.Action(() =>
-                inputDefinition = MutateInputDefinition(path, inputDefinition)))
+                inputDefinition = MutateInputDefinition(path, emitterAvailabilityMap, inputDefinition)
+            ))
         };
 
         mutationChoices.ChooseAction();
@@ -160,7 +186,7 @@ public static class Mutation
         );
     }
 
-    private static NeuronDefinition MutateNeuronDefinition(List<string> path, NeuronDefinition neuronDefinition)
+    private static NeuronDefinition MutateNeuronDefinition(List<string> path, EmitterAvailabilityMap emitterAvailabilityMap, NeuronDefinition neuronDefinition)
     {
         path.Add("NeuronDefinition");
 
@@ -173,7 +199,9 @@ public static class Mutation
                 path.Add("NeuronType");
             })),
             (MutationParameters.NeuronDefinition.ChangeInputDefinition, new System.Action(() =>
-                inputDefinitions = MutateItemInCollection(path, inputDefinitions, MutateInputDefinition)))
+                inputDefinitions = MutateItemInCollection(path, inputDefinitions,
+                    (List<string> path, InputDefinition inputDefinition) => MutateInputDefinition(path, emitterAvailabilityMap, inputDefinition)
+            )))
         };
 
         mutationChoices.ChooseAction();
@@ -184,17 +212,82 @@ public static class Mutation
         );
     }
 
-    private static InputDefinition MutateInputDefinition(List<string> path, InputDefinition inputDefinition)
+    private static InputDefinition MutateInputDefinition(List<string> path, EmitterAvailabilityMap emitterAvailabilityMap, InputDefinition inputDefinition)
     {
         path.Add("InputDefinition");
 
-        float preference = inputDefinition.Preference;
+        EmitterSetLocation emitterSetLocation = inputDefinition.EmitterSetLocation;
+        int childLimbIndex = inputDefinition.ChildLimbIndex;
+        string instanceId = inputDefinition.InstanceId;
+        int emitterIndex = inputDefinition.EmitterIndex;
         float weight = inputDefinition.Weight;
         WeightedActionList mutationChoices = new WeightedActionList
         {
-            (MutationParameters.InputDefinition.ChangeInputDefinitionPreference, new System.Action(() => {
-                preference = MutateScalar(preference, 0f, 1f);
-                path.Add("Preference");
+            (MutationParameters.InputDefinition.ChangeInputDefinitionInputSetLocation, new System.Action(() => {
+                List<EmitterSetLocation> validLocations = emitterAvailabilityMap.GetValidInputSetLocations();
+                emitterSetLocation = validLocations[Random.Range(0, validLocations.Count)];
+
+                if (emitterSetLocation == EmitterSetLocation.ChildLimbs)
+                {
+                    List<int> validChildLimbIndices = emitterAvailabilityMap.GetValidChildLimbIndices();
+                    if (!validChildLimbIndices.Contains(childLimbIndex))
+                        childLimbIndex = validChildLimbIndices[Random.Range(0, validChildLimbIndices.Count)];
+                }
+                else
+                    childLimbIndex = -1;
+
+                if (emitterSetLocation == EmitterSetLocation.LimbInstances)
+                {
+                    List<string> validLimbInstanceIds = emitterAvailabilityMap.GetValidLimbInstanceIds();
+                    if (string.IsNullOrEmpty(instanceId) || !validLimbInstanceIds.Contains(instanceId))
+                        instanceId = validLimbInstanceIds[Random.Range(0, validLimbInstanceIds.Count)];
+                }
+                else
+                    instanceId = null;
+
+                if (emitterSetLocation == EmitterSetLocation.None)
+                    emitterIndex = -1;
+                else
+                {
+                    int emitterCountAtLocation = emitterAvailabilityMap.GetInputCountAtLocation(emitterSetLocation, childLimbIndex, instanceId);
+                    if (emitterIndex < 0 || emitterIndex >= emitterCountAtLocation)
+                        emitterIndex = Random.Range(0, emitterCountAtLocation);
+                }
+
+                path.Add("InputSetLocation");
+            })),
+            (MutationParameters.InputDefinition.ChangeInputDefinitionChildLimbIndex, new System.Action(() => {
+                path.Add("ChildLimbIndex");
+                if (emitterSetLocation != EmitterSetLocation.ChildLimbs)
+                    path.Add("[FAILED]");
+                else
+                {
+                    List<int> validChildLimbIndices = emitterAvailabilityMap.GetValidChildLimbIndices();
+                    if (validChildLimbIndices.Count == 0)
+                        path.Add("[FAILED]");
+                    else
+                        childLimbIndex = validChildLimbIndices[Random.Range(0, validChildLimbIndices.Count)];
+                }
+            })),
+            (MutationParameters.InputDefinition.ChangeInputDefinitionInstanceId, new System.Action(() => {
+                path.Add("InstanceId");
+                if (emitterSetLocation != EmitterSetLocation.LimbInstances)
+                    path.Add("[FAILED]");
+                else
+                {
+                    List<string> validInstanceIds = emitterAvailabilityMap.GetValidLimbInstanceIds();
+                    if (validInstanceIds.Count == 0)
+                        path.Add("[FAILED]");
+                    else
+                        instanceId = validInstanceIds[Random.Range(0, validInstanceIds.Count)];
+                }
+            })),
+            (MutationParameters.InputDefinition.ChangeInputDefinitionEmitterIndex, new System.Action(() => {
+                path.Add("EmitterIndex");
+                if (emitterSetLocation == EmitterSetLocation.None)
+                    path.Add("[FAILED]");
+                else
+                    emitterIndex = Random.Range(0, emitterAvailabilityMap.GetInputCountAtLocation(emitterSetLocation, childLimbIndex, instanceId));
             })),
             (MutationParameters.InputDefinition.ChangeInputDefinitionWeight, new System.Action(() => {
                 weight = MutateScalar(weight, InputDefinitionParameters.MinWeight, InputDefinitionParameters.MaxWeight);
@@ -205,7 +298,10 @@ public static class Mutation
         mutationChoices.ChooseAction();
 
         return new(
-            preference,
+            emitterSetLocation,
+            childLimbIndex,
+            instanceId,
+            emitterIndex,
             weight
         );
     }

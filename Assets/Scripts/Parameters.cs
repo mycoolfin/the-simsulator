@@ -54,13 +54,6 @@ public static class JointParameters
     public const float SmoothingMultiplier = 10f;
 }
 
-public static class NervousSystemParameters
-{
-    public const float SwitchThreshold = 0.5f;
-    public const float MinConstantValue = -1f;
-    public const float MaxConstantValue = 1f;
-}
-
 public static class PhenotypeParameters
 {
     public const float MaxSize = 10f;
@@ -131,7 +124,10 @@ public static class MutationParameters
 
     public static class InputDefinition
     {
-        public const float ChangeInputDefinitionPreference = 1f;
+        public const float ChangeInputDefinitionInputSetLocation = 1f;
+        public const float ChangeInputDefinitionChildLimbIndex = 1f;
+        public const float ChangeInputDefinitionInstanceId = 1f;
+        public const float ChangeInputDefinitionEmitterIndex = 1f;
         public const float ChangeInputDefinitionWeight = 1f;
     }
 }

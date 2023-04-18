@@ -32,21 +32,10 @@ public abstract class EffectorBase : ISignalReceiver
         }
     }
     public List<float> Weights { get; set; }
-    private List<float?> inputOverrides;
-    public List<float?> InputOverrides
-    {
-        get { return inputOverrides; }
-        set
-        {
-            if (value.Count == TypeOfEffector.NumberOfInputs())
-                inputOverrides = value;
-            else
-                throw new System.ArgumentException("Expected " + TypeOfEffector.NumberOfInputs().ToString() + " input overrides, got " + value.Count + ".");
-        }
-    }
     public List<float> GetWeightedInputValues()
     {
-        return Inputs.Select((input, i) => (inputOverrides[i] ?? input.OutputValue) * Weights[i]).ToList();
+        // If there is no input specified, use the weight as a constant input.
+        return Inputs.Select((input, i) => (input?.OutputValue ?? 1f) * Weights[i]).ToList();
     }
     public float GetExcitation()
     {
@@ -57,7 +46,6 @@ public abstract class EffectorBase : ISignalReceiver
     {
         InputDefinitions = new InputDefinition[TypeOfEffector.NumberOfInputs()].ToList().AsReadOnly();
         Inputs = new ISignalEmitter[TypeOfEffector.NumberOfInputs()].ToList();
-        InputOverrides = new float?[TypeOfEffector.NumberOfInputs()].ToList();
         Weights = new float[TypeOfEffector.NumberOfInputs()].ToList();
     }
 

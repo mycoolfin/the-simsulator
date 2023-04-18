@@ -29,18 +29,6 @@ public abstract class NeuronBase : ISignalEmitter, ISignalReceiver
                 throw new System.ArgumentException("Expected " + TypeOfNeuron.NumberOfInputs().ToString() + " inputs, got " + value.Count);
         }
     }
-    private List<float?> inputOverrides;
-    public List<float?> InputOverrides
-    {
-        get { return inputOverrides; }
-        set
-        {
-            if (value.Count == TypeOfNeuron.NumberOfInputs())
-                inputOverrides = value;
-            else
-                throw new System.ArgumentException("Expected " + TypeOfNeuron.NumberOfInputs().ToString() + " input overrides, got " + value.Count);
-        }
-    }
     private List<float> weights;
     public List<float> Weights
     {
@@ -55,7 +43,8 @@ public abstract class NeuronBase : ISignalEmitter, ISignalReceiver
     }
     public List<float> GetWeightedInputValues()
     {
-        return Inputs.Select((input, i) => (inputOverrides[i] ?? input.OutputValue) * Weights[0]).ToList();
+        // If there is no input specified, use the weight as a constant input.
+        return Inputs.Select((input, i) => (input?.OutputValue ?? 1f) * Weights[i]).ToList();
     }
     public float OutputValue { get; set; }
     private float nextOutputValue;
@@ -64,7 +53,6 @@ public abstract class NeuronBase : ISignalEmitter, ISignalReceiver
     {
         InputDefinitions = new InputDefinition[TypeOfNeuron.NumberOfInputs()].ToList().AsReadOnly();
         Inputs = new ISignalEmitter[TypeOfNeuron.NumberOfInputs()].ToList();
-        InputOverrides = new float?[TypeOfNeuron.NumberOfInputs()].ToList();
         Weights = new float[TypeOfNeuron.NumberOfInputs()].ToList();
     }
 
