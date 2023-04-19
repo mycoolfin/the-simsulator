@@ -76,20 +76,6 @@ public static class Reproduction
 
     private static Genotype Grafting(Genotype recipient, Genotype donor)
     {
-        int canAdd = GenotypeParameters.MaxLimbNodes - recipient.LimbNodes.Count;
-
-        if (canAdd == 0)
-            return Genotype.Construct
-            (
-                null,
-                ConcatLineage(recipient.Lineage, recipient.Id + " <- " + donor.Id + "[FAILED]"),
-                recipient.BrainNeuronDefinitions,
-                recipient.LimbNodes
-            );
-
-        int willAdd = Mathf.Min(canAdd, donor.LimbNodes.Count);
-        List<LimbNode> donorNodes = donor.LimbNodes.Take(willAdd).ToList();
-
         List<LimbNode> nodeRow = recipient.LimbNodes.Select(recipientNode => recipientNode.CreateCopy(null)).ToList();
 
         // Randomly choose a source connection from the recipient side.
@@ -98,6 +84,7 @@ public static class Reproduction
         int connectionId = Random.Range(0, recipient.LimbNodes[graftCandidateId].Connections.Count);
 
         // Randomly choose a destination node from the donor side.
+        List<LimbNode> donorNodes = donor.LimbNodes.ToList();
         int graftDestinationId = Random.Range(recipient.LimbNodes.Count, recipient.LimbNodes.Count + donorNodes.Count);
 
         // Graft the source connection to the destination node.
@@ -118,22 +105,35 @@ public static class Reproduction
             foreach (LimbConnection c in donorNode.Connections)
             {
                 int adjustedChildNodeId = c.ChildNodeId + recipient.LimbNodes.Count;
-                if (adjustedChildNodeId < totalNodes)
-                    newConnections.Add(c.CreateCopy(adjustedChildNodeId));
-                else // Donor node list was truncated, the destination node no longer exists.
-                    continue;
+                newConnections.Add(c.CreateCopy(adjustedChildNodeId));
             };
             LimbNode newDonorNode = donorNode.CreateCopy(newConnections);
             nodeRow.Add(newDonorNode);
         }
 
-        return Genotype.Construct
+        Genotype newGenotype = Genotype.Construct
         (
             null,
             ConcatLineage(recipient.Lineage, recipient.Id + " <- " + donor.Id),
             recipient.BrainNeuronDefinitions,
             nodeRow
         );
+
+        // Truncate new limb node set if too large.
+        bool tooManyLimbNodes = newGenotype.LimbNodes.Count > GenotypeParameters.MaxLimbNodes;
+        if (tooManyLimbNodes)
+        {
+            return Genotype.Construct
+            (
+                newGenotype.Id,
+                newGenotype.Lineage,
+                newGenotype.BrainNeuronDefinitions,
+                newGenotype.LimbNodes.Take(GenotypeParameters.MaxLimbNodes).Select(node => // Remove connections that point out of bounds.
+                    node.CreateCopy(node.Connections.Where(c => c.ChildNodeId < GenotypeParameters.MaxLimbNodes).ToList())).ToList()
+            );
+        }
+        else
+            return newGenotype;
     }
 
     private static Genotype Asexual(Genotype parent1)

@@ -6,9 +6,9 @@ public class BendTwistJoint : JointBase
 
     public override void ApplySpecificJointSettings()
     {
+        joint.axis = Vector3.forward;
+        joint.secondaryAxis = Vector3.right;
         joint.anchor = new Vector3(0, 0, -0.5f);
-        joint.axis = Vector3.right;
-        joint.secondaryAxis = Vector3.forward;
         joint.xMotion = ConfigurableJointMotion.Locked;
         joint.yMotion = ConfigurableJointMotion.Locked;
         joint.zMotion = ConfigurableJointMotion.Locked;
@@ -27,5 +27,7 @@ public class BendTwistJoint : JointBase
         {
             limit = dofAngleLimits[1]
         };
+
+        switchPrimaryAndSecondaryAxes = true; // BendTwist is just TwistBend with switched axes.
     }
 }

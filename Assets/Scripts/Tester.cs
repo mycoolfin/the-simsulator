@@ -18,30 +18,44 @@ public class Tester : MonoBehaviour
     //         new List<InputDefinition>()
     //         {
     //             new(EmitterSetLocation.None, -1, null, -1, 2f),
-    //             new(EmitterSetLocation.LimbInstances, -1, "000", 0,  1f),
+    //             new(EmitterSetLocation.None, -1, null, -1, 1f),
     //             new(EmitterSetLocation.None, -1, null, -1, 1f)
-    //         }.AsReadOnly()
+    //         }
     //     );
-    //     LimbConnection connection = new(0, 5, Vector2.zero, Vector3.zero, new Vector3(0.9f, 0.9f, 0.9f), false, false, true, false);
+    //     LimbConnection connection = new(1, 5, Vector2.zero, Vector3.zero, new Vector3(0.9f, 0.9f, 0.9f), false, false, false, false);
+    //     LimbNode head = new(new Vector3(1f, 0.1f, 0.5f),
+    //         new JointDefinition(
+    //             JointType.Rigid,
+    //             new List<JointAxisDefinition>()
+    //             {
+    //                         new(0f,  new(EmitterSetLocation.None,  -1, null, -1,  0f)),
+    //                         new(0f,  new(EmitterSetLocation.None,  -1, null, -1,  0f)),
+    //                         new(0f,  new(EmitterSetLocation.None,  -1, null, -1,  0f))
+    //             }
+    //         ),
+    //         5,
+    //         (new List<NeuronDefinition> { wave }),
+    //         (new List<LimbConnection> { connection })
+    //     );
     //     LimbNode segment = new(new Vector3(1f, 0.1f, 0.5f),
     //         new JointDefinition(
     //             JointType.Revolute,
     //             new List<JointAxisDefinition>()
     //             {
-    //                 new(45f, new(EmitterSetLocation.Brain,     -1, null,    0, 1f)),
+    //                 new(45f, new(EmitterSetLocation.ParentLimb,     -1, null,    0, 1f)),
     //                 new(0f,  new(EmitterSetLocation.None,        -1, null, -1,  0f)),
     //                 new(0f,  new(EmitterSetLocation.None,        -1, null, -1,  0f))
-    //             }.AsReadOnly()
+    //             }
     //         ),
     //         5,
-    //         (new List<NeuronDefinition> { }).AsReadOnly(),
-    //         (new List<LimbConnection> { connection }).AsReadOnly()
+    //         (new List<NeuronDefinition> { }),
+    //         (new List<LimbConnection> { connection })
     //     );
 
-    //     List<LimbNode> limbNodes = new() { segment };
+    //     List<LimbNode> limbNodes = new() { head, segment };
 
-    //     List<NeuronDefinition> brainNeuronDefinitions = new List<NeuronDefinition> { wave };
+    //     List<NeuronDefinition> brainNeuronDefinitions = new List<NeuronDefinition> {  };
 
-    //     return Genotype.Construct(null, null, brainNeuronDefinitions.AsReadOnly(), limbNodes.AsReadOnly());
+    //     return Genotype.Construct(null, null, brainNeuronDefinitions, limbNodes);
     // }
 }

@@ -20,10 +20,10 @@ public static class JointTypeExtensions
             { JointType.Rigid, 0 },
             { JointType.Revolute, 1 },
             { JointType.Twist, 1 },
-            { JointType.Universal, 0 }, // TODO: fix
+            { JointType.Universal, 2 },
             { JointType.BendTwist, 2 },
             { JointType.TwistBend, 2 },
-            { JointType.Spherical, 0 }, // TODO: fix
+            { JointType.Spherical, 3 }
         }[self];
     }
 }

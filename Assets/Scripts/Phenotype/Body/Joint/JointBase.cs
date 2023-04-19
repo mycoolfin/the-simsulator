@@ -9,6 +9,7 @@ public abstract class JointBase : MonoBehaviour
     protected ConfigurableJoint joint;
     protected float maximumJointStrength;
     protected List<float> dofAngleLimits;
+    protected bool switchPrimaryAndSecondaryAxes;
     public List<JointAngleSensor> sensors;
     public List<JointAngleEffector> effectors;
 
@@ -48,9 +49,8 @@ public abstract class JointBase : MonoBehaviour
             case JointType.Twist:
                 j = gameObject.AddComponent<TwistJoint>();
                 break;
-            case JointType.Universal: // broken
-                // j = gameObject.AddComponent<UniversalJoint>();
-                j = gameObject.AddComponent<RigidJoint>();
+            case JointType.Universal:
+                j = gameObject.AddComponent<UniversalJoint>();
                 break;
             case JointType.BendTwist:
                 j = gameObject.AddComponent<BendTwistJoint>();
@@ -58,9 +58,8 @@ public abstract class JointBase : MonoBehaviour
             case JointType.TwistBend:
                 j = gameObject.AddComponent<TwistBendJoint>();
                 break;
-            case JointType.Spherical: // broken
-                // j = gameObject.AddComponent<SphericalJoint>();
-                j = gameObject.AddComponent<RigidJoint>();
+            case JointType.Spherical:
+                j = gameObject.AddComponent<SphericalJoint>();
                 break;
             default:
                 throw new System.ArgumentException("Unknown joint type '" + jointDefinition.Type + "'");
@@ -101,8 +100,8 @@ public abstract class JointBase : MonoBehaviour
         Quaternion updatedOriginRotation = joint.connectedBody.transform.rotation * Quaternion.Inverse(intialOriginRotation);
 
         // Calculate axes and axis angles.
-        Vector3 primaryAxis = updatedOriginRotation * joint.axis; // Stays fixed with parent.
-        Vector3 secondaryAxis = transform.rotation * joint.secondaryAxis;
+        Vector3 primaryAxis = updatedOriginRotation * (switchPrimaryAndSecondaryAxes ? joint.secondaryAxis : joint.axis); // Stays fixed with parent.
+        Vector3 secondaryAxis = transform.rotation *  (switchPrimaryAndSecondaryAxes ? joint.axis : joint.secondaryAxis);
         Vector3 tertiaryAxis = transform.rotation * Vector3.Cross(joint.axis, joint.secondaryAxis);
 
         Quaternion diff = updatedOriginRotation * Quaternion.Inverse(transform.rotation);

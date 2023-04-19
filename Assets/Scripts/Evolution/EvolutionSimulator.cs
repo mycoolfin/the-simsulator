@@ -19,6 +19,7 @@ public class EvolutionSimulator : MonoBehaviour
     [Range(0f, 1f)]
     public float survivalRatio;
     private int maxSurvivors;
+    public string seedGenotypeFile;
 
     [Header("Runtime Parameters")]
     public bool pauseIterating;
@@ -70,7 +71,14 @@ public class EvolutionSimulator : MonoBehaviour
         List<float> averageFitnesses = new List<float>();
         iterationsRemaining = numberOfIterations;
 
-        population = new Population(populationSize);
+        if (!string.IsNullOrEmpty(seedGenotypeFile))
+        {
+            Genotype seedGenotype = GenotypeSerializer.ReadGenotypeFromFile(seedGenotypeFile);
+            population = new Population(Enumerable.Range(0, populationSize).Select(_ => seedGenotype).ToList());
+        }
+        else
+            population = new Population(populationSize);
+
         maxSurvivors = Mathf.CeilToInt(populationSize * survivalRatio);
 
         for (int i = 0; i < numberOfIterations; i++)

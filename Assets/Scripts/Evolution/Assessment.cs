@@ -37,9 +37,9 @@ public static class Assessment
             else
             {
                 float planarDisplacement = Vector3.Magnitude(new Vector3(currentPosition.x - startPosition.x, 0, currentPosition.z - startPosition.z));
-                float phenotypeLength = Mathf.Max(bounds.extents.x * 2, bounds.extents.y * 2, bounds.extents.z * 2);
-                float lengthsTravelled = planarDisplacement / phenotypeLength;
-                individual.fitness = lengthsTravelled;
+                // float phenotypeLength = Mathf.Max(bounds.extents.x * 2, bounds.extents.y * 2, bounds.extents.z * 2);
+                // float lengthsTravelled = planarDisplacement / phenotypeLength;
+                individual.fitness = planarDisplacement;
 
                 if (individual.phenotype.lostLimbs)
                     individual.fitness = 0;
@@ -74,8 +74,8 @@ public static class Assessment
             Vector3 currentPosition = bounds.center;
 
             float displacement = Vector3.Distance(startPosition, currentPosition);
-            float phenotypeLength = Mathf.Max(bounds.extents.x * 2, bounds.extents.y * 2, bounds.extents.z * 2);
-            float lengthsTravelled = displacement / phenotypeLength;
+            // float phenotypeLength = Mathf.Max(bounds.extents.x * 2, bounds.extents.y * 2, bounds.extents.z * 2);
+            // float lengthsTravelled = displacement / phenotypeLength;
             individual.fitness = displacement;
 
             if (individual.phenotype.lostLimbs)

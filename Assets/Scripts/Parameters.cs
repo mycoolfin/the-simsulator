@@ -75,7 +75,7 @@ public static class ReproductionParameters
 public static class MutationParameters
 {
     // The average number of mutations per child.
-    public const float MutationRate = 50f;
+    public const float MutationRate = 10f;
 
     public static class Root
     {
