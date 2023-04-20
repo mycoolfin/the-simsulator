@@ -28,7 +28,6 @@ public class Limb : MonoBehaviour
 
     public List<NeuronBase> neurons;
 
-
     public Limb parentLimb;
     public List<Limb> childLimbs;
 
@@ -208,22 +207,28 @@ public class Limb : MonoBehaviour
     public static List<Limb> InstantiateLimbs(ReadOnlyCollection<InstancedLimbNode> instancedLimbNodes, Transform containerTransform)
     {
         List<Limb> limbs = new();
-        Limb root = Limb.Construct(instancedLimbNodes[0], containerTransform);
-        RecursivelyInstantiateLimbs(limbs, instancedLimbNodes, instancedLimbNodes[0], root);
-        limbs.ForEach(limb => limb.Optimise());
-        return limbs;
-    }
 
-    private static List<Limb> RecursivelyInstantiateLimbs(List<Limb> limbs, ReadOnlyCollection<InstancedLimbNode> instancedLimbNodes, InstancedLimbNode parentNode, Limb parentLimb)
-    {
-        limbs.Add(parentLimb);
+        Queue<(Limb, InstancedLimbNode)> nodeQueue = new();
+        nodeQueue.Enqueue((null, instancedLimbNodes[0]));
 
-        foreach (InstancedLimbNode childNode in parentNode.ChildLimbNodeInstances)
+        while (nodeQueue.Count > 0)
         {
-            Limb childLimb = parentLimb.AddChildLimb(childNode);
-            if (childLimb != null)
-                RecursivelyInstantiateLimbs(limbs, instancedLimbNodes, childNode, childLimb);
+            (Limb, InstancedLimbNode) item = nodeQueue.Dequeue();
+            Limb parentLimb = item.Item1;
+            InstancedLimbNode nextNode = item.Item2;
+
+            Limb newLimb = parentLimb == null ? Limb.Construct(instancedLimbNodes[0], containerTransform) : parentLimb.AddChildLimb(nextNode);
+            if (newLimb == null)
+                continue;
+            else
+            {
+                limbs.Add(newLimb);
+                foreach (InstancedLimbNode childNode in nextNode.ChildLimbNodeInstances)
+                    nodeQueue.Enqueue((newLimb, childNode));
+            }
         }
+
+        limbs.ForEach(limb => limb.Optimise());
         return limbs;
     }
 
