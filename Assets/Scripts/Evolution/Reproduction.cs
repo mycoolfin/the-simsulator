@@ -27,7 +27,6 @@ public static class Reproduction
         // Apply mutations.
         child = Mutation.Mutate(child);
 
-        child = FixBrokenNeuralConnections(child);
         child.Validate();
 
         return child;
@@ -152,68 +151,5 @@ public static class Reproduction
         return lineage.ToList().Concat(new List<string>() { nextEvent }).ToList();
     }
 
-    private static Genotype FixBrokenNeuralConnections(Genotype genotype)
-    {
-        EmitterAvailabilityMap brainMap = EmitterAvailabilityMap.GenerateMapForBrain(genotype.BrainNeuronDefinitions.Count, genotype.InstancedLimbNodes);
-        List<NeuronDefinition> newBrainNeuronDefinitions = genotype.BrainNeuronDefinitions.Select(n => new NeuronDefinition(
-            n.Type,
-            n.InputDefinitions.Select(i => FixInputDefinition(i, brainMap)).ToList()
-        )).ToList();
 
-        List<LimbNode> newLimbNodes = new();
-        for (int i = 0; i < genotype.LimbNodes.Count; i++)
-        {
-            LimbNode limbNode = genotype.LimbNodes[i];
-
-            EmitterAvailabilityMap limbNodeMap = EmitterAvailabilityMap.GenerateMapForLimbNode(
-                genotype.BrainNeuronDefinitions.Count,
-                genotype.LimbNodes.Cast<ILimbNodeEssentialInfo>().ToList(),
-                i
-            );
-
-            List<JointAxisDefinition> newJointAxisDefinitions = limbNode.JointDefinition.AxisDefinitions.Select(a => new JointAxisDefinition(
-                a.Limit,
-                FixInputDefinition(a.InputDefinition, limbNodeMap)
-            )).ToList();
-            List<NeuronDefinition> newNeuronDefinitions = limbNode.NeuronDefinitions.Select(n => new NeuronDefinition(
-                n.Type,
-                n.InputDefinitions.Select(i => FixInputDefinition(i, limbNodeMap)).ToList()
-            )).ToList();
-
-            newLimbNodes.Add(new(
-                limbNode.Dimensions,
-                new JointDefinition(limbNode.JointDefinition.Type, newJointAxisDefinitions),
-                limbNode.RecursiveLimit,
-                newNeuronDefinitions,
-                limbNode.Connections
-            ));
-        }
-
-        return Genotype.Construct(
-            genotype.Id,
-            genotype.Lineage,
-            newBrainNeuronDefinitions,
-            newLimbNodes
-        );
-    }
-
-    private static InputDefinition FixInputDefinition(InputDefinition inputDefinition, EmitterAvailabilityMap map)
-    {
-        try
-        {
-            inputDefinition.Validate(map);
-            return inputDefinition; // If validation succeeds, return the original input definition.
-        }
-        catch
-        {
-            InputDefinition randomDefinition = InputDefinition.CreateRandom(map);
-            return new(
-                randomDefinition.EmitterSetLocation,
-                randomDefinition.ChildLimbIndex,
-                randomDefinition.InstanceId,
-                randomDefinition.EmitterIndex,
-                inputDefinition.Weight // Preserve original weight.
-            );
-        }
-    }
 }

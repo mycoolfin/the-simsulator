@@ -43,6 +43,7 @@ public class Genotype
     {
         Genotype genotype = new Genotype(id, lineage, brainNeuronDefinitions, limbNodes, null);
         genotype.PruneUnconnectedElements();
+        genotype.FixBrokenNeuralConnections();
         return genotype;
     }
 
@@ -115,6 +116,9 @@ public class Genotype
             if (!visitedNodeIds.Contains(i))
                 unconnectedNodeIds.Add(i);
 
+        if (unconnectedNodeIds.Count == 0)
+            return;
+
         List<LimbNode> newLimbNodes = new List<LimbNode>();
         for (int i = 0; i < visitedNodeIds.Count; i++)
         {
@@ -126,6 +130,8 @@ public class Genotype
             }).ToList();
             newLimbNodes.Add(limbNodes[visitedNodeIds[i]].CreateCopy(connections));
         }
+
+        limbNodes = newLimbNodes;
     }
 
     private static List<int> RecursivelyTraverseLimbNodes(IList<LimbNode> limbNodes, List<int> visitedNodeIds, int nodeId)
@@ -142,5 +148,67 @@ public class Genotype
         }
 
         return visitedNodeIds;
+    }
+
+    private void FixBrokenNeuralConnections()
+    {
+        EmitterAvailabilityMap brainMap = EmitterAvailabilityMap.GenerateMapForBrain(BrainNeuronDefinitions.Count, InstancedLimbNodes);
+        List<NeuronDefinition> newBrainNeuronDefinitions = BrainNeuronDefinitions.Select(n => new NeuronDefinition(
+            n.Type,
+            n.InputDefinitions.Select(i => FixInputDefinition(i, brainMap)).ToList()
+        )).ToList();
+
+        List<LimbNode> newLimbNodes = new();
+        for (int i = 0; i < LimbNodes.Count; i++)
+        {
+            LimbNode limbNode = LimbNodes[i];
+
+            EmitterAvailabilityMap limbNodeMap = EmitterAvailabilityMap.GenerateMapForLimbNode(
+                BrainNeuronDefinitions.Count,
+                LimbNodes.Cast<ILimbNodeEssentialInfo>().ToList(),
+                i
+            );
+
+            List<JointAxisDefinition> newJointAxisDefinitions = limbNode.JointDefinition.AxisDefinitions.Select(a => new JointAxisDefinition(
+                a.Limit,
+                FixInputDefinition(a.InputDefinition, limbNodeMap)
+            )).ToList();
+            List<NeuronDefinition> newNeuronDefinitions = limbNode.NeuronDefinitions.Select(n => new NeuronDefinition(
+                n.Type,
+                n.InputDefinitions.Select(i => FixInputDefinition(i, limbNodeMap)).ToList()
+            )).ToList();
+
+            newLimbNodes.Add(new(
+                limbNode.Dimensions,
+                new JointDefinition(limbNode.JointDefinition.Type, newJointAxisDefinitions),
+                limbNode.RecursiveLimit,
+                newNeuronDefinitions,
+                limbNode.Connections
+            ));
+        }
+
+        brainNeuronDefinitions = newBrainNeuronDefinitions;
+        limbNodes = newLimbNodes;
+    }
+
+    private static InputDefinition FixInputDefinition(InputDefinition inputDefinition, EmitterAvailabilityMap map)
+    {
+        try
+        {
+            inputDefinition.Validate(map);
+            return inputDefinition; // If validation succeeds, return the original input definition.
+        }
+        catch
+        {
+            InputDefinition randomDefinition = InputDefinition.CreateRandom(map);
+            return new(
+                randomDefinition.EmitterSetLocation,
+                randomDefinition.ChildLimbIndex,
+                randomDefinition.InstanceId,
+                randomDefinition.EmitterIndex,
+                inputDefinition.Weight, // Preserve original weight.
+                map
+            );
+        }
     }
 }
