@@ -111,13 +111,13 @@ public class Phenotype : MonoBehaviour
         GameObject limbContainer = new(genotype.Id);
         List<Limb> limbs = Limb.InstantiateLimbs(genotype.InstancedLimbNodes, limbContainer.transform);
 
-        // Wire up nervous system.
-        NervousSystem.Configure(brain, limbs);
-
         Phenotype phenotype = limbContainer.AddComponent<Phenotype>();
         phenotype.genotype = genotype;
         phenotype.brain = brain;
         phenotype.limbs = limbs;
+
+        // Wire up nervous system.
+        NervousSystem.Configure(brain, limbs);
 
         return phenotype;
     }

@@ -42,7 +42,7 @@ public class Genotype
     public static Genotype Construct(string id, IList<string> lineage, IList<NeuronDefinition> brainNeuronDefinitions, IList<LimbNode> limbNodes)
     {
         Genotype genotype = new Genotype(id, lineage, brainNeuronDefinitions, limbNodes, null);
-        genotype.PruneUnconnectedElements();
+        genotype.PruneUnconnectedLimbNodes();
         genotype.FixBrokenNeuralConnections();
         return genotype;
     }
@@ -108,7 +108,7 @@ public class Genotype
         return new Genotype(null, null, brainNeuronDefinitions, limbNodes, instancedLimbNodes);
     }
 
-    private void PruneUnconnectedElements()
+    private void PruneUnconnectedLimbNodes()
     {
         List<int> visitedNodeIds = RecursivelyTraverseLimbNodes(limbNodes, null, 0);
         List<int> unconnectedNodeIds = new List<int>();
@@ -132,6 +132,7 @@ public class Genotype
         }
 
         limbNodes = newLimbNodes;
+        instancedLimbNodes = null;
     }
 
     private static List<int> RecursivelyTraverseLimbNodes(IList<LimbNode> limbNodes, List<int> visitedNodeIds, int nodeId)
@@ -189,6 +190,7 @@ public class Genotype
 
         brainNeuronDefinitions = newBrainNeuronDefinitions;
         limbNodes = newLimbNodes;
+        instancedLimbNodes = null;
     }
 
     private static InputDefinition FixInputDefinition(InputDefinition inputDefinition, EmitterAvailabilityMap map)
@@ -206,8 +208,7 @@ public class Genotype
                 randomDefinition.ChildLimbIndex,
                 randomDefinition.InstanceId,
                 randomDefinition.EmitterIndex,
-                inputDefinition.Weight, // Preserve original weight.
-                map
+                inputDefinition.Weight // Preserve original weight.
             );
         }
     }
