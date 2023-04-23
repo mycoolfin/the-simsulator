@@ -101,7 +101,7 @@ public abstract class JointBase : MonoBehaviour
 
         // Calculate axes and axis angles.
         Vector3 primaryAxis = updatedOriginRotation * (switchPrimaryAndSecondaryAxes ? joint.secondaryAxis : joint.axis); // Stays fixed with parent.
-        Vector3 secondaryAxis = transform.rotation *  (switchPrimaryAndSecondaryAxes ? joint.axis : joint.secondaryAxis);
+        Vector3 secondaryAxis = transform.rotation * (switchPrimaryAndSecondaryAxes ? joint.axis : joint.secondaryAxis);
         Vector3 tertiaryAxis = transform.rotation * Vector3.Cross(joint.axis, joint.secondaryAxis);
 
         Quaternion diff = updatedOriginRotation * Quaternion.Inverse(transform.rotation);
@@ -119,7 +119,7 @@ public abstract class JointBase : MonoBehaviour
         Vector3 e = new Vector3(
             useDebugExcitations ? debugPrimaryExcitation : (float.IsNaN(excitations[0]) ? 0f : excitations[0]),
             useDebugExcitations ? debugSecondaryExcitation : (float.IsNaN(excitations[1]) ? 0f : excitations[1]),
-            useDebugExcitations ? debugTertiaryExcitation : (float.IsNaN(excitations[2]) ? 0f : excitations[2])
+            useDebugExcitations ? debugTertiaryExcitation : (float.IsNaN(excitations[2]) ? 0f : excitations[2]) / 2f // Helps reduce jitter.
         );
 
         float maxVelocity = 10f * JointParameters.AngularVelocityMultiplier;
@@ -194,24 +194,19 @@ public abstract class JointBase : MonoBehaviour
 
     private void UpdateSensors()
     {
-        if (sensors != null)
+        for (int dofIndex = 0; dofIndex < sensors?.Count; dofIndex++)
         {
-            for (int dofIndex = 0; dofIndex < sensors.Count; dofIndex++)
-            {
+            if (!sensors[dofIndex].Disabled)
                 sensors[dofIndex].OutputValue = dofAngleLimits[dofIndex] == 0 ? 0 : angles[dofIndex] / dofAngleLimits[dofIndex];
-            }
         }
     }
 
     private void ApplyEffectors()
     {
-        if (effectors != null)
+        for (int dofIndex = 0; dofIndex < effectors?.Count; dofIndex++)
         {
-            for (int dofIndex = 0; dofIndex < effectors.Count; dofIndex++)
-            {
-                float excitation = effectors[dofIndex].GetExcitation();
-                excitations[dofIndex] = float.IsNaN(excitation) ? 0f : excitation;
-            }
+            float excitation = effectors[dofIndex].GetExcitation();
+            excitations[dofIndex] = float.IsNaN(excitation) ? 0f : excitation;
         }
     }
 

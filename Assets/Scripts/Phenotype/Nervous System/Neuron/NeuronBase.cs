@@ -48,12 +48,16 @@ public abstract class NeuronBase : ISignalEmitter, ISignalReceiver
     }
     public float OutputValue { get; set; }
     private float nextOutputValue;
+    public List<ISignalReceiver> Consumers { get; set; }
+    public bool Disabled { get; set; }
 
     protected NeuronBase()
     {
         InputDefinitions = new InputDefinition[TypeOfNeuron.NumberOfInputs()].ToList().AsReadOnly();
         Inputs = new ISignalEmitter[TypeOfNeuron.NumberOfInputs()].ToList();
         Weights = new float[TypeOfNeuron.NumberOfInputs()].ToList();
+        
+        Consumers = new();
     }
 
     public static NeuronBase CreateNeuron(NeuronDefinition neuronDefinition)
@@ -144,7 +148,8 @@ public abstract class NeuronBase : ISignalEmitter, ISignalReceiver
     // neuron outputs.
     public void PropagatePhaseOne()
     {
-        nextOutputValue = Evaluate();
+        if (!Disabled)
+            nextOutputValue = Evaluate();
     }
 
     public void PropagatePhaseTwo()

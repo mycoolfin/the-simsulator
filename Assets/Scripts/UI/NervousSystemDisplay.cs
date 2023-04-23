@@ -65,6 +65,8 @@ public class NervousSystemDisplay : MonoBehaviour
     private VisualElement InstantiateNervousSystemNode(string nodeName, ISignalReceiver selfReceiver, ISignalEmitter selfEmitter)
     {
         VisualElement node = nervousSystemNode.Instantiate();
+        if (selfEmitter != null && selfEmitter.Disabled)
+            node.Q<VisualElement>("block").style.backgroundColor = Color.red;
         node.Q<Label>("node-name").text = nodeName;
         Label input1Label = node.Q<Label>("input-1");
         Label input2Label = node.Q<Label>("input-2");

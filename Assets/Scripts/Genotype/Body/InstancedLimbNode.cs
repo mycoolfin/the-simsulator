@@ -3,7 +3,6 @@ using System.Collections.ObjectModel;
 using System.Collections.Generic;
 using UnityEngine;
 
-[Serializable]
 public class InstancedLimbNode : ILimbNodeEssentialInfo
 {
     [SerializeField] private string instanceId;
