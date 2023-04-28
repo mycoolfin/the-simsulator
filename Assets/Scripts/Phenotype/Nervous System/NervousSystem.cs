@@ -12,10 +12,9 @@ public static class NervousSystem
 
     private static void ConfigureBrainNeurons(Brain brain, List<Limb> limbs)
     {
-        List<ISignalEmitter> brainEmitters = brain.neurons.Cast<ISignalEmitter>().ToList();
+        List<ISignalEmitter> brainEmitters = brain.GetSignalEmitters();
 
-        brain.neurons.ToList()
-        .ForEach(receiver =>
+        brain.GetSignalReceivers().ForEach(receiver =>
         {
             for (int inputSlot = 0; inputSlot < receiver.Inputs.Count; inputSlot++)
             {
@@ -35,7 +34,7 @@ public static class NervousSystem
                         break;
                     case EmitterSetLocation.LimbInstances:
                         Limb limb = limbs.Find(l => l.instanceId == instanceId);
-                        ConnectInLimbInstance(receiver, inputSlot, GetLimbSignalEmitters(limb), emitterIndex);
+                        ConnectInLimbInstance(receiver, inputSlot, limb?.GetSignalEmitters(), emitterIndex);
                         break;
                 }
             }
@@ -44,15 +43,12 @@ public static class NervousSystem
 
     private static void ConfigureLimbNervousSystem(Limb limb, Brain brain)
     {
-        List<ISignalEmitter> sameLimbEmitters = GetLimbSignalEmitters(limb);
-        List<ISignalEmitter> brainEmitters = brain.neurons.Cast<ISignalEmitter>().ToList();
-        List<ISignalEmitter> parentLimbEmitters = GetLimbSignalEmitters(limb.parentLimb);
-        List<List<ISignalEmitter>> emittersPerChild = limb.childLimbs.Select(childLimb => GetLimbSignalEmitters(childLimb)).ToList();
+        List<ISignalEmitter> sameLimbEmitters = limb.GetSignalEmitters();
+        List<ISignalEmitter> brainEmitters = brain.GetSignalEmitters();
+        List<ISignalEmitter> parentLimbEmitters = limb.parentLimb?.GetSignalEmitters();
+        List<List<ISignalEmitter>> emittersPerChild = limb.childLimbs.Select(childLimb => childLimb?.GetSignalEmitters()).ToList();
 
-        limb.neurons
-        .Concat(limb.joint?.effectors.Cast<ISignalReceiver>() ?? new List<ISignalReceiver>())
-        .ToList()
-        .ForEach((System.Action<ISignalReceiver>)(receiver =>
+        limb.GetSignalReceivers().ForEach((System.Action<ISignalReceiver>)(receiver =>
         {
             for (int inputSlot = 0; inputSlot < receiver.Inputs.Count; inputSlot++)
             {
@@ -168,11 +164,6 @@ public static class NervousSystem
             receiver.Inputs[inputSlot] = emitter;
             emitter.Consumers.Add(receiver);
         }
-    }
-
-    private static List<ISignalEmitter> GetLimbSignalEmitters(Limb limb)
-    {
-        return limb?.neurons.Concat(limb.joint?.sensors.Cast<ISignalEmitter>() ?? new List<ISignalEmitter>()).ToList();
     }
 
     private static void DisableUnusedEmitters(List<ISignalEmitter> emitters)

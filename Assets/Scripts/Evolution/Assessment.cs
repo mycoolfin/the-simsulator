@@ -83,6 +83,38 @@ public static class Assessment
         }
     }
 
+    public static IEnumerator LightCloseness(Individual individual)
+    {
+        DisablePhenotypeCollisions(individual.phenotype);
+
+        int settleSeconds = 10;
+        int runtimeSeconds = 10;
+        int fitnessUpdateIntervals = 100;
+        float intervalLength = (float)runtimeSeconds / (float)fitnessUpdateIntervals;
+
+        individual.phenotype.transform.position = new Vector3(0, -individual.phenotype.GetBounds().center.y + individual.phenotype.GetBounds().extents.y, 0);
+
+        yield return new WaitForSeconds(settleSeconds);
+
+        Vector3 startPosition = individual.phenotype.GetBounds().center;
+
+        float maxDistance = Vector3.Distance(startPosition, WorldManager.Instance.pointLight.transform.position);
+
+        for (int i = 0; i < fitnessUpdateIntervals; i++)
+        {
+            yield return new WaitForSeconds(intervalLength);
+
+            Bounds bounds = individual.phenotype.GetBounds();
+            Vector3 currentPosition = bounds.center;
+
+            float currentDistance = Vector3.Distance(currentPosition, WorldManager.Instance.pointLight.transform.position);
+            individual.fitness = Mathf.Max(0, (maxDistance - currentDistance) / maxDistance);
+
+            if (individual.phenotype.lostLimbs)
+                individual.fitness = 0;
+        }
+    }
+
     private static void DisablePhenotypeCollisions(Phenotype phenotype)
     {
         foreach (Collider col in phenotype.GetComponentsInChildren<Collider>())

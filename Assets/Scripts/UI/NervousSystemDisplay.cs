@@ -16,7 +16,24 @@ public class NervousSystemDisplay : MonoBehaviour
     private List<VisualElement> nodes;
     private List<Action> updateFunctions;
 
-    private void OnEnable()
+    private Phenotype phenotype;
+
+    private void Update()
+    {
+        if (phenotype == null)
+        {
+            phenotype = FindObjectOfType<Phenotype>();
+            if (phenotype != null)
+                Initialise(phenotype);
+            else
+                updateFunctions = new();
+        }
+
+        foreach (Action updateFunction in updateFunctions)
+            updateFunction();
+    }
+
+    private void Initialise(Phenotype phenotype)
     {
         nodes = new List<VisualElement>();
         updateFunctions = new List<Action>();
@@ -24,9 +41,8 @@ public class NervousSystemDisplay : MonoBehaviour
         UIDocument uiDocument = GetComponent<UIDocument>();
         ScrollView scrollView = uiDocument.rootVisualElement.Q<ScrollView>("scroll-view");
 
-        Phenotype phenotype = FindObjectOfType<Phenotype>();
-
         VisualElement brainSection = nervousSystemSection.Instantiate();
+        brainSection.Q<Label>("instance-id").text = phenotype.genotype.Id;
         scrollView.Add(brainSection);
         VisualElement brainNeuronsPanel = brainSection.Q<VisualElement>("neurons");
         for (int i = 0; i < phenotype.brain.neurons.Count; i++)
@@ -34,11 +50,12 @@ public class NervousSystemDisplay : MonoBehaviour
 
         foreach (Limb limb in phenotype.limbs)
         {
-            sensors = limb.joint?.sensors.Cast<SensorBase>().ToList() ?? new List<SensorBase>();
+            sensors = (limb.joint?.sensors.Cast<SensorBase>().ToList() ?? new List<SensorBase>()).Concat(limb.photoSensors).ToList();
             neurons = limb.neurons;
             effectors = limb.joint?.effectors.Cast<EffectorBase>().ToList() ?? new List<EffectorBase>();
 
             VisualElement section = nervousSystemSection.Instantiate();
+            section.Q<Label>("instance-id").text = limb.instanceId;
             scrollView.Add(section);
 
             VisualElement sensorsPanel = section.Q<VisualElement>("sensors");
@@ -54,12 +71,6 @@ public class NervousSystemDisplay : MonoBehaviour
         }
 
         scrollView.generateVisualContent += OnGenerateVisualContent;
-    }
-
-    private void Update()
-    {
-        foreach (Action updateFunction in updateFunctions)
-            updateFunction();
     }
 
     private VisualElement InstantiateNervousSystemNode(string nodeName, ISignalReceiver selfReceiver, ISignalEmitter selfEmitter)

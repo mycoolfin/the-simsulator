@@ -23,7 +23,7 @@ public class InstancedLimbNode : ILimbNodeEssentialInfo
 
     public int RecursiveLimit => limbNode.RecursiveLimit;
     public ReadOnlyCollection<LimbConnection> Connections => limbNode.Connections;
-    public int SignalEmitterCount => connectionToParent == null ? limbNode.NeuronDefinitions.Count : limbNode.SignalEmitterCount;
+    public int SignalEmitterCount => connectionToParent == null ? limbNode.NeuronDefinitions.Count + 3 : limbNode.SignalEmitterCount;
 
     private InstancedLimbNode(string instanceId, LimbNode limbNode, LimbConnection connectionToParent, bool reflectedX, bool reflectedY, bool reflectedZ)
     {
@@ -88,7 +88,7 @@ public class InstancedLimbNode : ILimbNodeEssentialInfo
                 bool canAddMoreLimbs = (numberOfLimbs + limbsToAdd) <= PhenotypeBuilderParameters.MaxLimbs;
 
                 bool recursing = node == parentNodeInstance.limbNode;
-                bool recursionLimitReached = nodeRecursionCount >= node.RecursiveLimit;
+                bool recursionLimitReached = nodeRecursionCount > node.RecursiveLimit;
                 bool connectionCriteriaMet = (!recursionLimitReached && !connectionToParent.TerminalOnly) || (recursionLimitReached && connectionToParent.TerminalOnly) || (recursionLimitReached && !recursing);
 
                 if (canAddMoreLimbs && connectionCriteriaMet)
@@ -103,8 +103,8 @@ public class InstancedLimbNode : ILimbNodeEssentialInfo
                             int newLimbCount = newInstances.Count;
                             for (int limbIndex = 0; limbIndex < newLimbCount; limbIndex++)
                             {
-                                bool reflectX = reflectIndex == 0 || limbIndex % 2 != 0;
-                                bool reflectY = reflectIndex == 1 || limbIndex > 1;
+                                bool reflectX = reflectIndex == 0 || (beginReflectedX && limbIndex % 2 != 0);
+                                bool reflectY = reflectIndex == 1 || (beginReflectedY && (beginReflectedX ? limbIndex > 1 : beginReflectedZ ? limbIndex % 2 != 0 : false));
                                 bool reflectZ = reflectIndex == 2;
                                 newInstances.Add(
                                     parentNodeInstance.CreateChild(
@@ -135,7 +135,7 @@ public class InstancedLimbNode : ILimbNodeEssentialInfo
                 foreach (LimbConnection connection in node.Connections)
                 {
                     bool nextNodeIsThisNode = nodeId == connection.ChildNodeId;
-                    nodeQueue.Enqueue((newInstance, connection, (nextNodeIsThisNode ? 1 : 0)));
+                    nodeQueue.Enqueue((newInstance, connection, (nextNodeIsThisNode ? 1 : 0) + nodeRecursionCount));
                 }
             }
         }

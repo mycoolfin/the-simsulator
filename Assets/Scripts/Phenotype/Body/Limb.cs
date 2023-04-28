@@ -26,14 +26,45 @@ public class Limb : MonoBehaviour
 
     public JointBase joint;
 
+    public List<PhotoSensor> photoSensors;
+
     public List<NeuronBase> neurons;
 
     public Limb parentLimb;
     public List<Limb> childLimbs;
 
-    private bool reflectedX;
-    private bool reflectedY;
-    private bool reflectedZ;
+    [SerializeField] private bool reflectedX;
+    [SerializeField] private bool reflectedY;
+    [SerializeField] private bool reflectedZ;
+
+    public List<ISignalReceiver> GetSignalReceivers()
+    {
+        return neurons
+            .Concat(joint?.effectors.Cast<ISignalReceiver>() ?? new List<ISignalReceiver>())
+            .ToList();
+    }
+
+    public List<ISignalEmitter> GetSignalEmitters()
+    {
+        return neurons
+            .Concat(joint?.sensors.Cast<ISignalEmitter>() ?? new List<ISignalEmitter>())
+            .Concat(photoSensors)
+            .ToList();
+    }
+
+    private void FixedUpdate()
+    {
+        UpdatePhotoSensors();
+    }
+
+    private void UpdatePhotoSensors()
+    {
+        List<Vector3> limbAxes = new() { transform.right, transform.up, transform.forward };
+        Vector3 lightDirection = (WorldManager.Instance.pointLight.transform.position - transform.position).normalized;
+        for (int i = 0; i < 3; i++)
+            if (!photoSensors[i].Disabled)
+                photoSensors[i].OutputValue = WorldManager.Instance.pointLight.activeInHierarchy ? Vector3.Dot(limbAxes[i], lightDirection) : 0f;
+    }
 
     private Limb AddChildLimb(InstancedLimbNode node)
     {
@@ -187,7 +218,8 @@ public class Limb : MonoBehaviour
         limb.name = "Limb " + containerTransform.childCount;
         limb.instanceId = node.InstanceId;
 
-        // Add the limb neurons, but don't wire them up until later (when we have a complete morphology to reference).
+        // Add sensors and neurons, but don't wire them up until later (when we have a complete morphology to reference).
+        limb.photoSensors = new() { new(), new(), new() };
         limb.neurons = node.LimbNode.NeuronDefinitions.Select(neuronDefinition => NeuronBase.CreateNeuron(neuronDefinition)).ToList();
 
         limb.usedMidwayColliders = new List<BoxCollider>();

@@ -18,7 +18,7 @@ public class LimbNode : ILimbNodeEssentialInfo
     public int RecursiveLimit => recursiveLimit;
     public ReadOnlyCollection<NeuronDefinition> NeuronDefinitions => neuronDefinitions.AsReadOnly();
     public ReadOnlyCollection<LimbConnection> Connections => connections.AsReadOnly();
-    public int SignalEmitterCount => jointDefinition.Type.DegreesOfFreedom() + neuronDefinitions.Count;
+    public int SignalEmitterCount => jointDefinition.Type.DegreesOfFreedom() + neuronDefinitions.Count + 3;
 
     public LimbNode(Vector3 dimensions, JointDefinition jointDefinition, int recursiveLimit,
                      IList<NeuronDefinition> neuronDefinitions, IList<LimbConnection> connections)

@@ -10,4 +10,8 @@ public class Brain
     {
         neurons = neuronDefinitions.Select(n => NeuronBase.CreateNeuron(n)).ToList();
     }
+
+    public List<ISignalReceiver> GetSignalReceivers() => neurons.Cast<ISignalReceiver>().ToList();
+
+    public List<ISignalEmitter> GetSignalEmitters() => neurons.Cast<ISignalEmitter>().ToList();
 }

@@ -3,7 +3,7 @@ public static class GenotypeParameters
     public const int MinLimbNodes = 1;
     public const int MaxLimbNodes = 10;
     public const int MinBrainNeurons = 0;
-    public const int MaxBrainNeurons = 20;
+    public const int MaxBrainNeurons = 10;
 }
 
 public static class GenotypeGenerationParameters
@@ -61,7 +61,7 @@ public static class PhenotypeParameters
 
 public static class PhenotypeBuilderParameters
 {
-    public const int MaxLimbs = 16;
+    public const int MaxLimbs = 12;
 }
 
 public static class ReproductionParameters

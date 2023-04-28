@@ -3,13 +3,13 @@ using UnityEngine;
 
 public class Tester : MonoBehaviour
 {
-    // void Start()
-    // {
-    //     Phenotype parent1Phenotype = Phenotype.Construct(Worm());
-    //     parent1Phenotype.transform.rotation *= Quaternion.Euler(0f, 0f, 180f);
-    //     parent1Phenotype.transform.position = new Vector3(0, -parent1Phenotype.GetBounds().center.y + parent1Phenotype.GetBounds().extents.y * 2, 0);
-    //     Physics.SyncTransforms();
-    // }
+    void Start()
+    {
+        Phenotype parent1Phenotype = Phenotype.Construct(Reflected());
+        // parent1Phenotype.transform.rotation *= Quaternion.Euler(0f, 0f, 180f);
+        // parent1Phenotype.transform.position = new Vector3(0, -parent1Phenotype.GetBounds().center.y + parent1Phenotype.GetBounds().extents.y * 2, 0);
+        Physics.SyncTransforms();
+    }
 
     // private Genotype Worm()
     // {
@@ -58,4 +58,29 @@ public class Tester : MonoBehaviour
 
     //     return Genotype.Construct(null, null, brainNeuronDefinitions, limbNodes);
     // }
+
+    private Genotype Reflected()
+    {
+        LimbConnection connection = new(0, 0, Vector2.one, new Vector3(30f, 0, 0), new Vector3(0.1f, 0.1f, 0.6f), true, true, true, false);
+        LimbNode box = new(new Vector3(1f, 1f, 1f),
+            new JointDefinition(
+                JointType.Rigid,
+                new List<JointAxisDefinition>()
+                {
+                    new(0f,  new(EmitterSetLocation.None,  -1, null, -1,  0f)),
+                    new(0f,  new(EmitterSetLocation.None,  -1, null, -1,  0f)),
+                    new(0f,  new(EmitterSetLocation.None,  -1, null, -1,  0f))
+                }
+            ),
+            1,
+            (new List<NeuronDefinition> { }),
+            (new List<LimbConnection> { connection })
+        );
+
+        List<LimbNode> limbNodes = new() { box };
+
+        List<NeuronDefinition> brainNeuronDefinitions = new List<NeuronDefinition> { };
+
+        return Genotype.Construct(null, null, brainNeuronDefinitions, limbNodes);
+    }
 }

@@ -12,7 +12,7 @@ public class UnfinishedLimbNode : ILimbNodeEssentialInfo
     private List<LimbConnection> connections;
     public int RecursiveLimit => recursiveLimit;
     public ReadOnlyCollection<LimbConnection> Connections => connections.AsReadOnly();
-    public int SignalEmitterCount => jointType.DegreesOfFreedom() + neuronCount;
+    public int SignalEmitterCount => jointType.DegreesOfFreedom() + neuronCount + 3;
 
     private UnfinishedLimbNode(JointType jointType, int neuronCount, int recursiveLimit, IList<LimbConnection> connections)
     {

@@ -7,7 +7,9 @@ using UnityEngine;
 public enum TrialType
 {
     Running,
-    Swimming
+    Swimming,
+    GroundLightFollowing,
+    WaterLightFollowing
 };
 
 public class EvolutionSimulator : MonoBehaviour
@@ -34,6 +36,7 @@ public class EvolutionSimulator : MonoBehaviour
     public float bestFitness;
 
     private Population population;
+    private Action InitialiseEnvironment = () => { };
 
     private void Start()
     {
@@ -45,12 +48,36 @@ public class EvolutionSimulator : MonoBehaviour
                 WorldManager.Instance.simulateFluid = false;
                 WorldManager.Instance.gravity = true;
                 WorldManager.Instance.EnableGround(true);
+                WorldManager.Instance.EnableLight(false);
                 break;
             case TrialType.Swimming:
                 assessmentFunction = Assessment.WaterDistance;
                 WorldManager.Instance.simulateFluid = true;
                 WorldManager.Instance.gravity = false;
                 WorldManager.Instance.EnableGround(false);
+                WorldManager.Instance.EnableLight(false);
+                break;
+            case TrialType.GroundLightFollowing:
+                assessmentFunction = Assessment.LightCloseness;
+                WorldManager.Instance.simulateFluid = false;
+                WorldManager.Instance.gravity = true;
+                WorldManager.Instance.EnableGround(true);
+                WorldManager.Instance.EnableLight(true);
+                InitialiseEnvironment = () =>
+                    WorldManager.Instance.pointLight.transform.position =
+                        Quaternion.Euler(0, UnityEngine.Random.Range(0, 360), 0)
+                        * Vector3.forward * UnityEngine.Random.Range(0f, 20f);
+                break;
+            case TrialType.WaterLightFollowing:
+                assessmentFunction = Assessment.LightCloseness;
+                WorldManager.Instance.simulateFluid = true;
+                WorldManager.Instance.gravity = false;
+                WorldManager.Instance.EnableGround(false);
+                WorldManager.Instance.EnableLight(true);
+                InitialiseEnvironment = () =>
+                    WorldManager.Instance.pointLight.transform.position =
+                    Quaternion.Euler(UnityEngine.Random.Range(0, 360), UnityEngine.Random.Range(0, 360), UnityEngine.Random.Range(0, 360))
+                    * Vector3.forward * UnityEngine.Random.Range(0f, 20f);
                 break;
             default:
                 throw new Exception();
@@ -83,6 +110,8 @@ public class EvolutionSimulator : MonoBehaviour
 
         for (int i = 0; i < numberOfIterations; i++)
         {
+            InitialiseEnvironment();
+
             yield return StartCoroutine(AssessFitnesses(population, assessmentFunction));
 
             List<Individual> survivors = SelectSurvivors(population, maxSurvivors);

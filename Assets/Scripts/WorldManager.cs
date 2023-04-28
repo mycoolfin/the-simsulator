@@ -20,6 +20,7 @@ public class WorldManager : MonoBehaviour
 
     [Header("World Objects")]
     public GameObject ground;
+    public GameObject pointLight;
     public List<GameObject> trashCan;
 
     [Header("Parameters")]
@@ -61,6 +62,11 @@ public class WorldManager : MonoBehaviour
     public void EnableGround(bool enabled)
     {
         ground.SetActive(enabled);
+    }
+
+    public void EnableLight(bool enabled)
+    {
+        pointLight.SetActive(enabled);
     }
 
     public void AddGameObjectToTrashCan(GameObject junk)
