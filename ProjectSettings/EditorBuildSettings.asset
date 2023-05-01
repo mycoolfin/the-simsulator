@@ -4,5 +4,14 @@
 EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
-  m_Scenes: []
+  m_Scenes:
+  - enabled: 1
+    path: Assets/Scenes/MainMenu.unity
+    guid: 1085dbbb0b35e4c76becd52662de3679
+  - enabled: 1
+    path: Assets/Scenes/EvolutionMode.unity
+    guid: d85bad46704734e78bc0ec1f5633bbd6
+  - enabled: 1
+    path: Assets/Scenes/AquariumMode.unity
+    guid: 71cbaa9bdd2264df888030795468892f
   m_configObjects: {}

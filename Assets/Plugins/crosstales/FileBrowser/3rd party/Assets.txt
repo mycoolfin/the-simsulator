@@ -1,0 +1,11 @@
+# PlayMaker
+Version: 1.9.5
+https://assetstore.unity.com/packages/slug/368?aid=1011lNGT
+
+# Runtime File Browser
+Version: 1.5.0
+https://assetstore.unity.com/packages/slug/113006?aid=1011lNGT
+
+# WebGL Native File Browser
+Version: 2.0.6
+https://assetstore.unity.com/packages/slug/41902?aid=1011lNGT

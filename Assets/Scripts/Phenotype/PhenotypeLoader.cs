@@ -6,7 +6,6 @@ public class PhenotypeLoader : MonoBehaviour
     public bool loadGenotype;
     public Genotype loadedGenotype;
     private bool isGenotypeLoaded;
-    public Vector3 phenotypeSpawnPosition;
     public bool spawnPhenotype;
 
     private void Update()
@@ -25,7 +24,7 @@ public class PhenotypeLoader : MonoBehaviour
             if (isGenotypeLoaded)
             {
                 Phenotype p = Phenotype.Construct(loadedGenotype);
-                p.transform.position = phenotypeSpawnPosition;
+                p.transform.position = transform.position;
                 Debug.Log("Spawned phenotype from " + loadedGenotype.Id);
             }
         }

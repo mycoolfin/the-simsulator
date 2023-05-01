@@ -89,13 +89,14 @@ public abstract class JointBase : MonoBehaviour
 
     private void FixedUpdate()
     {
-        if (!joint) // Joint broke.
+        if (!joint || !joint.connectedBody) // Joint broke.
         {
             // Detach limb.
             GetComponentInParent<Phenotype>().DetachLimb(GetComponent<Limb>());
             Destroy(this);
             return;
         }
+
 
         Quaternion updatedOriginRotation = joint.connectedBody.transform.rotation * Quaternion.Inverse(intialOriginRotation);
 
@@ -119,7 +120,7 @@ public abstract class JointBase : MonoBehaviour
         Vector3 e = new Vector3(
             useDebugExcitations ? debugPrimaryExcitation : (float.IsNaN(excitations[0]) ? 0f : excitations[0]),
             useDebugExcitations ? debugSecondaryExcitation : (float.IsNaN(excitations[1]) ? 0f : excitations[1]),
-            useDebugExcitations ? debugTertiaryExcitation : (float.IsNaN(excitations[2]) ? 0f : excitations[2]) / 2f // Helps reduce jitter.
+            useDebugExcitations ? debugTertiaryExcitation : (float.IsNaN(excitations[2]) ? 0f : excitations[2])
         );
 
         float maxVelocity = 10f * JointParameters.AngularVelocityMultiplier;
@@ -172,7 +173,7 @@ public abstract class JointBase : MonoBehaviour
         {
             positionSpring = maximumJointStrength * JointParameters.StrengthMultiplier * 100f,
             positionDamper = maximumJointStrength * JointParameters.StrengthMultiplier * 20f,
-            maximumForce = maximumJointStrength * JointParameters.StrengthMultiplier * 100f
+            maximumForce = maximumJointStrength * JointParameters.StrengthMultiplier * 50f
         };
         joint.angularXDrive = jointDrive;
         joint.angularYZDrive = jointDrive;

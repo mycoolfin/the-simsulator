@@ -61,7 +61,7 @@ public static class PhenotypeParameters
 
 public static class PhenotypeBuilderParameters
 {
-    public const int MaxLimbs = 12;
+    public const int MaxLimbs = 16;
 }
 
 public static class ReproductionParameters
@@ -79,8 +79,8 @@ public static class MutationParameters
 
     public static class Root
     {
-        public const float ChangeLimbNodes = 1f;
-        public const float ChangeBrainNeuronDefinitions = 1f;
+        public const float ChangeLimbNodes = 0.9f;
+        public const float ChangeBrainNeuronDefinitions = 0.1f;
     }
 
     public static class LimbNode

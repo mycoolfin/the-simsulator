@@ -3,19 +3,45 @@ using UnityEngine;
 
 public static class GenotypeSerializer
 {
-    public static void WriteGenotypeToFile(Genotype genotype, string path)
+    public static string WriteGenotypeToFile(Genotype genotype, string path)
     {
-        string json = JsonUtility.ToJson(genotype, true);
-        File.WriteAllText(path, json);
-        Debug.Log("Wrote " + genotype.Id + " to " + path);
+        try
+        {
+            string json = JsonUtility.ToJson(genotype, true);
+            File.WriteAllText(path, json);
+            Debug.Log("Wrote " + genotype.Id + " to " + path);
+            return path;
+        }
+        catch
+        {
+            Debug.Log("Failed to write " + genotype.Id + " to " + path);
+            return null;
+        }
     }
 
     public static Genotype ReadGenotypeFromFile(string path)
     {
-        string json = File.ReadAllText(path);
-        Genotype genotype = JsonUtility.FromJson<Genotype>(json);
-        genotype.Validate(); // Ensure all values are valid.
-        Debug.Log("Read " + genotype.Id + " from " + path);
-        return genotype;
+        Genotype genotype;
+        try
+        {
+            string json = File.ReadAllText(path);
+            genotype = JsonUtility.FromJson<Genotype>(json);
+        }
+        catch
+        {
+            Debug.Log("Failed to read genotype from " + path);
+            return null;
+        }
+        try
+        {
+            genotype.Validate(); // Ensure all values are valid.
+            Debug.Log("Read " + genotype.Id + " from " + path);
+            return genotype;
+        }
+        catch
+        {
+            Debug.Log("Validation failed for genotype " + genotype.Id);
+            return null;
+        }
     }
 }

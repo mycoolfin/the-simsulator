@@ -1,0 +1,41 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); flex-direction: row;">
+        <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); width: 10%; justify-content: center;">
+            <ui:Button text="Back" display-tooltip-when-elided="true" name="back" style="flex-shrink: 0; justify-content: flex-start; align-self: center;" />
+        </ui:VisualElement>
+        <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); width: 80%; height: 100%; justify-content: center;">
+            <ui:ScrollView mouse-wheel-scroll-size="100" style="width: auto; height: auto; justify-content: flex-start; align-self: auto; align-items: auto; margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0; flex-grow: 0;">
+                <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); width: 80%; justify-content: center; height: 450px; align-self: center; align-items: stretch; margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0;">
+                    <ui:VisualElement style="flex-grow: 0; background-color: rgba(0, 0, 0, 0); flex-direction: row; height: 300px;">
+                        <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); width: 50%; background-image: url(&apos;project://database/Assets/Scripts/UI/Main%20Menu/Controls%20Info/wasd.png?fileID=2800000&amp;guid=424f88cd8e99c4406a543686b5e0da27&amp;type=3#wasd&apos;); -unity-background-scale-mode: scale-to-fit; -unity-background-image-tint-color: rgb(0, 0, 0); height: 100%;" />
+                        <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); width: 50%; justify-content: center; align-items: center; align-self: auto; height: 100%;">
+                            <ui:Label tabindex="-1" text="WASD or arrow keys =&gt; move horizontally" display-tooltip-when-elided="true" style="-unity-font-style: bold; font-size: 20px;" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                    <ui:VisualElement style="flex-grow: 0; background-color: rgba(0, 0, 0, 0); flex-direction: row; height: 130px; padding-left: 10px; padding-right: 10px; padding-top: 10px; padding-bottom: 10px;">
+                        <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); width: 50%; background-image: url(&apos;project://database/Assets/Scripts/UI/Main%20Menu/Controls%20Info/spacebar.png?fileID=2800000&amp;guid=516b4926e9665452ab8e04b9a0f43837&amp;type=3#spacebar&apos;); -unity-background-scale-mode: scale-to-fit; -unity-background-image-tint-color: rgb(0, 0, 0); height: 100%;" />
+                        <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); width: 50%; justify-content: center; align-items: center; align-self: auto; height: 100%;">
+                            <ui:Label tabindex="-1" text="spacebar =&gt; move up" display-tooltip-when-elided="true" style="-unity-font-style: bold; font-size: 20px;" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                    <ui:VisualElement style="flex-grow: 0; background-color: rgba(0, 0, 0, 0); flex-direction: row; height: 130px; padding-left: 10px; padding-right: 10px; padding-top: 10px; padding-bottom: 10px;">
+                        <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); width: 50%; background-image: url(&apos;project://database/Assets/Scripts/UI/Main%20Menu/Controls%20Info/left_shift.png?fileID=2800000&amp;guid=3a0f8c84a02d94361927939a22f367e0&amp;type=3#left_shift&apos;); -unity-background-scale-mode: scale-to-fit; -unity-background-image-tint-color: rgb(0, 0, 0); height: 100%;" />
+                        <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); width: 50%; justify-content: center; align-items: center; align-self: auto; height: 100%;">
+                            <ui:Label tabindex="-1" text="left shift =&gt; move down" display-tooltip-when-elided="true" style="-unity-font-style: bold; font-size: 20px;" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                    <ui:VisualElement style="flex-grow: 0; background-color: rgba(0, 0, 0, 0); flex-direction: row; height: 300px;">
+                        <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); width: 50%; background-image: url(&apos;project://database/Assets/Scripts/UI/Main%20Menu/Controls%20Info/mouse.png?fileID=2800000&amp;guid=8fbb94c094210447f9dc88372c68b332&amp;type=3#mouse&apos;); -unity-background-scale-mode: scale-to-fit; -unity-background-image-tint-color: rgb(0, 0, 0); height: 100%;" />
+                        <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); width: 50%; justify-content: center; align-items: center; align-self: auto; height: 100%;">
+                            <ui:Label tabindex="-1" text="left click =&gt; select" display-tooltip-when-elided="true" style="-unity-font-style: bold; font-size: 20px;" />
+                            <ui:Label tabindex="-1" text="right click drag =&gt; look around" display-tooltip-when-elided="true" style="-unity-font-style: bold; font-size: 20px;" />
+                            <ui:Label tabindex="-1" text="middle click drag =&gt; pan" display-tooltip-when-elided="true" style="-unity-font-style: bold; font-size: 20px;" />
+                            <ui:Label tabindex="-1" text="scroll =&gt; zoom" display-tooltip-when-elided="true" style="-unity-font-style: bold; font-size: 20px;" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                </ui:VisualElement>
+            </ui:ScrollView>
+        </ui:VisualElement>
+        <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); width: 10%;" />
+    </ui:VisualElement>
+</ui:UXML>

@@ -108,6 +108,11 @@ public class Genotype
         return new Genotype(null, null, brainNeuronDefinitions, limbNodes, instancedLimbNodes);
     }
 
+    public string SaveToFile(string path)
+    {
+        return GenotypeSerializer.WriteGenotypeToFile(this, path);
+    }
+
     private void PruneUnconnectedLimbNodes()
     {
         List<int> visitedNodeIds = RecursivelyTraverseLimbNodes(limbNodes, null, 0);

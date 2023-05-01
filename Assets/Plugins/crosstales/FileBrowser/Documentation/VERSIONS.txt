@@ -1,0 +1,372 @@
+﻿# FileBrowser PRO - Release notes
+
+## 2023.1.0 - 26.01.2023
+* Windows: number of maximal selected files and folders is changeable
+* Linux: various fixes, fallback for SaveFile
+* Support for Unity 2023
+* Updated to Common 2023.1.0
+
+## 2022.2.3 - 02.12.2022
+* Windows: SaveFile implementation improved
+* Project cleanup
+* Updated to Common 2022.2.2
+
+## 2022.2.2 - 04.11.2022
+* "Check for Update..." added to the menu
+
+## 2022.2.1 - 27.10.2022
+* Windows: warning if "Native Inside Editor" is enabled
+* Documentation updated
+* Updated to Common 2022.2.1
+
+## 2022.2.0 - 18.08.2022
+* Fix for UWP (WSA) builds
+* Prevent callbacks from firing too early
+* Compile define CT_FB_PRO removed
+* Editor integration improved
+* Minimal supported version is now Unity 2019.4 or newer
+* Updated to Common 2022.2.0
+
+## 2022.1.3 - 22.06.2022
+* Fix for non-standalone builds
+
+## 2022.1.2 - 07.06.2022
+* macOS and Linux-provider improved 
+* Automatic installation of packages improved
+* Editor-folders moved to Scripts
+* Async callbacks improved
+* Updated to Common 2022.1.2
+
+## 2022.1.1 - 25.03.2022
+* Fixes for UWP (WSA)
+
+## 2022.1.0 - 24.03.2022
+* UWP (WSA) further improved
+* "Runtime File Browser" integration improved
+* Firing of events improved
+* Editor integration improved
+* Fixes for namespaces
+* "00-Simple_Example" demo scene added
+* Updated to Common 2022.1.0
+
+## 2021.3.6 - 29.12.2021
+* PlatformWrapper improved
+* UWP (WSA) improved
+* Integration of "WebGL Native Browser" improved
+* Updated to Common 2021.3.6
+
+## 2021.3.5 - 24.11.2021
+* PlatformWrapper improved
+* FileBrowserWebGL: automatic fallback to default wrapper under non-WebGL platforms
+
+## 2021.3.4 - 18.11.2021
+* PlatformWrapper added
+* macOS builds improved for App Store releases
+* Check if FileBrowser is active before executing methods
+* Updated to Common 2021.3.5
+
+## 2021.3.3 - 27.09.2021
+* Callbacks improved
+* Small improvements for the Editor
+* WebGL Native File Browser:
+  * Updated to version 2.0.2
+  * Improvements for file selection
+* Updated to Common 2021.3.3
+
+## 2021.3.2 - 31.08.2021
+* Code cleanup
+* Updated to Common 2021.3.1
+
+## 2021.3.1 - 25.08.2021
+* Fix for macOS
+
+## 2021.3.0 - 25.08.2021
+* FileBrowser: "CurrentSaveFileData" added - just add the data to it before calling "SaveFile" and it will be stored
+* Windows: fix for "OpenFolder" under IL2CPP
+* macOS: 
+  * Universal library (Intel/Apple Silicon) created
+  * Fix for IL2CPP 
+* WebGL: it's now possible to save files
+* CTProcess added
+* Examples improved
+* Updated to Common 2021.3.0
+
+## 2021.2.5 - 10.06.2021
+* UWP (WSA) fixes and improvements
+
+## 2021.2.4 - 04.06.2021
+* Editor improvements
+* Updated to Common 2021.2.2
+
+## 2021.2.3 - 20.05.2021
+* File and folder selection improved (pressing "Cancel" will remove the previous selected items)
+* Fix for "CurrentOpenSingleFileData"
+* FileBrowser: Editor display bug for "Custom Wrapper" fixed
+
+## 2021.2.2 - 06.05.2021
+* FileBrowser: fix for multiple calls of the callbacks
+* PlayMaker: support for multiple extensions
+
+## 2021.2.1 - 15.04.2021
+* macOS: fix for Apple Silicon (M1)
+* Updated to Common 2021.2.1
+
+## 2021.2.0 - 13.04.2021
+* Support for "WebGL Native File Browser" added
+* FileBrowser: canOpenFile, canOpenFolder, canSaveFile and CurrentOpenSingleFileData (= contains the file data) added
+* Fix for macOS builds
+* Updated to Common 2021.2.0
+
+## 2021.1.2 - 25.02.2021
+* FileBrowser:
+  * CopyFile added
+  * CopyFolder added
+  * ShowFile added
+  * ShowFolder added
+  * OpenFile added
+* Updated to Common 2021.1.1
+
+## 2021.1.1 - 02.02.2021
+* PlayMaker actions: field "Selected" added
+
+## 2021.1.0 - 05.01.2021
+* Demo scenes improved
+* Updated to Common 2021.1.0
+
+## 2020.5.5 - 17.12.2020
+* Improved for Unity 2020.2
+* Documentation updated
+* Updated to Common 2020.4.8
+
+## 2020.5.4 - 13.12.2020
+* Planned final release for 2020
+* Code-cleanup
+* New Youtube video added: https://youtu.be/nczXecD0uB0
+* Updated to Common 2020.4.7
+
+## 2020.5.3 - 10.12.2020
+* Windows: enable or disable prompt for existing files in the save dialog
+* Updated to Common 2020.4.6
+
+## 2020.5.2 - 03.12.2020
+* FileBrowser: standard titles exposed
+* "Runtime File Browser" integration improved
+* Singleton improved
+* Updated to Common 2020.4.5
+
+## 2020.5.1 - 27.11.2020
+* Support for custom wrappers
+* Support for "Runtime File Browser" added
+* Instance improved
+* "defaultName" added for OpenFile (currently only for Windows standalone)
+
+## 2020.5.0 - 15.10.2020
+* Big code overhaul: use "Instance" to access the methods and variables
+* Code improvements
+* Updated to Common 2020.4.4
+
+## 2020.4.2 - 10.09.2020
+* Code clean-up
+* Updated to Common 2020.4.3
+
+## 2020.4.1 - 25.08.2020
+* Small improvements
+* Updated to Common 2020.4.1
+
+## 2020.4.0 - 10.08.2020
+* Windows: new folder selection dialog 
+* Big code overhaul
+* Import of the demo scenes streamlined 
+* Minimal version is now Unity 2018.4 and newer
+* Updated to Common 2020.4.0
+
+## 2020.3.0 - 14.07.2020
+* Events added:
+  * OpenFilesStart
+  * OpenFilesComplete
+  * OpenFoldersStart
+  * OpenFoldersComplete
+  * SaveFileStart
+  * SaveFileComplete
+* Methods added:
+  * OpenSingleFileAsync
+  * OpenSingleFolderAsync
+* FileBrowser: "GetDrives" added
+* WSA: 
+  * DLL removed and source "FileBrowserWSAImpl" file added
+  * "GetDrives" and "LastGetDrives"
+* Windows: fix for multiple files under non-IL2CPP
+* Updated to Common 2020.3.0
+
+## 2020.2.8 - 17.06.2020
+* Demo scenes are now in "Demos.unitypackage" (please install "Assets/Plugins/crosstales/Common/UI.unitypackage" first)
+* Demos improved
+* Updated to Common 2020.2.1
+  
+## 2020.2.7 - 10.06.2020
+* Windows: 
+  * Path fixed for Editor version
+  * Open file fixed for Windows 32bit
+
+## 2020.2.6 - 02.06.2020
+* Windows: fix for multiple file selection
+* Demos improved
+* Code improved
+
+## 2020.2.5 - 24.05.2020
+* Updated to Common 2020.2.0
+
+## 2020.2.4 - 19.05.2020
+* macOS: bundle id no longer interferes with the app store
+* Small fixes
+
+## 2020.2.3 - 13.05.2020
+* Compile defines can now be disabled
+* Editor integration improved
+* PlayMaker actions improved
+
+## 2020.2.2 - 15.04.2020
+* Windows: support for 32bit builds 
+* Updated to Common 2020.1.3
+
+## 2020.2.1 - 26.03.2020
+* Improvements for macOS and Linux editors
+* Editor improved
+
+## 2020.2.0 - 05.03.2020
+* WSA - new properties and variables added (access them with in code with "ENABLE_WINMD_SUPPORT"):
+  * CurrentLocation: path location for the file browser (default: PickerLocationId.ComputerFolder)
+  * CurrentViewMode: style of the file browser (default: PickerViewMode.List)
+  * LastOpenFile: Last file from the "OpenFiles"-dialog (StorageFile)
+  * LastOpenFiles: Last files from the "OpenFiles"-dialog (List<StorageFile>)
+  * LastOpenFolder: Last folder from the "OpenSingleFolder"-dialog (StorageFolder)
+  * LastSaveFile: Last file from the "SaveFile"-dialog (StorageFile)
+  * LastGetFiles: Last files from the "GetFiles"-method (List<StorageFile>)
+  * LastGetDirectories: Last files from the "GetDirectories"-method (List<StorageFolder>)
+* macOS: fix for wildcard selection
+* ReminderCheck removed
+* Updated to Common 2020.1.2
+
+## 2020.1.1 - 29.01.2020
+* Linux integration improved
+* Support for Unity 2020
+* Updated to Common 2020.1.1
+
+## 2020.1.0 - 10.01.2020
+* asmdef added
+* Editor integration improved
+* Updated to Common 2020.1.0
+
+## 2019.5.6 - 17.12.2019
+* Windows: OpenFiles and SaveFile no longer crashes on 32bit builds
+* Small code improvements
+
+## 2019.5.5 - 06.12.2019
+* Windows implementation improved
+* Editor integration improved
+* Updated to Common 2019.5.4
+
+## 2019.5.4 - 20.11.2019
+* Async under Windows improved
+* Updated to Common 2019.5.3
+
+## 2019.5.3 - 12.11.2019
+* Small code changes
+* Updated to Common 2019.5.2
+
+## 2019.5.2 - 20.10.2019
+* Fix for 'OpenFoldersAsync' in the Windows Editor
+
+## 2019.5.1 - 17.10.2019
+* Async works now under Windows!
+
+## 2019.5.0 - 14.10.2019
+* Biggest code overhaul since the release 
+* Updated to Common 2019.5.1
+
+## 2019.4.4 - 25.09.2019
+* macOS: build for Apple store further improved
+* ReminderCheck changed
+* UpdateCheck is now set to "false" per default (enable it in the configuration)
+
+## 2019.4.3 - 24.09.2019
+* Windows: save file improved
+* macOS: build for Apple store improved
+* Code cleanup
+
+## 2019.4.2 - 17.09.2019
+* Windows: open folder and save file improved
+* Code improvements
+
+## 2019.4.1 - 04.09.2019
+* Linux-version improved (thanks to Yinon Oshrat!)
+* macOS-version improved (code cleaned up)
+* Windows-version improved (more files selectable)
+* Fixed wrong modifications of the path under Windows if build target was not Windows-based
+* "FileBrowser" is no longer a MonoBehaviour
+* Updated to Common 2019.4.1
+
+## 2019.4.0 - 26.07.2019
+* Minimal version is now Unity 2017.4 and newer
+* Added compatibility with assembly definitions
+* Unity Editor (macOS): all files ("*") is now working correctly
+* Demos: fully qualified access to classes
+* Updated to Common 2019.4.0
+
+## 2019.3.5 - 23.05.2019
+* Windows: native integration for Unity 2019+ improved
+* Linux: GTK2+ version added (see "GTK2.zip")
+* Updated to Common 2019.3.2
+
+## 2019.3.4 - 09.05.2019
+* Windows: native integration added
+* "GetFiles" and "GetDirectories" improved and support for UWP added
+* UWP bug resolved
+* Updated to Common 2019.3.1
+
+## 2019.3.3 - 18.04.2019
+* Windows: OpenFile and SaveFile are now working correctly with paths
+* Updated to Common 2019.3.0
+
+## 2019.3.2 - 11.04.2019
+* Fix: Build platforms other than Windows failed in 2019.3.1
+* Updated to Common 2019.2.6
+
+## 2019.3.1 - 10.04.2019
+* Windows-builds improved
+
+## 2019.3.0 - 05.04.2019
+* Windows:
+  * support for IL2CPP!
+  * automatically add the extension for save files
+* Updated to Common 2019.2.5
+
+## 2019.2.2 - 26.03.2019
+* Windows: "System.Windows.Forms.dll" removed
+* WSA: logging improved
+* Updated to Common 2019.2.4
+
+## 2019.2.1 - 12.03.2019
+* Windows: option added to access the native file browser instead of the Unity Editor component
+* PlayMaker actions added
+* Code cleanup
+* Updated to Common 2019.2.3
+
+## 2019.2.0 - 06.02.2019
+* FileBrowser:
+  * "canOpenMultipleFiles" added
+  * "canOpenMultipleFolders" added
+  * simplified open and save methods added
+  * open and save file are now working with multiple extensions
+* WSA wrapper improved
+* Demo scene improved
+* Updated to Common 2019.2.0
+
+## 2019.1.2 - 28.01.2019
+* Editor integration added
+* Set API level for Unity 2018+ fixed
+* Minor code improvements
+* Documentation improved
+
+## 2019.1.1 - 23.01.2019
+* Production release 

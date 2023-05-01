@@ -6,75 +6,165 @@ using UnityEngine;
 
 public enum TrialType
 {
-    Running,
-    Swimming,
+    GroundDistance,
+    WaterDistance,
     GroundLightFollowing,
     WaterLightFollowing
 };
 
+public enum SpeedControl
+{
+    Pause,
+    Play,
+    FastForward
+}
+
 public class EvolutionSimulator : MonoBehaviour
 {
     [Header("Initialisation Parameters")]
-    public TrialType trial = TrialType.Running;
-    public int numberOfIterations;
-    public int populationSize;
+    [SerializeField] private TrialType trialType = TrialType.GroundDistance;
+    [SerializeField] private int numberOfIterations;
+    [SerializeField] private int populationSize;
     [Range(0f, 1f)]
-    public float survivalRatio;
-    private int maxSurvivors;
-    public string seedGenotypeFile;
+    [SerializeField] private float survivalRatio;
+    [SerializeField] private Genotype seedGenotype;
+    [SerializeField] private bool run;
 
     [Header("Runtime Parameters")]
+    public SpeedControl speedControl;
     public bool pauseIterating;
-    public bool exitEarly;
+    public bool stopSimulation;
 
     [Header("Visualisation Parameters")]
     public bool colourByRelativeFitness;
     public bool filterByPotentialSurvivors;
 
     [Header("Outputs")]
-    public int iterationsRemaining;
-    public float bestFitness;
+    public int currentIteration;
+    public Individual bestIndividual;
+    public List<float> bestFitnesses;
+    public List<float> averageFitnesses;
 
     private Population population;
-    private Action InitialiseEnvironment = () => { };
+    public event Action OnIterationStart = delegate { };
+    public event Action OnIterationEnd = delegate { };
 
-    private void Start()
+    public bool running => population != null;
+
+    private void Update()
+    {
+        if (running)
+            VisualisePopulation();
+    }
+
+    public IEnumerator Run(TrialType trialType, int numberOfIterations, int populationSize, float survivalRatio, Genotype seedGenotype)
+    {
+        this.trialType = trialType;
+        this.numberOfIterations = numberOfIterations;
+        this.populationSize = populationSize;
+        this.survivalRatio = survivalRatio;
+        this.seedGenotype = seedGenotype;
+
+        AssessmentFunction assessmentFunction = SetUpTrial(trialType);
+
+        // Reset outputs.
+        bestIndividual = null;
+        bestFitnesses = new List<float>();
+        averageFitnesses = new List<float>();
+
+        if (seedGenotype != null)
+            population = new Population(Enumerable.Range(0, populationSize).Select(_ => seedGenotype).ToList());
+        else
+            population = new Population(populationSize);
+
+        int maxSurvivors = Mathf.CeilToInt(populationSize * survivalRatio);
+
+        currentIteration = 0;
+        while (currentIteration < numberOfIterations || numberOfIterations == -1)
+        {
+            currentIteration++;
+
+            OnIterationStart();
+
+            yield return StartCoroutine(AssessFitnesses(population, assessmentFunction));
+
+            List<Individual> survivors = SelectSurvivors(population, maxSurvivors);
+            int survivorCount = survivors.Count;
+
+            if (bestIndividual == null || (survivorCount > 0 && survivors[0].fitness > bestIndividual.fitness))
+            {
+                bestIndividual = survivors[0];
+            }
+
+            bestFitnesses.Add(bestIndividual.fitness);
+            averageFitnesses.Add(population.individuals.Average(x => x.fitness));
+
+            Debug.Log("Iteration " + currentIteration + ": Best fitness = " + bestFitnesses.Last() + ", Average Fitness = " + averageFitnesses.Last());
+
+            while (pauseIterating)
+                yield return null;
+
+            OnIterationEnd();
+
+            ResetWorld();
+
+            yield return null; // Gives time for cleanup to complete.
+
+            population = ProduceNextGeneration(populationSize, populationSize - maxSurvivors, survivors);
+        }
+
+        currentIteration = -1;
+        Debug.Log("Finished.");
+
+        OnIterationStart();
+        yield return StartCoroutine(AssessFitnesses(population, assessmentFunction));
+    }
+
+    public bool TogglePhenotypeProtection(Phenotype phenotype)
+    {
+        Individual individual = population.individuals.Find(i => i.phenotype == phenotype);
+        individual.isProtected = !individual.isProtected;
+        return individual.isProtected;
+    }
+
+    private AssessmentFunction SetUpTrial(TrialType trialType)
     {
         AssessmentFunction assessmentFunction;
-        switch (trial)
+        switch (trialType)
         {
-            case TrialType.Running:
+            case TrialType.GroundDistance:
                 assessmentFunction = Assessment.GroundDistance;
+                WorldManager.Instance.world.transform.position = -WorldManager.Instance.groundOrigin.transform.localPosition;
                 WorldManager.Instance.simulateFluid = false;
                 WorldManager.Instance.gravity = true;
-                WorldManager.Instance.EnableGround(true);
-                WorldManager.Instance.EnableLight(false);
+                WorldManager.Instance.pointLight.SetActive(false);
                 break;
-            case TrialType.Swimming:
+            case TrialType.WaterDistance:
                 assessmentFunction = Assessment.WaterDistance;
+                WorldManager.Instance.world.transform.position = -WorldManager.Instance.waterOrigin.transform.localPosition;
                 WorldManager.Instance.simulateFluid = true;
                 WorldManager.Instance.gravity = false;
-                WorldManager.Instance.EnableGround(false);
-                WorldManager.Instance.EnableLight(false);
+                WorldManager.Instance.pointLight.SetActive(false);
                 break;
             case TrialType.GroundLightFollowing:
                 assessmentFunction = Assessment.LightCloseness;
+                WorldManager.Instance.world.transform.position = -WorldManager.Instance.groundOrigin.transform.localPosition;
                 WorldManager.Instance.simulateFluid = false;
                 WorldManager.Instance.gravity = true;
-                WorldManager.Instance.EnableGround(true);
-                WorldManager.Instance.EnableLight(true);
-                InitialiseEnvironment = () =>
+                WorldManager.Instance.pointLight.SetActive(true);
+                OnIterationStart += () =>
                     WorldManager.Instance.pointLight.transform.position =
                         Quaternion.Euler(0, UnityEngine.Random.Range(0, 360), 0)
-                        * Vector3.forward * UnityEngine.Random.Range(0f, 20f);
+                        * Vector3.forward * UnityEngine.Random.Range(0f, 20f)
+                        + Vector3.up * 1f;
                 break;
             case TrialType.WaterLightFollowing:
                 assessmentFunction = Assessment.LightCloseness;
+                WorldManager.Instance.world.transform.position = -WorldManager.Instance.waterOrigin.transform.localPosition;
                 WorldManager.Instance.simulateFluid = true;
                 WorldManager.Instance.gravity = false;
-                WorldManager.Instance.EnableGround(false);
-                WorldManager.Instance.EnableLight(true);
-                InitialiseEnvironment = () =>
+                WorldManager.Instance.pointLight.SetActive(true);
+                OnIterationStart += () =>
                     WorldManager.Instance.pointLight.transform.position =
                     Quaternion.Euler(UnityEngine.Random.Range(0, 360), UnityEngine.Random.Range(0, 360), UnityEngine.Random.Range(0, 360))
                     * Vector3.forward * UnityEngine.Random.Range(0f, 20f);
@@ -82,76 +172,7 @@ public class EvolutionSimulator : MonoBehaviour
             default:
                 throw new Exception();
         }
-        StartCoroutine(Run(numberOfIterations, populationSize, survivalRatio, assessmentFunction));
-    }
-
-    private void Update()
-    {
-        VisualisePopulation();
-    }
-
-    private IEnumerator Run(int numberOfIterations, int populationSize, float survivalRatio, AssessmentFunction assessmentFunction)
-    {
-        Individual bestIndividual = null;
-        bestFitness = 0f;
-        List<float> bestFitnesses = new List<float>();
-        List<float> averageFitnesses = new List<float>();
-        iterationsRemaining = numberOfIterations;
-
-        if (!string.IsNullOrEmpty(seedGenotypeFile))
-        {
-            Genotype seedGenotype = GenotypeSerializer.ReadGenotypeFromFile(seedGenotypeFile);
-            population = new Population(Enumerable.Range(0, populationSize).Select(_ => seedGenotype).ToList());
-        }
-        else
-            population = new Population(populationSize);
-
-        maxSurvivors = Mathf.CeilToInt(populationSize * survivalRatio);
-
-        for (int i = 0; i < numberOfIterations; i++)
-        {
-            InitialiseEnvironment();
-
-            yield return StartCoroutine(AssessFitnesses(population, assessmentFunction));
-
-            List<Individual> survivors = SelectSurvivors(population, maxSurvivors);
-            int survivorCount = survivors.Count;
-
-            if (survivorCount > 0 && survivors[0].fitness > bestFitness)
-            {
-                bestIndividual = survivors[0];
-                bestFitness = (float)survivors[0].fitness;
-            }
-
-            bestFitnesses.Add(bestFitness);
-            averageFitnesses.Add(population.individuals.Average(x => x.fitness));
-
-            Debug.Log("Iteration " + (i + 1) + ": Best fitness = " + bestFitnesses.Last() + ", Average Fitness = " + averageFitnesses.Last());
-
-            while (pauseIterating)
-                yield return null;
-
-            ResetWorld();
-
-            yield return null; // Gives time for cleanup to complete.
-
-            iterationsRemaining--;
-
-            if (exitEarly)
-                break;
-
-            population = ProduceNextGeneration(populationSize, populationSize - maxSurvivors, survivors);
-        }
-
-        Debug.Log("Finished.");
-
-        if (bestIndividual != null)
-        {
-            bestIndividual.phenotype = Phenotype.Construct(bestIndividual.genotype);
-            StartCoroutine(assessmentFunction(bestIndividual));
-            Time.timeScale = 1f;
-            Debug.Break();
-        }
+        return assessmentFunction;
     }
 
     private IEnumerator AssessFitnesses(Population population, AssessmentFunction assessmentFunction)
@@ -163,6 +184,7 @@ public class EvolutionSimulator : MonoBehaviour
         foreach (Individual individual in population.individuals)
         {
             individual.phenotype = Phenotype.Construct(individual.genotype);
+            individual.phenotype.gameObject.SetActive(false);
             if (individual.phenotype.IsValid())
                 assessors.Add(assessmentFunction(individual));
             else
@@ -183,15 +205,15 @@ public class EvolutionSimulator : MonoBehaviour
     private List<Individual> SelectSurvivors(Population population, int maxSurvivors)
     {
         return population.individuals
-        .FindAll(x => x.fitness > 0)
-        .OrderByDescending(x => x.fitness)
+        .FindAll(x => x.phenotype != null && (x.fitness > 0 || x.isProtected))
+        .OrderByDescending(x => x.isProtected ? Mathf.Infinity : x.fitness)
         .Take(maxSurvivors)
         .ToList();
     }
 
     private Population ProduceNextGeneration(int populationSize, int maxChildren, List<Individual> seedIndividuals)
     {
-        Population nextGeneration = new Population(seedIndividuals.Select(x => x.genotype).ToList());
+        Population nextGeneration = new Population(seedIndividuals);
 
         float totalFitness = seedIndividuals.Sum(x => x.fitness);
         if (totalFitness > 0)
@@ -258,7 +280,7 @@ public class EvolutionSimulator : MonoBehaviour
         if (population == null)
             return;
 
-        List<Individual> survivors = SelectSurvivors(population, maxSurvivors);
+        List<Individual> survivors = SelectSurvivors(population, Mathf.CeilToInt(populationSize * survivalRatio));
         Individual currentBestIndividual = survivors.Count > 0 ? survivors[0] : null;
 
         float currentAverageFitness = 0f;
@@ -270,25 +292,33 @@ public class EvolutionSimulator : MonoBehaviour
             if (individual.phenotype == null)
                 continue;
 
-            if (filterByPotentialSurvivors)
-                individual.phenotype.SetVisible(survivors.Contains(individual));
-            else
-                individual.phenotype.SetVisible(true);
-
-            if (colourByRelativeFitness)
+            if (individual.isProtected)
             {
-                if (individual.fitness == 0f)
-                    individual.phenotype.SetRGB(1f, 0f, 0f);
-                else if (individual == currentBestIndividual)
-                    individual.phenotype.SetRGB(0f, 1f, 1f);
-                else
-                {
-                    float x = (float)Math.Exp(-(1 / currentAverageFitness) * individual.fitness);
-                    individual.phenotype.SetRGB(x, 1f - x, 0f);
-                }
+                individual.phenotype.SetVisible(true);
+                individual.phenotype.SetRGB(1f, 0.84f, 0f);
             }
             else
-                individual.phenotype.SetRGB(1f, 1f, 1f);
+            {
+                if (filterByPotentialSurvivors)
+                    individual.phenotype.SetVisible(survivors.Contains(individual));
+                else
+                    individual.phenotype.SetVisible(true);
+
+                if (colourByRelativeFitness)
+                {
+                    if (individual.fitness == 0f)
+                        individual.phenotype.SetRGB(1f, 0f, 0f);
+                    else if (individual == currentBestIndividual)
+                        individual.phenotype.SetRGB(0f, 1f, 1f);
+                    else
+                    {
+                        float x = (float)Math.Exp(-(1 / currentAverageFitness) * individual.fitness);
+                        individual.phenotype.SetRGB(x, 1f - x, 0f);
+                    }
+                }
+                else
+                    individual.phenotype.SetRGB(1f, 1f, 1f);
+            }
         }
     }
 }

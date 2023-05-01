@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Collections.Generic;
 
 public class Individual
@@ -5,6 +6,7 @@ public class Individual
     public Genotype genotype;
     public Phenotype phenotype;
     public float fitness = 0f;
+    public bool isProtected;
 }
 
 public class Population
@@ -25,5 +27,10 @@ public class Population
         individuals = new();
         for (int i = 0; i < genotypes.Count; i++)
             this.individuals.Add(new() { genotype = genotypes[i] });
+    }
+
+    public Population(List<Individual> individuals)
+    {
+        this.individuals = individuals.Select(i => new Individual() { genotype = i.genotype, isProtected = i.isProtected }).ToList();
     }
 }

@@ -1,8 +1,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using cakeslice;
 
-public class Phenotype : MonoBehaviour
+public class Phenotype : MonoBehaviour, ISelectable, IPlaceable
 {
     public Genotype genotype;
     public Brain brain;
@@ -12,11 +13,14 @@ public class Phenotype : MonoBehaviour
 
     public bool lostLimbs;
 
-    public bool saveGenotypeToFile;
+    public bool saveGenotypeToFile; // Editor only.
 
-    private void Start()
+    private List<Outline> outlines;
+
+    private void Awake()
     {
         meshRenderers = GetComponentsInChildren<MeshRenderer>().ToList();
+        outlines = GetComponentsInChildren<Outline>().ToList();
     }
 
     private void Update()
@@ -24,7 +28,7 @@ public class Phenotype : MonoBehaviour
         if (saveGenotypeToFile)
         {
             saveGenotypeToFile = false;
-            GenotypeSerializer.WriteGenotypeToFile(genotype, genotype.Id + ".genotype.json");
+            genotype.SaveToFile(genotype.Id + ".genotype");
         }
     }
 
@@ -97,6 +101,9 @@ public class Phenotype : MonoBehaviour
         MeshRenderer limbMeshRenderer = limb.GetComponent<MeshRenderer>();
         meshRenderers.Remove(limbMeshRenderer);
         limbMeshRenderer.material = ResourceManager.Instance.deadLimbMaterial;
+        Outline limbOutline = limb.GetComponent<Outline>();
+        outlines.Remove(limbOutline);
+        limbOutline.enabled = false;
         WorldManager.Instance.AddGameObjectToTrashCan(limb.gameObject);
 
         lostLimbs = true;
@@ -120,5 +127,16 @@ public class Phenotype : MonoBehaviour
         NervousSystem.Configure(brain, limbs);
 
         return phenotype;
+    }
+
+    public void Select()
+    {
+        SelectionManager.Instance.Selected = this;
+        outlines.ForEach(o => o.enabled = true);
+        SelectionManager.Instance.OnSelection += () => outlines.ForEach(o =>
+        {
+            if (o != null)
+                o.enabled = false;
+        });
     }
 }

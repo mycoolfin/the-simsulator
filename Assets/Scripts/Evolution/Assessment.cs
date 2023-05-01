@@ -9,6 +9,7 @@ public static class Assessment
 {
     public static IEnumerator GroundDistance(Individual individual)
     {
+        if (individual.phenotype == null) yield break;
         DisablePhenotypeCollisions(individual.phenotype);
 
         int settleSeconds = 10;
@@ -16,15 +17,17 @@ public static class Assessment
         int fitnessUpdateIntervals = 100;
         float intervalLength = (float)runtimeSeconds / (float)fitnessUpdateIntervals;
 
-        individual.phenotype.transform.position = new Vector3(0, -individual.phenotype.GetBounds().center.y + individual.phenotype.GetBounds().extents.y, 0);
+        PlacePhenotype(individual.phenotype);
 
         yield return new WaitForSeconds(settleSeconds);
+        if (individual.phenotype == null) yield break;
 
         Vector3 startPosition = individual.phenotype.GetBounds().center;
 
         for (int i = 0; i < fitnessUpdateIntervals; i++)
         {
             yield return new WaitForSeconds(intervalLength);
+            if (individual.phenotype == null) yield break;
 
             Bounds bounds = individual.phenotype.GetBounds();
             Vector3 currentPosition = bounds.center;
@@ -37,8 +40,6 @@ public static class Assessment
             else
             {
                 float planarDisplacement = Vector3.Magnitude(new Vector3(currentPosition.x - startPosition.x, 0, currentPosition.z - startPosition.z));
-                // float phenotypeLength = Mathf.Max(bounds.extents.x * 2, bounds.extents.y * 2, bounds.extents.z * 2);
-                // float lengthsTravelled = planarDisplacement / phenotypeLength;
                 individual.fitness = planarDisplacement;
 
                 if (individual.phenotype.lostLimbs)
@@ -49,6 +50,7 @@ public static class Assessment
 
     public static IEnumerator WaterDistance(Individual individual)
     {
+        if (individual.phenotype == null) yield break;
         DisablePhenotypeCollisions(individual.phenotype);
 
         int settleSeconds = 5;
@@ -56,12 +58,16 @@ public static class Assessment
         int fitnessUpdateIntervals = 100;
         float intervalLength = (float)runtimeSeconds / (float)fitnessUpdateIntervals;
 
+        PlacePhenotype(individual.phenotype);
+
         yield return new WaitForSeconds(settleSeconds);
+        if (individual.phenotype == null) yield break;
 
         // Kill momentum.
         List<Rigidbody> rigidbodies = individual.phenotype.GetComponentsInChildren<Rigidbody>().ToList();
         rigidbodies.ForEach(x => { x.isKinematic = true; });
         yield return new WaitForFixedUpdate();
+        if (individual.phenotype == null) yield break;
         rigidbodies.ForEach(x => { x.isKinematic = false; });
 
         Vector3 startPosition = individual.phenotype.GetBounds().center;
@@ -69,13 +75,12 @@ public static class Assessment
         for (int i = 0; i < fitnessUpdateIntervals; i++)
         {
             yield return new WaitForSeconds(intervalLength);
+            if (individual.phenotype == null) yield break;
 
             Bounds bounds = individual.phenotype.GetBounds();
             Vector3 currentPosition = bounds.center;
 
             float displacement = Vector3.Distance(startPosition, currentPosition);
-            // float phenotypeLength = Mathf.Max(bounds.extents.x * 2, bounds.extents.y * 2, bounds.extents.z * 2);
-            // float lengthsTravelled = displacement / phenotypeLength;
             individual.fitness = displacement;
 
             if (individual.phenotype.lostLimbs)
@@ -85,6 +90,7 @@ public static class Assessment
 
     public static IEnumerator LightCloseness(Individual individual)
     {
+        if (individual.phenotype == null) yield break;
         DisablePhenotypeCollisions(individual.phenotype);
 
         int settleSeconds = 10;
@@ -92,9 +98,10 @@ public static class Assessment
         int fitnessUpdateIntervals = 100;
         float intervalLength = (float)runtimeSeconds / (float)fitnessUpdateIntervals;
 
-        individual.phenotype.transform.position = new Vector3(0, -individual.phenotype.GetBounds().center.y + individual.phenotype.GetBounds().extents.y, 0);
+        PlacePhenotype(individual.phenotype);
 
         yield return new WaitForSeconds(settleSeconds);
+        if (individual.phenotype == null) yield break;
 
         Vector3 startPosition = individual.phenotype.GetBounds().center;
 
@@ -103,6 +110,7 @@ public static class Assessment
         for (int i = 0; i < fitnessUpdateIntervals; i++)
         {
             yield return new WaitForSeconds(intervalLength);
+            if (individual.phenotype == null) yield break;
 
             Bounds bounds = individual.phenotype.GetBounds();
             Vector3 currentPosition = bounds.center;
@@ -122,5 +130,11 @@ public static class Assessment
                 if (otherPhenotype != phenotype)
                     foreach (Collider otherCol in otherPhenotype.GetComponentsInChildren<Collider>())
                         Physics.IgnoreCollision(col, otherCol);
+    }
+
+    private static void PlacePhenotype(Phenotype phenotype)
+    {
+        phenotype.transform.position = new Vector3(0, -phenotype.GetBounds().center.y + phenotype.GetBounds().extents.y * 2f, 0);
+        phenotype.gameObject.SetActive(true);
     }
 }

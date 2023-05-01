@@ -18,6 +18,7 @@ GameObject:
   - component: {fileID: 7027420394417779601}
   - component: {fileID: 5224231335303513587}
   - component: {fileID: -9122385035508680815}
+  - component: {fileID: 3383716648398450433}
   m_Layer: 0
   m_Name: Limb
   m_TagString: Untagged
@@ -213,6 +214,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 60080623c566c476ba958f9ae4a225f9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  instanceId: 
   fullBodyCollider: {fileID: 568848608208664369}
   xyMidwayCollider: {fileID: 5931677848738342441}
   yzMidwayCollider: {fileID: 7733643713818776781}
@@ -220,6 +222,9 @@ MonoBehaviour:
   joint: {fileID: 0}
   parentLimb: {fileID: 0}
   childLimbs: []
+  reflectedX: 0
+  reflectedY: 0
+  reflectedZ: 0
 --- !u!114 &-9122385035508680815
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -232,3 +237,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5dc080c7730a94d5092c22c1b85e736f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &3383716648398450433
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1305211240185183231}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fbf3575480402db40813e763382412fb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  color: 0
+  eraseRenderer: 0

@@ -4,22 +4,35 @@ using UnityEngine;
 
 public static class Reproduction
 {
+    // Use set parameters.
     public static Genotype CreateOffspring(Genotype parent1, Genotype parent2)
+    {
+        return CreateOffspring(
+            parent1, 
+            parent2, 
+            ReproductionParameters.AsexualProbability, 
+            ReproductionParameters.GraftingProbability, 
+            ReproductionParameters.CrossoverProbability
+        );
+    }
+
+    // Use manual probabilities.
+    public static Genotype CreateOffspring(Genotype parent1, Genotype parent2, float asexualChance, float graftingChance, float crossoverChance)
     {
         Genotype child;
 
         // Choose reproduction method with set probability.
         float methodChoice = Random.Range(
             0f,
-            ReproductionParameters.CrossoverProbability
-            + ReproductionParameters.GraftingProbability
-            + ReproductionParameters.AsexualProbability
+            crossoverChance
+            + graftingChance
+            + asexualChance
         );
 
         // Apply reproduction method.
-        if (methodChoice <= ReproductionParameters.CrossoverProbability)
+        if (methodChoice <= crossoverChance)
             child = Crossover(parent1, parent2);
-        else if (methodChoice <= ReproductionParameters.CrossoverProbability + ReproductionParameters.GraftingProbability)
+        else if (methodChoice <= crossoverChance + graftingChance)
             child = Grafting(parent1, parent2);
         else
             child = Asexual(parent1);
