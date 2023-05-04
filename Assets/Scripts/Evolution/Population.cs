@@ -7,6 +7,7 @@ public class Individual
     public Phenotype phenotype;
     public float fitness = 0f;
     public bool isProtected;
+    public bool preProcessingComplete;
 }
 
 public class Population

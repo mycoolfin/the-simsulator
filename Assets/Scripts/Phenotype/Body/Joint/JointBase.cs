@@ -13,14 +13,20 @@ public abstract class JointBase : MonoBehaviour
     public List<JointAngleSensor> sensors;
     public List<JointAngleEffector> effectors;
 
-    public Vector3 angles;
-    public Vector3 limits;
-    private Vector3 excitations;
-    private Vector3 previousAngularVelocity;
+    [SerializeField] private Vector3 angles;
+    private Vector3 previousAngles;
+    [SerializeField] private Vector3 limits;
+    [SerializeField] private Vector3 excitations;
 
     public abstract void ApplySpecificJointSettings();
 
-    private Quaternion intialOriginRotation;
+    private Vector3 primaryAxis;
+    private Vector3 secondaryAxis;
+    private Vector3 tertiaryAxis;
+    private Vector3 primaryAnglePlaneNormal;
+    private Vector3 secondaryAnglePlaneNormal;
+    private Vector3 tertiaryAnglePlaneNormal;
+    private Quaternion initialRotationRelativeToConnectedBody;
 
     // Debug.
     public bool useDebugExcitations;
@@ -31,9 +37,6 @@ public abstract class JointBase : MonoBehaviour
     [Range(-1f, 1f)]
     public float debugTertiaryExcitation;
     public bool resetExcitations;
-    public Vector3 primaryStrengthDisplay;
-    public Vector3 secondaryStrengthDisplay;
-    public Vector3 tertiaryStrengthDisplay;
 
     public static JointBase CreateJoint(JointDefinition jointDefinition, GameObject gameObject, Rigidbody connectedBody, float maximumJointStrength, List<float> dofAngleLimits, bool reflectedX, bool reflectedY, bool reflectedZ)
     {
@@ -81,10 +84,17 @@ public abstract class JointBase : MonoBehaviour
 
     private void Start()
     {
-        intialOriginRotation = Quaternion.Inverse(transform.rotation) * joint.connectedBody.transform.rotation;
+        initialRotationRelativeToConnectedBody = Quaternion.Inverse(joint.connectedBody.transform.rotation) * transform.rotation;
 
         for (int i = 0; i < dofAngleLimits.Count; i++)
             limits[i] = dofAngleLimits[i];
+
+        primaryAxis = switchPrimaryAndSecondaryAxes ? joint.secondaryAxis : joint.axis;
+        secondaryAxis = switchPrimaryAndSecondaryAxes ? joint.axis : joint.secondaryAxis;
+        tertiaryAxis = Vector3.Cross(primaryAxis, secondaryAxis);
+        primaryAnglePlaneNormal = Vector3.Cross(primaryAxis, secondaryAxis);
+        secondaryAnglePlaneNormal = Vector3.Cross(tertiaryAxis, secondaryAxis);
+        tertiaryAnglePlaneNormal = Vector3.Cross(primaryAxis, tertiaryAxis);
     }
 
     private void FixedUpdate()
@@ -97,35 +107,26 @@ public abstract class JointBase : MonoBehaviour
             return;
         }
 
+        Quaternion currentRotationRelativeToConnectedBody = Quaternion.Inverse(joint.connectedBody.transform.rotation) * transform.rotation;
+        Quaternion relativeRotationFromOrigin = Quaternion.Inverse(initialRotationRelativeToConnectedBody) * currentRotationRelativeToConnectedBody;
 
-        Quaternion updatedOriginRotation = joint.connectedBody.transform.rotation * Quaternion.Inverse(intialOriginRotation);
+        angles = GetCurrentAngles(relativeRotationFromOrigin);
 
-        // Calculate axes and axis angles.
-        Vector3 primaryAxis = updatedOriginRotation * (switchPrimaryAndSecondaryAxes ? joint.secondaryAxis : joint.axis); // Stays fixed with parent.
-        Vector3 secondaryAxis = transform.rotation * (switchPrimaryAndSecondaryAxes ? joint.axis : joint.secondaryAxis);
-        Vector3 tertiaryAxis = transform.rotation * Vector3.Cross(joint.axis, joint.secondaryAxis);
-
-        Quaternion diff = updatedOriginRotation * Quaternion.Inverse(transform.rotation);
-        float angle;
-        Vector3 rotationAxis;
-        diff.ToAngleAxis(out angle, out rotationAxis);
-        Vector3 projX = Vector3.Project(rotationAxis.normalized, primaryAxis.normalized);
-        Vector3 projY = Vector3.Project(rotationAxis.normalized, secondaryAxis.normalized);
-        Vector3 projZ = Vector3.Project(rotationAxis.normalized, tertiaryAxis.normalized);
-        angles[0] = angle * projX.magnitude * -Mathf.Sign(Vector3.Dot(projX, primaryAxis));
-        angles[1] = angle * projY.magnitude * -Mathf.Sign(Vector3.Dot(projY, secondaryAxis));
-        angles[2] = angle * projZ.magnitude * -Mathf.Sign(Vector3.Dot(projZ, tertiaryAxis));
-
-        // Use excitation values to set joint torques.
         Vector3 e = new Vector3(
             useDebugExcitations ? debugPrimaryExcitation : (float.IsNaN(excitations[0]) ? 0f : excitations[0]),
             useDebugExcitations ? debugSecondaryExcitation : (float.IsNaN(excitations[1]) ? 0f : excitations[1]),
             useDebugExcitations ? debugTertiaryExcitation : (float.IsNaN(excitations[2]) ? 0f : excitations[2])
         );
 
-        float maxVelocity = 10f * JointParameters.AngularVelocityMultiplier;
-        joint.targetAngularVelocity = Vector3.Lerp(previousAngularVelocity, e * maxVelocity, Time.deltaTime * JointParameters.SmoothingMultiplier);
-        previousAngularVelocity = joint.targetAngularVelocity;
+        float primaryAngleTarget = ConvertExcitationToAngle(e[0], limits[0]);
+        float secondaryAngleTarget = ConvertExcitationToAngle(e[1], limits[1]);
+        float tertiaryAngleTarget = ConvertExcitationToAngle(e[2], limits[2]);
+
+        joint.targetRotation = Quaternion.Euler(
+            switchPrimaryAndSecondaryAxes ? secondaryAngleTarget : primaryAngleTarget,
+            switchPrimaryAndSecondaryAxes ? primaryAngleTarget : secondaryAngleTarget,
+            tertiaryAngleTarget
+        );
 
         UpdateSensors();
         ApplyEffectors();
@@ -139,9 +140,7 @@ public abstract class JointBase : MonoBehaviour
             debugTertiaryExcitation = 0f;
         }
 
-        primaryStrengthDisplay = e[0] * primaryAxis;
-        secondaryStrengthDisplay = e[1] * secondaryAxis;
-        tertiaryStrengthDisplay = e[2] * tertiaryAxis;
+        previousAngles = angles;
     }
 
     protected void InitialiseSensors()
@@ -169,18 +168,19 @@ public abstract class JointBase : MonoBehaviour
         joint.enableCollision = true;
         joint.enablePreprocessing = true;
         joint.rotationDriveMode = RotationDriveMode.XYAndZ;
+        float maxForce = maximumJointStrength * JointParameters.StrengthMultiplier;
         JointDrive jointDrive = new JointDrive
         {
-            positionSpring = maximumJointStrength * JointParameters.StrengthMultiplier * 100f,
-            positionDamper = maximumJointStrength * JointParameters.StrengthMultiplier * 20f,
-            maximumForce = maximumJointStrength * JointParameters.StrengthMultiplier * 50f
+            positionSpring = 10000f * maxForce,
+            positionDamper = 1000f * maxForce,
+            maximumForce = maxForce
         };
         joint.angularXDrive = jointDrive;
         joint.angularYZDrive = jointDrive;
 
         // We want joints to break if they start to glitch out. These values may need to be fine tuned.
-        joint.breakForce = maximumJointStrength * JointParameters.StrengthMultiplier * 10000f;
-        joint.breakTorque = maximumJointStrength * JointParameters.StrengthMultiplier * 1000f;
+        joint.breakForce = 10000f * maxForce;
+        joint.breakTorque = 1000f * maxForce;
     }
 
     protected void ApplyReflections(bool reflectedX, bool reflectedY, bool reflectedZ)
@@ -211,6 +211,20 @@ public abstract class JointBase : MonoBehaviour
         }
     }
 
+    private Vector3 GetCurrentAngles(Quaternion relativeRotationFromOrigin)
+    {
+        Vector3 angles = Vector3.zero;
+        angles[0] = -Vector3.SignedAngle(primaryAnglePlaneNormal, Vector3.ProjectOnPlane(relativeRotationFromOrigin * primaryAnglePlaneNormal, primaryAxis), primaryAxis);
+        angles[1] = -Vector3.SignedAngle(secondaryAnglePlaneNormal, Vector3.ProjectOnPlane(relativeRotationFromOrigin * secondaryAnglePlaneNormal, secondaryAxis), secondaryAxis);
+        angles[2] = -Vector3.SignedAngle(tertiaryAnglePlaneNormal, Vector3.ProjectOnPlane(relativeRotationFromOrigin * tertiaryAnglePlaneNormal, tertiaryAxis), tertiaryAxis);
+        return angles;
+    }
+
+    private float ConvertExcitationToAngle(float excitation, float angleLimit)
+    {
+        return Mathf.LerpAngle(0f, angleLimit, Mathf.Abs(excitation)) * Mathf.Sign(excitation);
+    }
+
     private float GetAngleAroundAxis(Vector3 planeNormal, Vector3 a, Vector3 b)
     {
         Vector3 projectionA = Vector3.ProjectOnPlane(a, planeNormal);
@@ -225,8 +239,19 @@ public abstract class JointBase : MonoBehaviour
 
         Gizmos.DrawSphere(transform.TransformPoint(joint.anchor), Mathf.Min(transform.localScale.x / 10, transform.localScale.y / 10));
 
-        Debug.DrawLine(transform.TransformPoint(joint.anchor), transform.TransformPoint(joint.anchor) + primaryStrengthDisplay, Color.red);
-        Debug.DrawLine(transform.TransformPoint(joint.anchor), transform.TransformPoint(joint.anchor) + secondaryStrengthDisplay, Color.green);
-        Debug.DrawLine(transform.TransformPoint(joint.anchor), transform.TransformPoint(joint.anchor) + tertiaryStrengthDisplay, Color.blue);
+        Quaternion currentOriginRotationInWorldCoords = joint.connectedBody.transform.rotation * initialRotationRelativeToConnectedBody;
+
+        Vector3 worldPrimaryAxis = currentOriginRotationInWorldCoords * primaryAxis;
+        Vector3 worldSecondaryAxis = currentOriginRotationInWorldCoords * secondaryAxis;
+        Vector3 worldTertiaryAxis = currentOriginRotationInWorldCoords * tertiaryAxis;
+
+        Vector3 e = new Vector3(
+            useDebugExcitations ? debugPrimaryExcitation : (float.IsNaN(excitations[0]) ? 0f : excitations[0]),
+            useDebugExcitations ? debugSecondaryExcitation : (float.IsNaN(excitations[1]) ? 0f : excitations[1]),
+            useDebugExcitations ? debugTertiaryExcitation : (float.IsNaN(excitations[2]) ? 0f : excitations[2])
+        );
+        Debug.DrawLine(transform.TransformPoint(joint.anchor), transform.TransformPoint(joint.anchor) + worldPrimaryAxis * e[0], Color.red);
+        Debug.DrawLine(transform.TransformPoint(joint.anchor), transform.TransformPoint(joint.anchor) + worldSecondaryAxis * e[1], Color.green);
+        Debug.DrawLine(transform.TransformPoint(joint.anchor), transform.TransformPoint(joint.anchor) + worldTertiaryAxis * e[2], Color.blue);
     }
 }

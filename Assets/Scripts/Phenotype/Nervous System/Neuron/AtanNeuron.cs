@@ -6,6 +6,6 @@ public class AtanNeuron : NeuronBase
 
     protected override float Evaluate()
     {
-        return Mathf.Atan(GetWeightedInputValues()[0]);
+        return Mathf.Atan(WeightedInputValues[0]);
     }
 }

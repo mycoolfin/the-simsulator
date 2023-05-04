@@ -6,7 +6,7 @@ public class DivideNeuron : NeuronBase
 
     protected override float Evaluate()
     {
-        List<float> inputValues = GetWeightedInputValues();
+        List<float> inputValues = WeightedInputValues;
         return (inputValues[1] == 0) ? 0 : inputValues[0] / inputValues[1];
     }
 }

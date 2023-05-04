@@ -17,15 +17,15 @@ public class BendTwistJoint : JointBase
         joint.angularZMotion = ConfigurableJointMotion.Locked;
         joint.lowAngularXLimit = new SoftJointLimit
         {
-            limit = -dofAngleLimits[0]
+            limit = -dofAngleLimits[1]
         };
         joint.highAngularXLimit = new SoftJointLimit
         {
-            limit = dofAngleLimits[0]
+            limit = dofAngleLimits[1]
         };
         joint.angularYLimit = new SoftJointLimit
         {
-            limit = dofAngleLimits[1]
+            limit = dofAngleLimits[0]
         };
 
         switchPrimaryAndSecondaryAxes = true; // BendTwist is just TwistBend with switched axes.

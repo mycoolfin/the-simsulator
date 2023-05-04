@@ -31,15 +31,33 @@ public abstract class EffectorBase : ISignalReceiver
 
         }
     }
-    public List<float> Weights { get; set; }
-    public List<float> GetWeightedInputValues()
+    private List<float> weights;
+    public List<float> Weights
     {
-        // If there is no input specified, use the weight as a constant input.
-        return Inputs.Select((input, i) => (input?.OutputValue ?? 1f) * Weights[i]).ToList();
+        get { return weights; }
+        set
+        {
+            if (value.Count == TypeOfEffector.NumberOfInputs())
+                weights = value;
+            else
+                throw new System.ArgumentException("Expected " + TypeOfEffector.NumberOfInputs().ToString() + " weights, got " + value.Count);
+        }
+    }
+    private List<float> weightedInputValues;
+    public List<float> WeightedInputValues
+    {
+        get
+        {
+            // If there is no input specified, use the weight as a constant input.
+            for (int i = 0; i < Inputs.Count; i++)
+                weightedInputValues[i] = (Inputs[i]?.OutputValue ?? 1f) * Weights[i];
+            return weightedInputValues;
+        }
+        set { weightedInputValues = value; }
     }
     public float GetExcitation()
     {
-        return Mathf.Clamp(GetWeightedInputValues()[0], -1f, 1f);
+        return Mathf.Clamp(WeightedInputValues[0], -1f, 1f);
     }
 
     protected EffectorBase()
@@ -47,6 +65,7 @@ public abstract class EffectorBase : ISignalReceiver
         InputDefinitions = new InputDefinition[TypeOfEffector.NumberOfInputs()].ToList().AsReadOnly();
         Inputs = new ISignalEmitter[TypeOfEffector.NumberOfInputs()].ToList();
         Weights = new float[TypeOfEffector.NumberOfInputs()].ToList();
+        WeightedInputValues = new float[TypeOfEffector.NumberOfInputs()].ToList();
     }
 
     public static EffectorBase CreateEffector(EffectorType type, ReadOnlyCollection<InputDefinition> inputDefinitions)

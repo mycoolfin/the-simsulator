@@ -6,7 +6,7 @@ public class IfNeuron : NeuronBase
 
     protected override float Evaluate()
     {
-        List<float> inputValues = GetWeightedInputValues();
+        List<float> inputValues = WeightedInputValues;
         return (inputValues[0] > 0) ? inputValues[1] : inputValues[2];
     }
 }

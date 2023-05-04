@@ -98,7 +98,7 @@ public class NervousSystemDisplay : MonoBehaviour
 
         Action updateFunction = () =>
         {
-            List<float> inputValues = selfReceiver?.GetWeightedInputValues();
+            List<float> inputValues = selfReceiver?.WeightedInputValues;
             float? outputValue = selfEmitter?.OutputValue;
             input1Label.text = inputValues?.Count > 0 ? inputValues[0].ToString("0.00") : "";
             input2Label.text = inputValues?.Count > 1 ? inputValues[1].ToString("0.00") : "";

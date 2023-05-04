@@ -6,5 +6,5 @@ public interface ISignalReceiver
     ReadOnlyCollection<InputDefinition> InputDefinitions { get; }
     List<ISignalEmitter> Inputs { get; }
     List<float> Weights { get; }
-    List<float> GetWeightedInputValues();
+    List<float> WeightedInputValues { get; }
 }

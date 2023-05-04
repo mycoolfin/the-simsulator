@@ -8,7 +8,7 @@ public class MemoryNeuron : NeuronBase
     
     protected override float Evaluate()
     {
-        List<float> inputValues = GetWeightedInputValues();
+        List<float> inputValues = WeightedInputValues;
         if (inputValues[0] > 0)
             storedValue = inputValues[1];
         return storedValue;

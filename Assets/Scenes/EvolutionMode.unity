@@ -747,6 +747,7 @@ MonoBehaviour:
   simulateFluid: 0
   fluidDensity: 1
   gravity: 1
+  test: 0.01
 --- !u!114 &958854965
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1107,6 +1108,10 @@ PrefabInstance:
     - target: {fileID: 3915294573914384464, guid: a4cae177f8e6e4ea0b5409d3cc274fab, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6975621557057364701, guid: a4cae177f8e6e4ea0b5409d3cc274fab, type: 3}
+      propertyPath: m_CullingMask.m_Bits
+      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

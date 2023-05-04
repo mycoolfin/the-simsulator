@@ -9,18 +9,18 @@ public class Phenotype : MonoBehaviour, ISelectable, IPlaceable
     public Brain brain;
     public List<Limb> limbs;
     private List<MeshRenderer> meshRenderers;
-    public ComputeShader neuronComputeShader;
-
+    private List<Outline> outlines;
+    private bool visible;
     public bool lostLimbs;
 
     public bool saveGenotypeToFile; // Editor only.
 
-    private List<Outline> outlines;
 
     private void Awake()
     {
         meshRenderers = GetComponentsInChildren<MeshRenderer>().ToList();
         outlines = GetComponentsInChildren<Outline>().ToList();
+        visible = true;
     }
 
     private void Update()
@@ -88,9 +88,14 @@ public class Phenotype : MonoBehaviour, ISelectable, IPlaceable
 
     public void SetVisible(bool visible)
     {
+        if (this.visible == visible)
+            return;
+
+        this.visible = visible;
         foreach (MeshRenderer meshRenderer in meshRenderers)
         {
             meshRenderer.enabled = visible;
+            meshRenderer.gameObject.layer = visible ? 0 : 2; // Ignore raycast if invisible.
         }
     }
 

@@ -49,9 +49,9 @@ public static class LimbParameters
 
 public static class JointParameters
 {
-    public const float StrengthMultiplier = 1f;
+    public const float StrengthMultiplier = 50f;
     public const float AngularVelocityMultiplier = 1f;
-    public const float SmoothingMultiplier = 10f;
+    public const float SmoothingMultiplier = 0.001f;
 }
 
 public static class PhenotypeParameters
@@ -61,7 +61,7 @@ public static class PhenotypeParameters
 
 public static class PhenotypeBuilderParameters
 {
-    public const int MaxLimbs = 16;
+    public const int MaxLimbs = 12;
 }
 
 public static class ReproductionParameters

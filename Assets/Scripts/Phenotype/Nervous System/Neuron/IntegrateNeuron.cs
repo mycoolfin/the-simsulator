@@ -9,7 +9,7 @@ public class IntegrateNeuron : NeuronBase
 
     protected override float Evaluate()
     {
-        List<float> inputValues = GetWeightedInputValues();
+        List<float> inputValues = WeightedInputValues;
         float newValue = storedValue + inputValues[0] - (Mathf.Abs(inputValues[1]) * storedValue);
         if (!float.IsNaN(newValue))
             storedValue = newValue;

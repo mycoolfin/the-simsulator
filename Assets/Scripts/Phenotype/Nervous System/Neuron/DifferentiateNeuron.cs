@@ -9,7 +9,7 @@ public class DifferentiateNeuron : NeuronBase
 
     protected override float Evaluate()
     {
-        List<float> inputValues = GetWeightedInputValues();
+        List<float> inputValues = WeightedInputValues;
         float diff = inputValues[0] - storedValue;
         float newValue = storedValue + diff * Mathf.Abs(inputValues[1]);
         if (!float.IsNaN(newValue))

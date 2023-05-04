@@ -3,14 +3,15 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-public delegate IEnumerator AssessmentFunction(Individual individual);
+public delegate IEnumerator AssessmentFunction(Individual individual, Population population);
 
 public static class Assessment
 {
-    public static IEnumerator GroundDistance(Individual individual)
+    public static IEnumerator GroundDistance(Individual individual, Population population)
     {
         if (individual.phenotype == null) yield break;
-        DisablePhenotypeCollisions(individual.phenotype);
+        DisablePhenotypeCollisions(individual, population);
+        individual.preProcessingComplete = true;
 
         int settleSeconds = 10;
         int runtimeSeconds = 10;
@@ -48,10 +49,11 @@ public static class Assessment
         }
     }
 
-    public static IEnumerator WaterDistance(Individual individual)
+    public static IEnumerator WaterDistance(Individual individual, Population population)
     {
         if (individual.phenotype == null) yield break;
-        DisablePhenotypeCollisions(individual.phenotype);
+        DisablePhenotypeCollisions(individual, population); ;
+        individual.preProcessingComplete = true;
 
         int settleSeconds = 5;
         int runtimeSeconds = 15;
@@ -88,10 +90,11 @@ public static class Assessment
         }
     }
 
-    public static IEnumerator LightCloseness(Individual individual)
+    public static IEnumerator LightCloseness(Individual individual, Population population)
     {
         if (individual.phenotype == null) yield break;
-        DisablePhenotypeCollisions(individual.phenotype);
+        DisablePhenotypeCollisions(individual, population); ;
+        individual.preProcessingComplete = true;
 
         int settleSeconds = 10;
         int runtimeSeconds = 10;
@@ -123,12 +126,12 @@ public static class Assessment
         }
     }
 
-    private static void DisablePhenotypeCollisions(Phenotype phenotype)
+    private static void DisablePhenotypeCollisions(Individual self, Population population)
     {
-        foreach (Collider col in phenotype.GetComponentsInChildren<Collider>())
-            foreach (Phenotype otherPhenotype in UnityEngine.Object.FindObjectsOfType<Phenotype>())
-                if (otherPhenotype != phenotype)
-                    foreach (Collider otherCol in otherPhenotype.GetComponentsInChildren<Collider>())
+        foreach (Collider col in self.phenotype.GetComponentsInChildren<Collider>())
+            foreach (Individual other in population.individuals)
+                if (other != self && !other.preProcessingComplete && other.phenotype != null)
+                    foreach (Collider otherCol in other.phenotype.GetComponentsInChildren<Collider>())
                         Physics.IgnoreCollision(col, otherCol);
     }
 

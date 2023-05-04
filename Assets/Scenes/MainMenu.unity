@@ -883,9 +883,8 @@ MonoBehaviour:
   genotypePaths:
   - Demo Genotypes/flipper.genotype
   - Demo Genotypes/ramdog.genotype
-  - Demo Genotypes/grub.genotype
-  - Demo Genotypes/grinder.genotype
   - Demo Genotypes/rabbitray.genotype
+  - Demo Genotypes/grinder.genotype
   loadedGenotypes: []
   timer: 0
 --- !u!4 &1912129569

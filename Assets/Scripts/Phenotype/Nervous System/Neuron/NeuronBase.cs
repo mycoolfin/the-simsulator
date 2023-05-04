@@ -41,10 +41,17 @@ public abstract class NeuronBase : ISignalEmitter, ISignalReceiver
                 throw new System.ArgumentException("Expected " + TypeOfNeuron.NumberOfInputs().ToString() + " weights, got " + value.Count);
         }
     }
-    public List<float> GetWeightedInputValues()
+    private List<float> weightedInputValues;
+    public List<float> WeightedInputValues
     {
-        // If there is no input specified, use the weight as a constant input.
-        return Inputs.Select((input, i) => (input?.OutputValue ?? 1f) * Weights[i]).ToList();
+        get
+        {
+            // If there is no input specified, use the weight as a constant input.
+            for (int i = 0; i < Inputs.Count; i++)
+                weightedInputValues[i] = (Inputs[i]?.OutputValue ?? 1f) * Weights[i];
+            return weightedInputValues;
+        }
+        set { weightedInputValues = value; }
     }
     public float OutputValue { get; set; }
     private float nextOutputValue;
@@ -56,7 +63,8 @@ public abstract class NeuronBase : ISignalEmitter, ISignalReceiver
         InputDefinitions = new InputDefinition[TypeOfNeuron.NumberOfInputs()].ToList().AsReadOnly();
         Inputs = new ISignalEmitter[TypeOfNeuron.NumberOfInputs()].ToList();
         Weights = new float[TypeOfNeuron.NumberOfInputs()].ToList();
-        
+        WeightedInputValues = new float[TypeOfNeuron.NumberOfInputs()].ToList();
+
         Consumers = new();
     }
 

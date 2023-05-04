@@ -6,6 +6,6 @@ public class LogNeuron : NeuronBase
     
     protected override float Evaluate()
     {
-        return Mathf.Log(Mathf.Abs(GetWeightedInputValues()[0]));
+        return Mathf.Log(Mathf.Abs(WeightedInputValues[0]));
     }
 }

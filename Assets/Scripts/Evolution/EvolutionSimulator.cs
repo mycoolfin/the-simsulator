@@ -91,12 +91,12 @@ public class EvolutionSimulator : MonoBehaviour
             List<Individual> survivors = SelectSurvivors(population, maxSurvivors);
             int survivorCount = survivors.Count;
 
-            if (bestIndividual == null || (survivorCount > 0 && survivors[0].fitness > bestIndividual.fitness))
+            if (survivorCount > 0 && (bestIndividual == null || survivors[0].fitness > bestIndividual.fitness))
             {
                 bestIndividual = survivors[0];
             }
 
-            bestFitnesses.Add(bestIndividual.fitness);
+            bestFitnesses.Add(bestIndividual?.fitness ?? 0f);
             averageFitnesses.Add(population.individuals.Average(x => x.fitness));
 
             Debug.Log("Iteration " + currentIteration + ": Best fitness = " + bestFitnesses.Last() + ", Average Fitness = " + averageFitnesses.Last());
@@ -105,6 +105,8 @@ public class EvolutionSimulator : MonoBehaviour
                 yield return null;
 
             OnIterationEnd();
+
+            yield return null;
 
             ResetWorld();
 
@@ -186,7 +188,7 @@ public class EvolutionSimulator : MonoBehaviour
             individual.phenotype = Phenotype.Construct(individual.genotype);
             individual.phenotype.gameObject.SetActive(false);
             if (individual.phenotype.IsValid())
-                assessors.Add(assessmentFunction(individual));
+                assessors.Add(assessmentFunction(individual, population));
             else
                 UnityEngine.Object.Destroy(individual.phenotype.gameObject);
         }
