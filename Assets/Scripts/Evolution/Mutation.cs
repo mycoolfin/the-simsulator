@@ -58,6 +58,8 @@ public static class Mutation
                 brainNeuronDefinitions,
                 limbNodes
             );
+            newGenotype.PruneUnconnectedLimbNodes();
+            newGenotype.FixBrokenNeuralConnections();
         }
 
         return newGenotype;
@@ -125,10 +127,17 @@ public static class Mutation
             })),
             (MutationParameters.LimbNode.AddLimbConnection, new System.Action(() =>
             {
-                List<LimbConnection> c = connections.ToList();
-                c.Add(LimbConnection.CreateRandom(Random.Range(0, numLimbNodes)));
-                connections = c.AsReadOnly();
                 path.Add("AddLimbConnection");
+                if (connections.Count < LimbNodeParameters.MaxLimbConnections)
+                {
+                    List<LimbConnection> c = connections.ToList();
+                    c.Add(LimbConnection.CreateRandom(Random.Range(0, numLimbNodes)));
+                    connections = c.AsReadOnly();
+                }
+                else
+                    path.Add("[FAILED]");
+                if (connections.Count > LimbNodeParameters.MaxLimbConnections)
+                    throw new System.Exception(connections.Count + " ehhh?!");
             })),
             (MutationParameters.LimbNode.RemoveLimbConnection, new System.Action(() =>
             {

@@ -8,10 +8,10 @@ public static class Reproduction
     public static Genotype CreateOffspring(Genotype parent1, Genotype parent2)
     {
         return CreateOffspring(
-            parent1, 
-            parent2, 
-            ReproductionParameters.AsexualProbability, 
-            ReproductionParameters.GraftingProbability, 
+            parent1,
+            parent2,
+            ReproductionParameters.AsexualProbability,
+            ReproductionParameters.GraftingProbability,
             ReproductionParameters.CrossoverProbability
         );
     }
@@ -37,8 +37,14 @@ public static class Reproduction
         else
             child = Asexual(parent1);
 
+        child.PruneUnconnectedLimbNodes();
+        child.FixBrokenNeuralConnections();
+
         // Apply mutations.
         child = Mutation.Mutate(child);
+
+        child.PruneUnconnectedLimbNodes();
+        child.FixBrokenNeuralConnections();
 
         child.Validate();
 

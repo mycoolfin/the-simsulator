@@ -4,7 +4,7 @@ public class TwistBendJoint : JointBase
 {
     protected override JointType TypeOfJoint => JointType.TwistBend;
 
-    public override void ApplySpecificJointSettings()
+    protected override void ApplySpecificJointSettings()
     {
         joint.axis = Vector3.forward;
         joint.secondaryAxis = Vector3.right;

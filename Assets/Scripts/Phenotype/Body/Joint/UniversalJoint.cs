@@ -4,7 +4,7 @@ public class UniversalJoint : JointBase
 {
     protected override JointType TypeOfJoint => JointType.Universal;
 
-    public override void ApplySpecificJointSettings()
+    protected override void ApplySpecificJointSettings()
     {
         joint.anchor = new Vector3(0, 0, -0.5f);
         joint.axis = Vector3.right;

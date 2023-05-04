@@ -4,7 +4,7 @@ public class RevoluteJoint : JointBase
 {
     protected override JointType TypeOfJoint => JointType.Revolute;
 
-    public override void ApplySpecificJointSettings()
+    protected override void ApplySpecificJointSettings()
     {
         joint.axis = Vector3.right;
         joint.anchor = new Vector3(0, 0, -0.5f);

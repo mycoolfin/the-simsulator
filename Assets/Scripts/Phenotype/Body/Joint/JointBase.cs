@@ -13,12 +13,19 @@ public abstract class JointBase : MonoBehaviour
     public List<JointAngleSensor> sensors;
     public List<JointAngleEffector> effectors;
 
+    private float maxForce;
+    private JointDrive jointDrive;
+
     [SerializeField] private Vector3 angles;
     private Vector3 previousAngles;
+    private Vector3 angleTargets;
+    private Vector3 smoothingVelocity;
+    [SerializeField] private Vector3 smoothedAngleTargets;
+    [SerializeField] private Vector3 crampLevels;
     [SerializeField] private Vector3 limits;
     [SerializeField] private Vector3 excitations;
 
-    public abstract void ApplySpecificJointSettings();
+    protected abstract void ApplySpecificJointSettings();
 
     private Vector3 primaryAxis;
     private Vector3 secondaryAxis;
@@ -99,11 +106,9 @@ public abstract class JointBase : MonoBehaviour
 
     private void FixedUpdate()
     {
-        if (!joint || !joint.connectedBody) // Joint broke.
+        if (!joint.connectedBody)
         {
-            // Detach limb.
-            GetComponentInParent<Phenotype>().DetachLimb(GetComponent<Limb>());
-            Destroy(this);
+            Detach();
             return;
         }
 
@@ -118,14 +123,20 @@ public abstract class JointBase : MonoBehaviour
             useDebugExcitations ? debugTertiaryExcitation : (float.IsNaN(excitations[2]) ? 0f : excitations[2])
         );
 
-        float primaryAngleTarget = ConvertExcitationToAngle(e[0], limits[0]);
-        float secondaryAngleTarget = ConvertExcitationToAngle(e[1], limits[1]);
-        float tertiaryAngleTarget = ConvertExcitationToAngle(e[2], limits[2]);
+        angleTargets = new Vector3(
+            ConvertExcitationToAngle(e[0], limits[0]),
+            ConvertExcitationToAngle(e[1], limits[1]),
+            ConvertExcitationToAngle(e[2], limits[2])
+        );
+
+        smoothedAngleTargets = Vector3.SmoothDamp(smoothedAngleTargets, angleTargets, ref smoothingVelocity, JointParameters.SmoothingFactor);
+
+        HandleCramping();
 
         joint.targetRotation = Quaternion.Euler(
-            switchPrimaryAndSecondaryAxes ? secondaryAngleTarget : primaryAngleTarget,
-            switchPrimaryAndSecondaryAxes ? primaryAngleTarget : secondaryAngleTarget,
-            tertiaryAngleTarget
+            (switchPrimaryAndSecondaryAxes ? smoothedAngleTargets[1] : smoothedAngleTargets[0]),
+            (switchPrimaryAndSecondaryAxes ? smoothedAngleTargets[0] : smoothedAngleTargets[1]),
+            smoothedAngleTargets[2]
         );
 
         UpdateSensors();
@@ -141,6 +152,43 @@ public abstract class JointBase : MonoBehaviour
         }
 
         previousAngles = angles;
+    }
+
+    private void OnJointBreak(float breakForce)
+    {
+        Detach();
+    }
+
+    private void Detach()
+    {
+        GetComponentInParent<Phenotype>().DetachLimb(GetComponent<Limb>());
+        Destroy(this);
+    }
+
+    // Reduce joint strength if:
+    // - it pushes hard with no effect for too long, and
+    // - we're spinning.
+    // This is unfortunately necessary because Unity does not
+    // conserve angular momentum. Certain joint configurations
+    // can create it out of nowhere and induce unrealistic spinning.
+    private void HandleCramping()
+    {
+        for (int i = 0; i < 3; i++)
+        {
+            bool noSignificantMovement = Mathf.Abs(previousAngles[i] - angles[i]) < 10f * Time.deltaTime;
+            bool targetAngleStillAhead = (angles[i] > 0f && smoothedAngleTargets[i] > angles[i] + 0.1f)
+            || (angles[i] < 0f && smoothedAngleTargets[i] < angles[i] - 0.1f);
+            bool spinning = joint.connectedBody.angularVelocity.magnitude > 0.5f;
+
+            if (targetAngleStillAhead && noSignificantMovement && spinning)
+                crampLevels[i] = Mathf.Min(3, crampLevels[i] + Time.deltaTime);
+            else
+                crampLevels[i] = Mathf.Max(0, crampLevels[i] - Time.deltaTime);
+        }
+
+        jointDrive.maximumForce = maxForce * (1f / (1f + 5f * Mathf.Pow(Mathf.Max(crampLevels[0], crampLevels[1], crampLevels[2]), 2)));
+        joint.angularXDrive = jointDrive;
+        joint.angularYZDrive = jointDrive;
     }
 
     protected void InitialiseSensors()
@@ -168,8 +216,8 @@ public abstract class JointBase : MonoBehaviour
         joint.enableCollision = true;
         joint.enablePreprocessing = true;
         joint.rotationDriveMode = RotationDriveMode.XYAndZ;
-        float maxForce = maximumJointStrength * JointParameters.StrengthMultiplier;
-        JointDrive jointDrive = new JointDrive
+        maxForce = maximumJointStrength * JointParameters.StrengthMultiplier;
+        jointDrive = new JointDrive
         {
             positionSpring = 10000f * maxForce,
             positionDamper = 1000f * maxForce,
@@ -179,8 +227,8 @@ public abstract class JointBase : MonoBehaviour
         joint.angularYZDrive = jointDrive;
 
         // We want joints to break if they start to glitch out. These values may need to be fine tuned.
-        joint.breakForce = 10000f * maxForce;
-        joint.breakTorque = 1000f * maxForce;
+        joint.breakForce = 500f * maxForce;
+        joint.breakTorque = 100f * maxForce;
     }
 
     protected void ApplyReflections(bool reflectedX, bool reflectedY, bool reflectedZ)

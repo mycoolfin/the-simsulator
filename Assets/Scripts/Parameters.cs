@@ -19,6 +19,7 @@ public static class LimbNodeParameters
     public const int MaxRecursiveLimit = 5;
     public const int MinNeurons = 0;
     public const int MaxNeurons = 10;
+    public const int MaxLimbConnections = 4;
 }
 
 public static class LimbConnectionParameters
@@ -51,7 +52,7 @@ public static class JointParameters
 {
     public const float StrengthMultiplier = 50f;
     public const float AngularVelocityMultiplier = 1f;
-    public const float SmoothingMultiplier = 0.001f;
+    public const float SmoothingFactor = 0.05f;
 }
 
 public static class PhenotypeParameters

@@ -881,10 +881,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   genotypePaths:
-  - Demo Genotypes/flipper.genotype
-  - Demo Genotypes/ramdog.genotype
-  - Demo Genotypes/rabbitray.genotype
-  - Demo Genotypes/grinder.genotype
+  - Demo Genotypes/crawlinghand.genotype
+  - Demo Genotypes/jumpingspider.genotype
+  - Demo Genotypes/waggleworm.genotype
+  - Demo Genotypes/wobbler.genotype
   loadedGenotypes: []
   timer: 0
 --- !u!4 &1912129569

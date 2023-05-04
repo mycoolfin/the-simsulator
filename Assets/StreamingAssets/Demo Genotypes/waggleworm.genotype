@@ -1,0 +1,1427 @@
+{
+    "id": "waggleworm",
+    "lineage": [
+        "G519 created",
+        "G519 +",
+        "G526 <- G553",
+        "G650 +",
+        "G725 <- G650",
+        "G830 +",
+        "G889 +",
+        "G929 <- G966",
+        "G1092 X G1059",
+        "G1213 +",
+        "G1245 X G1285",
+        "G1325 +",
+        "G1418 +",
+        "G1507 <- G1583",
+        "G1737 <- G1737",
+        "G1801 X G1889",
+        "G1974 <- G1839",
+        "G2114 X G2067"
+    ],
+    "brainNeuronDefinitions": [
+        {
+            "type": 8,
+            "inputDefinitions": [
+                {
+                    "emitterSetLocation": 0,
+                    "childLimbIndex": -1,
+                    "instanceId": "",
+                    "emitterIndex": -1,
+                    "weight": 1.5547142028808594
+                },
+                {
+                    "emitterSetLocation": 5,
+                    "childLimbIndex": -1,
+                    "instanceId": "0-1-0-2",
+                    "emitterIndex": 5,
+                    "weight": 1.8521771430969239
+                },
+                {
+                    "emitterSetLocation": 3,
+                    "childLimbIndex": -1,
+                    "instanceId": "",
+                    "emitterIndex": 4,
+                    "weight": -1.2424993515014649
+                }
+            ]
+        },
+        {
+            "type": 21,
+            "inputDefinitions": [
+                {
+                    "emitterSetLocation": 3,
+                    "childLimbIndex": -1,
+                    "instanceId": "",
+                    "emitterIndex": 4,
+                    "weight": -0.33693671226501467
+                },
+                {
+                    "emitterSetLocation": 0,
+                    "childLimbIndex": -1,
+                    "instanceId": "",
+                    "emitterIndex": -1,
+                    "weight": -0.631727933883667
+                },
+                {
+                    "emitterSetLocation": 0,
+                    "childLimbIndex": -1,
+                    "instanceId": "",
+                    "emitterIndex": -1,
+                    "weight": -0.2606217861175537
+                }
+            ]
+        },
+        {
+            "type": 15,
+            "inputDefinitions": [
+                {
+                    "emitterSetLocation": 5,
+                    "childLimbIndex": -1,
+                    "instanceId": "0",
+                    "emitterIndex": 6,
+                    "weight": 1.8670024871826172
+                },
+                {
+                    "emitterSetLocation": 3,
+                    "childLimbIndex": -1,
+                    "instanceId": "",
+                    "emitterIndex": 0,
+                    "weight": -0.1539781093597412
+                },
+                {
+                    "emitterSetLocation": 0,
+                    "childLimbIndex": -1,
+                    "instanceId": "",
+                    "emitterIndex": -1,
+                    "weight": 1.238692283630371
+                }
+            ]
+        },
+        {
+            "type": 13,
+            "inputDefinitions": [
+                {
+                    "emitterSetLocation": 0,
+                    "childLimbIndex": -1,
+                    "instanceId": "",
+                    "emitterIndex": -1,
+                    "weight": -0.547168493270874
+                },
+                {
+                    "emitterSetLocation": 0,
+                    "childLimbIndex": -1,
+                    "instanceId": "",
+                    "emitterIndex": -1,
+                    "weight": 0.5727562308311462
+                },
+                {
+                    "emitterSetLocation": 0,
+                    "childLimbIndex": -1,
+                    "instanceId": "",
+                    "emitterIndex": -1,
+                    "weight": -0.01179194450378418
+                }
+            ]
+        },
+        {
+            "type": 14,
+            "inputDefinitions": [
+                {
+                    "emitterSetLocation": 3,
+                    "childLimbIndex": -1,
+                    "instanceId": "",
+                    "emitterIndex": 4,
+                    "weight": -1.217355728149414
+                },
+                {
+                    "emitterSetLocation": 0,
+                    "childLimbIndex": -1,
+                    "instanceId": "",
+                    "emitterIndex": -1,
+                    "weight": -0.9748904705047607
+                },
+                {
+                    "emitterSetLocation": 3,
+                    "childLimbIndex": -1,
+                    "instanceId": "",
+                    "emitterIndex": 1,
+                    "weight": 0.07165169715881348
+                }
+            ]
+        }
+    ],
+    "limbNodes": [
+        {
+            "dimensions": {
+                "x": 0.28497135639190676,
+                "y": 0.5671833753585815,
+                "z": 0.4737499952316284
+            },
+            "jointDefinition": {
+                "type": 3,
+                "axisDefinitions": [
+                    {
+                        "limit": 28.428974151611329,
+                        "inputDefinition": {
+                            "emitterSetLocation": 4,
+                            "childLimbIndex": 0,
+                            "instanceId": "",
+                            "emitterIndex": 6,
+                            "weight": 0.24826407432556153
+                        }
+                    },
+                    {
+                        "limit": 11.317892074584961,
+                        "inputDefinition": {
+                            "emitterSetLocation": 1,
+                            "childLimbIndex": -1,
+                            "instanceId": "",
+                            "emitterIndex": 11,
+                            "weight": -0.019955873489379884
+                        }
+                    },
+                    {
+                        "limit": 56.15306854248047,
+                        "inputDefinition": {
+                            "emitterSetLocation": 0,
+                            "childLimbIndex": -1,
+                            "instanceId": "",
+                            "emitterIndex": -1,
+                            "weight": -1.1784472465515137
+                        }
+                    }
+                ]
+            },
+            "recursiveLimit": 2,
+            "neuronDefinitions": [
+                {
+                    "type": 1,
+                    "inputDefinitions": [
+                        {
+                            "emitterSetLocation": 1,
+                            "childLimbIndex": -1,
+                            "instanceId": "",
+                            "emitterIndex": 1,
+                            "weight": 0.03221535682678223
+                        },
+                        {
+                            "emitterSetLocation": 0,
+                            "childLimbIndex": -1,
+                            "instanceId": "",
+                            "emitterIndex": -1,
+                            "weight": -1.1099514961242676
+                        },
+                        {
+                            "emitterSetLocation": 0,
+                            "childLimbIndex": -1,
+                            "instanceId": "",
+                            "emitterIndex": -1,
+                            "weight": -0.09490752220153809
+                        }
+                    ]
+                },
+                {
+                    "type": 2,
+                    "inputDefinitions": [
+                        {
+                            "emitterSetLocation": 1,
+                            "childLimbIndex": -1,
+                            "instanceId": "",
+                            "emitterIndex": 14,
+                            "weight": -0.8595340251922607
+                        },
+                        {
+                            "emitterSetLocation": 3,
+                            "childLimbIndex": -1,
+                            "instanceId": "",
+                            "emitterIndex": 4,
+                            "weight": 0.7526277899742127
+                        },
+                        {
+                            "emitterSetLocation": 4,
+                            "childLimbIndex": 0,
+                            "instanceId": "",
+                            "emitterIndex": 7,
+                            "weight": -1.8237457275390626
+                        }
+                    ]
+                },
+                {
+                    "type": 14,
+                    "inputDefinitions": [
+                        {
+                            "emitterSetLocation": 0,
+                            "childLimbIndex": -1,
+                            "instanceId": "",
+                            "emitterIndex": -1,
+                            "weight": -1.1623244285583497
+                        },
+                        {
+                            "emitterSetLocation": 0,
+                            "childLimbIndex": -1,
+                            "instanceId": "",
+                            "emitterIndex": -1,
+                            "weight": -0.7270290851593018
+                        },
+                        {
+                            "emitterSetLocation": 4,
+                            "childLimbIndex": 2,
+                            "instanceId": "",
+                            "emitterIndex": 1,
+                            "weight": 0.7180947661399841
+                        }
+                    ]
+                },
+                {
+                    "type": 9,
+                    "inputDefinitions": [
+                        {
+                            "emitterSetLocation": 1,
+                            "childLimbIndex": -1,
+                            "instanceId": "",
+                            "emitterIndex": 9,
+                            "weight": 0.0627896785736084
+                        },
+                        {
+                            "emitterSetLocation": 0,
+                            "childLimbIndex": -1,
+                            "instanceId": "",
+                            "emitterIndex": -1,
+                            "weight": -0.32617926597595217
+                        },
+                        {
+                            "emitterSetLocation": 3,
+                            "childLimbIndex": -1,
+                            "instanceId": "",
+                            "emitterIndex": 3,
+                            "weight": 1.0924830436706544
+                        }
+                    ]
+                },
+                {
+                    "type": 18,
+                    "inputDefinitions": [
+                        {
+                            "emitterSetLocation": 4,
+                            "childLimbIndex": 5,
+                            "instanceId": "",
+                            "emitterIndex": 2,
+                            "weight": -1.843184471130371
+                        },
+                        {
+                            "emitterSetLocation": 3,
+                            "childLimbIndex": -1,
+                            "instanceId": "",
+                            "emitterIndex": 4,
+                            "weight": -1.3849477767944337
+                        },
+                        {
+                            "emitterSetLocation": 0,
+                            "childLimbIndex": -1,
+                            "instanceId": "",
+                            "emitterIndex": -1,
+                            "weight": 1.7576136589050294
+                        }
+                    ]
+                },
+                {
+                    "type": 15,
+                    "inputDefinitions": [
+                        {
+                            "emitterSetLocation": 3,
+                            "childLimbIndex": -1,
+                            "instanceId": "",
+                            "emitterIndex": 0,
+                            "weight": 0.6886219382286072
+                        },
+                        {
+                            "emitterSetLocation": 1,
+                            "childLimbIndex": -1,
+                            "instanceId": "",
+                            "emitterIndex": 0,
+                            "weight": 1.7585773468017579
+                        },
+                        {
+                            "emitterSetLocation": 3,
+                            "childLimbIndex": -1,
+                            "instanceId": "",
+                            "emitterIndex": 4,
+                            "weight": 0.6387233138084412
+                        }
+                    ]
+                },
+                {
+                    "type": 11,
+                    "inputDefinitions": [
+                        {
+                            "emitterSetLocation": 3,
+                            "childLimbIndex": -1,
+                            "instanceId": "",
+                            "emitterIndex": 2,
+                            "weight": -0.9077926874160767
+                        },
+                        {
+                            "emitterSetLocation": 0,
+                            "childLimbIndex": -1,
+                            "instanceId": "",
+                            "emitterIndex": -1,
+                            "weight": -1.305549144744873
+                        },
+                        {
+                            "emitterSetLocation": 0,
+                            "childLimbIndex": -1,
+                            "instanceId": "",
+                            "emitterIndex": -1,
+                            "weight": 0.698582112789154
+                        }
+                    ]
+                },
+                {
+                    "type": 14,
+                    "inputDefinitions": [
+                        {
+                            "emitterSetLocation": 1,
+                            "childLimbIndex": -1,
+                            "instanceId": "",
+                            "emitterIndex": 10,
+                            "weight": 0.4923427104949951
+                        },
+                        {
+                            "emitterSetLocation": 3,
+                            "childLimbIndex": -1,
+                            "instanceId": "",
+                            "emitterIndex": 0,
+                            "weight": 1.58894681930542
+                        },
+                        {
+                            "emitterSetLocation": 4,
+                            "childLimbIndex": 0,
+                            "instanceId": "",
+                            "emitterIndex": 1,
+                            "weight": -0.8390920162200928
+                        }
+                    ]
+                },
+                {
+                    "type": 13,
+                    "inputDefinitions": [
+                        {
+                            "emitterSetLocation": 0,
+                            "childLimbIndex": -1,
+                            "instanceId": "",
+                            "emitterIndex": -1,
+                            "weight": 0.19695496559143067
+                        },
+                        {
+                            "emitterSetLocation": 0,
+                            "childLimbIndex": -1,
+                            "instanceId": "",
+                            "emitterIndex": -1,
+                            "weight": 0.6779360175132752
+                        },
+                        {
+                            "emitterSetLocation": 0,
+                            "childLimbIndex": -1,
+                            "instanceId": "",
+                            "emitterIndex": -1,
+                            "weight": -0.4258697032928467
+                        }
+                    ]
+                },
+                {
+                    "type": 7,
+                    "inputDefinitions": [
+                        {
+                            "emitterSetLocation": 4,
+                            "childLimbIndex": 8,
+                            "instanceId": "",
+                            "emitterIndex": 2,
+                            "weight": -1.3833322525024415
+                        },
+                        {
+                            "emitterSetLocation": 1,
+                            "childLimbIndex": -1,
+                            "instanceId": "",
+                            "emitterIndex": 9,
+                            "weight": -1.4227290153503419
+                        },
+                        {
+                            "emitterSetLocation": 3,
+                            "childLimbIndex": -1,
+                            "instanceId": "",
+                            "emitterIndex": 3,
+                            "weight": -1.1705880165100098
+                        }
+                    ]
+                }
+            ],
+            "connections": [
+                {
+                    "childNodeId": 1,
+                    "parentFace": 4,
+                    "position": {
+                        "x": -0.5270688533782959,
+                        "y": -0.19051635265350343
+                    },
+                    "orientation": {
+                        "x": -24.598678588867189,
+                        "y": 38.98545837402344,
+                        "z": 26.789474487304689
+                    },
+                    "scale": {
+                        "x": 1.2304730415344239,
+                        "y": 0.8730452060699463,
+                        "z": 1.0984158515930176
+                    },
+                    "reflectionX": false,
+                    "reflectionY": false,
+                    "reflectionZ": false,
+                    "terminalOnly": true
+                },
+                {
+                    "childNodeId": 1,
+                    "parentFace": 4,
+                    "position": {
+                        "x": 0.08368241786956787,
+                        "y": -0.43075478076934817
+                    },
+                    "orientation": {
+                        "x": 13.558897972106934,
+                        "y": 44.789390563964847,
+                        "z": -37.22349548339844
+                    },
+                    "scale": {
+                        "x": 0.8741192817687988,
+                        "y": 0.8029059171676636,
+                        "z": 1.6145087480545045
+                    },
+                    "reflectionX": false,
+                    "reflectionY": false,
+                    "reflectionZ": false,
+                    "terminalOnly": false
+                },
+                {
+                    "childNodeId": 2,
+                    "parentFace": 5,
+                    "position": {
+                        "x": 0.2372061014175415,
+                        "y": 0.975757360458374
+                    },
+                    "orientation": {
+                        "x": 22.245349884033204,
+                        "y": 10.600738525390625,
+                        "z": 38.34193420410156
+                    },
+                    "scale": {
+                        "x": 0.11459618806838989,
+                        "y": 1.9754385948181153,
+                        "z": 0.6627869606018066
+                    },
+                    "reflectionX": true,
+                    "reflectionY": true,
+                    "reflectionZ": true,
+                    "terminalOnly": true
+                }
+            ]
+        },
+        {
+            "dimensions": {
+                "x": 0.40222060680389407,
+                "y": 0.7812942862510681,
+                "z": 1.677197813987732
+            },
+            "jointDefinition": {
+                "type": 2,
+                "axisDefinitions": [
+                    {
+                        "limit": 53.98693084716797,
+                        "inputDefinition": {
+                            "emitterSetLocation": 3,
+                            "childLimbIndex": -1,
+                            "instanceId": "",
+                            "emitterIndex": 2,
+                            "weight": 1.1973600387573243
+                        }
+                    },
+                    {
+                        "limit": 0.5739927291870117,
+                        "inputDefinition": {
+                            "emitterSetLocation": 3,
+                            "childLimbIndex": -1,
+                            "instanceId": "",
+                            "emitterIndex": 3,
+                            "weight": -0.10220456123352051
+                        }
+                    },
+                    {
+                        "limit": 35.205875396728519,
+                        "inputDefinition": {
+                            "emitterSetLocation": 2,
+                            "childLimbIndex": -1,
+                            "instanceId": "",
+                            "emitterIndex": 1,
+                            "weight": -1.3770551681518555
+                        }
+                    }
+                ]
+            },
+            "recursiveLimit": 0,
+            "neuronDefinitions": [
+                {
+                    "type": 15,
+                    "inputDefinitions": [
+                        {
+                            "emitterSetLocation": 0,
+                            "childLimbIndex": -1,
+                            "instanceId": "",
+                            "emitterIndex": -1,
+                            "weight": -0.7348411083221436
+                        },
+                        {
+                            "emitterSetLocation": 3,
+                            "childLimbIndex": -1,
+                            "instanceId": "",
+                            "emitterIndex": 3,
+                            "weight": 1.2775449752807618
+                        },
+                        {
+                            "emitterSetLocation": 3,
+                            "childLimbIndex": -1,
+                            "instanceId": "",
+                            "emitterIndex": 3,
+                            "weight": 0.45369458198547366
+                        }
+                    ]
+                },
+                {
+                    "type": 10,
+                    "inputDefinitions": [
+                        {
+                            "emitterSetLocation": 0,
+                            "childLimbIndex": -1,
+                            "instanceId": "",
+                            "emitterIndex": -1,
+                            "weight": 1.5644912719726563
+                        },
+                        {
+                            "emitterSetLocation": 2,
+                            "childLimbIndex": -1,
+                            "instanceId": "",
+                            "emitterIndex": 1,
+                            "weight": -0.9816567897796631
+                        },
+                        {
+                            "emitterSetLocation": 2,
+                            "childLimbIndex": -1,
+                            "instanceId": "",
+                            "emitterIndex": 3,
+                            "weight": -0.8399808406829834
+                        }
+                    ]
+                },
+                {
+                    "type": 10,
+                    "inputDefinitions": [
+                        {
+                            "emitterSetLocation": 1,
+                            "childLimbIndex": -1,
+                            "instanceId": "",
+                            "emitterIndex": 10,
+                            "weight": 1.6321759223937989
+                        },
+                        {
+                            "emitterSetLocation": 1,
+                            "childLimbIndex": -1,
+                            "instanceId": "",
+                            "emitterIndex": 9,
+                            "weight": 1.1828913688659669
+                        },
+                        {
+                            "emitterSetLocation": 0,
+                            "childLimbIndex": -1,
+                            "instanceId": "",
+                            "emitterIndex": -1,
+                            "weight": 1.3919219970703126
+                        }
+                    ]
+                },
+                {
+                    "type": 16,
+                    "inputDefinitions": [
+                        {
+                            "emitterSetLocation": 2,
+                            "childLimbIndex": -1,
+                            "instanceId": "",
+                            "emitterIndex": 1,
+                            "weight": 0.0032405913807451727
+                        },
+                        {
+                            "emitterSetLocation": 0,
+                            "childLimbIndex": -1,
+                            "instanceId": "",
+                            "emitterIndex": -1,
+                            "weight": 1.38330078125
+                        },
+                        {
+                            "emitterSetLocation": 3,
+                            "childLimbIndex": -1,
+                            "instanceId": "",
+                            "emitterIndex": 4,
+                            "weight": 0.5779518485069275
+                        }
+                    ]
+                },
+                {
+                    "type": 3,
+                    "inputDefinitions": [
+                        {
+                            "emitterSetLocation": 0,
+                            "childLimbIndex": -1,
+                            "instanceId": "",
+                            "emitterIndex": -1,
+                            "weight": 1.7484817504882813
+                        },
+                        {
+                            "emitterSetLocation": 2,
+                            "childLimbIndex": -1,
+                            "instanceId": "",
+                            "emitterIndex": 3,
+                            "weight": -1.333714485168457
+                        },
+                        {
+                            "emitterSetLocation": 0,
+                            "childLimbIndex": -1,
+                            "instanceId": "",
+                            "emitterIndex": -1,
+                            "weight": 0.026904821395874025
+                        }
+                    ]
+                },
+                {
+                    "type": 21,
+                    "inputDefinitions": [
+                        {
+                            "emitterSetLocation": 3,
+                            "childLimbIndex": -1,
+                            "instanceId": "",
+                            "emitterIndex": 2,
+                            "weight": 0.9780825972557068
+                        },
+                        {
+                            "emitterSetLocation": 1,
+                            "childLimbIndex": -1,
+                            "instanceId": "",
+                            "emitterIndex": 6,
+                            "weight": 0.25865721702575686
+                        },
+                        {
+                            "emitterSetLocation": 1,
+                            "childLimbIndex": -1,
+                            "instanceId": "",
+                            "emitterIndex": 0,
+                            "weight": -1.7458229064941407
+                        }
+                    ]
+                },
+                {
+                    "type": 21,
+                    "inputDefinitions": [
+                        {
+                            "emitterSetLocation": 1,
+                            "childLimbIndex": -1,
+                            "instanceId": "",
+                            "emitterIndex": 1,
+                            "weight": -1.5324759483337403
+                        },
+                        {
+                            "emitterSetLocation": 0,
+                            "childLimbIndex": -1,
+                            "instanceId": "",
+                            "emitterIndex": -1,
+                            "weight": 0.5710973143577576
+                        },
+                        {
+                            "emitterSetLocation": 2,
+                            "childLimbIndex": -1,
+                            "instanceId": "",
+                            "emitterIndex": 2,
+                            "weight": 1.5901708602905274
+                        }
+                    ]
+                }
+            ],
+            "connections": [
+                {
+                    "childNodeId": 1,
+                    "parentFace": 5,
+                    "position": {
+                        "x": 0.1995640993118286,
+                        "y": 0.5797156691551209
+                    },
+                    "orientation": {
+                        "x": 33.86882019042969,
+                        "y": -43.08861541748047,
+                        "z": -15.630965232849121
+                    },
+                    "scale": {
+                        "x": 1.664865493774414,
+                        "y": 1.798836350440979,
+                        "z": 0.6288952231407166
+                    },
+                    "reflectionX": false,
+                    "reflectionY": true,
+                    "reflectionZ": false,
+                    "terminalOnly": true
+                },
+                {
+                    "childNodeId": 3,
+                    "parentFace": 3,
+                    "position": {
+                        "x": -0.20494329929351808,
+                        "y": -0.4878612756729126
+                    },
+                    "orientation": {
+                        "x": 32.14335632324219,
+                        "y": 27.355323791503908,
+                        "z": 2.114185333251953
+                    },
+                    "scale": {
+                        "x": 1.6330413818359376,
+                        "y": 1.3684697151184083,
+                        "z": 0.12123709917068482
+                    },
+                    "reflectionX": false,
+                    "reflectionY": true,
+                    "reflectionZ": true,
+                    "terminalOnly": false
+                }
+            ]
+        },
+        {
+            "dimensions": {
+                "x": 0.5877453088760376,
+                "y": 0.7798700928688049,
+                "z": 1.340937852859497
+            },
+            "jointDefinition": {
+                "type": 2,
+                "axisDefinitions": [
+                    {
+                        "limit": 53.98693084716797,
+                        "inputDefinition": {
+                            "emitterSetLocation": 3,
+                            "childLimbIndex": -1,
+                            "instanceId": "",
+                            "emitterIndex": 2,
+                            "weight": 1.1973600387573243
+                        }
+                    },
+                    {
+                        "limit": 0.5739927291870117,
+                        "inputDefinition": {
+                            "emitterSetLocation": 3,
+                            "childLimbIndex": -1,
+                            "instanceId": "",
+                            "emitterIndex": 3,
+                            "weight": -0.10220456123352051
+                        }
+                    },
+                    {
+                        "limit": 35.205875396728519,
+                        "inputDefinition": {
+                            "emitterSetLocation": 2,
+                            "childLimbIndex": -1,
+                            "instanceId": "",
+                            "emitterIndex": 1,
+                            "weight": -1.3770551681518555
+                        }
+                    }
+                ]
+            },
+            "recursiveLimit": 5,
+            "neuronDefinitions": [
+                {
+                    "type": 15,
+                    "inputDefinitions": [
+                        {
+                            "emitterSetLocation": 0,
+                            "childLimbIndex": -1,
+                            "instanceId": "",
+                            "emitterIndex": -1,
+                            "weight": -0.7348411083221436
+                        },
+                        {
+                            "emitterSetLocation": 3,
+                            "childLimbIndex": -1,
+                            "instanceId": "",
+                            "emitterIndex": 3,
+                            "weight": 1.2775449752807618
+                        },
+                        {
+                            "emitterSetLocation": 3,
+                            "childLimbIndex": -1,
+                            "instanceId": "",
+                            "emitterIndex": 3,
+                            "weight": 0.45369458198547366
+                        }
+                    ]
+                },
+                {
+                    "type": 17,
+                    "inputDefinitions": [
+                        {
+                            "emitterSetLocation": 0,
+                            "childLimbIndex": -1,
+                            "instanceId": "",
+                            "emitterIndex": -1,
+                            "weight": 1.5644912719726563
+                        },
+                        {
+                            "emitterSetLocation": 2,
+                            "childLimbIndex": -1,
+                            "instanceId": "",
+                            "emitterIndex": 1,
+                            "weight": -0.9816567897796631
+                        },
+                        {
+                            "emitterSetLocation": 2,
+                            "childLimbIndex": -1,
+                            "instanceId": "",
+                            "emitterIndex": 3,
+                            "weight": -0.8399808406829834
+                        }
+                    ]
+                },
+                {
+                    "type": 10,
+                    "inputDefinitions": [
+                        {
+                            "emitterSetLocation": 1,
+                            "childLimbIndex": -1,
+                            "instanceId": "",
+                            "emitterIndex": 10,
+                            "weight": 1.6321759223937989
+                        },
+                        {
+                            "emitterSetLocation": 1,
+                            "childLimbIndex": -1,
+                            "instanceId": "",
+                            "emitterIndex": 9,
+                            "weight": 1.1828913688659669
+                        },
+                        {
+                            "emitterSetLocation": 0,
+                            "childLimbIndex": -1,
+                            "instanceId": "",
+                            "emitterIndex": -1,
+                            "weight": 1.3919219970703126
+                        }
+                    ]
+                },
+                {
+                    "type": 16,
+                    "inputDefinitions": [
+                        {
+                            "emitterSetLocation": 2,
+                            "childLimbIndex": -1,
+                            "instanceId": "",
+                            "emitterIndex": 1,
+                            "weight": 0.043294668197631839
+                        },
+                        {
+                            "emitterSetLocation": 0,
+                            "childLimbIndex": -1,
+                            "instanceId": "",
+                            "emitterIndex": -1,
+                            "weight": 1.38330078125
+                        },
+                        {
+                            "emitterSetLocation": 3,
+                            "childLimbIndex": -1,
+                            "instanceId": "",
+                            "emitterIndex": 4,
+                            "weight": 0.5779518485069275
+                        }
+                    ]
+                },
+                {
+                    "type": 2,
+                    "inputDefinitions": [
+                        {
+                            "emitterSetLocation": 0,
+                            "childLimbIndex": -1,
+                            "instanceId": "",
+                            "emitterIndex": -1,
+                            "weight": 1.7484817504882813
+                        },
+                        {
+                            "emitterSetLocation": 2,
+                            "childLimbIndex": -1,
+                            "instanceId": "",
+                            "emitterIndex": 3,
+                            "weight": -1.333714485168457
+                        },
+                        {
+                            "emitterSetLocation": 0,
+                            "childLimbIndex": -1,
+                            "instanceId": "",
+                            "emitterIndex": -1,
+                            "weight": 0.026904821395874025
+                        }
+                    ]
+                },
+                {
+                    "type": 9,
+                    "inputDefinitions": [
+                        {
+                            "emitterSetLocation": 3,
+                            "childLimbIndex": -1,
+                            "instanceId": "",
+                            "emitterIndex": 2,
+                            "weight": 0.9780825972557068
+                        },
+                        {
+                            "emitterSetLocation": 1,
+                            "childLimbIndex": -1,
+                            "instanceId": "",
+                            "emitterIndex": 6,
+                            "weight": 0.25865721702575686
+                        },
+                        {
+                            "emitterSetLocation": 1,
+                            "childLimbIndex": -1,
+                            "instanceId": "",
+                            "emitterIndex": 0,
+                            "weight": -1.7458229064941407
+                        }
+                    ]
+                },
+                {
+                    "type": 21,
+                    "inputDefinitions": [
+                        {
+                            "emitterSetLocation": 1,
+                            "childLimbIndex": -1,
+                            "instanceId": "",
+                            "emitterIndex": 1,
+                            "weight": -1.5324759483337403
+                        },
+                        {
+                            "emitterSetLocation": 0,
+                            "childLimbIndex": -1,
+                            "instanceId": "",
+                            "emitterIndex": -1,
+                            "weight": 0.5710973143577576
+                        },
+                        {
+                            "emitterSetLocation": 2,
+                            "childLimbIndex": -1,
+                            "instanceId": "",
+                            "emitterIndex": 2,
+                            "weight": 1.5901708602905274
+                        }
+                    ]
+                }
+            ],
+            "connections": [
+                {
+                    "childNodeId": 2,
+                    "parentFace": 3,
+                    "position": {
+                        "x": 0.013075470924377442,
+                        "y": -0.6184332370758057
+                    },
+                    "orientation": {
+                        "x": 21.720924377441408,
+                        "y": 11.692338943481446,
+                        "z": 29.71662139892578
+                    },
+                    "scale": {
+                        "x": 1.381669521331787,
+                        "y": 1.949163794517517,
+                        "z": 1.2144099473953248
+                    },
+                    "reflectionX": false,
+                    "reflectionY": true,
+                    "reflectionZ": true,
+                    "terminalOnly": false
+                }
+            ]
+        },
+        {
+            "dimensions": {
+                "x": 0.28497135639190676,
+                "y": 1.822482943534851,
+                "z": 0.5920217037200928
+            },
+            "jointDefinition": {
+                "type": 3,
+                "axisDefinitions": [
+                    {
+                        "limit": 28.428974151611329,
+                        "inputDefinition": {
+                            "emitterSetLocation": 4,
+                            "childLimbIndex": 0,
+                            "instanceId": "",
+                            "emitterIndex": 6,
+                            "weight": 0.24826407432556153
+                        }
+                    },
+                    {
+                        "limit": 11.317892074584961,
+                        "inputDefinition": {
+                            "emitterSetLocation": 1,
+                            "childLimbIndex": -1,
+                            "instanceId": "",
+                            "emitterIndex": 11,
+                            "weight": -0.019955873489379884
+                        }
+                    },
+                    {
+                        "limit": 56.15306854248047,
+                        "inputDefinition": {
+                            "emitterSetLocation": 0,
+                            "childLimbIndex": -1,
+                            "instanceId": "",
+                            "emitterIndex": -1,
+                            "weight": -1.1784472465515137
+                        }
+                    }
+                ]
+            },
+            "recursiveLimit": 0,
+            "neuronDefinitions": [
+                {
+                    "type": 1,
+                    "inputDefinitions": [
+                        {
+                            "emitterSetLocation": 1,
+                            "childLimbIndex": -1,
+                            "instanceId": "",
+                            "emitterIndex": 1,
+                            "weight": 0.03221535682678223
+                        },
+                        {
+                            "emitterSetLocation": 4,
+                            "childLimbIndex": 4,
+                            "instanceId": "",
+                            "emitterIndex": 7,
+                            "weight": -1.1099514961242676
+                        },
+                        {
+                            "emitterSetLocation": 0,
+                            "childLimbIndex": -1,
+                            "instanceId": "",
+                            "emitterIndex": -1,
+                            "weight": -0.09490752220153809
+                        }
+                    ]
+                },
+                {
+                    "type": 5,
+                    "inputDefinitions": [
+                        {
+                            "emitterSetLocation": 1,
+                            "childLimbIndex": -1,
+                            "instanceId": "",
+                            "emitterIndex": 14,
+                            "weight": -0.8595340251922607
+                        },
+                        {
+                            "emitterSetLocation": 3,
+                            "childLimbIndex": -1,
+                            "instanceId": "",
+                            "emitterIndex": 4,
+                            "weight": 0.7526277899742127
+                        },
+                        {
+                            "emitterSetLocation": 1,
+                            "childLimbIndex": -1,
+                            "instanceId": "",
+                            "emitterIndex": 7,
+                            "weight": -1.8237457275390626
+                        }
+                    ]
+                },
+                {
+                    "type": 14,
+                    "inputDefinitions": [
+                        {
+                            "emitterSetLocation": 0,
+                            "childLimbIndex": -1,
+                            "instanceId": "",
+                            "emitterIndex": -1,
+                            "weight": -1.1623244285583497
+                        },
+                        {
+                            "emitterSetLocation": 0,
+                            "childLimbIndex": -1,
+                            "instanceId": "",
+                            "emitterIndex": -1,
+                            "weight": -0.7270290851593018
+                        },
+                        {
+                            "emitterSetLocation": 4,
+                            "childLimbIndex": 2,
+                            "instanceId": "",
+                            "emitterIndex": 1,
+                            "weight": 0.7180947661399841
+                        }
+                    ]
+                },
+                {
+                    "type": 9,
+                    "inputDefinitions": [
+                        {
+                            "emitterSetLocation": 1,
+                            "childLimbIndex": -1,
+                            "instanceId": "",
+                            "emitterIndex": 9,
+                            "weight": 0.0627896785736084
+                        },
+                        {
+                            "emitterSetLocation": 0,
+                            "childLimbIndex": -1,
+                            "instanceId": "",
+                            "emitterIndex": -1,
+                            "weight": -0.32617926597595217
+                        },
+                        {
+                            "emitterSetLocation": 3,
+                            "childLimbIndex": -1,
+                            "instanceId": "",
+                            "emitterIndex": 3,
+                            "weight": 1.0924830436706544
+                        }
+                    ]
+                },
+                {
+                    "type": 21,
+                    "inputDefinitions": [
+                        {
+                            "emitterSetLocation": 3,
+                            "childLimbIndex": -1,
+                            "instanceId": "",
+                            "emitterIndex": 4,
+                            "weight": -1.843184471130371
+                        },
+                        {
+                            "emitterSetLocation": 3,
+                            "childLimbIndex": -1,
+                            "instanceId": "",
+                            "emitterIndex": 4,
+                            "weight": -1.3849477767944337
+                        },
+                        {
+                            "emitterSetLocation": 0,
+                            "childLimbIndex": -1,
+                            "instanceId": "",
+                            "emitterIndex": -1,
+                            "weight": 1.7576136589050294
+                        }
+                    ]
+                },
+                {
+                    "type": 15,
+                    "inputDefinitions": [
+                        {
+                            "emitterSetLocation": 4,
+                            "childLimbIndex": 3,
+                            "instanceId": "",
+                            "emitterIndex": 6,
+                            "weight": 0.6886219382286072
+                        },
+                        {
+                            "emitterSetLocation": 1,
+                            "childLimbIndex": -1,
+                            "instanceId": "",
+                            "emitterIndex": 0,
+                            "weight": 1.7585773468017579
+                        },
+                        {
+                            "emitterSetLocation": 3,
+                            "childLimbIndex": -1,
+                            "instanceId": "",
+                            "emitterIndex": 4,
+                            "weight": 0.6387233138084412
+                        }
+                    ]
+                },
+                {
+                    "type": 11,
+                    "inputDefinitions": [
+                        {
+                            "emitterSetLocation": 3,
+                            "childLimbIndex": -1,
+                            "instanceId": "",
+                            "emitterIndex": 2,
+                            "weight": -1.534987449645996
+                        },
+                        {
+                            "emitterSetLocation": 0,
+                            "childLimbIndex": -1,
+                            "instanceId": "",
+                            "emitterIndex": -1,
+                            "weight": -1.305549144744873
+                        },
+                        {
+                            "emitterSetLocation": 4,
+                            "childLimbIndex": 4,
+                            "instanceId": "",
+                            "emitterIndex": 1,
+                            "weight": 0.698582112789154
+                        }
+                    ]
+                },
+                {
+                    "type": 14,
+                    "inputDefinitions": [
+                        {
+                            "emitterSetLocation": 3,
+                            "childLimbIndex": -1,
+                            "instanceId": "",
+                            "emitterIndex": 4,
+                            "weight": 0.4923427104949951
+                        },
+                        {
+                            "emitterSetLocation": 0,
+                            "childLimbIndex": -1,
+                            "instanceId": "",
+                            "emitterIndex": -1,
+                            "weight": 1.58894681930542
+                        },
+                        {
+                            "emitterSetLocation": 4,
+                            "childLimbIndex": 0,
+                            "instanceId": "",
+                            "emitterIndex": 1,
+                            "weight": -0.8390920162200928
+                        }
+                    ]
+                },
+                {
+                    "type": 13,
+                    "inputDefinitions": [
+                        {
+                            "emitterSetLocation": 0,
+                            "childLimbIndex": -1,
+                            "instanceId": "",
+                            "emitterIndex": -1,
+                            "weight": 0.19695496559143067
+                        },
+                        {
+                            "emitterSetLocation": 4,
+                            "childLimbIndex": 4,
+                            "instanceId": "",
+                            "emitterIndex": 8,
+                            "weight": 0.6779360175132752
+                        },
+                        {
+                            "emitterSetLocation": 0,
+                            "childLimbIndex": -1,
+                            "instanceId": "",
+                            "emitterIndex": -1,
+                            "weight": -0.4258697032928467
+                        }
+                    ]
+                },
+                {
+                    "type": 7,
+                    "inputDefinitions": [
+                        {
+                            "emitterSetLocation": 0,
+                            "childLimbIndex": -1,
+                            "instanceId": "",
+                            "emitterIndex": -1,
+                            "weight": -1.3833322525024415
+                        },
+                        {
+                            "emitterSetLocation": 1,
+                            "childLimbIndex": -1,
+                            "instanceId": "",
+                            "emitterIndex": 9,
+                            "weight": -1.4227290153503419
+                        },
+                        {
+                            "emitterSetLocation": 0,
+                            "childLimbIndex": -1,
+                            "instanceId": "",
+                            "emitterIndex": -1,
+                            "weight": -1.1705880165100098
+                        }
+                    ]
+                }
+            ],
+            "connections": [
+                {
+                    "childNodeId": 2,
+                    "parentFace": 4,
+                    "position": {
+                        "x": -0.5270688533782959,
+                        "y": -0.19051635265350343
+                    },
+                    "orientation": {
+                        "x": -24.598678588867189,
+                        "y": 38.98545837402344,
+                        "z": 26.789474487304689
+                    },
+                    "scale": {
+                        "x": 1.2304730415344239,
+                        "y": 0.8730452060699463,
+                        "z": 1.0984158515930176
+                    },
+                    "reflectionX": false,
+                    "reflectionY": false,
+                    "reflectionZ": false,
+                    "terminalOnly": false
+                },
+                {
+                    "childNodeId": 3,
+                    "parentFace": 2,
+                    "position": {
+                        "x": 0.6108286380767822,
+                        "y": 0.7402973175048828
+                    },
+                    "orientation": {
+                        "x": -42.25347900390625,
+                        "y": 36.97850036621094,
+                        "z": -26.523109436035158
+                    },
+                    "scale": {
+                        "x": 1.0714287757873536,
+                        "y": 1.0419483184814454,
+                        "z": 1.591933250427246
+                    },
+                    "reflectionX": true,
+                    "reflectionY": false,
+                    "reflectionZ": false,
+                    "terminalOnly": false
+                },
+                {
+                    "childNodeId": 3,
+                    "parentFace": 1,
+                    "position": {
+                        "x": -0.00444638729095459,
+                        "y": -0.9005119800567627
+                    },
+                    "orientation": {
+                        "x": -23.714942932128908,
+                        "y": 43.223670959472659,
+                        "z": -27.483932495117189
+                    },
+                    "scale": {
+                        "x": 0.3934415280818939,
+                        "y": 1.8891518115997315,
+                        "z": 1.6488088369369507
+                    },
+                    "reflectionX": false,
+                    "reflectionY": true,
+                    "reflectionZ": false,
+                    "terminalOnly": false
+                }
+            ]
+        }
+    ]
+}

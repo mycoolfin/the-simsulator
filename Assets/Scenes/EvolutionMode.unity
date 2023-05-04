@@ -747,7 +747,6 @@ MonoBehaviour:
   simulateFluid: 0
   fluidDensity: 1
   gravity: 1
-  test: 0.01
 --- !u!114 &958854965
 MonoBehaviour:
   m_ObjectHideFlags: 0

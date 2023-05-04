@@ -52,9 +52,14 @@ public class LimbNode : ILimbNodeEssentialInfo
         foreach (NeuronDefinition neuronDefinition in neuronDefinitions)
             neuronDefinition.Validate(emitterAvailabilityMap);
 
-        if (connections == null) return;
-        foreach (LimbConnection connection in connections)
-            connection.Validate();
+        if (connections != null)
+        {
+            bool validLimbConnectionCount = connections.Count >= 0 && connections.Count <= LimbNodeParameters.MaxLimbConnections;
+            if (!validLimbConnectionCount)
+                throw new ArgumentException("Limb connection count must be between 0 and " + LimbNodeParameters.MaxLimbConnections + ". Specified: " + connections.Count);
+            foreach (LimbConnection connection in connections)
+                connection.Validate();
+        }
     }
 
     public LimbNode CreateCopy(IList<LimbConnection> newConnections)

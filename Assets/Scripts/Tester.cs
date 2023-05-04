@@ -17,13 +17,13 @@ public class Tester : MonoBehaviour
             NeuronType.OscillateWave,
             new List<InputDefinition>()
             {
-                new(EmitterSetLocation.None, -1, null, -1, 2f),
+                new(EmitterSetLocation.None, -1, null, -1, 1f),
                 new(EmitterSetLocation.None, -1, null, -1, 1f),
                 new(EmitterSetLocation.None, -1, null, -1, 1f)
             }
         );
         LimbConnection connection = new(1, 5, Vector2.zero, Vector3.zero, new Vector3(0.9f, 0.9f, 0.9f), false, false, false, false);
-        LimbNode head = new(new Vector3(1f, 0.1f, 0.5f),
+        LimbNode head = new(new Vector3(1f, 0.5f, 0.5f),
             new JointDefinition(
                 JointType.Rigid,
                 new List<JointAxisDefinition>()
@@ -37,7 +37,7 @@ public class Tester : MonoBehaviour
             (new List<NeuronDefinition> { wave }),
             (new List<LimbConnection> { connection })
         );
-        LimbNode segment = new(new Vector3(1f, 0.1f, 0.5f),
+        LimbNode segment = new(new Vector3(1f, 0.5f, 0.5f),
             new JointDefinition(
                 JointType.Revolute,
                 new List<JointAxisDefinition>()

@@ -41,10 +41,7 @@ public class Genotype
 
     public static Genotype Construct(string id, IList<string> lineage, IList<NeuronDefinition> brainNeuronDefinitions, IList<LimbNode> limbNodes)
     {
-        Genotype genotype = new Genotype(id, lineage, brainNeuronDefinitions, limbNodes, null);
-        genotype.PruneUnconnectedLimbNodes();
-        genotype.FixBrokenNeuralConnections();
-        return genotype;
+        return new Genotype(id, lineage, brainNeuronDefinitions, limbNodes, null);
     }
 
     public void Validate()
@@ -77,6 +74,8 @@ public class Genotype
             List<int> connectedNodeIds = new List<int>();
             for (int attemptNum = 0; attemptNum < GenotypeGenerationParameters.MaxConnectionAttempts; attemptNum++)
             {
+                if (connectedNodeIds.Count == LimbNodeParameters.MaxLimbConnections)
+                    break;
                 bool attemptSuccess;
                 if (i == 0 && attemptNum == 0) // Guarantee at least one connection for the root node.
                     attemptSuccess = true;
@@ -113,7 +112,7 @@ public class Genotype
         return GenotypeSerializer.WriteGenotypeToFile(this, path);
     }
 
-    private void PruneUnconnectedLimbNodes()
+    public void PruneUnconnectedLimbNodes()
     {
         List<int> visitedNodeIds = RecursivelyTraverseLimbNodes(limbNodes, null, 0);
         List<int> unconnectedNodeIds = new List<int>();
@@ -156,7 +155,7 @@ public class Genotype
         return visitedNodeIds;
     }
 
-    private void FixBrokenNeuralConnections()
+    public void FixBrokenNeuralConnections()
     {
         EmitterAvailabilityMap brainMap = EmitterAvailabilityMap.GenerateMapForBrain(BrainNeuronDefinitions.Count, InstancedLimbNodes);
         List<NeuronDefinition> newBrainNeuronDefinitions = BrainNeuronDefinitions.Select(n => new NeuronDefinition(
