@@ -127,6 +127,8 @@ public class EvolutionModeMenu : MonoBehaviour
                 ));
             }
         };
+
+        simulator.OnSimulationStart += () => playerController.transform.position += simulator.trialOrigin.position;
     }
 
     private void InitialiseRuntimeParametersPanel()
@@ -173,6 +175,9 @@ public class EvolutionModeMenu : MonoBehaviour
         Toggle hideLowFitness = doc.rootVisualElement.Q<Toggle>("hide-low-fitness");
         hideLowFitness.value = simulator.filterByPotentialSurvivors;
         hideLowFitness.RegisterValueChangedCallback((ChangeEvent<bool> e) => simulator.filterByPotentialSurvivors = e.newValue);
+        Toggle orbitCamera = doc.rootVisualElement.Q<Toggle>("orbit-camera");
+        orbitCamera.value = playerController.orbitTarget != null;
+        orbitCamera.RegisterValueChangedCallback((ChangeEvent<bool> e) => playerController.orbitTarget = e.newValue ? simulator.trialOrigin : null);
     }
 
     private void InitialiseStatusPanel()
@@ -182,14 +187,14 @@ public class EvolutionModeMenu : MonoBehaviour
         bestFitness = doc.rootVisualElement.Q<Label>("best-fitness");
         averageFitness = doc.rootVisualElement.Q<Label>("average-fitness");
 
-        simulator.OnIterationStart += UpdateStatus;
+        simulator.OnIterationStart += () => UpdateStatus(false);
         simulator.OnIterationEnd += () => progress.title += " (Loading...)";
+        simulator.OnSimulationEnd += () => UpdateStatus(true);
     }
 
-    private void UpdateStatus()
+    private void UpdateStatus(bool simulationComplete)
     {
-        bool simulationComplete = simulator.currentIteration == -1;
-        progress.value = simulationComplete ? 1f : (float)simulator.currentIteration / (float)numberOfIterations;
+        progress.value = (float)simulator.currentIteration / (float)numberOfIterations;
         progress.title = simulationComplete
         ? "Simulation Complete (" + numberOfIterations + " iteration" + (numberOfIterations != 1 ? "s" : "") + ")"
         : "Iteration " + simulator.currentIteration + "/" + numberOfIterations;
@@ -253,6 +258,7 @@ public class EvolutionModeMenu : MonoBehaviour
         };
 
         simulator.OnIterationStart += () => selectedPhenotypeOptions.style.display = DisplayStyle.None;
+        simulator.OnSimulationEnd += () => selectedPhenotypeOptions.style.display = DisplayStyle.None;
     }
 
     private void ShowMenu(bool show)

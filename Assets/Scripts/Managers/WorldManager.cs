@@ -64,11 +64,9 @@ public class WorldManager : MonoBehaviour
     private void ThrottleTimeScaling()
     {
         if (1 / Time.deltaTime < minimumFps)
-            throttledTimeScale = Mathf.Max(0.1f, throttledTimeScale - Time.deltaTime);
-        else if (throttledTimeScale == 0 && timeScale > 0)
-            throttledTimeScale = 0.1f; // Kickstart off zero.
+            throttledTimeScale = Mathf.Max(0.1f, throttledTimeScale - Time.unscaledDeltaTime);
         else
-            throttledTimeScale = Mathf.Min(timeScale, throttledTimeScale + Time.deltaTime);
+            throttledTimeScale = Mathf.Min(timeScale, throttledTimeScale + Time.unscaledDeltaTime);
         Time.timeScale = throttledTimeScale;
     }
 

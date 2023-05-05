@@ -175,15 +175,15 @@ public abstract class JointBase : MonoBehaviour
     {
         for (int i = 0; i < 3; i++)
         {
-            bool noSignificantMovement = Mathf.Abs(previousAngles[i] - angles[i]) < 10f * Time.deltaTime;
+            bool noSignificantMovement = Mathf.Abs(previousAngles[i] - angles[i]) < 10f * Time.fixedDeltaTime;
             bool targetAngleStillAhead = (angles[i] > 0f && smoothedAngleTargets[i] > angles[i] + 0.1f)
             || (angles[i] < 0f && smoothedAngleTargets[i] < angles[i] - 0.1f);
             bool spinning = joint.connectedBody.angularVelocity.magnitude > 0.5f;
 
             if (targetAngleStillAhead && noSignificantMovement && spinning)
-                crampLevels[i] = Mathf.Min(3, crampLevels[i] + Time.deltaTime);
+                crampLevels[i] = Mathf.Min(3, crampLevels[i] + Time.fixedDeltaTime);
             else
-                crampLevels[i] = Mathf.Max(0, crampLevels[i] - Time.deltaTime);
+                crampLevels[i] = Mathf.Max(0, crampLevels[i] - Time.fixedDeltaTime);
         }
 
         jointDrive.maximumForce = maxForce * (1f / (1f + 5f * Mathf.Pow(Mathf.Max(crampLevels[0], crampLevels[1], crampLevels[2]), 2)));

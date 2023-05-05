@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-public delegate IEnumerator AssessmentFunction(Individual individual, Population population);
+public delegate IEnumerator AssessmentFunction(Individual individual, Population population, Transform trialOrigin);
 
 public static class Assessment
 {
-    public static IEnumerator GroundDistance(Individual individual, Population population)
+    public static IEnumerator GroundDistance(Individual individual, Population population, Transform trialOrigin)
     {
         if (individual.phenotype == null) yield break;
         DisablePhenotypeCollisions(individual, population);
@@ -18,7 +18,7 @@ public static class Assessment
         int fitnessUpdateIntervals = 100;
         float intervalLength = (float)runtimeSeconds / (float)fitnessUpdateIntervals;
 
-        PlacePhenotype(individual.phenotype);
+        PlacePhenotype(individual.phenotype, trialOrigin);
 
         yield return new WaitForSeconds(settleSeconds);
         if (individual.phenotype == null) yield break;
@@ -49,7 +49,7 @@ public static class Assessment
         }
     }
 
-    public static IEnumerator WaterDistance(Individual individual, Population population)
+    public static IEnumerator WaterDistance(Individual individual, Population population, Transform trialOrigin)
     {
         if (individual.phenotype == null) yield break;
         DisablePhenotypeCollisions(individual, population); ;
@@ -60,7 +60,7 @@ public static class Assessment
         int fitnessUpdateIntervals = 100;
         float intervalLength = (float)runtimeSeconds / (float)fitnessUpdateIntervals;
 
-        PlacePhenotype(individual.phenotype);
+        PlacePhenotype(individual.phenotype, trialOrigin);
 
         yield return new WaitForSeconds(settleSeconds);
         if (individual.phenotype == null) yield break;
@@ -90,7 +90,7 @@ public static class Assessment
         }
     }
 
-    public static IEnumerator LightCloseness(Individual individual, Population population)
+    public static IEnumerator LightCloseness(Individual individual, Population population, Transform trialOrigin)
     {
         if (individual.phenotype == null) yield break;
         DisablePhenotypeCollisions(individual, population); ;
@@ -101,7 +101,7 @@ public static class Assessment
         int fitnessUpdateIntervals = 100;
         float intervalLength = (float)runtimeSeconds / (float)fitnessUpdateIntervals;
 
-        PlacePhenotype(individual.phenotype);
+        PlacePhenotype(individual.phenotype, trialOrigin);
 
         yield return new WaitForSeconds(settleSeconds);
         if (individual.phenotype == null) yield break;
@@ -135,9 +135,13 @@ public static class Assessment
                         Physics.IgnoreCollision(col, otherCol);
     }
 
-    private static void PlacePhenotype(Phenotype phenotype)
+    private static void PlacePhenotype(Phenotype phenotype, Transform trialOrigin)
     {
-        phenotype.transform.position = new Vector3(0, -phenotype.GetBounds().center.y + phenotype.GetBounds().extents.y * 2f, 0);
+        Vector3 offset = Vector3.zero;
+        if (trialOrigin.position == Vector3.zero) // Offset so we don't intersect the ground.
+            offset = new Vector3(0, -phenotype.GetBounds().center.y + phenotype.GetBounds().extents.y * 2f, 0);
+
+        phenotype.transform.position = trialOrigin.position + offset;
         phenotype.gameObject.SetActive(true);
     }
 }

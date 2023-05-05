@@ -4,8 +4,8 @@ using UnityEngine.EventSystems;
 
 public class PlayerController : MonoBehaviour
 {
-    public PlayerInput playerInput;
     public Camera playerCamera;
+    public Transform orbitTarget;
     public float movementMultiplier;
     public float lookMultiplier;
     public float scrollMultiplier;
@@ -24,8 +24,12 @@ public class PlayerController : MonoBehaviour
     {
         isPointerOverUI = EventSystem.current.IsPointerOverGameObject();
 
+        if (orbitTarget != null)
+            OrbitTarget();
+
         HandleLook();
         HandleMove();
+        HandleZoom();
 
         if (PickAndPlaceManager.Instance.Held != null)
             VisualisePlacement();
@@ -58,10 +62,27 @@ public class PlayerController : MonoBehaviour
         else
             movementVector = new Vector3(horizontalMovement.x, verticalMovement, horizontalMovement.y) * movementMultiplier;
 
-        if (!isPointerOverUI && horizontalMovement == Vector2.zero && verticalMovement == 0f) // Can use scrollDeltas instead.
-            movementVector += playerCamera.transform.localRotation * Vector3.forward * scrollDeltas.y * scrollMultiplier;
-
         transform.position += transform.rotation * movementVector;
+    }
+
+    private void HandleZoom()
+    {
+        if (!isPointerOverUI && horizontalMovement == Vector2.zero && verticalMovement == 0f)
+        {
+            Vector3 movementVector = playerCamera.transform.localRotation * Vector3.forward * scrollDeltas.y * scrollMultiplier;
+            transform.position += transform.rotation * movementVector;
+        }
+    }
+
+    private void OrbitTarget()
+    {
+        Vector3 toTarget = orbitTarget.position - transform.position;
+        Vector3 facingDirection = new Vector3(toTarget.x, 0f, toTarget.z);
+        Quaternion facingRotation = Quaternion.LookRotation(facingDirection, Vector3.up);
+        Quaternion lookingRotation = Quaternion.LookRotation(toTarget, Vector3.up);
+        transform.position = orbitTarget.position - Quaternion.Euler(0f, 5f * Time.unscaledDeltaTime, 0f) * toTarget;
+        transform.rotation = Quaternion.Slerp(transform.rotation, facingRotation, Time.unscaledDeltaTime * 1f);
+        playerCamera.transform.rotation = Quaternion.Slerp(playerCamera.transform.rotation, lookingRotation, Time.unscaledDeltaTime * 1f);
     }
 
     private void VisualisePlacement()

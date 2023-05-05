@@ -430,7 +430,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4712c6f4943ab43948e4bb5ad1a0b8a4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerInput: {fileID: 4163826763266155135}
   playerCamera: {fileID: 6975621557057364701}
   movementMultiplier: 0.2
   lookMultiplier: 1
@@ -445,3 +444,5 @@ MonoBehaviour:
   secondarySelectActive: 0
   tertiarySelectActive: 0
   isPointerOverUI: 0
+  orbitTarget: {fileID: 0}
+  orbitTimeout: 0

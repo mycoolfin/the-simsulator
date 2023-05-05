@@ -46,8 +46,11 @@ public class EvolutionSimulator : MonoBehaviour
     public List<float> averageFitnesses;
 
     private Population population;
+    public Transform trialOrigin;
+    public event Action OnSimulationStart = delegate { };
     public event Action OnIterationStart = delegate { };
     public event Action OnIterationEnd = delegate { };
+    public event Action OnSimulationEnd = delegate { };
 
     public bool running => population != null;
 
@@ -82,6 +85,8 @@ public class EvolutionSimulator : MonoBehaviour
         else
             population = new Population(populationSize);
 
+        OnSimulationStart();
+
         currentIteration = 0;
         while (currentIteration < numberOfIterations || numberOfIterations == -1)
         {
@@ -89,7 +94,7 @@ public class EvolutionSimulator : MonoBehaviour
 
             OnIterationStart();
 
-            yield return StartCoroutine(AssessFitnesses(population, assessmentFunction));
+            yield return StartCoroutine(AssessFitnesses(population, assessmentFunction, trialOrigin));
 
             List<Individual> survivors = SelectSurvivors(population, maxSurvivors);
             int survivorCount = survivors.Count;
@@ -118,11 +123,10 @@ public class EvolutionSimulator : MonoBehaviour
             population = ProduceNextGeneration(populationSize, populationSize - maxSurvivors, survivors);
         }
 
-        currentIteration = -1;
         Debug.Log("Finished.");
 
-        OnIterationStart();
-        yield return StartCoroutine(AssessFitnesses(population, assessmentFunction));
+        OnSimulationEnd();
+        yield return StartCoroutine(AssessFitnesses(population, assessmentFunction, trialOrigin));
     }
 
     public bool TogglePhenotypeProtection(Phenotype phenotype)
@@ -139,21 +143,21 @@ public class EvolutionSimulator : MonoBehaviour
         {
             case TrialType.GroundDistance:
                 assessmentFunction = Assessment.GroundDistance;
-                WorldManager.Instance.world.transform.position = -WorldManager.Instance.groundOrigin.transform.localPosition;
+                trialOrigin = WorldManager.Instance.groundOrigin.transform;
                 WorldManager.Instance.simulateFluid = false;
                 WorldManager.Instance.gravity = true;
                 WorldManager.Instance.pointLight.SetActive(false);
                 break;
             case TrialType.WaterDistance:
                 assessmentFunction = Assessment.WaterDistance;
-                WorldManager.Instance.world.transform.position = -WorldManager.Instance.waterOrigin.transform.localPosition;
+                trialOrigin = WorldManager.Instance.waterOrigin.transform;
                 WorldManager.Instance.simulateFluid = true;
                 WorldManager.Instance.gravity = false;
                 WorldManager.Instance.pointLight.SetActive(false);
                 break;
             case TrialType.GroundLightFollowing:
                 assessmentFunction = Assessment.LightCloseness;
-                WorldManager.Instance.world.transform.position = -WorldManager.Instance.groundOrigin.transform.localPosition;
+                trialOrigin = WorldManager.Instance.groundOrigin.transform;
                 WorldManager.Instance.simulateFluid = false;
                 WorldManager.Instance.gravity = true;
                 WorldManager.Instance.pointLight.SetActive(true);
@@ -165,7 +169,7 @@ public class EvolutionSimulator : MonoBehaviour
                 break;
             case TrialType.WaterLightFollowing:
                 assessmentFunction = Assessment.LightCloseness;
-                WorldManager.Instance.world.transform.position = -WorldManager.Instance.waterOrigin.transform.localPosition;
+                trialOrigin = WorldManager.Instance.waterOrigin.transform;
                 WorldManager.Instance.simulateFluid = true;
                 WorldManager.Instance.gravity = false;
                 WorldManager.Instance.pointLight.SetActive(true);
@@ -180,7 +184,7 @@ public class EvolutionSimulator : MonoBehaviour
         return assessmentFunction;
     }
 
-    private IEnumerator AssessFitnesses(Population population, AssessmentFunction assessmentFunction)
+    private IEnumerator AssessFitnesses(Population population, AssessmentFunction assessmentFunction, Transform trialOrigin)
     {
         List<IEnumerator> assessors = new List<IEnumerator>();
 
@@ -191,7 +195,7 @@ public class EvolutionSimulator : MonoBehaviour
             individual.phenotype = Phenotype.Construct(individual.genotype);
             individual.phenotype.gameObject.SetActive(false);
             if (individual.phenotype.IsValid())
-                assessors.Add(assessmentFunction(individual, population));
+                assessors.Add(assessmentFunction(individual, population, trialOrigin));
             else
                 UnityEngine.Object.Destroy(individual.phenotype.gameObject);
         }
