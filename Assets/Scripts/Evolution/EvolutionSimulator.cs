@@ -166,7 +166,8 @@ public class EvolutionSimulator : MonoBehaviour
                 WorldManager.Instance.pointLight.SetActive(true);
                 OnIterationStart += () =>
                     WorldManager.Instance.pointLight.transform.position =
-                        Quaternion.Euler(0, UnityEngine.Random.Range(0, 360), 0)
+                        trialOrigin.position
+                        + Quaternion.Euler(0, UnityEngine.Random.Range(0, 360), 0)
                         * Vector3.forward * UnityEngine.Random.Range(0f, 20f)
                         + Vector3.up * 1f;
                 break;
@@ -178,8 +179,9 @@ public class EvolutionSimulator : MonoBehaviour
                 WorldManager.Instance.pointLight.SetActive(true);
                 OnIterationStart += () =>
                     WorldManager.Instance.pointLight.transform.position =
-                    Quaternion.Euler(UnityEngine.Random.Range(0, 360), UnityEngine.Random.Range(0, 360), UnityEngine.Random.Range(0, 360))
-                    * Vector3.forward * UnityEngine.Random.Range(0f, 20f);
+                        trialOrigin.position
+                        + Quaternion.Euler(UnityEngine.Random.Range(0, 360), UnityEngine.Random.Range(0, 360), UnityEngine.Random.Range(0, 360))
+                        * Vector3.forward * UnityEngine.Random.Range(0f, 20f);
                 break;
             default:
                 throw new Exception();
