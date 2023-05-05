@@ -65,6 +65,7 @@ public class EvolutionSimulator : MonoBehaviour
         this.survivalRatio = survivalRatio;
         this.seedGenotype = seedGenotype;
 
+        int maxSurvivors = Mathf.CeilToInt(populationSize * survivalRatio);
         AssessmentFunction assessmentFunction = SetUpTrial(trialType);
 
         // Reset outputs.
@@ -73,11 +74,13 @@ public class EvolutionSimulator : MonoBehaviour
         averageFitnesses = new List<float>();
 
         if (seedGenotype != null)
-            population = new Population(Enumerable.Range(0, populationSize).Select(_ => seedGenotype).ToList());
+        {
+            population = new Population(Enumerable.Range(0, maxSurvivors).Select(_ => seedGenotype).ToList());
+            population.individuals.ForEach(i => i.fitness = 1f);
+            population = ProduceNextGeneration(populationSize, populationSize - maxSurvivors, population.individuals);
+        }
         else
             population = new Population(populationSize);
-
-        int maxSurvivors = Mathf.CeilToInt(populationSize * survivalRatio);
 
         currentIteration = 0;
         while (currentIteration < numberOfIterations || numberOfIterations == -1)
