@@ -9,9 +9,10 @@ public static class SensorTypeExtensions
 {
     public static int NumberOfInputs(this SensorType self)
     {
-        return new Dictionary<SensorType, int>
+        switch (self)
         {
-            { SensorType.JointAngle, 1 }
-        }[self];
+            case SensorType.JointAngle: return 1;
+            default: throw new System.Exception("Unknown number of inputs for type " + self.ToString());
+        }
     }
 }

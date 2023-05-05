@@ -8,6 +8,7 @@ public class Phenotype : MonoBehaviour, ISelectable, IPlaceable
     public Genotype genotype;
     public Brain brain;
     public List<Limb> limbs;
+    public List<Collider> activeColliders;
     private List<MeshRenderer> meshRenderers;
     private List<Outline> outlines;
     private bool visible;
@@ -109,7 +110,7 @@ public class Phenotype : MonoBehaviour, ISelectable, IPlaceable
         Outline limbOutline = limb.GetComponent<Outline>();
         outlines.Remove(limbOutline);
         limbOutline.enabled = false;
-        WorldManager.Instance.AddGameObjectToTrashCan(limb.gameObject);
+        WorldManager.Instance.SendGameObjectToTrashCan(limb.gameObject);
 
         lostLimbs = true;
     }
@@ -127,6 +128,7 @@ public class Phenotype : MonoBehaviour, ISelectable, IPlaceable
         phenotype.genotype = genotype;
         phenotype.brain = brain;
         phenotype.limbs = limbs;
+        phenotype.activeColliders = limbs.SelectMany(limb => limb.activeColliders).ToList();
 
         // Wire up nervous system.
         NervousSystem.Configure(brain, limbs);

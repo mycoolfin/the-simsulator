@@ -175,9 +175,12 @@ public abstract class JointBase : MonoBehaviour
     {
         for (int i = 0; i < 3; i++)
         {
-            bool noSignificantMovement = Mathf.Abs(previousAngles[i] - angles[i]) < 10f * Time.fixedDeltaTime;
-            bool targetAngleStillAhead = (angles[i] > 0f && smoothedAngleTargets[i] > angles[i] + 0.1f)
-            || (angles[i] < 0f && smoothedAngleTargets[i] < angles[i] - 0.1f);
+            if (excitations[i] == 0f)
+                continue;
+            float currentAngle = angles[i];
+            bool noSignificantMovement = Mathf.Abs(previousAngles[i] - currentAngle) < 10f * Time.fixedDeltaTime;
+            bool targetAngleStillAhead = (currentAngle > 0f && smoothedAngleTargets[i] > currentAngle + 0.1f)
+            || (currentAngle < 0f && smoothedAngleTargets[i] < currentAngle - 0.1f);
             bool spinning = joint.connectedBody.angularVelocity.magnitude > 0.5f;
 
             if (targetAngleStillAhead && noSignificantMovement && spinning)
@@ -187,8 +190,10 @@ public abstract class JointBase : MonoBehaviour
         }
 
         jointDrive.maximumForce = maxForce * (1f / (1f + 5f * Mathf.Pow(Mathf.Max(crampLevels[0], crampLevels[1], crampLevels[2]), 2)));
-        joint.angularXDrive = jointDrive;
-        joint.angularYZDrive = jointDrive;
+        if (joint.angularXDrive.maximumForce != jointDrive.maximumForce)
+            joint.angularXDrive = jointDrive;
+        if (joint.angularYZDrive.maximumForce != jointDrive.maximumForce)
+            joint.angularYZDrive = jointDrive;
     }
 
     protected void InitialiseSensors()

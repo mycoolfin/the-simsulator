@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -32,7 +33,8 @@ public class WorldManager : MonoBehaviour
     public GameObject groundOrigin;
     public GameObject waterOrigin;
     public GameObject pointLight;
-    public List<GameObject> trashCan;
+    public List<GameObject> trashCan; // Objects we want destroyed later, on command.
+    public Queue<GameObject> theVoid; // Objects we want destroyed as soon as possible, framerate willing.
 
     [Header("Parameters")]
     [Range(0f, 5f)]
@@ -49,6 +51,7 @@ public class WorldManager : MonoBehaviour
     {
         trashCan = new List<GameObject>();
         throttledTimeScale = timeScale;
+        StartCoroutine(TheVoidConsumesAll());
     }
 
     private void Update()
@@ -70,15 +73,42 @@ public class WorldManager : MonoBehaviour
         Time.timeScale = throttledTimeScale;
     }
 
-    public void AddGameObjectToTrashCan(GameObject junk)
+    public void SendGameObjectToTrashCan(GameObject trash)
     {
-        trashCan.Add(junk);
+        trashCan.Add(trash);
     }
 
     public void EmptyTrashCan()
     {
         foreach (GameObject trash in trashCan)
             Destroy(trash);
+    }
+
+    public void SendGameObjectToTheVoid(GameObject doomedSoul)
+    {
+        doomedSoul.SetActive(false);
+        theVoid.Enqueue(doomedSoul);
+    }
+
+    public IEnumerator TheVoidConsumesAll()
+    {
+        theVoid = new();
+        const int consumptionRate = 10; // Will destroy this many objects per frame.
+        int soulsConsumed = 0;
+        while (true)
+        {
+            if (theVoid.Count == 0 || soulsConsumed >= consumptionRate)
+            {
+                yield return null;
+                soulsConsumed = 0;
+                continue;
+            }
+            else
+            {
+                Destroy(theVoid.Dequeue());
+                soulsConsumed += 1;
+            }
+        }
     }
 
     public void ChangeTimeOfDay(TimeOfDay timeOfDay)

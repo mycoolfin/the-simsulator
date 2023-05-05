@@ -9,9 +9,10 @@ public static class EffectorTypeExtensions
 {
     public static int NumberOfInputs(this EffectorType self)
     {
-        return new Dictionary<EffectorType, int>
+        switch (self)
         {
-            { EffectorType.JointAngle, 1 }
-        }[self];
+            case EffectorType.JointAngle: return 1;
+            default: throw new System.Exception("Unknown number of inputs for type " + self.ToString());
+        }
     }
 }

@@ -11,7 +11,7 @@ public class Limb : MonoBehaviour
     public BoxCollider xyMidwayCollider;
     public BoxCollider yzMidwayCollider;
     public BoxCollider xzMidwayCollider;
-    private List<BoxCollider> usedMidwayColliders;
+    public List<Collider> activeColliders;
 
     private Vector3 unscaledDimensions;
     public Vector3 Dimensions
@@ -192,10 +192,10 @@ public class Limb : MonoBehaviour
         }
 
         // Note which midway colliders have been used so that we can disable the unused ones later.
-        if (!usedMidwayColliders.Contains(parentLimbMidwayColliders[perpendicularAxis]))
-            usedMidwayColliders.Add(parentLimbMidwayColliders[perpendicularAxis]);
-        if (!childLimb.usedMidwayColliders.Contains(childLimb.xyMidwayCollider))
-            childLimb.usedMidwayColliders.Add(childLimb.xyMidwayCollider);
+        if (!activeColliders.Contains(parentLimbMidwayColliders[perpendicularAxis]))
+            activeColliders.Add(parentLimbMidwayColliders[perpendicularAxis]);
+        if (!childLimb.activeColliders.Contains(childLimb.xyMidwayCollider))
+            childLimb.activeColliders.Add(childLimb.xyMidwayCollider);
 
         // Ensure that colliders are positioned correctly for potential children.
         Physics.SyncTransforms();
@@ -214,9 +214,9 @@ public class Limb : MonoBehaviour
     private void Optimise()
     {
         // Disable unused colliders.
-        if (!usedMidwayColliders.Contains(xyMidwayCollider)) xyMidwayCollider.enabled = false;
-        if (!usedMidwayColliders.Contains(yzMidwayCollider)) yzMidwayCollider.enabled = false;
-        if (!usedMidwayColliders.Contains(xzMidwayCollider)) xzMidwayCollider.enabled = false;
+        if (!activeColliders.Contains(xyMidwayCollider)) xyMidwayCollider.enabled = false;
+        if (!activeColliders.Contains(yzMidwayCollider)) yzMidwayCollider.enabled = false;
+        if (!activeColliders.Contains(xzMidwayCollider)) xzMidwayCollider.enabled = false;
     }
 
     private static Limb Construct(InstancedLimbNode node, Transform containerTransform)
@@ -231,7 +231,8 @@ public class Limb : MonoBehaviour
         limb.photoSensors = new() { new(), new(), new() };
         limb.neurons = node.LimbNode.NeuronDefinitions.Select(neuronDefinition => NeuronBase.CreateNeuron(neuronDefinition)).ToList();
 
-        limb.usedMidwayColliders = new List<BoxCollider>();
+        limb.activeColliders = new List<Collider>();
+        limb.activeColliders.Add(limb.fullBodyCollider);
 
         Vector3 clampedDimensions = ClampDimensions(node.LimbNode.Dimensions);
         limb.unscaledDimensions = clampedDimensions;

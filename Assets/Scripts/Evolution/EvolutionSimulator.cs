@@ -80,7 +80,7 @@ public class EvolutionSimulator : MonoBehaviour
         {
             population = new Population(Enumerable.Range(0, maxSurvivors).Select(_ => seedGenotype).ToList());
             population.individuals.ForEach(i => i.fitness = 1f);
-            population = ProduceNextGeneration(populationSize, populationSize - maxSurvivors, population.individuals);
+            yield return ProduceNextGeneration(populationSize, populationSize - maxSurvivors, population.individuals, (nextGeneration) => population = nextGeneration);
         }
         else
             population = new Population(populationSize);
@@ -116,11 +116,14 @@ public class EvolutionSimulator : MonoBehaviour
 
             yield return null;
 
+            Population nextGeneration = new Population();
+            yield return ProduceNextGeneration(populationSize, populationSize - maxSurvivors, survivors, (next) => nextGeneration = next);
+
             ResetWorld();
 
             yield return null; // Gives time for cleanup to complete.
 
-            population = ProduceNextGeneration(populationSize, populationSize - maxSurvivors, survivors);
+            population = nextGeneration;
         }
 
         Debug.Log("Finished.");
@@ -220,7 +223,7 @@ public class EvolutionSimulator : MonoBehaviour
         .ToList();
     }
 
-    private Population ProduceNextGeneration(int populationSize, int maxChildren, List<Individual> seedIndividuals)
+    private IEnumerator ProduceNextGeneration(int populationSize, int maxChildren, List<Individual> seedIndividuals, Action<Population> doneCallback)
     {
         Population nextGeneration = new Population(seedIndividuals);
 
@@ -255,6 +258,8 @@ public class EvolutionSimulator : MonoBehaviour
                 {
                     genotype = Reproduction.CreateOffspring(parent1, parent2)
                 });
+
+                yield return null;
             }
         }
 
@@ -268,19 +273,18 @@ public class EvolutionSimulator : MonoBehaviour
         if (populationDiscrepancy > 0)
             Debug.Log("Added " + populationDiscrepancy + " seed genotypes to maintain population size.");
 
-        return nextGeneration;
+        doneCallback(nextGeneration);
+        yield return null;
     }
 
     private void ResetWorld()
     {
-        // Destroy all phenotypes.
         foreach (Individual individual in population.individuals)
         {
             if (individual.phenotype != null)
-                Destroy(individual.phenotype.gameObject);
+                WorldManager.Instance.SendGameObjectToTheVoid(individual.phenotype.gameObject);
         }
 
-        // Empty the trash can.
         WorldManager.Instance.EmptyTrashCan();
     }
 

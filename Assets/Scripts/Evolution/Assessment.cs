@@ -10,7 +10,7 @@ public static class Assessment
     public static IEnumerator GroundDistance(Individual individual, Population population, Transform trialOrigin)
     {
         if (individual.phenotype == null) yield break;
-        DisablePhenotypeCollisions(individual, population);
+        yield return DisablePhenotypeCollisions(individual, population);
         individual.preProcessingComplete = true;
 
         int settleSeconds = 10;
@@ -52,7 +52,7 @@ public static class Assessment
     public static IEnumerator WaterDistance(Individual individual, Population population, Transform trialOrigin)
     {
         if (individual.phenotype == null) yield break;
-        DisablePhenotypeCollisions(individual, population); ;
+        yield return DisablePhenotypeCollisions(individual, population);
         individual.preProcessingComplete = true;
 
         int settleSeconds = 5;
@@ -93,7 +93,7 @@ public static class Assessment
     public static IEnumerator LightCloseness(Individual individual, Population population, Transform trialOrigin)
     {
         if (individual.phenotype == null) yield break;
-        DisablePhenotypeCollisions(individual, population); ;
+        yield return DisablePhenotypeCollisions(individual, population);
         individual.preProcessingComplete = true;
 
         int settleSeconds = 10;
@@ -126,13 +126,28 @@ public static class Assessment
         }
     }
 
-    private static void DisablePhenotypeCollisions(Individual self, Population population)
+    // This function is costly, so I've designed it to spread out over multiple frames.
+    // There may be a better way to prevent phenotypes from colliding with each other
+    // while maintaining self collisions, but I haven't found it yet.
+    private static IEnumerator DisablePhenotypeCollisions(Individual self, Population population)
     {
-        foreach (Collider col in self.phenotype.GetComponentsInChildren<Collider>())
+        int maxOpsPerFrame = 100000 / population.individuals.Count;
+        int opsCount = 0;
+        foreach (Collider col in self.phenotype.activeColliders)
+        {
             foreach (Individual other in population.individuals)
                 if (other != self && !other.preProcessingComplete && other.phenotype != null)
-                    foreach (Collider otherCol in other.phenotype.GetComponentsInChildren<Collider>())
+                    foreach (Collider otherCol in other.phenotype.activeColliders)
+                    {
                         Physics.IgnoreCollision(col, otherCol);
+                        opsCount += 1;
+                        if (opsCount >= maxOpsPerFrame)
+                        {
+                            yield return null;
+                            opsCount = 0;
+                        }
+                    }
+        }
     }
 
     private static void PlacePhenotype(Phenotype phenotype, Transform trialOrigin)
