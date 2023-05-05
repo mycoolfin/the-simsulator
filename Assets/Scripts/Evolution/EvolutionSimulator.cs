@@ -96,6 +96,9 @@ public class EvolutionSimulator : MonoBehaviour
 
             yield return StartCoroutine(AssessFitnesses(population, assessmentFunction, trialOrigin));
 
+            while (pauseIterating)
+                yield return null;
+
             List<Individual> survivors = SelectSurvivors(population, maxSurvivors);
             int survivorCount = survivors.Count;
 
@@ -108,9 +111,6 @@ public class EvolutionSimulator : MonoBehaviour
             averageFitnesses.Add(population.individuals.Average(x => x.fitness));
 
             Debug.Log("Iteration " + currentIteration + ": Best fitness = " + bestFitnesses.Last() + ", Average Fitness = " + averageFitnesses.Last());
-
-            while (pauseIterating)
-                yield return null;
 
             OnIterationEnd();
 
