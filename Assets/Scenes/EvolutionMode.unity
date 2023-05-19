@@ -881,10 +881,11 @@ MonoBehaviour:
   pauseIterating: 0
   stopSimulation: 0
   colourByRelativeFitness: 1
-  filterByPotentialSurvivors: 0
+  filterBy: 0
   currentIteration: 0
   bestFitnesses: []
   averageFitnesses: []
+  trialOrigin: {fileID: 0}
 --- !u!4 &1294992366
 Transform:
   m_ObjectHideFlags: 0

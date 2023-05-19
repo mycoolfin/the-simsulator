@@ -6,7 +6,7 @@ using UnityEngine.SceneManagement;
 using UnityEngine.UIElements;
 using Crosstales.FB;
 
-public class AquariumModeMenu : MonoBehaviour
+public class ZooModeMenu : MonoBehaviour
 {
     public PlayerController playerController;
 

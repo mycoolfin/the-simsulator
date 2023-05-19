@@ -4645,7 +4645,7 @@ GameObject:
   - component: {fileID: 1641340207}
   - component: {fileID: 1641340206}
   m_Layer: 0
-  m_Name: AquariumModeMenu
+  m_Name: ZooModeMenu
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4675,7 +4675,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1641340204}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: df5c0d33bb4bf4621b080f24b4889f65, type: 3}
+  m_Script: {fileID: 11500000, guid: 010348fe19671457684e293783348b7b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   playerController: {fileID: 1959972267347088198}
@@ -4693,7 +4693,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_PanelSettings: {fileID: 11400000, guid: 3711d98d6996c4cb5b31d14d0516a7eb, type: 2}
   m_ParentUI: {fileID: 0}
-  sourceAsset: {fileID: 9197481963319205126, guid: 091e0e685669e47d38baf4365827d4a8, type: 3}
+  sourceAsset: {fileID: 9197481963319205126, guid: 7706ba3bfab9b4dae81b908ffe1dcc8d, type: 3}
   m_SortingOrder: 0
 --- !u!1 &1689205633
 GameObject:
