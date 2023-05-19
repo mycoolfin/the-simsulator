@@ -37,7 +37,9 @@ public class WorldManager : MonoBehaviour
     public Queue<GameObject> theVoid; // Objects we want destroyed as soon as possible, framerate willing.
 
     [Header("Parameters")]
-    [Range(0f, 5f)]
+    public const float minTimeScale = 0f;
+    public const float maxTimeScale = 5f;
+    [Range(minTimeScale, maxTimeScale)]
     public float timeScale;
     [Range(15, 60)]
     public int minimumFps = 30;

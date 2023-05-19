@@ -57,8 +57,12 @@
                     <ui:VisualElement style="flex-grow: 0; background-color: rgba(0, 0, 0, 0);">
                         <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); flex-direction: row; padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px;">
                             <ui:Label tabindex="-1" text="Speed Control" display-tooltip-when-elided="true" style="flex-basis: auto; flex-direction: column; margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0; justify-content: flex-start; align-items: auto; align-self: center; width: 50%;" />
-                            <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); width: 50%; flex-direction: row; align-items: center; align-self: center; justify-content: flex-start;">
-                                <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); flex-direction: row; width: 50%;">
+                            <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); width: 50%; flex-direction: column; align-items: center; align-self: center; justify-content: flex-start;">
+                                <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); flex-direction: row; width: 100%; justify-content: center; padding-left: 5px; padding-right: 5px; padding-top: 0; padding-bottom: 0;">
+                                    <ui:ProgressBar value="0.75" name="throttled-time" high-value="1" style="width: 100%; margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0; background-color: rgba(0, 0, 0, 0); -unity-background-image-tint-color: rgb(255, 255, 255);" />
+                                    <ui:VisualElement style="flex-grow: 1; background-color: rgb(128, 128, 128); position: absolute; width: 1px; height: 100%; align-self: center;" />
+                                </ui:VisualElement>
+                                <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); flex-direction: row; width: 100%; justify-content: space-between;">
                                     <ui:Button display-tooltip-when-elided="true" name="pause-simulation" style="width: 30px; height: 30px; background-image: none; text-overflow: clip; padding-left: 2px; padding-right: 2px; padding-top: 2px; padding-bottom: 2px; margin-top: 4px; margin-bottom: 4px;">
                                         <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); background-image: url(&apos;project://database/Assets/Scripts/UI/Evolution%20Mode%20Menu/pause.png?fileID=2800000&amp;guid=5d6666297a8e54f20ad0efda68945c14&amp;type=3#pause&apos;); -unity-background-scale-mode: scale-to-fit;" />
                                     </ui:Button>
@@ -68,9 +72,6 @@
                                     <ui:Button display-tooltip-when-elided="true" name="fastforward-simulation" style="width: 30px; height: 30px; background-image: none; text-overflow: clip; padding-left: 2px; padding-right: 2px; padding-top: 2px; padding-bottom: 2px; margin-top: 4px; margin-bottom: 4px;">
                                         <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); background-image: url(&apos;project://database/Assets/Scripts/UI/Evolution%20Mode%20Menu/fastforward.png?fileID=2800000&amp;guid=74754c26293ef465083320ac146c1700&amp;type=3#fastforward&apos;); -unity-background-scale-mode: scale-to-fit; -unity-slice-scale: 1px; -unity-background-image-tint-color: rgb(255, 255, 255);" />
                                     </ui:Button>
-                                </ui:VisualElement>
-                                <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); flex-direction: row; width: 50%; justify-content: center; padding-left: 15px; padding-right: 15px; padding-top: 0; padding-bottom: 0;">
-                                    <ui:ProgressBar value="0.5" name="throttled-time" high-value="1" style="width: 100%; margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0; background-color: rgba(0, 0, 0, 0); -unity-background-image-tint-color: rgb(255, 255, 255);" />
                                 </ui:VisualElement>
                             </ui:VisualElement>
                         </ui:VisualElement>
@@ -89,8 +90,8 @@
                             <ui:Toggle name="colour-by-fitness" style="width: 50%;" />
                         </ui:VisualElement>
                         <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); flex-direction: row; align-items: stretch; justify-content: space-between; align-self: stretch; padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px;">
-                            <ui:Label tabindex="-1" text="Hide Low Fitness" display-tooltip-when-elided="true" style="flex-basis: auto; flex-direction: column; margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0; justify-content: flex-start; align-items: auto; align-self: center; width: 50%;" />
-                            <ui:Toggle name="hide-low-fitness" style="width: 50%;" />
+                            <ui:Label tabindex="-1" text="Show" display-tooltip-when-elided="true" style="flex-basis: auto; flex-direction: column; margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0; justify-content: flex-start; align-items: auto; align-self: center; width: 50%;" />
+                            <ui:DropdownField index="0" name="show" choices="All,Survivors,Best" style="flex-basis: auto; margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0; width: 50%;" />
                         </ui:VisualElement>
                         <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); flex-direction: row; align-items: stretch; justify-content: space-between; align-self: stretch; padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px;">
                             <ui:Label tabindex="-1" text="Orbit Camera" display-tooltip-when-elided="true" style="flex-basis: auto; flex-direction: column; margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0; justify-content: flex-start; align-items: auto; align-self: center; width: 50%;" />

@@ -19,6 +19,13 @@ public enum SpeedControl
     FastForward
 }
 
+public enum DisplayFilter
+{
+    All,
+    Survivors,
+    Best
+}
+
 public class EvolutionSimulator : MonoBehaviour
 {
     [Header("Initialisation Parameters")]
@@ -37,7 +44,7 @@ public class EvolutionSimulator : MonoBehaviour
 
     [Header("Visualisation Parameters")]
     public bool colourByRelativeFitness;
-    public bool filterByPotentialSurvivors;
+    public DisplayFilter filterBy;
 
     [Header("Outputs")]
     public int currentIteration;
@@ -314,7 +321,9 @@ public class EvolutionSimulator : MonoBehaviour
             }
             else
             {
-                if (filterByPotentialSurvivors)
+                if (filterBy == DisplayFilter.Best)
+                    individual.phenotype.SetVisible(survivors.Count > 0 && survivors[0] == individual);
+                else if (filterBy == DisplayFilter.Survivors)
                     individual.phenotype.SetVisible(survivors.Contains(individual));
                 else
                     individual.phenotype.SetVisible(true);

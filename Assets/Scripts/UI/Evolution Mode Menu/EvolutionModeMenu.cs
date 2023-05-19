@@ -49,7 +49,10 @@ public class EvolutionModeMenu : MonoBehaviour
     private void Update()
     {
         if (menuOpen && simulator.running)
-            throttledTime.value = WorldManager.Instance.throttledTimeScale / WorldManager.Instance.timeScale;
+            if (WorldManager.Instance.throttledTimeScale <= 1f)
+                throttledTime.value = WorldManager.Instance.throttledTimeScale / 2f;
+            else
+                throttledTime.value = 0.5f + ((WorldManager.Instance.throttledTimeScale - 1) / (WorldManager.maxTimeScale - 1) / 2f);
     }
 
     private void InitialiseMenu()
@@ -172,9 +175,10 @@ public class EvolutionModeMenu : MonoBehaviour
         Toggle colourByFitness = doc.rootVisualElement.Q<Toggle>("colour-by-fitness");
         colourByFitness.value = simulator.colourByRelativeFitness;
         colourByFitness.RegisterValueChangedCallback((ChangeEvent<bool> e) => simulator.colourByRelativeFitness = e.newValue);
-        Toggle hideLowFitness = doc.rootVisualElement.Q<Toggle>("hide-low-fitness");
-        hideLowFitness.value = simulator.filterByPotentialSurvivors;
-        hideLowFitness.RegisterValueChangedCallback((ChangeEvent<bool> e) => simulator.filterByPotentialSurvivors = e.newValue);
+        DropdownField show = doc.rootVisualElement.Q<DropdownField>("show");
+        show.choices = Enum.GetNames(typeof(DisplayFilter)).Select(name => Utilities.PascalToSentenceCase(name)).ToList();
+        show.index = 0;
+        show.RegisterValueChangedCallback((ChangeEvent<string> e) => Enum.TryParse<DisplayFilter>(Utilities.SentenceToPascalCase(e.newValue), out simulator.filterBy));
         Toggle orbitCamera = doc.rootVisualElement.Q<Toggle>("orbit-camera");
         orbitCamera.value = playerController.orbitTarget != null;
         orbitCamera.RegisterValueChangedCallback((ChangeEvent<bool> e) => playerController.orbitTarget = e.newValue ? simulator.trialOrigin : null);

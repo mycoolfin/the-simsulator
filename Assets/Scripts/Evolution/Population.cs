@@ -6,6 +6,7 @@ public class Individual
     public Genotype genotype;
     public Phenotype phenotype;
     public float fitness = 0f;
+    public float previousFitness = 0f;
     public bool isProtected;
     public bool preProcessingComplete;
 }
@@ -32,6 +33,11 @@ public class Population
 
     public Population(List<Individual> individuals)
     {
-        this.individuals = individuals.Select(i => new Individual() { genotype = i.genotype, isProtected = i.isProtected }).ToList();
+        this.individuals = individuals.Select(i => new Individual()
+        {
+            genotype = i.genotype,
+            isProtected = i.isProtected,
+            previousFitness = i.fitness
+        }).ToList();
     }
 }
