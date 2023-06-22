@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 583422338}
-  m_IndirectSpecularColor: {r: 0.44657815, g: 0.49641192, b: 0.57481617, a: 1}
+  m_IndirectSpecularColor: {r: 0.44657844, g: 0.49641222, b: 0.57481676, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -156,7 +156,7 @@ MonoBehaviour:
   m_PanelSettings: {fileID: 11400000, guid: 3711d98d6996c4cb5b31d14d0516a7eb, type: 2}
   m_ParentUI: {fileID: 0}
   sourceAsset: {fileID: 9197481963319205126, guid: 56a269f27d7414135958d98b4de4e09d, type: 3}
-  m_SortingOrder: 0
+  m_SortingOrder: 10
 --- !u!4 &102387482
 Transform:
   m_ObjectHideFlags: 0
@@ -186,6 +186,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   simulator: {fileID: 1294992365}
   playerController: {fileID: 1959972267347088198}
+  cameraGrid: {fileID: 1600158233}
 --- !u!1 &279443275
 GameObject:
   m_ObjectHideFlags: 0
@@ -883,6 +884,7 @@ MonoBehaviour:
   colourByRelativeFitness: 1
   filterBy: 0
   currentIteration: 0
+  assessmentProgress: 0
   bestFitnesses: []
   averageFitnesses: []
   trialOrigin: {fileID: 0}
@@ -979,6 +981,73 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1600158230
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1600158231}
+  - component: {fileID: 1600158232}
+  - component: {fileID: 1600158233}
+  m_Layer: 5
+  m_Name: Camera Grid
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 0
+--- !u!4 &1600158231
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1600158230}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -5.3062644, y: -10.056426, z: 19.975967}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1982460595}
+  m_RootOrder: -1
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1600158232
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1600158230}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 19102, guid: 0000000000000000e000000000000000, type: 0}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_PanelSettings: {fileID: 11400000, guid: 3711d98d6996c4cb5b31d14d0516a7eb, type: 2}
+  m_ParentUI: {fileID: 0}
+  sourceAsset: {fileID: 9197481963319205126, guid: c9781cd360b1940229244af569049cd9, type: 3}
+  m_SortingOrder: 1
+--- !u!114 &1600158233
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1600158230}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cfbaf0154c75f44828fa1d92ad27f083, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  followCameraPrefab: {fileID: 4654032986182265884, guid: 96026b5d5157346fb991ce71c5e1780d, type: 3}
+  cameraGridItem: {fileID: 9197481963319205126, guid: 9c5a6eb9734c946b9878111a527ef4f4, type: 3}
+  followCameras: []
+  small: 0
+  medium: 0
+  large: 0
 --- !u!1 &1982460594
 GameObject:
   m_ObjectHideFlags: 0
@@ -1009,6 +1078,7 @@ Transform:
   m_Children:
   - {fileID: 1100477763}
   - {fileID: 800063404}
+  - {fileID: 1600158231}
   - {fileID: 102387482}
   m_Father: {fileID: 0}
   m_RootOrder: 0

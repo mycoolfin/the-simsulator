@@ -9,6 +9,14 @@ public class Individual
     public float previousFitness = 0f;
     public bool isProtected;
     public bool preProcessingComplete;
+    public float assessmentProgress = -1f;
+
+    public void Disqualify()
+    {
+        fitness = 0f;
+        assessmentProgress = 1f;
+        WorldManager.Instance.SendGameObjectToTheVoid(phenotype.gameObject);
+    }
 }
 
 public class Population

@@ -9,7 +9,7 @@ public static class Assessment
 {
     public static IEnumerator GroundDistance(Individual individual, Population population, Transform trialOrigin)
     {
-        if (individual.phenotype == null) yield break;
+        if (individual.phenotype == null) { individual.Disqualify(); yield break; }
         yield return DisablePhenotypeCollisions(individual, population);
         individual.preProcessingComplete = true;
 
@@ -21,37 +21,29 @@ public static class Assessment
         PlacePhenotype(individual.phenotype, trialOrigin);
 
         yield return new WaitForSeconds(settleSeconds);
-        if (individual.phenotype == null) yield break;
+        if (individual.phenotype == null) { individual.Disqualify(); yield break; }
 
         Vector3 startPosition = individual.phenotype.GetBounds().center;
 
         for (int i = 0; i < fitnessUpdateIntervals; i++)
         {
             yield return new WaitForSeconds(intervalLength);
-            if (individual.phenotype == null) yield break;
+            if (individual.phenotype == null || individual.phenotype.lostLimbs) { individual.Disqualify(); yield break; }
 
             Bounds bounds = individual.phenotype.GetBounds();
             Vector3 currentPosition = bounds.center;
 
-            if (currentPosition.y < 0) // Phenotype fell below ground somehow.
-            {
-                individual.fitness = 0f;
-                break;
-            }
-            else
-            {
-                float planarDisplacement = Vector3.Magnitude(new Vector3(currentPosition.x - startPosition.x, 0, currentPosition.z - startPosition.z));
-                individual.fitness = planarDisplacement;
+            if (currentPosition.y < 0) { individual.Disqualify(); yield break; } // Phenotype fell below ground somehow.
 
-                if (individual.phenotype.lostLimbs)
-                    individual.fitness = 0;
-            }
+            float planarDisplacement = Vector3.Magnitude(new Vector3(currentPosition.x - startPosition.x, 0, currentPosition.z - startPosition.z));
+            individual.fitness = planarDisplacement;
+            individual.assessmentProgress = (float)(i+1) / (float)fitnessUpdateIntervals;
         }
     }
 
     public static IEnumerator WaterDistance(Individual individual, Population population, Transform trialOrigin)
     {
-        if (individual.phenotype == null) yield break;
+        if (individual.phenotype == null) { individual.Disqualify(); yield break; }
         yield return DisablePhenotypeCollisions(individual, population);
         individual.preProcessingComplete = true;
 
@@ -63,13 +55,13 @@ public static class Assessment
         PlacePhenotype(individual.phenotype, trialOrigin);
 
         yield return new WaitForSeconds(settleSeconds);
-        if (individual.phenotype == null) yield break;
+        if (individual.phenotype == null) { individual.Disqualify(); yield break; }
 
         // Kill momentum.
         List<Rigidbody> rigidbodies = individual.phenotype.GetComponentsInChildren<Rigidbody>().ToList();
         rigidbodies.ForEach(x => { x.isKinematic = true; });
         yield return new WaitForFixedUpdate();
-        if (individual.phenotype == null) yield break;
+        if (individual.phenotype == null) { individual.Disqualify(); yield break; }
         rigidbodies.ForEach(x => { x.isKinematic = false; });
 
         Vector3 startPosition = individual.phenotype.GetBounds().center;
@@ -77,22 +69,20 @@ public static class Assessment
         for (int i = 0; i < fitnessUpdateIntervals; i++)
         {
             yield return new WaitForSeconds(intervalLength);
-            if (individual.phenotype == null) yield break;
+            if (individual.phenotype == null || individual.phenotype.lostLimbs) { individual.Disqualify(); yield break; }
 
             Bounds bounds = individual.phenotype.GetBounds();
             Vector3 currentPosition = bounds.center;
 
             float displacement = Vector3.Distance(startPosition, currentPosition);
             individual.fitness = displacement;
-
-            if (individual.phenotype.lostLimbs)
-                individual.fitness = 0;
+            individual.assessmentProgress = (float)(i+1) / (float)fitnessUpdateIntervals;
         }
     }
 
     public static IEnumerator LightCloseness(Individual individual, Population population, Transform trialOrigin)
     {
-        if (individual.phenotype == null) yield break;
+        if (individual.phenotype == null) { individual.Disqualify(); yield break; }
         yield return DisablePhenotypeCollisions(individual, population);
         individual.preProcessingComplete = true;
 
@@ -104,7 +94,7 @@ public static class Assessment
         PlacePhenotype(individual.phenotype, trialOrigin);
 
         yield return new WaitForSeconds(settleSeconds);
-        if (individual.phenotype == null) yield break;
+        if (individual.phenotype == null) { individual.Disqualify(); yield break; }
 
         Vector3 startPosition = individual.phenotype.GetBounds().center;
 
@@ -113,16 +103,14 @@ public static class Assessment
         for (int i = 0; i < fitnessUpdateIntervals; i++)
         {
             yield return new WaitForSeconds(intervalLength);
-            if (individual.phenotype == null) yield break;
+            if (individual.phenotype == null || individual.phenotype.lostLimbs) { individual.Disqualify(); yield break; }
 
             Bounds bounds = individual.phenotype.GetBounds();
             Vector3 currentPosition = bounds.center;
 
             float currentDistance = Vector3.Distance(currentPosition, WorldManager.Instance.pointLight.transform.position);
             individual.fitness = Mathf.Max(0, (maxDistance - currentDistance) / maxDistance);
-
-            if (individual.phenotype.lostLimbs)
-                individual.fitness = 0;
+            individual.assessmentProgress = (float)(i+1) / (float)fitnessUpdateIntervals;
         }
     }
 

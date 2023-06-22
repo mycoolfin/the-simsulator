@@ -92,7 +92,7 @@ public class WorldManager : MonoBehaviour
         theVoid.Enqueue(doomedSoul);
     }
 
-    public IEnumerator TheVoidConsumesAll()
+    private IEnumerator TheVoidConsumesAll()
     {
         theVoid = new();
         const int consumptionRate = 10; // Will destroy this many objects per frame.

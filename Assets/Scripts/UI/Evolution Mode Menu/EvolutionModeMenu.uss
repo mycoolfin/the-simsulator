@@ -1,0 +1,11 @@
+#runtime-menu-bar > Button {
+    background-color: rgba(0, 0, 0, 0);
+}
+
+#runtime-menu-bar > Button:hover {
+    background-color: rgb(196, 223, 243);
+}
+
+#runtime-menu-bar > .active {
+    background-color: rgb(88, 184, 255);
+}

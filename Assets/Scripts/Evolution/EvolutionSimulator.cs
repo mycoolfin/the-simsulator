@@ -48,6 +48,7 @@ public class EvolutionSimulator : MonoBehaviour
 
     [Header("Outputs")]
     public int currentIteration;
+    public float assessmentProgress;
     public Individual bestIndividual;
     public List<float> bestFitnesses;
     public List<float> averageFitnesses;
@@ -64,7 +65,10 @@ public class EvolutionSimulator : MonoBehaviour
     private void Update()
     {
         if (running)
+        {
             VisualisePopulation();
+            CalculateAssessmentProgress();
+        }
     }
 
     public IEnumerator Run(TrialType trialType, int numberOfIterations, int populationSize, float survivalRatio, Genotype seedGenotype)
@@ -209,7 +213,7 @@ public class EvolutionSimulator : MonoBehaviour
             if (individual.phenotype.IsValid())
                 assessors.Add(assessmentFunction(individual, population, trialOrigin));
             else
-                UnityEngine.Object.Destroy(individual.phenotype.gameObject);
+                individual.Disqualify();
         }
 
         yield return null; // Ensure the invalid phenotypes are completely destroyed.
@@ -344,5 +348,13 @@ public class EvolutionSimulator : MonoBehaviour
                     individual.phenotype.SetRGB(1f, 1f, 1f);
             }
         }
+    }
+
+    private void CalculateAssessmentProgress()
+    {
+        if (population == null)
+            return;
+
+        assessmentProgress = population.individuals.Min(i => i.assessmentProgress);
     }
 }
