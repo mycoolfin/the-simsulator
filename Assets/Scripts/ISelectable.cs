@@ -4,4 +4,5 @@ public interface ISelectable
 {
     GameObject gameObject { get; }
     void Select();
+    Bounds GetBounds();
 }

@@ -10,9 +10,9 @@ GameObject:
   m_Component:
   - component: {fileID: 484838182783475797}
   - component: {fileID: 1637343489044741431}
-  - component: {fileID: 9034703988713373082}
+  - component: {fileID: 8523307864899909332}
   m_Layer: 0
-  m_Name: Blocking Panel
+  m_Name: Screen Blocking Panel
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -49,7 +49,7 @@ MonoBehaviour:
   m_ParentUI: {fileID: 0}
   sourceAsset: {fileID: 9197481963319205126, guid: bd8301539c3644c71a370c68842392c7, type: 3}
   m_SortingOrder: 100
---- !u!114 &9034703988713373082
+--- !u!114 &8523307864899909332
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -58,6 +58,6 @@ MonoBehaviour:
   m_GameObject: {fileID: 2157359224136214221}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2cf9c94c789f3499b9ff630d71bf83c0, type: 3}
+  m_Script: {fileID: 11500000, guid: 1f92d867e1eeb47d29f36ffaa89f0f85, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 

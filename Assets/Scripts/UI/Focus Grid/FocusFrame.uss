@@ -1,0 +1,24 @@
+#options {
+    display: none;
+}
+
+#container:hover #options {
+    display: flex;
+}
+
+#options > Button {
+    margin-left: 5px;
+    background-color: rgba(0, 0, 0, 0);
+}
+
+#save:hover {
+    background-color: rgba(131, 149, 255, 0.8);
+}
+
+#protect:hover {
+    background-color: rgba(255, 246, 117, 0.8);
+}
+
+#cull:hover {
+    background-color: rgba(255, 138, 136, 0.8);
+}

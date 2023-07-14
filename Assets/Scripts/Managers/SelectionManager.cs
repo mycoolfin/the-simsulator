@@ -24,9 +24,10 @@ public class SelectionManager : MonoBehaviour
         get => selected;
         set
         {
+            ISelectable previouslySelected = selected;
             selected = value;
-            OnSelection();
+            OnSelection(previouslySelected, selected);
         }
     }
-    public event Action OnSelection = delegate { };
+    public event Action<ISelectable, ISelectable> OnSelection = delegate { };
 }

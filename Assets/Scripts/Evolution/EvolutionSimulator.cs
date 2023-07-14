@@ -1,5 +1,5 @@
-using System.Linq;
 using System;
+using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -19,21 +19,18 @@ public enum SpeedControl
     FastForward
 }
 
-public enum DisplayFilter
-{
-    All,
-    Survivors,
-    Best
-}
-
 public class EvolutionSimulator : MonoBehaviour
 {
     [Header("Initialisation Parameters")]
-    [SerializeField] private TrialType trialType = TrialType.GroundDistance;
-    [SerializeField] private int numberOfIterations;
+    [SerializeField] private TrialType trial = TrialType.GroundDistance;
+    public TrialType Trial => trial;
+    [SerializeField] private int maxIterations;
+    public int MaxIterations => maxIterations;
     [SerializeField] private int populationSize;
+    public int PopulationSize => populationSize;
     [Range(0f, 1f)]
-    [SerializeField] private float survivalRatio;
+    [SerializeField] private float survivalPercentage;
+    public float SurvivalPercentage => survivalPercentage;
     [SerializeField] private Genotype seedGenotype;
     [SerializeField] private bool run;
 
@@ -44,7 +41,7 @@ public class EvolutionSimulator : MonoBehaviour
 
     [Header("Visualisation Parameters")]
     public bool colourByRelativeFitness;
-    public DisplayFilter filterBy;
+    public int focusBestCreatures;
 
     [Header("Outputs")]
     public int currentIteration;
@@ -53,12 +50,15 @@ public class EvolutionSimulator : MonoBehaviour
     public List<float> bestFitnesses;
     public List<float> averageFitnesses;
 
-    private Population population;
-    public Transform trialOrigin;
     public event Action OnSimulationStart = delegate { };
     public event Action OnIterationStart = delegate { };
+    public event Action OnAssessmentStart = delegate { };
+    public event Action OnAssessmentEnd = delegate { };
     public event Action OnIterationEnd = delegate { };
     public event Action OnSimulationEnd = delegate { };
+
+    private Population population;
+    private Assessment assessment;
 
     public bool running => population != null;
 
@@ -71,16 +71,16 @@ public class EvolutionSimulator : MonoBehaviour
         }
     }
 
-    public IEnumerator Run(TrialType trialType, int numberOfIterations, int populationSize, float survivalRatio, Genotype seedGenotype)
+    public IEnumerator Run(TrialType trialType, int maxIterations, int populationSize, float survivalPercentage, Genotype seedGenotype)
     {
-        this.trialType = trialType;
-        this.numberOfIterations = numberOfIterations;
+        this.trial = trialType;
+        this.maxIterations = maxIterations;
         this.populationSize = populationSize;
-        this.survivalRatio = survivalRatio;
+        this.survivalPercentage = survivalPercentage;
         this.seedGenotype = seedGenotype;
 
-        int maxSurvivors = Mathf.CeilToInt(populationSize * survivalRatio);
-        AssessmentFunction assessmentFunction = SetUpTrial(trialType);
+        int maxSurvivors = Mathf.CeilToInt(populationSize * survivalPercentage);
+        assessment = PickAssessment(trialType);
 
         // Reset outputs.
         bestIndividual = null;
@@ -96,27 +96,34 @@ public class EvolutionSimulator : MonoBehaviour
         else
             population = new Population(populationSize);
 
+        assessment.BeforeSimulationStart();
         OnSimulationStart();
 
         currentIteration = 0;
-        while (currentIteration < numberOfIterations || numberOfIterations == -1)
+        while (currentIteration < maxIterations || maxIterations == -1)
         {
             currentIteration++;
 
+            yield return ConstructPhenotypes(population);
+
+            assessment.BeforeIterationStart();
             OnIterationStart();
 
-            yield return StartCoroutine(AssessFitnesses(population, assessmentFunction, trialOrigin));
+            yield return PreparePopulation(population, assessment);
+
+            assessment.BeforeAssessmentStart();
+            OnAssessmentStart();
+            yield return AssessFitnesses(population, assessment);
+            OnAssessmentEnd();
 
             while (pauseIterating)
                 yield return null;
 
-            List<Individual> survivors = SelectSurvivors(population, maxSurvivors);
+            List<Individual> survivors = SelectSurvivors(population, maxSurvivors, includeZeroFitness: false);
             int survivorCount = survivors.Count;
 
-            if (survivorCount > 0 && (bestIndividual == null || survivors[0].fitness > bestIndividual.fitness))
-            {
-                bestIndividual = survivors[0];
-            }
+            if (survivorCount > 0)
+                bestIndividual = survivors.OrderByDescending(x => x.fitness).First();
 
             bestFitnesses.Add(bestIndividual?.fitness ?? 0f);
             averageFitnesses.Add(population.individuals.Average(x => x.fitness));
@@ -126,6 +133,9 @@ public class EvolutionSimulator : MonoBehaviour
             OnIterationEnd();
 
             yield return null;
+
+            if (currentIteration == maxIterations - 1) // This is the final iteration, so don't reset the world.
+                break;
 
             Population nextGeneration = new Population();
             yield return ProduceNextGeneration(populationSize, populationSize - maxSurvivors, survivors, (next) => nextGeneration = next);
@@ -140,97 +150,89 @@ public class EvolutionSimulator : MonoBehaviour
         Debug.Log("Finished.");
 
         OnSimulationEnd();
-        yield return StartCoroutine(AssessFitnesses(population, assessmentFunction, trialOrigin));
     }
 
-    public bool TogglePhenotypeProtection(Phenotype phenotype)
+    public Transform GetSimulationOrigin()
     {
-        Individual individual = population.individuals.Find(i => i.phenotype == phenotype);
-        individual.isProtected = !individual.isProtected;
-        return individual.isProtected;
+        return assessment?.trialOrigin;
     }
 
-    private AssessmentFunction SetUpTrial(TrialType trialType)
+    public Individual GetIndividualByPhenotype(Phenotype phenotype) => population?.individuals.Find((i) => i.phenotype == phenotype);
+
+    public List<Individual> GetTopIndividuals(int count)
     {
-        AssessmentFunction assessmentFunction;
+        if (population == null)
+            return new();
+        else
+            return SelectSurvivors(population, count, includeZeroFitness: true);
+    }
+
+    private Assessment PickAssessment(TrialType trialType)
+    {
+        Assessment assessment;
         switch (trialType)
         {
             case TrialType.GroundDistance:
-                assessmentFunction = Assessment.GroundDistance;
-                trialOrigin = WorldManager.Instance.groundOrigin.transform;
-                WorldManager.Instance.simulateFluid = false;
-                WorldManager.Instance.gravity = true;
-                WorldManager.Instance.pointLight.SetActive(false);
+                assessment = new GroundDistanceAssessment();
                 break;
             case TrialType.WaterDistance:
-                assessmentFunction = Assessment.WaterDistance;
-                trialOrigin = WorldManager.Instance.waterOrigin.transform;
-                WorldManager.Instance.simulateFluid = true;
-                WorldManager.Instance.gravity = false;
-                WorldManager.Instance.pointLight.SetActive(false);
+                assessment = new WaterDistanceAssessment();
                 break;
             case TrialType.GroundLightFollowing:
-                assessmentFunction = Assessment.LightCloseness;
-                trialOrigin = WorldManager.Instance.groundOrigin.transform;
-                WorldManager.Instance.simulateFluid = false;
-                WorldManager.Instance.gravity = true;
-                WorldManager.Instance.pointLight.SetActive(true);
-                OnIterationStart += () =>
-                    WorldManager.Instance.pointLight.transform.position =
-                        trialOrigin.position
-                        + Quaternion.Euler(0, UnityEngine.Random.Range(0, 360), 0)
-                        * Vector3.forward * UnityEngine.Random.Range(0f, 20f)
-                        + Vector3.up * 1f;
+                assessment = new GroundLightClosenessAssessment();
                 break;
             case TrialType.WaterLightFollowing:
-                assessmentFunction = Assessment.LightCloseness;
-                trialOrigin = WorldManager.Instance.waterOrigin.transform;
-                WorldManager.Instance.simulateFluid = true;
-                WorldManager.Instance.gravity = false;
-                WorldManager.Instance.pointLight.SetActive(true);
-                OnIterationStart += () =>
-                    WorldManager.Instance.pointLight.transform.position =
-                        trialOrigin.position
-                        + Quaternion.Euler(UnityEngine.Random.Range(0, 360), UnityEngine.Random.Range(0, 360), UnityEngine.Random.Range(0, 360))
-                        * Vector3.forward * UnityEngine.Random.Range(0f, 20f);
+                assessment = new WaterLightClosenessAssessment();
                 break;
             default:
                 throw new Exception();
         }
-        return assessmentFunction;
+        return assessment;
     }
 
-    private IEnumerator AssessFitnesses(Population population, AssessmentFunction assessmentFunction, Transform trialOrigin)
+    private IEnumerator ConstructPhenotypes(Population population)
     {
-        List<IEnumerator> assessors = new List<IEnumerator>();
-
         Physics.simulationMode = SimulationMode.Script;
 
         foreach (Individual individual in population.individuals)
         {
             individual.phenotype = Phenotype.Construct(individual.genotype);
             individual.phenotype.gameObject.SetActive(false);
-            if (individual.phenotype.IsValid())
-                assessors.Add(assessmentFunction(individual, population, trialOrigin));
-            else
-                individual.Disqualify();
+            if (!individual.phenotype.IsValid())
+                individual.Cull();
         }
 
         yield return null; // Ensure the invalid phenotypes are completely destroyed.
 
         Physics.simulationMode = SimulationMode.FixedUpdate;
+    }
 
-        List<Coroutine> coroutines = assessors.Select(x => StartCoroutine(x)).ToList();
+    private IEnumerator PreparePopulation(Population population, Assessment assessment)
+    {
+        yield return ProcessPopulationAsync(population, (individual) => assessment.PreProcess(individual, population));
+        yield return ProcessPopulationAsync(population, (individual) => assessment.WaitUntilSettled(individual));
+    }
+
+    private IEnumerator AssessFitnesses(Population population, Assessment assessment)
+    {
+        yield return ProcessPopulationAsync(population, (individual) => assessment.Assess(individual));
+    }
+
+    private IEnumerator ProcessPopulationAsync(Population population, Func<Individual, IEnumerator> function)
+    {
+        List<Coroutine> coroutines = new List<Coroutine>();
+        foreach (Individual individual in population.individuals)
+            coroutines.Add(StartCoroutine(function(individual)));
 
         // Wait for all coroutines to finish.
         foreach (Coroutine coroutine in coroutines)
             yield return coroutine;
     }
 
-    private List<Individual> SelectSurvivors(Population population, int maxSurvivors)
+    private List<Individual> SelectSurvivors(Population population, int maxSurvivors, bool includeZeroFitness)
     {
         return population.individuals
-        .FindAll(x => x.phenotype != null && (x.fitness > 0 || x.isProtected))
+        .FindAll(x => x.phenotype != null && (x.isProtected || includeZeroFitness || x.fitness > 0))
         .OrderByDescending(x => x.isProtected ? Mathf.Infinity : x.fitness)
         .Take(maxSurvivors)
         .ToList();
@@ -267,10 +269,15 @@ public class EvolutionSimulator : MonoBehaviour
                         break;
                 }
 
-                nextGeneration.individuals.Add(new()
-                {
-                    genotype = Reproduction.CreateOffspring(parent1, parent2)
-                });
+                // Not sure how this is happening - destroying a Phenotype seems to also destroy the
+                // attached Genotype object, despite the Individual object having a reference to it.
+                if (parent1 == null || parent2 == null)
+                    Debug.Log("Something went wrong during reproduction (was a parent destroyed?).");
+                else
+                    nextGeneration.individuals.Add(new()
+                    {
+                        genotype = Reproduction.CreateOffspring(parent1, parent2)
+                    });
 
                 yield return null;
             }
@@ -306,7 +313,7 @@ public class EvolutionSimulator : MonoBehaviour
         if (population == null)
             return;
 
-        List<Individual> survivors = SelectSurvivors(population, Mathf.CeilToInt(populationSize * survivalRatio));
+        List<Individual> survivors = SelectSurvivors(population, Mathf.CeilToInt(populationSize * survivalPercentage), includeZeroFitness: false);
         Individual currentBestIndividual = survivors.Count > 0 ? survivors[0] : null;
 
         float currentAverageFitness = 0f;
@@ -319,22 +326,14 @@ public class EvolutionSimulator : MonoBehaviour
                 continue;
 
             if (individual.isProtected)
-            {
-                individual.phenotype.SetVisible(true);
                 individual.phenotype.SetRGB(1f, 0.84f, 0f);
-            }
             else
             {
-                if (filterBy == DisplayFilter.Best)
-                    individual.phenotype.SetVisible(survivors.Count > 0 && survivors[0] == individual);
-                else if (filterBy == DisplayFilter.Survivors)
-                    individual.phenotype.SetVisible(survivors.Contains(individual));
-                else
-                    individual.phenotype.SetVisible(true);
-
                 if (colourByRelativeFitness)
                 {
-                    if (individual.fitness == 0f)
+                    if (individual.assessmentProgress == -1f)
+                        individual.phenotype.SetRGB(1f, 1f, 1f);
+                    else if (individual.fitness == 0f)
                         individual.phenotype.SetRGB(1f, 0f, 0f);
                     else if (individual == currentBestIndividual)
                         individual.phenotype.SetRGB(0f, 1f, 1f);

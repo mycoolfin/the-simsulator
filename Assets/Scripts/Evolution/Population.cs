@@ -1,5 +1,6 @@
 using System.Linq;
 using System.Collections.Generic;
+using UnityEngine;
 
 public class Individual
 {
@@ -11,11 +12,12 @@ public class Individual
     public bool preProcessingComplete;
     public float assessmentProgress = -1f;
 
-    public void Disqualify()
+    public void Cull()
     {
         fitness = 0f;
         assessmentProgress = 1f;
-        WorldManager.Instance.SendGameObjectToTheVoid(phenotype.gameObject);
+        if (phenotype != null)
+            GameObject.Destroy(phenotype.gameObject);
     }
 }
 

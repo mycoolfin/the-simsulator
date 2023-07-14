@@ -1,0 +1,23 @@
+#save {
+    background-color: rgba(131, 149, 255, 0.8);
+}
+
+#protect {
+    background-color: rgba(255, 246, 117, 0.8);
+}
+
+#breed {
+    background-color: rgba(117, 255, 117, 0.8);
+}
+
+#cull {
+    background-color: rgba(255, 138, 136, 0.8);
+}
+
+Button {
+    opacity: 0.8;
+}
+
+Button:hover {
+    opacity: 1;
+}

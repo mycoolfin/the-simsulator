@@ -1,0 +1,15 @@
+#runtime-menu-container, #runtime-menu-bar, #exit-menu-container > VisualElement {
+    background-color: rgb(254, 207, 187);
+}
+
+#runtime-menu-bar > Button {
+    background-color: rgba(0, 0, 0, 0);
+}
+
+#runtime-menu-bar > Button:hover {
+    background-color: rgb(255, 230, 220);
+}
+
+#runtime-menu-bar > .active {
+    background-color: rgb(255, 153, 109);
+}

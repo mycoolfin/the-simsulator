@@ -1,0 +1,4 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="project://database/Assets/Scripts/UI/Focus%20Grid/FocusGrid.uss?fileID=7433441132597879392&amp;guid=2c8591b6ffcc74cd79f0ab5066424391&amp;type=3#FocusGrid" />
+    <ui:VisualElement name="grid" picking-mode="Ignore" style="flex-grow: 0; background-color: rgba(0, 0, 0, 0); width: auto; height: auto; flex-direction: row; flex-wrap: wrap; flex-shrink: 1; max-width: none; max-height: none; min-width: auto; align-items: stretch; justify-content: flex-start; align-self: flex-start; min-height: auto;" />
+</ui:UXML>

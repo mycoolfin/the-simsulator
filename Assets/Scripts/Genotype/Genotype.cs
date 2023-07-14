@@ -32,7 +32,7 @@ public class Genotype
 
     private Genotype(string id, IList<string> lineage, IList<NeuronDefinition> brainNeuronDefinitions, IList<LimbNode> limbNodes, IList<InstancedLimbNode> instancedLimbNodes)
     {
-        this.id = !string.IsNullOrEmpty(id) ? id : "G" + latestId++;
+        this.id = !string.IsNullOrEmpty(id) ? id : (latestId++).ToString();
         this.lineage = lineage == null ? (new List<string> { this.id + " created" }) : lineage.ToList();
         this.limbNodes = limbNodes.ToList();
         this.brainNeuronDefinitions = brainNeuronDefinitions == null ? new List<NeuronDefinition>() : brainNeuronDefinitions.ToList();

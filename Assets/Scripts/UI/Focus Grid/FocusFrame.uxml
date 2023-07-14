@@ -1,0 +1,23 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="project://database/Assets/Scripts/UI/Focus%20Grid/FocusFrame.uss?fileID=7433441132597879392&amp;guid=67bb15ff87a5e49e3b597125ffceff55&amp;type=3#FocusFrame" />
+    <ui:VisualElement name="container" style="flex-grow: 1; background-color: rgba(0, 0, 0, 0.5); width: auto; height: auto; flex-shrink: 1; align-self: auto;">
+        <ui:VisualElement name="viewport" style="flex-grow: 1;" />
+        <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); width: 100%; height: auto; flex-shrink: 1; align-self: flex-end; bottom: 0; position: absolute; align-items: flex-end; justify-content: space-between; flex-direction: row; padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px;">
+            <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0);">
+                <ui:Label tabindex="-1" text="Phenotype Name" display-tooltip-when-elided="true" name="name" style="-unity-font-style: bold;" />
+                <ui:Label tabindex="-1" text="Fitness" display-tooltip-when-elided="true" name="fitness" />
+            </ui:VisualElement>
+            <ui:VisualElement name="options" style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); flex-direction: row; justify-content: flex-end;">
+                <ui:Button display-tooltip-when-elided="true" name="save" style="width: 50px; height: 50px; padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px;">
+                    <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); background-image: url(&apos;project://database/Assets/Scripts/UI/Focus%20Grid/floppy-disk-solid.png?fileID=2800000&amp;guid=ba535fbb5b7184ba7b612f57e0119bcc&amp;type=3#floppy-disk-solid&apos;); -unity-background-scale-mode: scale-to-fit;" />
+                </ui:Button>
+                <ui:Button display-tooltip-when-elided="true" name="protect" style="width: 50px; height: 50px; padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px;">
+                    <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); background-image: url(&apos;project://database/Assets/Scripts/UI/Focus%20Grid/shield-heart-solid.png?fileID=2800000&amp;guid=b6648de0f44c44f3b8ac1b0fe15c37b1&amp;type=3#shield-heart-solid&apos;); -unity-background-scale-mode: scale-to-fit;" />
+                </ui:Button>
+                <ui:Button display-tooltip-when-elided="true" name="cull" style="width: 50px; height: 50px; padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px;">
+                    <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); background-image: url(&apos;project://database/Assets/Scripts/UI/Focus%20Grid/skull-crossbones-solid.png?fileID=2800000&amp;guid=337d2cc35aa9a489ebd872cb461c426d&amp;type=3#skull-crossbones-solid&apos;); -unity-background-scale-mode: scale-to-fit;" />
+                </ui:Button>
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

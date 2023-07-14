@@ -19,7 +19,7 @@ GameObject:
   - component: {fileID: 5224231335303513587}
   - component: {fileID: -9122385035508680815}
   - component: {fileID: 3383716648398450433}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: Limb
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -219,6 +219,7 @@ MonoBehaviour:
   xyMidwayCollider: {fileID: 5931677848738342441}
   yzMidwayCollider: {fileID: 7733643713818776781}
   xzMidwayCollider: {fileID: 7027420394417779601}
+  activeColliders: []
   joint: {fileID: 0}
   parentLimb: {fileID: 0}
   childLimbs: []

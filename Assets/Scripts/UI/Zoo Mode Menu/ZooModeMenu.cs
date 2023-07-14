@@ -1,5 +1,4 @@
 using System;
-using System.IO;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -9,12 +8,29 @@ using Crosstales.FB;
 public class ZooModeMenu : MonoBehaviour
 {
     public PlayerController playerController;
+    public SelectedPhenotypeMenu selectedPhenotypeMenu;
+
+    private enum RuntimeMenuTab
+    {
+        None,
+        Creature,
+        Interaction,
+        Environment
+    }
 
     private UIDocument doc;
 
-    private Color buttonInactiveColor = new Color(0.74f, 0.74f, 0.74f);
-    private Color buttonActiveColor = Color.white;
-    private Color buttonErrorColor = Color.red;
+    private VisualElement runtimeMenuBar;
+    private VisualElement runtimeMenuContainer;
+    private Button creatureTabToggle;
+    private Button interactionTabToggle;
+    private Button environmentTabToggle;
+    private VisualElement creatureTab;
+    private VisualElement interactionTab;
+    private VisualElement environmentTab;
+    private RuntimeMenuTab currentRuntimeMenuTab;
+
+    private VisualElement exitMenuContainer;
 
     private Genotype loadedGenotype;
     Button placeCreatureButton;
@@ -23,48 +39,45 @@ public class ZooModeMenu : MonoBehaviour
     private bool breedingCreature;
     private Phenotype readyParent;
 
+    private Color buttonInactiveColor = new Color(0.74f, 0.74f, 0.74f);
+    private Color buttonActiveColor = Color.white;
+    private Color buttonErrorColor = Color.red;
+
     private void Start()
     {
         doc = GetComponent<UIDocument>();
-        InitialiseMenu();
-        InitialiseEnvironmentPanel();
-        InitialiseAddCreaturePanel();
-        InitialiseInteractionPanel();
-        InitialiseSelectedCreatureOptionsPanel();
+        InitialiseRuntimeMenu();
+        InitialiseExitMenu();
+        InitialiseSelectedPhenotypeMenu();
+
+        ToggleRuntimeMenuTab(RuntimeMenuTab.Creature);
+        ShowExitMenu(false);
     }
 
-    private void InitialiseMenu()
+    private void InitialiseRuntimeMenu()
     {
-        VisualElement menu = doc.rootVisualElement.Q<VisualElement>("menu");
-        doc.rootVisualElement.Q<Button>("menu-open").clicked += () => menu.style.left = 0;
-        doc.rootVisualElement.Q<Button>("menu-close").clicked += () => menu.style.left = menu.resolvedStyle.width;
-        doc.rootVisualElement.Q<Button>("exit").clicked += () => SceneManager.LoadScene("MainMenu");
+        runtimeMenuBar = doc.rootVisualElement.Q<VisualElement>("runtime-menu-bar");
+        creatureTabToggle = runtimeMenuBar.Q<Button>("creature-tab-toggle");
+        interactionTabToggle = runtimeMenuBar.Q<Button>("interaction-tab-toggle");
+        environmentTabToggle = runtimeMenuBar.Q<Button>("environment-tab-toggle");
+        Button exit = runtimeMenuBar.Q<Button>("exit");
+
+        creatureTabToggle.clicked += () => ToggleRuntimeMenuTab(RuntimeMenuTab.Creature);
+        interactionTabToggle.clicked += () => ToggleRuntimeMenuTab(RuntimeMenuTab.Interaction);
+        environmentTabToggle.clicked += () => ToggleRuntimeMenuTab(RuntimeMenuTab.Environment);
+        exit.clicked += () => ShowExitMenu(true);
+
+        runtimeMenuContainer = doc.rootVisualElement.Q<VisualElement>("runtime-menu-container");
+        InitialiseCreatureTab();
+        InitialiseInteractionTab();
+        InitialiseEnvironmentTab();
     }
 
-    private void InitialiseEnvironmentPanel()
+    private void InitialiseCreatureTab()
     {
-        Toggle gravity = doc.rootVisualElement.Q<Toggle>("gravity");
-        gravity.value = WorldManager.Instance.gravity;
-        gravity.RegisterValueChangedCallback((ChangeEvent<bool> e) => WorldManager.Instance.gravity = e.newValue);
-        Toggle water = doc.rootVisualElement.Q<Toggle>("water");
-        water.value = WorldManager.Instance.simulateFluid;
-        water.RegisterValueChangedCallback((ChangeEvent<bool> e) => WorldManager.Instance.simulateFluid = e.newValue);
-        DropdownField timeOfDay = doc.rootVisualElement.Q<DropdownField>("time-of-day");
-        timeOfDay.choices = Enum.GetNames(typeof(TimeOfDay)).Select(name => Utilities.PascalToSentenceCase(name)).ToList();
-        timeOfDay.index = 1;
-        timeOfDay.RegisterValueChangedCallback((ChangeEvent<string> e) =>
-        {
-            TimeOfDay t;
-            Enum.TryParse<TimeOfDay>(Utilities.SentenceToPascalCase(timeOfDay.value), out t);
-            WorldManager.Instance.ChangeTimeOfDay(t);
-        });
-        WorldManager.Instance.ChangeTimeOfDay((TimeOfDay)Enum.GetValues(typeof(TimeOfDay)).GetValue(timeOfDay.index));
-    }
-
-    private void InitialiseAddCreaturePanel()
-    {
-        Button genotypeButton = doc.rootVisualElement.Q<Button>("genotype");
-        Button removeGenotypeButton = doc.rootVisualElement.Q<Button>("remove-genotype");
+        creatureTab = doc.rootVisualElement.Q<VisualElement>("creature");
+        Button genotypeButton = creatureTab.Q<Button>("genotype");
+        Button removeGenotypeButton = creatureTab.Q<Button>("remove-genotype");
         genotypeButton.clicked += () =>
         {
             string seedGenotypePath = FileBrowser.Instance.OpenSingleFile(
@@ -94,7 +107,7 @@ public class ZooModeMenu : MonoBehaviour
         };
         removeGenotypeButton.clicked += () =>
         {
-            genotypeButton.text = "<none>";
+            genotypeButton.text = "Select a genotype...";
             genotypeButton.style.backgroundColor = buttonInactiveColor;
             removeGenotypeButton.style.display = DisplayStyle.None;
             loadedGenotype = null;
@@ -119,10 +132,11 @@ public class ZooModeMenu : MonoBehaviour
         };
     }
 
-    private void InitialiseInteractionPanel()
+    private void InitialiseInteractionTab()
     {
-        Toggle emitLightFromSelf = doc.rootVisualElement.Q<Toggle>("emit-light-from-self");
-        emitLightFromSelf.RegisterValueChangedCallback((ChangeEvent<bool> e) => 
+        interactionTab = doc.rootVisualElement.Q<VisualElement>("interaction");
+        Toggle emitLightFromSelf = interactionTab.Q<Toggle>("emit-light-from-self");
+        emitLightFromSelf.RegisterValueChangedCallback((ChangeEvent<bool> e) =>
         {
             if (e.newValue)
             {
@@ -135,76 +149,65 @@ public class ZooModeMenu : MonoBehaviour
         });
     }
 
-    private void InitialiseSelectedCreatureOptionsPanel()
+    private void InitialiseEnvironmentTab()
     {
-        VisualElement selectedCreatureOptions = doc.rootVisualElement.Q<VisualElement>("selected-creature-options");
-        Button saveToFileButton = doc.rootVisualElement.Q<Button>("save-to-file");
-        breedCreatureButton = doc.rootVisualElement.Q<Button>("breed");
-        Button removeButton = doc.rootVisualElement.Q<Button>("remove");
-        Label creatureOptionsLog = doc.rootVisualElement.Q<Label>("creature-options-log");
-        saveToFileButton.clicked += () =>
+        environmentTab = doc.rootVisualElement.Q<VisualElement>("environment");
+        Toggle gravity = environmentTab.Q<Toggle>("gravity");
+        gravity.value = WorldManager.Instance.gravity;
+        gravity.RegisterValueChangedCallback((ChangeEvent<bool> e) => WorldManager.Instance.gravity = e.newValue);
+        Toggle water = environmentTab.Q<Toggle>("water");
+        water.value = WorldManager.Instance.simulateFluid;
+        water.RegisterValueChangedCallback((ChangeEvent<bool> e) => WorldManager.Instance.simulateFluid = e.newValue);
+        DropdownField timeOfDay = environmentTab.Q<DropdownField>("time-of-day");
+        timeOfDay.choices = Enum.GetNames(typeof(TimeOfDay)).Select(name => Utilities.PascalToSentenceCase(name)).ToList();
+        timeOfDay.index = 1;
+        timeOfDay.RegisterValueChangedCallback((ChangeEvent<string> e) =>
         {
-            Phenotype selectedPhenotype = (Phenotype)SelectionManager.Instance.Selected;
-            string savePath = FileBrowser.Instance.SaveFile(
-                "Save Genotype",
-                FileBrowser.Instance.CurrentSaveFile ?? Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
-                selectedPhenotype.genotype.Id,
-                "genotype"
-            );
-            string savedName = Path.GetFileNameWithoutExtension(savePath);
-            bool saveSuccess = false;
-            if (!string.IsNullOrEmpty(savedName))
-            {
-                Genotype genotypeToSave = Genotype.Construct(
-                    savedName,
-                    selectedPhenotype.genotype.Lineage,
-                    selectedPhenotype.genotype.BrainNeuronDefinitions,
-                    selectedPhenotype.genotype.LimbNodes
-                );
-                saveSuccess = !string.IsNullOrEmpty(genotypeToSave.SaveToFile(savePath));
-            }
-            creatureOptionsLog.style.display = DisplayStyle.Flex;
-            creatureOptionsLog.text = saveSuccess ? "Saved genotype to " + savePath : "Error saving genotype to file.";
-            creatureOptionsLog.style.color = saveSuccess ? Color.black : Color.red;
-        };
-        breedCreatureButton.clicked += () =>
+            TimeOfDay t;
+            Enum.TryParse<TimeOfDay>(Utilities.SentenceToPascalCase(timeOfDay.value), out t);
+            WorldManager.Instance.ChangeTimeOfDay(t);
+        });
+        WorldManager.Instance.ChangeTimeOfDay((TimeOfDay)Enum.GetValues(typeof(TimeOfDay)).GetValue(timeOfDay.index));
+        SliderInt mutationRate = environmentTab.Q<SliderInt>("mutation-rate");
+        mutationRate.value = Mathf.FloorToInt(MutationParameters.MutationRate);
+        mutationRate.RegisterValueChangedCallback((ChangeEvent<int> e) => MutationParameters.MutationRate = e.newValue);
+    }
+
+    private void InitialiseExitMenu()
+    {
+        exitMenuContainer = doc.rootVisualElement.Q<VisualElement>("exit-menu-container");
+        Button exit = exitMenuContainer.Q<Button>("exit");
+        Button cancel = exitMenuContainer.Q<Button>("cancel");
+
+        exit.clicked += () => SceneManager.LoadScene("MainMenu");
+        cancel.clicked += () => ShowExitMenu(false);
+    }
+
+    private void ShowExitMenu(bool show)
+    {
+        exitMenuContainer.style.display = show ? DisplayStyle.Flex : DisplayStyle.None;
+    }
+
+    private void InitialiseSelectedPhenotypeMenu()
+    {
+        selectedPhenotypeMenu.EnableSaveButton(() => selectedPhenotypeMenu.SelectedPhenotype?.SaveGenotypeToFile());
+        selectedPhenotypeMenu.EnableCullButton(() => Destroy(selectedPhenotypeMenu.SelectedPhenotype));
+        selectedPhenotypeMenu.EnableBreedButton(() =>
         {
             if (breedingCreature)
-            {
                 ToggleBreeding(false);
-                creatureOptionsLog.text = "";
-                creatureOptionsLog.style.display = DisplayStyle.None;
-                return;
-            }
-
-            Phenotype selectedPhenotype = (Phenotype)SelectionManager.Instance.Selected;
-            if (selectedPhenotype != null)
-            {
+            else if (selectedPhenotypeMenu.SelectedPhenotype != null)
                 ToggleBreeding(true);
-                creatureOptionsLog.style.display = DisplayStyle.Flex;
-                creatureOptionsLog.text = "Select a creature to breed with...";
-                creatureOptionsLog.style.color = Color.black;
-            }
-        };
-        removeButton.clicked += () =>
-        {
-            Phenotype selectedPhenotype = (Phenotype)SelectionManager.Instance.Selected;
-            Destroy(selectedPhenotype.gameObject);
-            SelectionManager.Instance.Selected = null;
-        };
+        });
 
-        SelectionManager.Instance.OnSelection += () =>
-        {
-            selectedCreatureOptions.style.display = ((Phenotype)SelectionManager.Instance.Selected) != null ? DisplayStyle.Flex : DisplayStyle.None;
-            creatureOptionsLog.text = "";
-            creatureOptionsLog.style.display = DisplayStyle.None;
-        };
+        SelectionManager.Instance.OnSelection += (previouslySelected, selected) =>
+            selectedPhenotypeMenu.SetTarget(selected?.gameObject.GetComponent<Phenotype>());
 
-        SelectionManager.Instance.OnSelection += () =>
+        SelectionManager.Instance.OnSelection += (previouslySelected, selected) =>
         {
             if (readyParent != null)
             {
-                Phenotype potentialParent = (Phenotype)SelectionManager.Instance.Selected;
+                Phenotype potentialParent = (Phenotype)selected;
                 if (potentialParent != null)
                 {
                     Genotype childGenotype = Reproduction.CreateOffspring(readyParent.genotype, potentialParent.genotype, 0f, 0.5f, 0.5f);
@@ -220,8 +223,6 @@ public class ZooModeMenu : MonoBehaviour
             }
 
         };
-
-        selectedCreatureOptions.style.display = DisplayStyle.None;
     }
 
     private void TogglePlacing(bool placing)
@@ -237,13 +238,38 @@ public class ZooModeMenu : MonoBehaviour
     private void ToggleBreeding(bool breeding)
     {
         breedingCreature = breeding;
-        breedCreatureButton.text = breedingCreature ? "Breeding..." : "Breed";
+        selectedPhenotypeMenu.SetInfoText(breedingCreature ? "Select a creature to breed with..." : null);
         if (breeding)
         {
             TogglePlacing(false);
-            readyParent = (Phenotype)SelectionManager.Instance.Selected;
+            readyParent = selectedPhenotypeMenu.SelectedPhenotype;
         }
         else
             readyParent = null;
+    }
+
+    private void ToggleRuntimeMenuTab(RuntimeMenuTab tab)
+    {
+        if (tab == currentRuntimeMenuTab)
+            tab = RuntimeMenuTab.None;
+
+        if (tab == RuntimeMenuTab.None) runtimeMenuContainer.style.display = DisplayStyle.None; else runtimeMenuContainer.style.display = DisplayStyle.Flex;
+        if (tab == RuntimeMenuTab.Creature) EnableRuntimeTab(creatureTab, creatureTabToggle); else DisableRuntimeTab(creatureTab, creatureTabToggle);
+        if (tab == RuntimeMenuTab.Interaction) EnableRuntimeTab(interactionTab, interactionTabToggle); else DisableRuntimeTab(interactionTab, interactionTabToggle);
+        if (tab == RuntimeMenuTab.Environment) EnableRuntimeTab(environmentTab, environmentTabToggle); else DisableRuntimeTab(environmentTab, environmentTabToggle);
+
+        currentRuntimeMenuTab = tab;
+    }
+
+    private void EnableRuntimeTab(VisualElement tab, Button toggle)
+    {
+        tab.style.display = DisplayStyle.Flex;
+        toggle.AddToClassList("active");
+    }
+
+    private void DisableRuntimeTab(VisualElement tab, Button toggle)
+    {
+        tab.style.display = DisplayStyle.None;
+        toggle.RemoveFromClassList("active");
     }
 }

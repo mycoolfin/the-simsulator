@@ -63,7 +63,7 @@ public class Limb : MonoBehaviour
         {
             List<Vector3> limbAxes = new() { transform.right, transform.up, transform.forward };
             Vector3 displacement = WorldManager.Instance.pointLight.transform.position - transform.position;
-            float luminosityAtPoint = 1 / (1 + displacement.sqrMagnitude);
+            float luminosityAtPoint = 1 / (1 + (displacement.sqrMagnitude / 10f));
             Vector3 lightDirection = displacement.normalized;
             for (int i = 0; i < 3; i++)
                 if (!photoSensors[i].Disabled)

@@ -1,6 +1,9 @@
-using System.Collections.Generic;
+using System;
+using System.IO;
 using System.Linq;
+using System.Collections.Generic;
 using UnityEngine;
+using Crosstales.FB;
 using cakeslice;
 
 public class Phenotype : MonoBehaviour, ISelectable, IPlaceable
@@ -11,17 +14,15 @@ public class Phenotype : MonoBehaviour, ISelectable, IPlaceable
     public List<Collider> activeColliders;
     private List<MeshRenderer> meshRenderers;
     private List<Outline> outlines;
-    private bool visible;
     public bool lostLimbs;
 
-    public bool saveGenotypeToFile; // Editor only.
-
+    [SerializeField]
+    private bool saveGenotypeToFile; // Editor only.
 
     private void Awake()
     {
         meshRenderers = GetComponentsInChildren<MeshRenderer>().ToList();
         outlines = GetComponentsInChildren<Outline>().ToList();
-        visible = true;
     }
 
     private void Update()
@@ -87,17 +88,12 @@ public class Phenotype : MonoBehaviour, ISelectable, IPlaceable
         }
     }
 
-    public void SetVisible(bool visible)
+    public void SetLayer(string layerName)
     {
-        if (this.visible == visible)
-            return;
-
-        this.visible = visible;
-        foreach (MeshRenderer meshRenderer in meshRenderers)
-        {
-            meshRenderer.enabled = visible;
-            meshRenderer.gameObject.layer = visible ? 0 : 2; // Ignore raycast if invisible.
-        }
+        LayerMask layerMask = LayerMask.NameToLayer(layerName);
+        gameObject.layer = layerMask;
+        foreach (Transform child in transform)
+            child.gameObject.layer = layerMask;
     }
 
     public void DetachLimb(Limb limb)
@@ -140,10 +136,32 @@ public class Phenotype : MonoBehaviour, ISelectable, IPlaceable
     {
         SelectionManager.Instance.Selected = this;
         outlines.ForEach(o => o.enabled = true);
-        SelectionManager.Instance.OnSelection += () => outlines.ForEach(o =>
+        SelectionManager.Instance.OnSelection += (previouslySelected, selected) => outlines.ForEach(o =>
         {
             if (o != null)
                 o.enabled = false;
         });
+    }
+
+    public void SaveGenotypeToFile()
+    {
+        string savePath = FileBrowser.Instance.SaveFile(
+            "Save Genotype",
+            FileBrowser.Instance.CurrentSaveFile ?? Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+            genotype.Id,
+            "genotype"
+        );
+        string savedName = Path.GetFileNameWithoutExtension(savePath);
+        bool saveSuccess = false;
+        if (!string.IsNullOrEmpty(savedName))
+        {
+            Genotype genotypeToSave = Genotype.Construct(
+                savedName,
+                genotype.Lineage,
+                genotype.BrainNeuronDefinitions,
+                genotype.LimbNodes
+            );
+            saveSuccess = !string.IsNullOrEmpty(genotypeToSave.SaveToFile(savePath));
+        }
     }
 }

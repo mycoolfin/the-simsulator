@@ -79,4 +79,4 @@ mono_crash.*.*.json
 .vsconfig
 .vscode/
 
-*.genotype.json
+*.genotype

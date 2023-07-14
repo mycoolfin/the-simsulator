@@ -1,0 +1,23 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="project://database/Assets/Scripts/UI/Selected%20Phenotype%20Menu/SelectedPhenotypeMenu.uss?fileID=7433441132597879392&amp;guid=a75ea7d90a1fb40e5afba92065782075&amp;type=3#SelectedPhenotypeMenu" />
+    <ui:VisualElement name="menu" style="flex-grow: 0; background-color: rgba(255, 255, 255, 0.5); width: auto; height: auto; flex-direction: column; justify-content: center; align-items: center; flex-shrink: 1; border-top-left-radius: 5px; border-bottom-left-radius: 5px; border-top-right-radius: 5px; border-bottom-right-radius: 5px; border-left-width: 0; border-right-width: 0; border-top-width: 0; border-bottom-width: 0; border-left-color: rgb(154, 206, 245); border-right-color: rgb(154, 206, 245); border-top-color: rgb(154, 206, 245); border-bottom-color: rgb(154, 206, 245); position: absolute; padding-left: 2px; padding-right: 2px; padding-top: 2px; padding-bottom: 2px;">
+        <ui:Label tabindex="-1" text="Title text" display-tooltip-when-elided="true" name="title" style="align-self: flex-start; padding-right: 0; padding-top: 0; padding-bottom: 0; padding-left: 0; margin-left: 4px; margin-right: 0; margin-top: 0; margin-bottom: 0; font-size: 12px; -unity-font-style: bold;" />
+        <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); flex-direction: row;">
+            <ui:Button display-tooltip-when-elided="true" name="save" style="width: 50px; height: 50px; padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px;">
+                <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); background-image: url(&apos;project://database/Assets/Scripts/UI/Icons/floppy-disk-solid.png?fileID=2800000&amp;guid=ba535fbb5b7184ba7b612f57e0119bcc&amp;type=3#floppy-disk-solid&apos;); -unity-background-scale-mode: scale-to-fit;" />
+            </ui:Button>
+            <ui:Button display-tooltip-when-elided="true" name="protect" style="width: 50px; height: 50px; padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px;">
+                <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); background-image: url(&apos;project://database/Assets/Scripts/UI/Icons/shield-heart-solid.png?fileID=2800000&amp;guid=b6648de0f44c44f3b8ac1b0fe15c37b1&amp;type=3#shield-heart-solid&apos;); -unity-background-scale-mode: scale-to-fit;" />
+            </ui:Button>
+            <ui:Button display-tooltip-when-elided="true" name="breed" style="width: 50px; height: 50px; padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px;">
+                <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); background-image: url(&apos;project://database/Assets/Scripts/UI/Icons/heart-circle-plus-solid.png?fileID=2800000&amp;guid=655f2838799e249448f54088d702e342&amp;type=3#heart-circle-plus-solid&apos;); -unity-background-scale-mode: scale-to-fit;" />
+            </ui:Button>
+            <ui:Button display-tooltip-when-elided="true" name="cull" style="width: 50px; height: 50px; padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px;">
+                <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); background-image: url(&apos;project://database/Assets/Scripts/UI/Icons/skull-crossbones-solid.png?fileID=2800000&amp;guid=337d2cc35aa9a489ebd872cb461c426d&amp;type=3#skull-crossbones-solid&apos;); -unity-background-scale-mode: scale-to-fit;" />
+            </ui:Button>
+        </ui:VisualElement>
+        <ui:Label tabindex="-1" text="Info text" display-tooltip-when-elided="true" name="info" style="display: flex;" />
+        <ui:VisualElement name="blocking-panel" style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); position: absolute; left: auto; top: auto; width: 100%; height: 100%; display: flex;" />
+    </ui:VisualElement>
+    <ui:VisualElement name="cursor" style="flex-grow: 1; background-color: rgba(154, 206, 245, 0.8); display: flex; position: absolute; width: 5px; height: 5px; left: 215px; top: 87px; border-left-color: rgba(0, 0, 0, 0.8); border-right-color: rgba(0, 0, 0, 0.8); border-top-color: rgba(0, 0, 0, 0.8); border-bottom-color: rgba(0, 0, 0, 0.8); border-left-width: 1px; border-right-width: 1px; border-top-width: 1px; border-bottom-width: 1px;" />
+</ui:UXML>

@@ -5,19 +5,20 @@ using UnityEngine.SceneManagement;
 using UnityEngine.UIElements;
 using Crosstales.FB;
 
-public enum RuntimeMenuTab
-{
-    None,
-    Status,
-    controls,
-    Settings
-}
-
 public class EvolutionModeMenu : MonoBehaviour
 {
     public EvolutionSimulator simulator;
     public PlayerController playerController;
-    public CameraGrid cameraGrid;
+    public SelectedPhenotypeMenu selectedPhenotypeMenu;
+
+    private enum RuntimeMenuTab
+    {
+        None,
+        Parameters,
+        Status,
+        controls,
+        Settings
+    }
 
     private UIDocument doc;
 
@@ -26,9 +27,11 @@ public class EvolutionModeMenu : MonoBehaviour
 
     private VisualElement runtimeMenuBar;
     private VisualElement runtimeMenuContainer;
+    private Button parametersTabToggle;
     private Button statusTabToggle;
     private Button controlsTabToggle;
     private Button settingsTabToggle;
+    private VisualElement parametersTab;
     private VisualElement statusTab;
     private VisualElement controlsTab;
     private VisualElement settingsTab;
@@ -42,11 +45,13 @@ public class EvolutionModeMenu : MonoBehaviour
     private int numberOfIterations;
     private Label bestFitness;
     private Label averageFitness;
-    private VisualElement selectedPhenotypeOptions;
+    private LineGraph bestFitnessGraph;
+    private LineGraph averageFitnessGraph;
 
     private Color buttonInactiveColor = new Color(0.74f, 0.74f, 0.74f);
     private Color buttonActiveColor = Color.white;
     private Color buttonErrorColor = Color.red;
+
     private void Start()
     {
         doc = GetComponent<UIDocument>();
@@ -54,6 +59,7 @@ public class EvolutionModeMenu : MonoBehaviour
         InitialiseInitialisationMenu();
         InitialiseRuntimeMenu();
         InitialiseExitMenu();
+        InitialiseSelectedPhenotypeMenu();
 
         ShowInitialisationMenu(true);
         ShowRuntimeMenu(false);
@@ -84,6 +90,8 @@ public class EvolutionModeMenu : MonoBehaviour
         SliderInt maxIterations = initialisationMenuContainer.Q<SliderInt>("max-iterations");
         SliderInt populationSize = initialisationMenuContainer.Q<SliderInt>("population-size");
         SliderInt survivalPercentage = initialisationMenuContainer.Q<SliderInt>("survival-percentage");
+        SliderInt mutationRate = initialisationMenuContainer.Q<SliderInt>("mutation-rate");
+        mutationRate.value = Mathf.FloorToInt(MutationParameters.MutationRate);
         Button seedGenotypeButton = initialisationMenuContainer.Q<Button>("seed-genotype");
         Button removeSeedButton = initialisationMenuContainer.Q<Button>("remove-seed");
         seedGenotypeButton.clicked += () =>
@@ -131,6 +139,7 @@ public class EvolutionModeMenu : MonoBehaviour
                 TrialType t;
                 Enum.TryParse<TrialType>(Utilities.SentenceToPascalCase(trialType.value), out t);
                 numberOfIterations = maxIterations.value;
+                MutationParameters.MutationRate = mutationRate.value;
                 StartCoroutine(simulator.Run(
                     t,
                     maxIterations.value,
@@ -143,23 +152,26 @@ public class EvolutionModeMenu : MonoBehaviour
 
         initialisationMenuContainer.Q<Button>("exit").clicked += () => SceneManager.LoadScene("MainMenu");
 
-        simulator.OnSimulationStart += () => playerController.transform.position += simulator.trialOrigin.position;
+        simulator.OnSimulationStart += () => playerController.transform.position += simulator.GetSimulationOrigin().position;
     }
 
     private void InitialiseRuntimeMenu()
     {
         runtimeMenuBar = doc.rootVisualElement.Q<VisualElement>("runtime-menu-bar");
+        parametersTabToggle = runtimeMenuBar.Q<Button>("parameters-tab-toggle");
         statusTabToggle = runtimeMenuBar.Q<Button>("status-tab-toggle");
         controlsTabToggle = runtimeMenuBar.Q<Button>("controls-tab-toggle");
         settingsTabToggle = runtimeMenuBar.Q<Button>("settings-tab-toggle");
         Button exit = runtimeMenuBar.Q<Button>("exit");
 
+        parametersTabToggle.clicked += () => ToggleRuntimeMenuTab(RuntimeMenuTab.Parameters);
         statusTabToggle.clicked += () => ToggleRuntimeMenuTab(RuntimeMenuTab.Status);
         controlsTabToggle.clicked += () => ToggleRuntimeMenuTab(RuntimeMenuTab.controls);
         settingsTabToggle.clicked += () => ToggleRuntimeMenuTab(RuntimeMenuTab.Settings);
         exit.clicked += () => ShowExitMenu(true);
 
         runtimeMenuContainer = doc.rootVisualElement.Q<VisualElement>("runtime-menu-container");
+        InitialiseParametersTab();
         InitialiseStatusTab();
         InitialiseControlsTab();
         InitialiseSettingsTab();
@@ -168,11 +180,32 @@ public class EvolutionModeMenu : MonoBehaviour
     private void InitialiseExitMenu()
     {
         exitMenuContainer = doc.rootVisualElement.Q<VisualElement>("exit-menu-container");
+        Button reset = exitMenuContainer.Q<Button>("reset");
         Button exit = exitMenuContainer.Q<Button>("exit");
         Button cancel = exitMenuContainer.Q<Button>("cancel");
 
+        reset.clicked += () => SceneManager.LoadScene(SceneManager.GetActiveScene().name);
         exit.clicked += () => SceneManager.LoadScene("MainMenu");
         cancel.clicked += () => ShowExitMenu(false);
+    }
+
+    private void InitialiseParametersTab()
+    {
+        parametersTab = runtimeMenuContainer.Q<VisualElement>("parameters");
+        Label trialType = parametersTab.Q<Label>("trial-type");
+        Label maxIterations = parametersTab.Q<Label>("max-iterations");
+        Label populationSize = parametersTab.Q<Label>("population-size");
+        Label survivalPercentage = parametersTab.Q<Label>("survival-percentage");
+        Label mutationRate = parametersTab.Q<Label>("mutation-rate");
+
+        simulator.OnSimulationStart += () =>
+        {
+            trialType.text = Utilities.PascalToSentenceCase(simulator.Trial.ToString());
+            maxIterations.text = simulator.MaxIterations == -1 ? "∞" : simulator.MaxIterations.ToString();
+            populationSize.text = simulator.PopulationSize.ToString();
+            survivalPercentage.text = Mathf.FloorToInt(simulator.SurvivalPercentage * 100f).ToString() + "%";
+            mutationRate.text = MutationParameters.MutationRate == 0 ? "Mutation disabled" : "~" + MutationParameters.MutationRate.ToString() + " mutation" + (MutationParameters.MutationRate == 1f ? "" : "s") + "/child";
+        };
     }
 
     private void InitialiseStatusTab()
@@ -182,6 +215,10 @@ public class EvolutionModeMenu : MonoBehaviour
         assessmentProgress = statusTab.Q<ProgressBar>("assessment-progress");
         bestFitness = statusTab.Q<Label>("best-fitness");
         averageFitness = statusTab.Q<Label>("average-fitness");
+        VisualElement bestFitnessGraphContainer = statusTab.Q<VisualElement>("best-fitness-graph");
+        VisualElement averageFitnessGraphContainer = statusTab.Q<VisualElement>("average-fitness-graph");
+        bestFitnessGraph = new LineGraph(bestFitnessGraphContainer, Color.cyan);
+        averageFitnessGraph = new LineGraph(averageFitnessGraphContainer, Color.yellow);
 
         simulator.OnIterationStart += () => UpdateStatus(false);
         simulator.OnIterationEnd += () => iterationProgress.title += " (Loading...)";
@@ -220,7 +257,6 @@ public class EvolutionModeMenu : MonoBehaviour
         };
         throttledTime = controlsTab.Q<ProgressBar>("throttled-time");
         controlsTab.Q<Toggle>("pause-iterating").RegisterValueChangedCallback((ChangeEvent<bool> e) => simulator.pauseIterating = e.newValue);
-        controlsTab.Q<Button>("reset").clicked += () => SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 
     private void InitialiseSettingsTab()
@@ -229,13 +265,28 @@ public class EvolutionModeMenu : MonoBehaviour
         Toggle colourByFitness = settingsTab.Q<Toggle>("colour-by-fitness");
         colourByFitness.value = simulator.colourByRelativeFitness;
         colourByFitness.RegisterValueChangedCallback((ChangeEvent<bool> e) => simulator.colourByRelativeFitness = e.newValue);
-        DropdownField show = settingsTab.Q<DropdownField>("show");
-        show.choices = Enum.GetNames(typeof(DisplayFilter)).Select(name => Utilities.PascalToSentenceCase(name)).ToList();
-        show.index = 0;
-        show.RegisterValueChangedCallback((ChangeEvent<string> e) => Enum.TryParse<DisplayFilter>(Utilities.SentenceToPascalCase(e.newValue), out simulator.filterBy));
+        SliderInt focusBestCreatures = settingsTab.Q<SliderInt>("focus-best");
+        focusBestCreatures.RegisterValueChangedCallback((ChangeEvent<int> e) => simulator.focusBestCreatures = e.newValue);
         Toggle orbitCamera = settingsTab.Q<Toggle>("orbit-camera");
         orbitCamera.value = playerController.orbitTarget != null;
-        orbitCamera.RegisterValueChangedCallback((ChangeEvent<bool> e) => playerController.orbitTarget = e.newValue ? simulator.trialOrigin : null);
+        orbitCamera.RegisterValueChangedCallback((ChangeEvent<bool> e) => playerController.orbitTarget = e.newValue ? simulator.GetSimulationOrigin() : null);
+    }
+
+    private void InitialiseSelectedPhenotypeMenu()
+    {
+        selectedPhenotypeMenu.EnableSaveButton(() => selectedPhenotypeMenu.SelectedPhenotype?.SaveGenotypeToFile());
+        selectedPhenotypeMenu.EnableProtectButton(() =>
+        {
+            Individual individual = simulator.GetIndividualByPhenotype(selectedPhenotypeMenu.SelectedPhenotype);
+            if (individual != null)
+                individual.isProtected = !individual.isProtected;
+        });
+        selectedPhenotypeMenu.EnableCullButton(() => simulator.GetIndividualByPhenotype(selectedPhenotypeMenu.SelectedPhenotype)?.Cull());
+
+        SelectionManager.Instance.OnSelection += (previouslySelected, selected) =>
+            selectedPhenotypeMenu.SetTarget(selected?.gameObject.GetComponent<Phenotype>());
+
+        simulator.OnIterationStart += () => selectedPhenotypeMenu.SetTarget(null);
     }
 
     private void ShowInitialisationMenu(bool show)
@@ -260,6 +311,7 @@ public class EvolutionModeMenu : MonoBehaviour
             tab = RuntimeMenuTab.None;
 
         if (tab == RuntimeMenuTab.None) runtimeMenuContainer.style.display = DisplayStyle.None; else runtimeMenuContainer.style.display = DisplayStyle.Flex;
+        if (tab == RuntimeMenuTab.Parameters) EnableRuntimeTab(parametersTab, parametersTabToggle); else DisableRuntimeTab(parametersTab, parametersTabToggle);
         if (tab == RuntimeMenuTab.Status) EnableRuntimeTab(statusTab, statusTabToggle); else DisableRuntimeTab(statusTab, statusTabToggle);
         if (tab == RuntimeMenuTab.controls) EnableRuntimeTab(controlsTab, controlsTabToggle); else DisableRuntimeTab(controlsTab, controlsTabToggle);
         if (tab == RuntimeMenuTab.Settings) EnableRuntimeTab(settingsTab, settingsTabToggle); else DisableRuntimeTab(settingsTab, settingsTabToggle);
@@ -284,67 +336,12 @@ public class EvolutionModeMenu : MonoBehaviour
         iterationProgress.value = (float)simulator.currentIteration / (float)numberOfIterations;
         iterationProgress.title = simulationComplete
         ? "Simulation Complete (" + numberOfIterations + " iteration" + (numberOfIterations != 1 ? "s" : "") + ")"
-        : "Iteration " + simulator.currentIteration + "/" + numberOfIterations;
+        : "Iteration " + simulator.currentIteration + "/" + (numberOfIterations == -1 ? "∞" : numberOfIterations);
 
         bestFitness.text = simulator.bestFitnesses.Count == 0 ? "?" : simulator.bestFitnesses[simulator.bestFitnesses.Count - 1].ToString("0.000");
         averageFitness.text = simulator.averageFitnesses.Count == 0 ? "?" : simulator.averageFitnesses[simulator.averageFitnesses.Count - 1].ToString("0.000");
+
+        bestFitnessGraph.SetPoints(simulator.bestFitnesses);
+        averageFitnessGraph.SetPoints(simulator.averageFitnesses);
     }
-
-    // private void InitialiseSelectedPhenotypeOptionsPanel()
-    // {
-    //     selectedPhenotypeOptions = doc.rootVisualElement.Q<VisualElement>("selected-phenotype-options");
-    //     Button saveToFileButton = doc.rootVisualElement.Q<Button>("save-to-file");
-    //     Button protectButton = doc.rootVisualElement.Q<Button>("protect");
-    //     Button cullButton = doc.rootVisualElement.Q<Button>("cull");
-    //     Label phenotypeOptionsLog = doc.rootVisualElement.Q<Label>("phenotype-options-log");
-    //     saveToFileButton.clicked += () =>
-    //     {
-    //         Phenotype selectedPhenotype = (Phenotype)SelectionManager.Instance.Selected;
-    //         string savePath = FileBrowser.Instance.SaveFile(
-    //             "Save Genotype",
-    //             FileBrowser.Instance.CurrentSaveFile ?? Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
-    //             selectedPhenotype.genotype.Id,
-    //             "genotype"
-    //         );
-    //         string savedName = Path.GetFileNameWithoutExtension(savePath);
-    //         bool saveSuccess = false;
-    //         if (!string.IsNullOrEmpty(savedName))
-    //         {
-    //             Genotype genotypeToSave = Genotype.Construct(
-    //                 savedName,
-    //                 selectedPhenotype.genotype.Lineage,
-    //                 selectedPhenotype.genotype.BrainNeuronDefinitions,
-    //                 selectedPhenotype.genotype.LimbNodes
-    //             );
-    //             saveSuccess = !string.IsNullOrEmpty(genotypeToSave.SaveToFile(savePath));
-    //         }
-    //         phenotypeOptionsLog.style.display = DisplayStyle.Flex;
-    //         phenotypeOptionsLog.text = saveSuccess ? "Saved genotype to " + savePath : "Error saving genotype to file.";
-    //         phenotypeOptionsLog.style.color = saveSuccess ? Color.black : Color.red;
-    //     };
-    //     protectButton.clicked += () =>
-    //     {
-    //         Phenotype selectedPhenotype = (Phenotype)SelectionManager.Instance.Selected;
-    //         bool isProtected = simulator.TogglePhenotypeProtection(selectedPhenotype);
-    //         phenotypeOptionsLog.style.display = DisplayStyle.Flex;
-    //         phenotypeOptionsLog.text = isProtected ? "Protected phenotype." : "Removed phenotype protection.";
-    //         phenotypeOptionsLog.style.color = Color.black;
-    //     };
-    //     cullButton.clicked += () =>
-    //     {
-    //         Phenotype selectedPhenotype = (Phenotype)SelectionManager.Instance.Selected;
-    //         Destroy(selectedPhenotype.gameObject);
-    //         SelectionManager.Instance.Selected = null;
-    //     };
-
-    //     SelectionManager.Instance.OnSelection += () =>
-    //     {
-    //         selectedPhenotypeOptions.style.display = ((Phenotype)SelectionManager.Instance.Selected) != null ? DisplayStyle.Flex : DisplayStyle.None;
-    //         phenotypeOptionsLog.text = "";
-    //         phenotypeOptionsLog.style.display = DisplayStyle.None;
-    //     };
-
-    //     simulator.OnIterationStart += () => selectedPhenotypeOptions.style.display = DisplayStyle.None;
-    //     simulator.OnSimulationEnd += () => selectedPhenotypeOptions.style.display = DisplayStyle.None;
-    // }
 }
