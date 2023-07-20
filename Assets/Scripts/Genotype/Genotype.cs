@@ -10,12 +10,12 @@ public class Genotype
     private static int latestId = 1;
 
     [SerializeField] private string id;
-    [SerializeField] private List<string> lineage;
+    [SerializeField] private Ancestry ancestry;
     [SerializeField] private List<NeuronDefinition> brainNeuronDefinitions;
     [SerializeField] private List<LimbNode> limbNodes;
 
     public string Id => id;
-    public ReadOnlyCollection<string> Lineage => lineage.AsReadOnly();
+    public Ancestry Ancestry => ancestry.CreateCopy();
     public ReadOnlyCollection<NeuronDefinition> BrainNeuronDefinitions => brainNeuronDefinitions.AsReadOnly();
     public ReadOnlyCollection<LimbNode> LimbNodes => limbNodes.AsReadOnly();
 
@@ -30,18 +30,19 @@ public class Genotype
         }
     }
 
-    private Genotype(string id, IList<string> lineage, IList<NeuronDefinition> brainNeuronDefinitions, IList<LimbNode> limbNodes, IList<InstancedLimbNode> instancedLimbNodes)
+    private Genotype(string id, IList<NeuronDefinition> brainNeuronDefinitions, IList<LimbNode> limbNodes, IList<InstancedLimbNode> instancedLimbNodes)
     {
         this.id = !string.IsNullOrEmpty(id) ? id : (latestId++).ToString();
-        this.lineage = lineage == null ? (new List<string> { this.id + " created" }) : lineage.ToList();
         this.limbNodes = limbNodes.ToList();
         this.brainNeuronDefinitions = brainNeuronDefinitions == null ? new List<NeuronDefinition>() : brainNeuronDefinitions.ToList();
         this.instancedLimbNodes = instancedLimbNodes == null ? null : instancedLimbNodes.ToList();
     }
 
-    public static Genotype Construct(string id, IList<string> lineage, IList<NeuronDefinition> brainNeuronDefinitions, IList<LimbNode> limbNodes)
+    public static Genotype Construct(string id, Ancestry ancestry, IList<NeuronDefinition> brainNeuronDefinitions, IList<LimbNode> limbNodes)
     {
-        return new Genotype(id, lineage, brainNeuronDefinitions, limbNodes, null);
+        Genotype genotype = new Genotype(id, brainNeuronDefinitions, limbNodes, null);
+        genotype.ancestry = ancestry ?? new Ancestry(new(genotype), null);
+        return genotype;
     }
 
     public void Validate()
@@ -104,7 +105,9 @@ public class Genotype
         for (int i = 0; i < numberOfBrainNeurons; i++)
             brainNeuronDefinitions.Add(NeuronDefinition.CreateRandom(EmitterAvailabilityMap.GenerateMapForBrain(numberOfBrainNeurons, instancedLimbNodes)));
 
-        return new Genotype(null, null, brainNeuronDefinitions, limbNodes, instancedLimbNodes);
+        Genotype randomGenotype = Genotype.Construct(null, null, brainNeuronDefinitions, limbNodes);
+        randomGenotype.instancedLimbNodes = instancedLimbNodes; // Cache for later.
+        return randomGenotype;
     }
 
     public string SaveToFile(string path)
@@ -154,66 +157,24 @@ public class Genotype
 
         return visitedNodeIds;
     }
+}
 
-    public void FixBrokenNeuralConnections()
+[Serializable]
+public class GenotypeWithoutAncestry
+{
+    [SerializeField] private string id;
+    [SerializeField] private List<NeuronDefinition> brainNeuronDefinitions;
+    [SerializeField] private List<LimbNode> limbNodes;
+
+    public GenotypeWithoutAncestry(Genotype genotype)
     {
-        EmitterAvailabilityMap brainMap = EmitterAvailabilityMap.GenerateMapForBrain(BrainNeuronDefinitions.Count, InstancedLimbNodes);
-        List<NeuronDefinition> newBrainNeuronDefinitions = BrainNeuronDefinitions.Select(n => new NeuronDefinition(
-            n.Type,
-            n.InputDefinitions.Select(i => FixInputDefinition(i, brainMap)).ToList()
-        )).ToList();
-
-        List<LimbNode> newLimbNodes = new();
-        for (int i = 0; i < LimbNodes.Count; i++)
-        {
-            LimbNode limbNode = LimbNodes[i];
-
-            EmitterAvailabilityMap limbNodeMap = EmitterAvailabilityMap.GenerateMapForLimbNode(
-                BrainNeuronDefinitions.Count,
-                LimbNodes.Cast<ILimbNodeEssentialInfo>().ToList(),
-                i
-            );
-
-            List<JointAxisDefinition> newJointAxisDefinitions = limbNode.JointDefinition.AxisDefinitions.Select(a => new JointAxisDefinition(
-                a.Limit,
-                FixInputDefinition(a.InputDefinition, limbNodeMap)
-            )).ToList();
-            List<NeuronDefinition> newNeuronDefinitions = limbNode.NeuronDefinitions.Select(n => new NeuronDefinition(
-                n.Type,
-                n.InputDefinitions.Select(i => FixInputDefinition(i, limbNodeMap)).ToList()
-            )).ToList();
-
-            newLimbNodes.Add(new(
-                limbNode.Dimensions,
-                new JointDefinition(limbNode.JointDefinition.Type, newJointAxisDefinitions),
-                limbNode.RecursiveLimit,
-                newNeuronDefinitions,
-                limbNode.Connections
-            ));
-        }
-
-        brainNeuronDefinitions = newBrainNeuronDefinitions;
-        limbNodes = newLimbNodes;
-        instancedLimbNodes = null;
+        id = genotype.Id;
+        brainNeuronDefinitions = genotype.BrainNeuronDefinitions.ToList();
+        limbNodes = genotype.LimbNodes.ToList();
     }
 
-    private static InputDefinition FixInputDefinition(InputDefinition inputDefinition, EmitterAvailabilityMap map)
+    public Genotype ToGenotype()
     {
-        try
-        {
-            inputDefinition.Validate(map);
-            return inputDefinition; // If validation succeeds, return the original input definition.
-        }
-        catch
-        {
-            InputDefinition randomDefinition = InputDefinition.CreateRandom(map);
-            return new(
-                randomDefinition.EmitterSetLocation,
-                randomDefinition.ChildLimbIndex,
-                randomDefinition.InstanceId,
-                randomDefinition.EmitterIndex,
-                inputDefinition.Weight // Preserve original weight.
-            );
-        }
+        return Genotype.Construct(id, null, brainNeuronDefinitions, limbNodes);
     }
 }

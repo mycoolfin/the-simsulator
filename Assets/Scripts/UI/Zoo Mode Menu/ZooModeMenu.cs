@@ -210,7 +210,7 @@ public class ZooModeMenu : MonoBehaviour
                 Phenotype potentialParent = (Phenotype)selected;
                 if (potentialParent != null)
                 {
-                    Genotype childGenotype = Reproduction.CreateOffspring(readyParent.genotype, potentialParent.genotype, 0f, 0.5f, 0.5f);
+                    Genotype childGenotype = Reproduction.CreateOffspringWithChance(readyParent.genotype, potentialParent.genotype, 0f, 0.5f, 0.5f);
                     Phenotype child = Phenotype.Construct(childGenotype);
                     TogglePlacing(true);
                     PickAndPlaceManager.Instance.PickUp(

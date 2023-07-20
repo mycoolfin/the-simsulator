@@ -11,6 +11,7 @@ public class Phenotype : MonoBehaviour, ISelectable, IPlaceable
     public Genotype genotype;
     public Brain brain;
     public List<Limb> limbs;
+    private Color originalLimbColor;
     public List<Collider> activeColliders;
     private List<MeshRenderer> meshRenderers;
     private List<Outline> outlines;
@@ -22,6 +23,7 @@ public class Phenotype : MonoBehaviour, ISelectable, IPlaceable
     private void Awake()
     {
         meshRenderers = GetComponentsInChildren<MeshRenderer>().ToList();
+        originalLimbColor = meshRenderers.Count == 0 ? Color.white : meshRenderers[0].sharedMaterial.color;
         outlines = GetComponentsInChildren<Outline>().ToList();
     }
 
@@ -86,6 +88,12 @@ public class Phenotype : MonoBehaviour, ISelectable, IPlaceable
                 b.HasValue ? Mathf.Clamp((float)b, 0f, 1f) : meshRenderer.material.color.b
             );
         }
+    }
+
+    public void ClearRGB()
+    {
+        foreach (MeshRenderer meshRenderer in meshRenderers)
+            meshRenderer.material.color = originalLimbColor;
     }
 
     public void SetLayer(string layerName)
@@ -157,7 +165,7 @@ public class Phenotype : MonoBehaviour, ISelectable, IPlaceable
         {
             Genotype genotypeToSave = Genotype.Construct(
                 savedName,
-                genotype.Lineage,
+                genotype.Ancestry,
                 genotype.BrainNeuronDefinitions,
                 genotype.LimbNodes
             );

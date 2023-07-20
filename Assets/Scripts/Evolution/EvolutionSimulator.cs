@@ -276,7 +276,7 @@ public class EvolutionSimulator : MonoBehaviour
                 else
                     nextGeneration.individuals.Add(new()
                     {
-                        genotype = Reproduction.CreateOffspring(parent1, parent2)
+                        genotype = Reproduction.CreateRandomisedOffspring(parent1, parent2)
                     });
 
                 yield return null;
@@ -332,7 +332,7 @@ public class EvolutionSimulator : MonoBehaviour
                 if (colourByRelativeFitness)
                 {
                     if (individual.assessmentProgress == -1f)
-                        individual.phenotype.SetRGB(1f, 1f, 1f);
+                        individual.phenotype.ClearRGB();
                     else if (individual.fitness == 0f)
                         individual.phenotype.SetRGB(1f, 0f, 0f);
                     else if (individual == currentBestIndividual)
@@ -344,7 +344,7 @@ public class EvolutionSimulator : MonoBehaviour
                     }
                 }
                 else
-                    individual.phenotype.SetRGB(1f, 1f, 1f);
+                    individual.phenotype.ClearRGB();
             }
         }
     }

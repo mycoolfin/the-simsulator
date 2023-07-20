@@ -7,7 +7,7 @@ public static class GenotypeSerializer
     {
         try
         {
-            string json = JsonUtility.ToJson(genotype, true);
+            string json = JsonUtility.ToJson(genotype);
             File.WriteAllText(path, json);
             Debug.Log("Wrote " + genotype.Id + " to " + path);
             return path;

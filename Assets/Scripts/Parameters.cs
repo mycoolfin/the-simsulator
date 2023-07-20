@@ -80,20 +80,34 @@ public static class MutationParameters
 
     public static class Root
     {
-        public static float ChangeLimbNodes = 0.9f;
-        public static float ChangeBrainNeuronDefinitions = 0.1f;
+        public static float ChangeBrain = 0.1f;
+        public static float ChangeLimbNode = 0.9f;
+    }
+
+    public static class Brain
+    {
+        public static float AddNeuron = 1f;
+        public static float RemoveNeuron = 1f;
+        public static float ChangeNeuronDefinition = 1f;
     }
 
     public static class LimbNode
     {
-        public static float ChangeLimbDimensions = 1f;
-        public static float ChangeJointType = 1f;
-        public static float ChangeJointAxisDefinition = 1f;
+        public static float ChangeDimensions = 1f;
+        public static float ChangeJointDefinition = 1f;
         public static float ChangeRecursiveLimit = 1f;
+        public static float AddNeuron = 1f;
+        public static float RemoveNeuron = 1f;
         public static float ChangeNeuronDefinition = 1f;
         public static float AddLimbConnection = 1f;
         public static float RemoveLimbConnection = 1f;
         public static float ChangeLimbConnection = 1f;
+    }
+
+    public static class JointDefinition
+    {
+        public static float ChangeJointType = 1f;
+        public static float ChangeJointAxisDefinition = 1f;
     }
 
     public static class JointAxisDefinition
@@ -117,18 +131,16 @@ public static class MutationParameters
 
     public static class NeuronDefinition
     {
-        public static float AddNeuron = 1f;
-        public static float RemoveNeuron = 1f;
         public static float ChangeNeuronType = 1f;
         public static float ChangeInputDefinition = 1f;
     }
 
     public static class InputDefinition
     {
-        public static float ChangeInputDefinitionInputSetLocation = 1f;
-        public static float ChangeInputDefinitionChildLimbIndex = 1f;
-        public static float ChangeInputDefinitionInstanceId = 1f;
-        public static float ChangeInputDefinitionEmitterIndex = 1f;
-        public static float ChangeInputDefinitionWeight = 1f;
+        public static float ChangeEmitterSetLocation = 1f;
+        public static float ChangeChildLimbIndex = 1f;
+        public static float ChangeInstanceId = 1f;
+        public static float ChangeEmitterIndex = 1f;
+        public static float ChangeWeight = 1f;
     }
 }

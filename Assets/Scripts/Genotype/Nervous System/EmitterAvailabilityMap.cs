@@ -49,10 +49,12 @@ public class EmitterAvailabilityMap
         return limbInstanceEmitterCounts.Where(x => x.Value > 0).Select(x => x.Key).ToList();
     }
 
-    public int GetInputCountAtLocation(EmitterSetLocation emitterSetLocation, int childLimbIndex, string instanceId)
+    public int GetEmitterCountAtLocation(EmitterSetLocation emitterSetLocation, int childLimbIndex, string instanceId)
     {
         switch (emitterSetLocation)
         {
+            case EmitterSetLocation.None:
+                return -1;
             case EmitterSetLocation.SameLimb:
                 return sameLimbEmitterCount;
             case EmitterSetLocation.Brain:
@@ -64,7 +66,7 @@ public class EmitterAvailabilityMap
             case EmitterSetLocation.LimbInstances:
                 return !limbInstanceEmitterCounts.ContainsKey(instanceId) ? -1 : limbInstanceEmitterCounts[instanceId];
             default:
-                throw new ArgumentException("Invalid operation.");
+                throw new ArgumentException();
         }
     }
 
