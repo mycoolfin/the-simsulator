@@ -10,15 +10,15 @@ public class PlayerController : MonoBehaviour
     public float lookMultiplier;
     public float scrollMultiplier;
     public float panMultiplier;
-    [SerializeField] private Vector2 horizontalMovement;
-    [SerializeField] private float verticalMovement;
-    [SerializeField] private Vector2 lookDeltas;
-    [SerializeField] private Vector2 scrollDeltas;
-    [SerializeField] private Vector2 cursorPosition;
-    [SerializeField] private bool primarySelectActive;
-    [SerializeField] private bool secondarySelectActive;
-    [SerializeField] private bool tertiarySelectActive;
-    [SerializeField] private bool isPointerOverUI;
+    private Vector2 horizontalMovement;
+    private float verticalMovement;
+    private Vector2 lookDeltas;
+    private Vector2 scrollDeltas;
+    private Vector2 cursorPosition;
+    private bool primarySelectActive;
+    private bool secondarySelectActive;
+    private bool tertiarySelectActive;
+    private bool isPointerOverUI;
 
     private void Update() // Using Update so that we can still move when time is stopped.
     {
@@ -140,6 +140,7 @@ public class PlayerController : MonoBehaviour
     {
         verticalMovement = context.ReadValue<float>();
     }
+
     public void Look(InputAction.CallbackContext context)
     {
         lookDeltas = context.ReadValue<Vector2>();

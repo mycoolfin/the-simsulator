@@ -1,0 +1,78 @@
+.genotype {
+    background-color: rgb(99, 99, 99);
+    border-top-left-radius: 5px;
+    border-bottom-left-radius: 5px;
+    border-top-right-radius: 5px;
+    border-bottom-right-radius: 5px;
+    border-left-color: rgb(255, 255, 255);
+    border-right-color: rgb(255, 255, 255);
+    border-top-color: rgb(255, 255, 255);
+    border-bottom-color: rgb(255, 255, 255);
+    color: rgb(255, 255, 255);
+    border-left-width: 1px;
+    border-right-width: 1px;
+    border-top-width: 1px;
+    border-bottom-width: 1px;
+    -unity-font-style: bold;
+    margin-left: 10px;
+    margin-right: 10px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+.genotype:hover {
+    background-color: rgb(156, 156, 156);
+}
+
+.genotype.active {
+    background-color: rgb(1, 137, 190);
+    color: rgb(255, 255, 255);
+}
+
+Foldout {
+    width: 100%;
+    overflow: visible;
+    margin-right: 20px;
+}
+
+Foldout > Toggle {
+    width: 100%;
+    overflow: visible;
+    margin-right: 20px;
+}
+
+Foldout > Toggle > VisualElement {
+    width: 100%;
+    overflow: visible;
+    margin-right: 20px;
+}
+
+Foldout > Toggle > VisualElement > Label {
+    color: rgb(255, 255, 255);
+    white-space: normal;
+}
+
+.arrow-down {
+    width: 0;
+    height: 0;
+    border-left-width: 10px;
+    border-right-width: 10px;
+    border-top-width: 10px;
+    border-left-color: rgba(0, 0, 0, 0);
+    border-right-color: rgba(0, 0, 0, 0);
+    border-top-color: rgb(0, 0, 0);
+    border-bottom-width: 10px;
+}
+
+.arrow-left {
+    width: 0;
+    height: 0;
+    border-left-width: 10px;
+    border-right-width: 10px;
+    border-top-width: 10px;
+    border-left-color: rgba(0, 0, 0, 0);
+    border-right-color: rgb(0, 0, 0);
+    border-top-color: rgba(0, 0, 0, 0);
+    border-bottom-width: 10px;
+    border-bottom-color: rgba(0, 0, 0, 0);
+}

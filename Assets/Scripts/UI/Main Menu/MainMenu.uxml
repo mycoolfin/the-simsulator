@@ -1,11 +1,24 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="project://database/Assets/Scripts/UI/Main%20Menu/MainMenu.uss?fileID=7433441132597879392&amp;guid=bca3f8cf78dfc4615b60aa13a510ca5e&amp;type=3#MainMenu" />
     <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0);">
         <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); width: 50%; justify-content: center; align-items: center;">
             <ui:Label tabindex="-1" text="evc-sim" display-tooltip-when-elided="true" style="-unity-font-style: bold; -unity-text-align: upper-center; color: rgb(255, 255, 255);" />
-            <ui:Button text="Evolution Mode" display-tooltip-when-elided="true" name="evolution-mode" />
-            <ui:Button text="Zoo Mode" display-tooltip-when-elided="true" name="zoo-mode" />
-            <ui:Button text="Controls" display-tooltip-when-elided="true" name="controls" />
-            <ui:Button text="Quit" display-tooltip-when-elided="true" name="quit" />
+            <ui:VisualElement style="flex-grow: 0; background-color: rgba(0, 0, 0, 0);">
+                <ui:VisualElement name="evolution-mode-container" style="flex-grow: 1; background-color: rgba(0, 0, 0, 0);">
+                    <ui:Button text="Evolution Mode" display-tooltip-when-elided="true" name="evolution-mode" />
+                    <ui:Label tabindex="-1" text="Evolve new creatures." display-tooltip-when-elided="true" style="position: absolute; right: -220px; top: 5px; width: 200px; white-space: normal;" />
+                </ui:VisualElement>
+                <ui:VisualElement name="zoo-mode-container" style="flex-grow: 1; background-color: rgba(0, 0, 0, 0);">
+                    <ui:Button text="Zoo Mode" display-tooltip-when-elided="true" name="zoo-mode" />
+                    <ui:Label tabindex="-1" text="Interact with and manually breed existing creatures." display-tooltip-when-elided="true" style="position: absolute; right: -220px; top: -3px; width: 200px; white-space: normal;" />
+                </ui:VisualElement>
+                <ui:VisualElement name="ancestry-explorer-container" style="flex-grow: 1; background-color: rgba(0, 0, 0, 0);">
+                    <ui:Button text="Ancestry Explorer" display-tooltip-when-elided="true" name="ancestry-explorer" />
+                    <ui:Label tabindex="-1" text="View a creature&apos;s evolutionary history." display-tooltip-when-elided="true" style="position: absolute; right: -220px; top: -3px; width: 200px; white-space: normal;" />
+                </ui:VisualElement>
+                <ui:Button text="Controls" display-tooltip-when-elided="true" name="controls" style="margin-top: 15px;" />
+                <ui:Button text="Quit" display-tooltip-when-elided="true" name="quit" style="margin-top: 15px;" />
+            </ui:VisualElement>
         </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>

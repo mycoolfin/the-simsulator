@@ -1,0 +1,25 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="project://database/Assets/Scripts/UI/Ancestry%20Explorer/AncestryExplorer.uss?fileID=7433441132597879392&amp;guid=82a00f6beac574cfc81968ce2d1862c1&amp;type=3#AncestryExplorer" />
+    <ui:VisualElement name="offspring-specification-template" style="flex-grow: 1; background-color: rgb(0, 0, 0); color: rgb(255, 255, 255); padding-left: 10px; padding-right: 10px; padding-top: 10px; padding-bottom: 10px; align-items: center; margin-top: 20px; margin-bottom: 20px; width: 350px;">
+        <ui:VisualElement style="background-color: rgba(0, 0, 0, 0); align-items: center; width: 100%; height: 0; position: absolute; top: 0;">
+            <ui:VisualElement style="flex-grow: 1; background-color: rgb(0, 0, 0); width: 6px; height: 20px; position: absolute; align-items: center; top: -30px;">
+                <ui:VisualElement class="arrow-down" style="position: absolute; bottom: -20px;" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+        <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); flex-direction: row; justify-content: center; display: flex; margin-bottom: 10px;">
+            <ui:Label tabindex="-1" text="Recombination Method:" display-tooltip-when-elided="true" />
+            <ui:Label tabindex="-1" text="Test" display-tooltip-when-elided="true" name="recombination-type" />
+        </ui:VisualElement>
+        <ui:VisualElement name="mate" style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); left: 370px; top: -3px; position: absolute; display: flex;">
+            <ui:VisualElement style="flex-grow: 1; background-color: rgb(0, 0, 0); width: 20px; height: 6px; position: absolute; align-items: center; display: flex; left: -10px; top: 26px;">
+                <ui:VisualElement class="arrow-left" style="position: absolute; left: -20px; top: -7px;" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+        <ui:Foldout text="Mutations (x)" name="mutations" value="false" />
+        <ui:VisualElement style="background-color: rgba(0, 0, 0, 0); align-items: center; width: 100%; height: 0; position: absolute; bottom: 0;">
+            <ui:VisualElement style="flex-grow: 1; background-color: rgb(0, 0, 0); width: 6px; height: 20px; position: absolute; bottom: auto; top: 0; align-items: center;">
+                <ui:VisualElement class="arrow-down" style="position: absolute; bottom: -20px;" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

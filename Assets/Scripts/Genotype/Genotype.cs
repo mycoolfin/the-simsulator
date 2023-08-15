@@ -10,12 +10,12 @@ public class Genotype
     private static int latestId = 1;
 
     [SerializeField] private string id;
-    [SerializeField] private Ancestry ancestry;
+    [SerializeReference] private Ancestry ancestry;
     [SerializeField] private List<NeuronDefinition> brainNeuronDefinitions;
     [SerializeField] private List<LimbNode> limbNodes;
 
     public string Id => id;
-    public Ancestry Ancestry => ancestry.CreateCopy();
+    public Ancestry Ancestry => ancestry?.CreateCopy();
     public ReadOnlyCollection<NeuronDefinition> BrainNeuronDefinitions => brainNeuronDefinitions.AsReadOnly();
     public ReadOnlyCollection<LimbNode> LimbNodes => limbNodes.AsReadOnly();
 
@@ -176,5 +176,15 @@ public class GenotypeWithoutAncestry
     public Genotype ToGenotype()
     {
         return Genotype.Construct(id, null, brainNeuronDefinitions, limbNodes);
+    }
+
+    public static bool TestStructuralEquality(Genotype g1, Genotype g2)
+    {
+        // Ignore ancestry and ID.
+        GenotypeWithoutAncestry gwa1 = new(g1);
+        GenotypeWithoutAncestry gwa2 = new(g2);
+        gwa1.id = gwa2.id;
+
+        return string.Compare(JsonUtility.ToJson(gwa1), JsonUtility.ToJson(gwa2)) == 0;
     }
 }

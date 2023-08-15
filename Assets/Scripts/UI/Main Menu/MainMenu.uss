@@ -1,0 +1,23 @@
+#evolution-mode-container > Label {
+    display: none;
+}
+
+#evolution-mode-container:hover > Label {
+    display: flex;
+}
+
+#zoo-mode-container > Label {
+    display: none;
+}
+
+#zoo-mode-container:hover > Label {
+    display: flex;
+}
+
+#ancestry-explorer-container > Label {
+    display: none;
+}
+
+#ancestry-explorer-container:hover > Label {
+    display: flex;
+}

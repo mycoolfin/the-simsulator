@@ -18,7 +18,7 @@ public class BlockingPanel : MonoBehaviour
             yield break;
 
         panel.style.display = DisplayStyle.Flex;
-        yield return new WaitForSeconds(0.2f);
+        yield return new WaitForSecondsRealtime(0.2f);
         panel.style.display = DisplayStyle.None;
     }
 

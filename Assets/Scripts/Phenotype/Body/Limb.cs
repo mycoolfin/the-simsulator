@@ -59,7 +59,7 @@ public class Limb : MonoBehaviour
 
     private void UpdatePhotoSensors()
     {
-        if (WorldManager.Instance.pointLight.activeInHierarchy)
+        if (WorldManager.Instance.pointLight != null && WorldManager.Instance.pointLight.activeInHierarchy)
         {
             List<Vector3> limbAxes = new() { transform.right, transform.up, transform.forward };
             Vector3 displacement = WorldManager.Instance.pointLight.transform.position - transform.position;

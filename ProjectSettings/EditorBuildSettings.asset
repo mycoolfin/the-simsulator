@@ -14,4 +14,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/ZooMode.unity
     guid: 71cbaa9bdd2264df888030795468892f
+  - enabled: 1
+    path: Assets/Scenes/AncestryExplorer.unity
+    guid: dae474cbfdfd74c63b442b03ca12bdca
   m_configObjects: {}

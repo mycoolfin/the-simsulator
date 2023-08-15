@@ -152,12 +152,13 @@ public class ZooModeMenu : MonoBehaviour
     private void InitialiseEnvironmentTab()
     {
         environmentTab = doc.rootVisualElement.Q<VisualElement>("environment");
-        Toggle gravity = environmentTab.Q<Toggle>("gravity");
-        gravity.value = WorldManager.Instance.gravity;
-        gravity.RegisterValueChangedCallback((ChangeEvent<bool> e) => WorldManager.Instance.gravity = e.newValue);
         Toggle water = environmentTab.Q<Toggle>("water");
         water.value = WorldManager.Instance.simulateFluid;
-        water.RegisterValueChangedCallback((ChangeEvent<bool> e) => WorldManager.Instance.simulateFluid = e.newValue);
+        water.RegisterValueChangedCallback((ChangeEvent<bool> e) =>
+        {
+            WorldManager.Instance.gravity = !e.newValue;
+            WorldManager.Instance.simulateFluid = e.newValue;
+        });
         DropdownField timeOfDay = environmentTab.Q<DropdownField>("time-of-day");
         timeOfDay.choices = Enum.GetNames(typeof(TimeOfDay)).Select(name => Utilities.PascalToSentenceCase(name)).ToList();
         timeOfDay.index = 1;
@@ -191,7 +192,7 @@ public class ZooModeMenu : MonoBehaviour
     private void InitialiseSelectedPhenotypeMenu()
     {
         selectedPhenotypeMenu.EnableSaveButton(() => selectedPhenotypeMenu.SelectedPhenotype?.SaveGenotypeToFile());
-        selectedPhenotypeMenu.EnableCullButton(() => Destroy(selectedPhenotypeMenu.SelectedPhenotype));
+        selectedPhenotypeMenu.EnableCullButton(() => Destroy(selectedPhenotypeMenu.SelectedPhenotype.gameObject));
         selectedPhenotypeMenu.EnableBreedButton(() =>
         {
             if (breedingCreature)

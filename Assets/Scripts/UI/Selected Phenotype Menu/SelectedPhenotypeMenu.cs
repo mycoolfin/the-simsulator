@@ -50,7 +50,7 @@ public class SelectedPhenotypeMenu : MonoBehaviour
     {
         if (selectedPhenotype != null)
         {
-            Vector3 uiPos = WorldToUI(selectedPhenotype.GetBounds().center);
+            Vector3 uiPos = WorldToUI(selectedPhenotype.limbs[0].transform.position);
             cursor.style.left = uiPos.x;
             cursor.style.top = uiPos.y;
             cursor.MarkDirtyRepaint();
@@ -81,7 +81,7 @@ public class SelectedPhenotypeMenu : MonoBehaviour
 
     private Vector2 WorldToUI(Vector3 worldPosition)
     {
-        Vector3 screenPos = cam.WorldToScreenPoint(selectedPhenotype.GetBounds().center);
+        Vector3 screenPos = cam.WorldToScreenPoint(worldPosition);
         float xScalingFactor = (float)Screen.width / (float)doc.panelSettings.referenceResolution.x; // Screen match mode set to width only.
         return new Vector2(screenPos.x / xScalingFactor, (Screen.height - screenPos.y) / xScalingFactor);
     }
@@ -93,7 +93,7 @@ public class SelectedPhenotypeMenu : MonoBehaviour
         cursor.style.display = selectedPhenotype != null ? DisplayStyle.Flex : DisplayStyle.None;
         if (selectedPhenotype != null)
         {
-            Vector2 uiPos = WorldToUI(selectedPhenotype.GetBounds().center);
+            Vector2 uiPos = WorldToUI(selectedPhenotype.limbs[0].transform.position);
             menu.style.left = uiPos.x + (uiPos.x < doc.panelSettings.referenceResolution.x / 2f ? 100 : -100);
             menu.style.top = uiPos.y + (uiPos.y < doc.panelSettings.referenceResolution.y / 2f ? 100 : -100);
             titleLabel.text = selectedPhenotype.name;

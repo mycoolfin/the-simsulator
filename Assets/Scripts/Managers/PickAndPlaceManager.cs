@@ -18,11 +18,18 @@ public class PickAndPlaceManager : MonoBehaviour
         }
     }
 
-    public GameObject placementCursor;
+    public GameObject placementCursorPrefab;
+    private GameObject placementCursor;
     private IPlaceable held;
     public IPlaceable Held => held;
     private Action placedCallback;
     private Action cancelCallback;
+
+    private void Start()
+    {
+        placementCursor = Instantiate(placementCursorPrefab);
+        placementCursor.SetActive(false);
+    }
 
     public void ShowCursor(bool show)
     {
@@ -51,7 +58,7 @@ public class PickAndPlaceManager : MonoBehaviour
             held.gameObject.SetActive(true);
             Action cb = placedCallback;
             Reset();
-            cb();
+            cb?.Invoke();
         }
     }
 
@@ -61,13 +68,13 @@ public class PickAndPlaceManager : MonoBehaviour
         {
             Action cb = cancelCallback;
             Reset();
-            cb();
+            cb?.Invoke();
         }
     }
 
     private void Reset()
     {
-        ShowCursor(false);
+        if (placementCursor != null) ShowCursor(false);
         placedCallback = null;
         cancelCallback = null;
         held = null;

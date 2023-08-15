@@ -41,10 +41,6 @@
                 <ui:Label tabindex="-1" text="Environment" display-tooltip-when-elided="true" style="-unity-text-align: upper-center; -unity-font-style: bold;" />
                 <ui:VisualElement style="flex-grow: 0; background-color: rgba(0, 0, 0, 0);">
                     <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); flex-direction: row; align-items: stretch; justify-content: space-between; align-self: stretch; padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px;">
-                        <ui:Label tabindex="-1" text="Gravity" display-tooltip-when-elided="true" style="flex-basis: auto; flex-direction: column; margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0; justify-content: flex-start; align-items: auto; align-self: center; width: 50%;" />
-                        <ui:Toggle name="gravity" value="true" style="width: 50%;" />
-                    </ui:VisualElement>
-                    <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); flex-direction: row; align-items: stretch; justify-content: space-between; align-self: stretch; padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px;">
                         <ui:Label tabindex="-1" text="Water" display-tooltip-when-elided="true" style="flex-basis: auto; flex-direction: column; margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0; justify-content: flex-start; align-items: auto; align-self: center; width: 50%;" />
                         <ui:Toggle name="water" style="width: 50%;" />
                     </ui:VisualElement>

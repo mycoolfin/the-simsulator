@@ -776,7 +776,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dd8126b01f1fe4478b668ca357b87794, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  placementCursor: {fileID: 0}
+  placementCursorPrefab: {fileID: 3255343998154770517, guid: d80961e5e2a0c4d97bb652934de7859e, type: 3}
 --- !u!1001 &1100477762
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -894,7 +894,8 @@ MonoBehaviour:
   survivalPercentage: 0
   seedGenotype:
     id: 
-    lineage: []
+    ancestry:
+      rid: -2
     brainNeuronDefinitions: []
     limbNodes: []
   run: 0
@@ -907,6 +908,11 @@ MonoBehaviour:
   assessmentProgress: 0
   bestFitnesses: []
   averageFitnesses: []
+  references:
+    version: 2
+    RefIds:
+    - rid: -2
+      type: {class: , ns: , asm: }
 --- !u!4 &1294992366
 Transform:
   m_ObjectHideFlags: 0
@@ -1131,10 +1137,6 @@ PrefabInstance:
     - target: {fileID: 3915294573914384464, guid: a4cae177f8e6e4ea0b5409d3cc274fab, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6975621557057364701, guid: a4cae177f8e6e4ea0b5409d3cc274fab, type: 3}
-      propertyPath: m_CullingMask.m_Bits
-      value: 2147483647
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

@@ -26,7 +26,7 @@ public static class Reproduction
             + asexualChance
         );
 
-        // Generate recombination operation.
+        // Generate and apply a recombination operation.
         RecombinationOperation recombinationOperation;
         if (methodChoice <= crossoverChance)
             recombinationOperation = RecombinationOperation.CreateCrossover(parent2);
@@ -34,37 +34,36 @@ public static class Reproduction
             recombinationOperation = RecombinationOperation.CreateGrafting(parent2);
         else
             recombinationOperation = RecombinationOperation.CreateAsexual();
-
-        // Apply recombination.
         Genotype child = ApplyRecombinationOperation(parent1, recombinationOperation);
 
+        // Determine the number of mutations.
         List<MutationOperation> mutationOperations = new();
         int numberOfMutations = Mathf.Max(0, Mathf.RoundToInt(MutationParameters.MutationRate + (Utilities.RandomGaussian() * MutationParameters.MutationRate)));
 
-        // Always add new disconnected limb node (will be cleaned up later if not connected).
-        MutationOperation newLimbNodeOperation = Mutation.AddPotentialLimbNode(child);
-        LimbNode newLimbNode = null;
-        if (!newLimbNodeOperation.invalid)
+        // Always add a new disconnected limb node if mutations are incoming.
+        // This potential node will be pruned later if a connection does not mutate to point to it.
+        if (numberOfMutations > 0)
         {
-            mutationOperations.Add(newLimbNodeOperation);
-            child = Mutation.ParseMutationFunction(newLimbNodeOperation)(child);
-            newLimbNode = child.LimbNodes[child.LimbNodes.Count - 1];
+            MutationOperation newLimbNodeOperation = Mutation.AddPotentialLimbNode(child);
+            if (!newLimbNodeOperation.invalid)
+            {
+                mutationOperations.Add(newLimbNodeOperation);
+                child = Mutation.ParseMutationFunction(newLimbNodeOperation)(child);
+            }
         }
 
+        // Generate and apply mutation operations.
         for (int i = 0; i < numberOfMutations; i++) // Mutations are compounding.
         {
-            // Generate mutation operation.
             MutationOperation mutationOperation = Mutation.CreateRandomMutation(child);
-            mutationOperations.Add(mutationOperation);
-
-            // Apply mutation.
-            child = Mutation.ParseMutationFunction(mutationOperation)(child);
+            if (!mutationOperation.invalid)
+            {
+                mutationOperations.Add(mutationOperation);
+                child = Mutation.ParseMutationFunction(mutationOperation)(child);
+            }
         }
 
         child.PruneUnconnectedLimbNodes();
-
-        if (newLimbNode != null && !child.LimbNodes.Contains(newLimbNode)) // New limb node did not get connected, and therefore was pruned.
-            mutationOperations.Remove(newLimbNodeOperation);
 
         // Update ancestry.
         Ancestry childAncestry = child.Ancestry;
@@ -76,7 +75,7 @@ public static class Reproduction
         return child;
     }
 
-    public static Genotype CreateOffspringFromSpecification(Genotype genotype, OffspringSpecification offspringSpecification)
+    public static Genotype CreateOffspringFromSpecification(Genotype genotype, OffspringSpecification offspringSpecification, string childName)
     {
         Genotype child = ApplyRecombinationOperation(genotype, offspringSpecification.RecombinationOperation);
         foreach (MutationOperation mutationOperation in offspringSpecification.MutationOperations)
@@ -85,6 +84,8 @@ public static class Reproduction
         child.PruneUnconnectedLimbNodes();
 
         child.Validate();
+
+        child = Genotype.Construct(childName, child.Ancestry, child.BrainNeuronDefinitions, child.LimbNodes);
 
         return child;
     }

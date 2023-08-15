@@ -11,6 +11,7 @@ public class MainMenu : MonoBehaviour
         UIDocument doc = GetComponent<UIDocument>();
         doc.rootVisualElement.Q<Button>("evolution-mode").clicked += () => SceneManager.LoadScene("EvolutionMode");
         doc.rootVisualElement.Q<Button>("zoo-mode").clicked += () => SceneManager.LoadScene("ZooMode");
+        doc.rootVisualElement.Q<Button>("ancestry-explorer").clicked += () => SceneManager.LoadScene("AncestryExplorer");
         doc.rootVisualElement.Q<Button>("controls").clicked += () =>
         {
             controlsInfo.rootVisualElement.style.display = DisplayStyle.Flex;
