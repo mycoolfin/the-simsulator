@@ -53,6 +53,12 @@ public static class Mutation
 
         Queue<Step> pathTokens = new();
 
+        // TODO: This is a rare bug. Remove this after we know what causes it.
+        if (string.IsNullOrEmpty(mutationOperation.path)) {
+            Debug.Log("ERROR: Empty Mutation Bug\n" + mutationOperation.path + " : " + mutationOperation.newValue + " : " + mutationOperation.invalid);
+            return (genotype) => genotype;
+        }
+
         foreach (string token in mutationOperation.path.Split(levelSeparator))
         {
             string[] sections = token.Split(indexLeftSeparator);
