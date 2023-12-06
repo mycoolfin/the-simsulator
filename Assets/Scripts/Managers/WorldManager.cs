@@ -58,6 +58,7 @@ public class WorldManager : MonoBehaviour
 
     private void Update()
     {
+        Screen.sleepTimeout = SleepTimeout.NeverSleep;
         ThrottleTimeScaling();
     }
 

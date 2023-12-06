@@ -62,9 +62,9 @@ public class EmitterAvailabilityMap
             case EmitterSetLocation.ParentLimb:
                 return parentLimbEmitterCount;
             case EmitterSetLocation.ChildLimbs:
-                return (childLimbIndex < 0 || childLimbIndex >= childLimbEmitterCounts.Count) ? -1 : childLimbEmitterCounts[childLimbIndex];
+                return (childLimbIndex >= childLimbEmitterCounts.Count) ? -1 : childLimbEmitterCounts[childLimbIndex];
             case EmitterSetLocation.LimbInstances:
-                return !limbInstanceEmitterCounts.ContainsKey(instanceId) ? -1 : limbInstanceEmitterCounts[instanceId];
+                return (string.IsNullOrEmpty(instanceId) || !limbInstanceEmitterCounts.ContainsKey(instanceId)) ? -1 : limbInstanceEmitterCounts[instanceId];
             default:
                 throw new ArgumentException();
         }

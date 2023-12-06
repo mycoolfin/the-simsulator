@@ -37,7 +37,7 @@ public class PlayerController : MonoBehaviour
 
     private void HandleLook()
     {
-        if (secondarySelectActive)
+        if (!isPointerOverUI && secondarySelectActive)
         {
             transform.rotation *= Quaternion.Euler(0f, lookDeltas.x * lookMultiplier, 0f);
             float verticalLook = -lookDeltas.y * lookMultiplier;
@@ -91,9 +91,8 @@ public class PlayerController : MonoBehaviour
             PickAndPlaceManager.Instance.ShowCursor(false);
         else
         {
-            RaycastHit hit;
             Ray ray = playerCamera.ScreenPointToRay(cursorPosition);
-            if (Physics.Raycast(ray, out hit))
+            if (Physics.Raycast(ray, out RaycastHit hit))
             {
                 PickAndPlaceManager.Instance.ShowCursor(true);
                 PickAndPlaceManager.Instance.MoveCursorTo(hit.point);
@@ -106,9 +105,8 @@ public class PlayerController : MonoBehaviour
         if (isPointerOverUI)
             return;
 
-        RaycastHit hit;
         Ray ray = playerCamera.ScreenPointToRay(cursorPosition);
-        if (Physics.Raycast(ray, out hit))
+        if (Physics.Raycast(ray, out RaycastHit hit))
             PickAndPlaceManager.Instance.Place(hit.point);
     }
 
@@ -117,9 +115,8 @@ public class PlayerController : MonoBehaviour
         if (isPointerOverUI)
             return;
 
-        RaycastHit hit;
         Ray ray = playerCamera.ScreenPointToRay(cursorPosition);
-        if (Physics.Raycast(ray, out hit))
+        if (Physics.Raycast(ray, out RaycastHit hit))
         {
             ISelectable selected = hit.transform.GetComponentInParent<ISelectable>();
             if (selected != null)
