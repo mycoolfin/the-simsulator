@@ -224,6 +224,6 @@ public class WaterLightClosenessAssessment : LightClosenessAssessment
         WorldManager.Instance.pointLight.transform.position =
             trialOrigin.position
             + Quaternion.Euler(UnityEngine.Random.Range(0, 360), UnityEngine.Random.Range(0, 360), UnityEngine.Random.Range(0, 360))
-            * Vector3.forward * UnityEngine.Random.Range(0f, 20f);
+            * Vector3.forward * UnityEngine.Random.Range(0f, 40f);
     }
 }

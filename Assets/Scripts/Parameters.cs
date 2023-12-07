@@ -76,7 +76,7 @@ public static class ReproductionParameters
 public static class MutationParameters
 {
     // The average number of mutations per child.
-    public static float MutationRate = 1f;
+    public static float MutationRate = 10f;
 
     public static class Root
     {
