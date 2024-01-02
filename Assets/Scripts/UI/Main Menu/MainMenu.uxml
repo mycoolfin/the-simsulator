@@ -2,7 +2,7 @@
     <Style src="project://database/Assets/Scripts/UI/Main%20Menu/MainMenu.uss?fileID=7433441132597879392&amp;guid=bca3f8cf78dfc4615b60aa13a510ca5e&amp;type=3#MainMenu" />
     <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0);">
         <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); width: 50%; justify-content: center; align-items: center;">
-            <ui:Label tabindex="-1" text="evc-sim" display-tooltip-when-elided="true" style="-unity-font-style: bold; -unity-text-align: upper-center; color: rgb(255, 255, 255);" />
+            <ui:Label tabindex="-1" text="The Simsulator" display-tooltip-when-elided="true" style="-unity-font-style: bold; -unity-text-align: upper-center; color: rgb(255, 255, 255);" />
             <ui:VisualElement style="flex-grow: 0; background-color: rgba(0, 0, 0, 0);">
                 <ui:VisualElement name="evolution-mode-container" style="flex-grow: 1; background-color: rgba(0, 0, 0, 0);">
                     <ui:Button text="Evolution Mode" display-tooltip-when-elided="true" name="evolution-mode" />
