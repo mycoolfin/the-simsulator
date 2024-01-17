@@ -70,7 +70,7 @@ public class Phenotype : MonoBehaviour, ISelectable, IPlaceable
 
     public bool IsValid()
     {
-        bool atLeastTwoLimbs = this.limbs.Count > 1;
+        bool atLeastTwoLimbs = limbs.Count > 1;
 
         Bounds phenotypeBounds = GetBounds();
         bool validSize = phenotypeBounds.extents.x < PhenotypeParameters.MaxSize && phenotypeBounds.extents.y < PhenotypeParameters.MaxSize && phenotypeBounds.extents.z < PhenotypeParameters.MaxSize;
@@ -140,15 +140,34 @@ public class Phenotype : MonoBehaviour, ISelectable, IPlaceable
         return phenotype;
     }
 
-    public void Select()
+    public void SetLimbsSelectable(bool limbsSelectable)
     {
-        SelectionManager.Instance.Selected = this;
-        outlines.ForEach(o => o.enabled = true);
-        SelectionManager.Instance.OnSelection += (previouslySelected, selected) => outlines.ForEach(o =>
+        limbs.ForEach(l => l.passSelectionToParent = !limbsSelectable);
+    }
+
+    public void Select(bool toggle, bool multiselect)
+    {
+        if (toggle && SelectionManager.Instance.Selected.Contains(this))
         {
-            if (o != null)
-                o.enabled = false;
-        });
+            SelectionManager.Instance.RemoveFromSelection(this);
+        }
+        else
+        {
+            outlines.Where(o => o != null).ToList().ForEach(o => o.enabled = true);
+            void handler(List<ISelectable> previouslySelected, List<ISelectable> selected)
+            {
+                if (!selected.Contains(this))
+                {
+                    outlines.Where(o => o != null).ToList().ForEach(o => o.enabled = false);
+                    SelectionManager.Instance.OnSelectionChange -= handler;
+                }
+            }
+            SelectionManager.Instance.OnSelectionChange += handler;
+            if (multiselect)
+                SelectionManager.Instance.AddToSelection(this);
+            else
+                SelectionManager.Instance.SetSelected(new() { this });
+        }
     }
 
     public void SaveGenotypeToFile()

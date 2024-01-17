@@ -118,14 +118,13 @@ public class PlayerController : MonoBehaviour
         Ray ray = playerCamera.ScreenPointToRay(cursorPosition);
         if (Physics.Raycast(ray, out RaycastHit hit))
         {
-            ISelectable selected = hit.transform.GetComponentInParent<ISelectable>();
-            if (selected != null)
+            if (hit.transform.TryGetComponent(out ISelectable selected))
             {
-                selected.Select();
+                selected.Select(true, false);
                 return;
             }
         }
-        SelectionManager.Instance.Selected = null;
+        SelectionManager.Instance.SetSelected(null);
     }
 
     public void MoveHorizontal(InputAction.CallbackContext context)

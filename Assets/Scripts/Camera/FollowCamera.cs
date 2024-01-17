@@ -2,14 +2,14 @@ using UnityEngine;
 
 public class FollowCamera : MonoBehaviour
 {
-    private Camera thisCamera;
+    public Camera cam;
     private ISelectable target;
     private float desiredHeight;
     private float desiredDistance;
 
     private void Awake()
     {
-        thisCamera = GetComponent<Camera>();
+        cam = GetComponent<Camera>();
     }
 
     private void Update()
@@ -30,7 +30,7 @@ public class FollowCamera : MonoBehaviour
         this.target = target;
         if (target as UnityEngine.Object != null)
         {
-            thisCamera.cullingMask = LayerMask.GetMask("Default", layerName);
+            cam.cullingMask = LayerMask.GetMask("Default", layerName);
             Bounds bounds = target.GetBounds();
             Vector3 size = bounds.extents * 2f;
             float maxLength = Mathf.Max(Mathf.Max(size.x, size.y), size.z);

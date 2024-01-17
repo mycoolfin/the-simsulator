@@ -3,6 +3,6 @@ using UnityEngine;
 public interface ISelectable
 {
     GameObject gameObject { get; }
-    void Select();
+    void Select(bool toggle, bool multiselect);
     Bounds GetBounds();
 }

@@ -2,9 +2,11 @@
 using System.Collections.ObjectModel;
 using System.Collections.Generic;
 using UnityEngine;
+using cakeslice;
 
-public class Limb : MonoBehaviour
+public class Limb : MonoBehaviour, ISelectable
 {
+    public LimbNode limbNode;
     public string instanceId;
 
     public BoxCollider fullBodyCollider;
@@ -33,6 +35,9 @@ public class Limb : MonoBehaviour
     public Limb parentLimb;
     public List<Limb> childLimbs;
 
+    private Outline outline;
+    public bool passSelectionToParent = true;
+
     [SerializeField] private bool reflectedX;
     [SerializeField] private bool reflectedY;
     [SerializeField] private bool reflectedZ;
@@ -50,6 +55,11 @@ public class Limb : MonoBehaviour
             .Concat(joint?.sensors.Cast<ISignalEmitter>() ?? new List<ISignalEmitter>())
             .Concat(photoSensors)
             .ToList();
+    }
+
+    private void Awake()
+    {
+        outline = GetComponent<Outline>();
     }
 
     private void FixedUpdate()
@@ -223,6 +233,8 @@ public class Limb : MonoBehaviour
     {
         Limb limb = Instantiate(ResourceManager.Instance.limbPrefab).GetComponent<Limb>();
 
+        limb.limbNode = node.LimbNode;
+
         limb.transform.parent = containerTransform;
         limb.name = "Limb " + containerTransform.childCount;
         limb.instanceId = node.InstanceId;
@@ -231,8 +243,7 @@ public class Limb : MonoBehaviour
         limb.photoSensors = new() { new(), new(), new() };
         limb.neurons = node.LimbNode.NeuronDefinitions.Select(neuronDefinition => NeuronBase.CreateNeuron(neuronDefinition)).ToList();
 
-        limb.activeColliders = new List<Collider>();
-        limb.activeColliders.Add(limb.fullBodyCollider);
+        limb.activeColliders = new List<Collider> { limb.fullBodyCollider };
 
         Vector3 clampedDimensions = ClampDimensions(node.LimbNode.Dimensions);
         limb.unscaledDimensions = clampedDimensions;
@@ -286,5 +297,47 @@ public class Limb : MonoBehaviour
     private static Quaternion ReflectRotation(Quaternion source, Vector3 normal)
     {
         return Quaternion.LookRotation(Vector3.Reflect(source * Vector3.forward, normal), Vector3.Reflect(source * Vector3.up, normal));
+    }
+
+    public void Select(bool toggle, bool multiselect)
+    {
+        if (passSelectionToParent)
+        {
+            Phenotype parent = GetComponentInParent<Phenotype>();
+            if (parent != null)
+                parent.Select(toggle, multiselect);
+        }
+        else
+        {
+            if (toggle && SelectionManager.Instance.Selected.Contains(this))
+            {
+                if (multiselect)
+                    SelectionManager.Instance.RemoveFromSelection(this);
+                else
+                    SelectionManager.Instance.SetSelected(null);
+            }
+            else
+            {
+                outline.enabled = true;
+                void handler(List<ISelectable> previouslySelected, List<ISelectable> selected)
+                {
+                    if (!selected.Contains(this))
+                    {
+                        outline.enabled = false;
+                        SelectionManager.Instance.OnSelectionChange -= handler;
+                    }
+                }
+                SelectionManager.Instance.OnSelectionChange += handler;
+                if (multiselect)
+                    SelectionManager.Instance.AddToSelection(this);
+                else
+                    SelectionManager.Instance.SetSelected(new() { this });
+            }
+        }
+    }
+
+    public Bounds GetBounds()
+    {
+        return fullBodyCollider.bounds;
     }
 }

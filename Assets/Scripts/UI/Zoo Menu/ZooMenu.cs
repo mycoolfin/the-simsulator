@@ -201,14 +201,17 @@ public class ZooModeMenu : MonoBehaviour
                 ToggleBreeding(true);
         });
 
-        SelectionManager.Instance.OnSelection += (previouslySelected, selected) =>
-            selectedPhenotypeMenu.SetTarget(selected?.gameObject.GetComponent<Phenotype>());
+        SelectionManager.Instance.OnSelectionChange += (previouslySelected, selected) =>
+        {
+            if (selected.Count > 0)
+                selectedPhenotypeMenu.SetTarget(selected[0].gameObject.GetComponent<Phenotype>());
+        };
 
-        SelectionManager.Instance.OnSelection += (previouslySelected, selected) =>
+        SelectionManager.Instance.OnSelectionChange += (previouslySelected, selected) =>
         {
             if (readyParent != null)
             {
-                Phenotype potentialParent = (Phenotype)selected;
+                Phenotype potentialParent = (Phenotype)selected[0];
                 if (potentialParent != null)
                 {
                     Genotype childGenotype = Reproduction.CreateOffspringWithChance(readyParent.genotype, potentialParent.genotype, 0f, 0.5f, 0.5f);

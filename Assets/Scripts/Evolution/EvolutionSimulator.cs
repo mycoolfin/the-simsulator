@@ -60,11 +60,11 @@ public class EvolutionSimulator : MonoBehaviour
     private Population population;
     private Assessment assessment;
 
-    public bool running => population != null;
+    public bool Running => population != null;
 
     private void Update()
     {
-        if (running)
+        if (Running)
         {
             VisualisePopulation();
             CalculateAssessmentProgress();

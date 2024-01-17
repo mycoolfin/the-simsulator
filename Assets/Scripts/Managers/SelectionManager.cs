@@ -1,4 +1,6 @@
 using System;
+using System.Linq;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class SelectionManager : MonoBehaviour
@@ -10,7 +12,7 @@ public class SelectionManager : MonoBehaviour
     {
         if (_instance != null && _instance != this)
         {
-            Destroy(this.gameObject);
+            Destroy(gameObject);
         }
         else
         {
@@ -18,16 +20,28 @@ public class SelectionManager : MonoBehaviour
         }
     }
 
-    private ISelectable selected;
-    public ISelectable Selected
+    private List<ISelectable> selected = new();
+
+    public List<ISelectable> Selected => selected;
+
+    public void SetSelected(List<ISelectable> newSelected)
     {
-        get => selected;
-        set
-        {
-            ISelectable previouslySelected = selected;
-            selected = value;
-            OnSelection(previouslySelected, selected);
-        }
+        List<ISelectable> previouslySelected = selected;
+        selected = newSelected ?? new();
+        OnSelectionChange(previouslySelected, selected);
     }
-    public event Action<ISelectable, ISelectable> OnSelection = delegate { };
+
+    public void AddToSelection(ISelectable toAdd)
+    {
+        if (!Selected.Contains(toAdd))
+            SetSelected(Selected.Concat(new List<ISelectable>() { toAdd }).ToList());
+    }
+
+    public void RemoveFromSelection(ISelectable toRemove)
+    {
+        if (Selected.Contains(toRemove))
+            SetSelected(Selected.Where(s => s != toRemove).ToList());
+    }
+
+    public event Action<List<ISelectable>, List<ISelectable>> OnSelectionChange = delegate { };
 }

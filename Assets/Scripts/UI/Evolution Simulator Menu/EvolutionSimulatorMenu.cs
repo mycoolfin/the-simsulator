@@ -68,7 +68,7 @@ public class EvolutionModeMenu : MonoBehaviour
 
     private void Update()
     {
-        if (simulator.running)
+        if (simulator.Running)
         {
             if (WorldManager.Instance.throttledTimeScale <= 1f)
                 throttledTime.value = WorldManager.Instance.throttledTimeScale / 2f;
@@ -132,7 +132,7 @@ public class EvolutionModeMenu : MonoBehaviour
 
         initialisationMenuContainer.Q<Button>("run").clicked += () =>
         {
-            if (!simulator.running)
+            if (!simulator.Running)
             {
                 ShowInitialisationMenu(false);
                 ShowRuntimeMenu(true);
@@ -283,8 +283,11 @@ public class EvolutionModeMenu : MonoBehaviour
         });
         selectedPhenotypeMenu.EnableCullButton(() => simulator.GetIndividualByPhenotype(selectedPhenotypeMenu.SelectedPhenotype)?.Cull());
 
-        SelectionManager.Instance.OnSelection += (previouslySelected, selected) =>
-            selectedPhenotypeMenu.SetTarget(selected?.gameObject.GetComponent<Phenotype>());
+        SelectionManager.Instance.OnSelectionChange += (previouslySelected, selected) =>
+        {
+            if (selected.Count > 0)
+                selectedPhenotypeMenu.SetTarget(selected[0].gameObject.GetComponent<Phenotype>());
+        };
 
         simulator.OnIterationStart += () => selectedPhenotypeMenu.SetTarget(null);
     }
