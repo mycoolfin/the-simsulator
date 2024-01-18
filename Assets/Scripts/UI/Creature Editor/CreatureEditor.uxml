@@ -18,9 +18,9 @@
         </ui:Button>
     </ui:VisualElement>
     <ui:VisualElement picking-mode="Ignore" style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); flex-direction: row; max-height: 100%;">
-        <ui:VisualElement name="node-graph-tab" style="background-color: rgba(0, 0, 0, 0); width: 100%; display: flex; flex-grow: 1;">
-            <ui:ScrollView vertical-scroller-visibility="AlwaysVisible" mouse-wheel-scroll-size="100" style="flex-grow: 1; background-color: rgb(63, 63, 63);">
-                <ui:VisualElement name="node-graph" style="background-color: rgba(0, 0, 0, 0); align-items: center;" />
+        <ui:VisualElement name="editor-tab" style="background-color: rgba(0, 0, 0, 0); width: 100%; display: flex; flex-grow: 1;">
+            <ui:ScrollView vertical-scroller-visibility="AlwaysVisible" mouse-wheel-scroll-size="100" mode="Horizontal" style="flex-grow: 1; background-color: rgb(63, 63, 63);">
+                <ui:VisualElement name="node-graph" style="background-color: rgba(0, 0, 0, 0); align-items: center; flex-direction: row;" />
             </ui:ScrollView>
             <ui:VisualElement name="node-graph-menu" style="background-color: rgb(183, 183, 183); flex-direction: row; justify-content: space-between; flex-shrink: 0;">
                 <ui:VisualElement style="flex-grow: 0; background-color: rgba(0, 0, 0, 0); flex-direction: row; padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px;">

@@ -1,12 +1,12 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
     <Style src="project://database/Assets/Scripts/UI/Creature%20Editor/LimbNode.uss?fileID=7433441132597879392&amp;guid=717ca5e9724e94bd1beb8b39c99feae2&amp;type=3#LimbNode" />
-    <ui:VisualElement style="background-color: rgba(0, 0, 0, 0); height: 200px; justify-content: center;">
+    <ui:VisualElement style="background-color: rgba(0, 0, 0, 0); justify-content: center; width: 200px; align-items: center;">
         <ui:Button text="Node ?" display-tooltip-when-elided="true" name="limb-node" style="width: 100px; height: auto; justify-content: center; align-items: center; overflow: visible; margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0; min-height: 100px; padding-top: 0; padding-bottom: 0; padding-left: 0; padding-right: 0;">
-            <ui:VisualElement name="incoming-waypoint-forward" style="flex-grow: 0; background-color: rgba(0, 0, 0, 0); position: absolute; width: 10px; height: 10px; align-self: center; top: -50%; left: -20px;" />
-            <ui:VisualElement name="incoming-waypoint-backward" style="flex-grow: 0; background-color: rgba(0, 0, 0, 0); position: absolute; width: 10px; height: 10px; align-self: center; top: -50%; right: -20px;" />
-            <ui:VisualElement name="incoming-endpoint" style="flex-grow: 0; background-color: rgba(0, 0, 0, 0); position: absolute; width: 10px; height: 10px; align-self: center; top: -7px;" />
-            <ui:VisualElement name="forward-connections" style="background-color: rgba(0, 0, 0, 0); position: relative; width: 10px; height: 100%; align-items: center; justify-content: center; left: -50%;" />
-            <ui:VisualElement name="backward-connections" style="flex-grow: 0; background-color: rgba(0, 0, 0, 0); position: absolute; width: 10px; height: 100%; align-self: flex-end; align-items: center; justify-content: center; right: -7px;" />
+            <ui:VisualElement name="incoming-waypoint-forward" style="flex-grow: 0; position: absolute; width: 10px; height: 10px; align-self: center; left: -50px; top: -20px;" />
+            <ui:VisualElement name="incoming-waypoint-backward" style="flex-grow: 0; position: absolute; width: 10px; height: 10px; align-self: center; left: -50px; bottom: -20px;" />
+            <ui:VisualElement name="incoming-endpoint" style="flex-grow: 0; position: absolute; width: 10px; height: 10px; align-self: center; left: -7px;" />
+            <ui:VisualElement name="forward-connections" style="position: relative; width: 100%; height: 10px; align-items: center; justify-content: center; top: -45px; flex-direction: row;" />
+            <ui:VisualElement name="backward-connections" style="flex-grow: 0; position: relative; width: 100%; height: 10%; align-self: flex-end; align-items: center; justify-content: center; flex-direction: row; bottom: -45px;" />
         </ui:Button>
     </ui:VisualElement>
 </ui:UXML>

@@ -15,7 +15,7 @@ public class CreatureEditor : MonoBehaviour
 
     private UIDocument doc;
 
-    private VisualElement nodeGraphTab;
+    private VisualElement editorTab;
     private VisualElement nodeGraph;
     private VisualElement phenotypeTab;
     private Button expandRightButton;
@@ -62,8 +62,8 @@ public class CreatureEditor : MonoBehaviour
 
     private void InitialiseNodeGraphTab()
     {
-        nodeGraphTab = doc.rootVisualElement.Q<VisualElement>("node-graph-tab");
-        nodeGraph = nodeGraphTab.Q<VisualElement>("node-graph");
+        editorTab = doc.rootVisualElement.Q<VisualElement>("editor-tab");
+        nodeGraph = editorTab.Q<VisualElement>("node-graph");
 
         nodeGraph.generateVisualContent += OnGenerateVisualContent;
         nodeGraph.AddManipulator(new Clickable(e => SetFocusedLimbNode(null)));
@@ -125,17 +125,17 @@ public class CreatureEditor : MonoBehaviour
         }
         else
         {
-            for (int nodeIndex = 0; nodeIndex < loadedGenotype.LimbNodes.Count; nodeIndex++)
-                nodeGraph.Add(InstantiateLimbNodeElement(nodeIndex));
-
-            WireUpLimbNodeElements();
-
             playerController.orbitTarget = null;
             phenotype = Phenotype.Construct(loadedGenotype);
             phenotype.SetLimbsSelectable(true);
             PickAndPlaceManager.Instance.PickUp(phenotype, null, null);
             PickAndPlaceManager.Instance.Place(Vector3.zero);
             playerController.orbitTarget = phenotype.limbs[0].transform;
+
+            for (int nodeIndex = 0; nodeIndex < loadedGenotype.LimbNodes.Count; nodeIndex++)
+                nodeGraph.Add(InstantiateLimbNodeElement(nodeIndex));
+
+            WireUpLimbNodeElements();
         }
     }
 
@@ -144,6 +144,9 @@ public class CreatureEditor : MonoBehaviour
         TemplateContainer limbNodeContainer = limbNodeTemplate.Instantiate();
         Button limbNodeButton = limbNodeContainer.Q<Button>("limb-node");
         limbNodeButton.text = "Node " + nodeIndex.ToString();
+        LimbNode limbNode = loadedGenotype.LimbNodes.ElementAt(nodeIndex);
+        if (phenotype.limbs.Where(l => l.limbNode == limbNode).Count() == 0)
+            limbNodeButton.AddToClassList("unused");
         limbNodeButton.clicked += () => SetFocusedLimbNode(nodeIndex != focusedLimbNodeIndex ? nodeIndex : null);
         return limbNodeContainer;
     }
@@ -187,7 +190,7 @@ public class CreatureEditor : MonoBehaviour
         if (tabLayout == TabLayout.SplitTabs) splitTabsButton.AddToClassList("active"); else splitTabsButton.RemoveFromClassList("active");
         if (tabLayout == TabLayout.ExpandLeft) expandLeftButton.AddToClassList("active"); else expandLeftButton.RemoveFromClassList("active");
         if (tabLayout == TabLayout.ExpandRight) expandRightButton.AddToClassList("active"); else expandRightButton.RemoveFromClassList("active");
-        nodeGraphTab.style.display = tabLayout == TabLayout.ExpandLeft ? DisplayStyle.None : DisplayStyle.Flex;
+        editorTab.style.display = tabLayout == TabLayout.ExpandLeft ? DisplayStyle.None : DisplayStyle.Flex;
         phenotypeTab.style.display = tabLayout == TabLayout.ExpandRight ? DisplayStyle.None : DisplayStyle.Flex;
         ToggleCameraViewport(tabLayout != TabLayout.ExpandLeft);
     }
@@ -214,10 +217,11 @@ public class CreatureEditor : MonoBehaviour
             // Select all limbs that were spawned from the focused limb node template.
             LimbNode limbNode = loadedGenotype.LimbNodes.ElementAt((int)nodeIndex);
             List<Limb> limbNodeLimbs = phenotype.limbs.Where(l => l.limbNode == limbNode).ToList();
-            for (int i = 0; i < limbNodeLimbs.Count; i++)
-            {
-                limbNodeLimbs[i].Select(false, i > 0); // Disable multiselect for first selection, then multiselect the rest.
-            }
+            if (limbNodeLimbs.Count == 0)
+                SelectionManager.Instance.SetSelected(null);
+            else
+                for (int i = 0; i < limbNodeLimbs.Count; i++)
+                    limbNodeLimbs[i].Select(false, i > 0); // Disable multiselect for first selection, then multiselect the rest.
         }
     }
 
@@ -247,16 +251,15 @@ public class CreatureEditor : MonoBehaviour
         painter.lineCap = LineCap.Round;
         painter.lineWidth = 2f;
 
-        Vector2 origin = new(nodeGraphTab.worldBound.xMin, nodeGraphTab.worldBound.yMin);
+        Vector2 origin = new(editorTab.worldBound.xMin, editorTab.worldBound.yMin);
         void DrawSpline(Vector2 start, Vector2 end, Vector2 startTangent, Vector2 endTangent)
         {
             painter.BeginPath();
             painter.MoveTo(start - origin);
             int interpolationSteps = 100;
             for (int i = 0; i < interpolationSteps; i++)
-                painter.LineTo(HermiteInterpolate(start - origin, end - origin, startTangent - origin, endTangent - origin, i / (float)interpolationSteps));
+                painter.LineTo(HermiteInterpolate(start - origin, end - origin, startTangent, endTangent, i / (float)interpolationSteps));
             painter.Stroke();
-
         }
 
         List<VisualElement> limbNodeElements = nodeGraph.Children().Select(x => x.Q("limb-node")).ToList();
@@ -274,15 +277,15 @@ public class CreatureEditor : MonoBehaviour
             bool hasBackwardIncoming = limbNodeElement.userData != null && (limbNodeElement.userData as List<int>).Any(nodeId => nodeId >= i);
 
             if (hasForwardIncoming)
-                DrawSpline(incomingWaypointForward.worldBound.center, incomingEndpoint.worldBound.center, Vector2.right * 200f, Vector2.up * 100f);
+                DrawSpline(incomingWaypointForward.worldBound.center, incomingEndpoint.worldBound.center, Vector2.up * 100f, Vector2.right * 100f);
             if (hasBackwardIncoming)
-                DrawSpline(incomingWaypointBackward.worldBound.center, incomingEndpoint.worldBound.center, Vector2.left * 200f, Vector2.up * 100f);
+                DrawSpline(incomingWaypointBackward.worldBound.center, incomingEndpoint.worldBound.center, Vector2.down * 100f, Vector2.right * 100f);
             if (hasForwardIncoming || hasBackwardIncoming)
             {
                 painter.BeginPath();
-                painter.MoveTo(incomingEndpoint.worldBound.center - origin + new Vector2(10, 10));
+                painter.MoveTo(incomingEndpoint.worldBound.center - origin + new Vector2(0, 0));
                 painter.LineTo(incomingEndpoint.worldBound.center - origin + new Vector2(-10, -10));
-                painter.LineTo(incomingEndpoint.worldBound.center - origin + new Vector2(10, -10));
+                painter.LineTo(incomingEndpoint.worldBound.center - origin + new Vector2(-10, 10));
                 painter.LineTo(incomingEndpoint.worldBound.center - origin);
                 painter.Fill();
             }
@@ -294,7 +297,7 @@ public class CreatureEditor : MonoBehaviour
                 VisualElement childIncomingWaypointForward = childNodeElement.Q("incoming-waypoint-forward");
                 int numberOfNodesBetween = childNodeIndex - i;
                 Vector2 toNodeCenter = limbNodeElement.worldBound.center - forwardConnectionRoot.worldBound.center;
-                DrawSpline(forwardConnectionRoot.worldBound.center, childIncomingWaypointForward.worldBound.center, 3 * (numberOfNodesBetween + 1) * -toNodeCenter, Vector2.right * 200f);
+                DrawSpline(forwardConnectionRoot.worldBound.center, childIncomingWaypointForward.worldBound.center, 3 * (numberOfNodesBetween + 1) * -toNodeCenter, Vector2.up * 200f);
             }
             foreach (VisualElement backwardConnectionRoot in limbNodeElement.Q("backward-connections").Children())
             {
@@ -303,7 +306,7 @@ public class CreatureEditor : MonoBehaviour
                 VisualElement childIncomingWaypointBackward = childNodeElement.Q("incoming-waypoint-backward");
                 int numberOfNodesBetween = i - childNodeIndex;
                 Vector2 toNodeCenter = limbNodeElement.worldBound.center - backwardConnectionRoot.worldBound.center;
-                DrawSpline(backwardConnectionRoot.worldBound.center, childIncomingWaypointBackward.worldBound.center, 3 * (numberOfNodesBetween + 1) * -toNodeCenter, Vector2.left * 200f);
+                DrawSpline(backwardConnectionRoot.worldBound.center, childIncomingWaypointBackward.worldBound.center, 3 * (numberOfNodesBetween + 1) * -toNodeCenter, Vector2.down * 200f);
             }
         }
     }
