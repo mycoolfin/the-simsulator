@@ -4,3 +4,8 @@
 #tab-layout-toggle > Button.active {
     background-color: rgb(255, 192, 0);
 }
+
+Slider > Label {
+    min-width: 0;
+    margin-right: 20px;
+}

@@ -323,7 +323,8 @@ public class Limb : MonoBehaviour, ISelectable
                 {
                     if (!selected.Contains(this))
                     {
-                        outline.enabled = false;
+                        if (outline != null)
+                            outline.enabled = false;
                         SelectionManager.Instance.OnSelectionChange -= handler;
                     }
                 }
