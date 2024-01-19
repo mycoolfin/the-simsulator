@@ -16,7 +16,7 @@ public class EvolutionModeMenu : MonoBehaviour
         None,
         Parameters,
         Status,
-        controls,
+        Controls,
         Settings
     }
 
@@ -136,6 +136,7 @@ public class EvolutionModeMenu : MonoBehaviour
             {
                 ShowInitialisationMenu(false);
                 ShowRuntimeMenu(true);
+                ToggleRuntimeMenuTab(RuntimeMenuTab.Status);
                 TrialType t;
                 Enum.TryParse<TrialType>(Utilities.SentenceToPascalCase(trialType.value), out t);
                 numberOfIterations = maxIterations.value;
@@ -144,7 +145,7 @@ public class EvolutionModeMenu : MonoBehaviour
                     t,
                     maxIterations.value,
                     populationSize.value,
-                    (float)survivalPercentage.value / 100f,
+                    survivalPercentage.value / 100f,
                     seedGenotype
                 ));
             }
@@ -166,7 +167,7 @@ public class EvolutionModeMenu : MonoBehaviour
 
         parametersTabToggle.clicked += () => ToggleRuntimeMenuTab(RuntimeMenuTab.Parameters);
         statusTabToggle.clicked += () => ToggleRuntimeMenuTab(RuntimeMenuTab.Status);
-        controlsTabToggle.clicked += () => ToggleRuntimeMenuTab(RuntimeMenuTab.controls);
+        controlsTabToggle.clicked += () => ToggleRuntimeMenuTab(RuntimeMenuTab.Controls);
         settingsTabToggle.clicked += () => ToggleRuntimeMenuTab(RuntimeMenuTab.Settings);
         exit.clicked += () => ShowExitMenu(true);
 
@@ -285,8 +286,7 @@ public class EvolutionModeMenu : MonoBehaviour
 
         SelectionManager.Instance.OnSelectionChange += (previouslySelected, selected) =>
         {
-            if (selected.Count > 0)
-                selectedPhenotypeMenu.SetTarget(selected[0].gameObject.GetComponent<Phenotype>());
+            selectedPhenotypeMenu.SetTarget(selected.Count > 0 ? selected[0].gameObject.GetComponent<Phenotype>() : null);
         };
 
         simulator.OnIterationStart += () => selectedPhenotypeMenu.SetTarget(null);
@@ -316,7 +316,7 @@ public class EvolutionModeMenu : MonoBehaviour
         if (tab == RuntimeMenuTab.None) runtimeMenuContainer.style.display = DisplayStyle.None; else runtimeMenuContainer.style.display = DisplayStyle.Flex;
         if (tab == RuntimeMenuTab.Parameters) EnableRuntimeTab(parametersTab, parametersTabToggle); else DisableRuntimeTab(parametersTab, parametersTabToggle);
         if (tab == RuntimeMenuTab.Status) EnableRuntimeTab(statusTab, statusTabToggle); else DisableRuntimeTab(statusTab, statusTabToggle);
-        if (tab == RuntimeMenuTab.controls) EnableRuntimeTab(controlsTab, controlsTabToggle); else DisableRuntimeTab(controlsTab, controlsTabToggle);
+        if (tab == RuntimeMenuTab.Controls) EnableRuntimeTab(controlsTab, controlsTabToggle); else DisableRuntimeTab(controlsTab, controlsTabToggle);
         if (tab == RuntimeMenuTab.Settings) EnableRuntimeTab(settingsTab, settingsTabToggle); else DisableRuntimeTab(settingsTab, settingsTabToggle);
 
         currentRuntimeMenuTab = tab;

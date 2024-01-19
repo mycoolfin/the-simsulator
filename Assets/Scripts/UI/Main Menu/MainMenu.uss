@@ -14,10 +14,10 @@
     display: flex;
 }
 
-#ancestry-explorer-container > Label {
+#creature-editor-container > Label {
     display: none;
 }
 
-#ancestry-explorer-container:hover > Label {
+#creature-editor-container:hover > Label {
     display: flex;
 }

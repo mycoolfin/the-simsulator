@@ -14,7 +14,7 @@
                 </ui:VisualElement>
                 <ui:VisualElement name="creature-editor-container" style="flex-grow: 1; background-color: rgba(0, 0, 0, 0);">
                     <ui:Button text="Creature Editor" display-tooltip-when-elided="true" name="creature-editor" />
-                    <ui:Label tabindex="-1" text="Modify creature DNA directly." display-tooltip-when-elided="true" style="position: absolute; right: -220px; top: 5px; width: 200px; white-space: normal; display: none;" />
+                    <ui:Label tabindex="-1" text="Modify creature DNA directly." display-tooltip-when-elided="true" style="position: absolute; right: -220px; top: 5px; width: 200px; white-space: normal;" />
                 </ui:VisualElement>
                 <ui:Button text="Controls" display-tooltip-when-elided="true" name="controls" style="margin-top: 15px;" />
                 <ui:Button text="Quit" display-tooltip-when-elided="true" name="quit" style="margin-top: 15px;" />

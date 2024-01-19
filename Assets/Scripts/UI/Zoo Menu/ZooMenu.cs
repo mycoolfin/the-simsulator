@@ -203,8 +203,7 @@ public class ZooModeMenu : MonoBehaviour
 
         SelectionManager.Instance.OnSelectionChange += (previouslySelected, selected) =>
         {
-            if (selected.Count > 0)
-                selectedPhenotypeMenu.SetTarget(selected[0].gameObject.GetComponent<Phenotype>());
+            selectedPhenotypeMenu.SetTarget(selected.Count > 0 ? selected[0].gameObject.GetComponent<Phenotype>() : null);
         };
 
         SelectionManager.Instance.OnSelectionChange += (previouslySelected, selected) =>
