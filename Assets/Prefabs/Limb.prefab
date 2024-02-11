@@ -214,6 +214,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 60080623c566c476ba958f9ae4a225f9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  limbNode:
+    dimensions: {x: 0, y: 0, z: 0}
+    jointDefinition:
+      type: 0
+      axisDefinitions: []
+    recursiveLimit: 0
+    neuronDefinitions: []
+    connections: []
   instanceId: 
   fullBodyCollider: {fileID: 568848608208664369}
   xyMidwayCollider: {fileID: 5931677848738342441}
@@ -223,6 +231,7 @@ MonoBehaviour:
   joint: {fileID: 0}
   parentLimb: {fileID: 0}
   childLimbs: []
+  passSelectionToParent: 1
   reflectedX: 0
   reflectedY: 0
   reflectedZ: 0

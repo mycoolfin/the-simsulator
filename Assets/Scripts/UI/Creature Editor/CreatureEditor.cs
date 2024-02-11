@@ -12,21 +12,22 @@ public class CreatureEditor : MonoBehaviour
     public PlayerController playerController;
     public VisualTreeAsset limbNodeTemplate;
     public VisualTreeAsset connectionRootTemplate;
+    public VisualTreeAsset editConnectionTemplate;
+    public Limb phantomLimb;
 
     private UIDocument doc;
 
     private VisualElement editorTab;
-    private VisualElement nodeGraph;
+    private NodeEditor nodeEditor;
     private ScrollView nodeGraphContainer;
-    private VisualElement nodeEditor;
-    private ScrollView nodeEditorContainer;
+    private VisualElement nodeGraph;
+    private Button addNodeButton;
     private VisualElement phenotypeTab;
     private Button expandRightButton;
     private Button splitTabsButton;
     private Button expandLeftButton;
 
     private Genotype loadedGenotype;
-    private Genotype editedGenotype;
     private int? focusedLimbNodeIndex;
     private Phenotype phenotype;
 
@@ -41,14 +42,17 @@ public class CreatureEditor : MonoBehaviour
         InitialiseHeader();
         InitialiseEditorTab();
         InitialisePhenotypeTab();
-        SetUpNodeEditor(null);
 
         SelectionManager.Instance.OnSelectionChange += (previouslySelected, selected) =>
         {
             int? nodeIndex = selected.Count == 0 ? null : phenotype.genotype.LimbNodes.IndexOf((selected[0] as Limb).limbNode);
+            if (nodeIndex == -1) // Phantom limb.
+                nodeIndex = focusedLimbNodeIndex;
             if (nodeIndex != focusedLimbNodeIndex)
                 SetFocusedLimbNode(nodeIndex);
         };
+
+        SetLoadedGenotype(null);
     }
 
     private void InitialiseHeader()
@@ -118,11 +122,14 @@ public class CreatureEditor : MonoBehaviour
         editorTab = doc.rootVisualElement.Q<VisualElement>("editor-tab");
         nodeGraph = editorTab.Q<VisualElement>("node-graph");
         nodeGraphContainer = nodeGraph.parent as ScrollView;
-        nodeEditor = editorTab.Q<VisualElement>("node-editor");
-        nodeEditorContainer = nodeEditor.parent as ScrollView;
-
         nodeGraph.generateVisualContent += OnGenerateVisualContent;
         nodeGraph.AddManipulator(new Clickable(e => SetFocusedLimbNode(null)));
+        addNodeButton = nodeGraphContainer.Q<Button>("add-node");
+        addNodeButton.clicked += AddLimbNode;
+
+        VisualElement nodeEditorElement = editorTab.Q<VisualElement>("node-editor");
+        VisualElement nodeEditorContainer = nodeEditorElement.parent as ScrollView;
+        nodeEditor = new(nodeEditorContainer, nodeEditorElement, editConnectionTemplate, EditLimbNode, DeleteLimbNode);
     }
 
     private void InitialisePhenotypeTab()
@@ -133,50 +140,9 @@ public class CreatureEditor : MonoBehaviour
     private void SetUpNodeEditor(int? nodeIndex)
     {
         if (nodeIndex == null)
-        {
-            nodeEditorContainer.style.display = DisplayStyle.None;
-            return;
-        }
-        nodeEditorContainer.style.display = DisplayStyle.Flex;
-
-        editedGenotype = Genotype.Construct(loadedGenotype.Id, loadedGenotype.Ancestry, loadedGenotype.BrainNeuronDefinitions, loadedGenotype.LimbNodes);
-        LimbNode limbNode = loadedGenotype.LimbNodes.ElementAt((int)nodeIndex);
-
-        nodeEditor.Q<Label>("node-name").text = "Node " + nodeIndex;
-        nodeEditor.Q<Button>("apply-changes").clickable = null;
-        nodeEditor.Q<Button>("apply-changes").clicked += () =>
-        {
-            SetLoadedGenotype(editedGenotype);
-            SetFocusedLimbNode(nodeIndex);
-        };
-
-        void editNodes(List<LimbNode> newNodes)
-        {
-            editedGenotype = Genotype.Construct(editedGenotype.Id, editedGenotype.Ancestry, editedGenotype.BrainNeuronDefinitions, newNodes);
-        }
-
-        VisualElement dimensions = nodeEditor.Q("dimensions");
-        Slider xDimension = dimensions.Q<Slider>("x");
-        Slider yDimension = dimensions.Q<Slider>("y");
-        Slider zDimension = dimensions.Q<Slider>("z");
-        xDimension.lowValue = LimbNodeParameters.MinSize;
-        xDimension.highValue = LimbNodeParameters.MaxSize;
-        xDimension.value = limbNode.Dimensions.x;
-        yDimension.lowValue = LimbNodeParameters.MinSize;
-        yDimension.highValue = LimbNodeParameters.MaxSize;
-        yDimension.value = limbNode.Dimensions.y;
-        zDimension.lowValue = LimbNodeParameters.MinSize;
-        zDimension.highValue = LimbNodeParameters.MaxSize;
-        zDimension.value = limbNode.Dimensions.z;
-        void editNodeDimensions(MouseCaptureOutEvent e)
-        {
-            // TODO: Fix this editing all nodes.
-            LimbNode editedNode = new(new Vector3(xDimension.value, yDimension.value, zDimension.value), limbNode.JointDefinition, limbNode.RecursiveLimit, limbNode.NeuronDefinitions, limbNode.Connections);
-            editNodes(editedGenotype.LimbNodes.Select((l, i) => i == nodeIndex ? editedNode : l).ToList());
-        };
-        xDimension.RegisterCallback<MouseCaptureOutEvent>(editNodeDimensions);
-        yDimension.RegisterCallback<MouseCaptureOutEvent>(editNodeDimensions);
-        zDimension.RegisterCallback<MouseCaptureOutEvent>(editNodeDimensions);
+            nodeEditor.StopEditing();
+        else
+            nodeEditor.StartEditing(loadedGenotype.LimbNodes[(int)nodeIndex], (int)nodeIndex, loadedGenotype.LimbNodes.Count);
     }
 
     private void SetLoadedGenotype(Genotype genotype)
@@ -198,13 +164,15 @@ public class CreatureEditor : MonoBehaviour
 
             WireUpLimbNodeElements();
         }
+
+        addNodeButton.style.display = loadedGenotype != null && loadedGenotype.LimbNodes.Count < GenotypeParameters.MaxLimbNodes ? DisplayStyle.Flex : DisplayStyle.None;
     }
 
     private VisualElement InstantiateLimbNodeElement(int nodeIndex)
     {
         TemplateContainer limbNodeContainer = limbNodeTemplate.Instantiate();
         Button limbNodeButton = limbNodeContainer.Q<Button>("limb-node");
-        limbNodeButton.text = "Node " + nodeIndex.ToString();
+        limbNodeButton.text = "Node " + (nodeIndex + 1).ToString();
         LimbNode limbNode = loadedGenotype.LimbNodes.ElementAt(nodeIndex);
         if (phenotype.limbs.Where(l => l.limbNode == limbNode).Count() == 0)
             limbNodeButton.AddToClassList("unused");
@@ -237,6 +205,8 @@ public class CreatureEditor : MonoBehaviour
                 (childNodeElement.userData as List<int>).Add(i);
             }
         }
+
+        nodeGraph.MarkDirtyRepaint();
     }
 
     private enum TabLayout
@@ -283,11 +253,54 @@ public class CreatureEditor : MonoBehaviour
             LimbNode limbNode = loadedGenotype.LimbNodes.ElementAt((int)nodeIndex);
             List<Limb> limbNodeLimbs = phenotype.limbs.Where(l => l.limbNode == limbNode).ToList();
             if (limbNodeLimbs.Count == 0)
-                SelectionManager.Instance.SetSelected(null);
+                phantomLimb.Select(false, false);
             else
                 for (int i = 0; i < limbNodeLimbs.Count; i++)
                     limbNodeLimbs[i].Select(false, i > 0); // Disable multiselect for first selection, then multiselect the rest.
         }
+    }
+
+    private void AddLimbNode()
+    {
+        UnfinishedLimbNode unfinishedLimbNode = UnfinishedLimbNode.CreateRandom(new List<LimbConnection>());
+        EmitterAvailabilityMap emitterAvailabilityMap = EmitterAvailabilityMap.GenerateMapForLimbNode(
+            0,
+            loadedGenotype.LimbNodes.Cast<ILimbNodeEssentialInfo>().Concat(new List<ILimbNodeEssentialInfo>() { unfinishedLimbNode }).ToList(),
+            loadedGenotype.LimbNodes.Count
+        );
+        LimbNode newLimbNode = LimbNode.CreateRandom(emitterAvailabilityMap, unfinishedLimbNode);
+        SetLoadedGenotype(Genotype.Construct(
+            loadedGenotype.Id,
+            loadedGenotype.Ancestry,
+            loadedGenotype.BrainNeuronDefinitions,
+            loadedGenotype.LimbNodes.Concat(new List<LimbNode>() { newLimbNode }).ToList()
+        ));
+    }
+
+    private void EditLimbNode(LimbNode editedLimbNode, int limbNodeIndex)
+    {
+        SetLoadedGenotype(Genotype.Construct(
+            loadedGenotype.Id,
+            loadedGenotype.Ancestry,
+            loadedGenotype.BrainNeuronDefinitions,
+            loadedGenotype.LimbNodes.Select((l, i) => i == limbNodeIndex ? editedLimbNode : l).ToList()
+        ));
+        SetFocusedLimbNode(limbNodeIndex);
+    }
+
+    private void DeleteLimbNode(int limbNodeIndex)
+    {
+        SetFocusedLimbNode(null);
+        SetLoadedGenotype(
+            loadedGenotype = Genotype.Construct(
+                loadedGenotype.Id,
+                loadedGenotype.Ancestry,
+                loadedGenotype.BrainNeuronDefinitions,
+                loadedGenotype.LimbNodes.Where((l, i) => i != limbNodeIndex).Select((l, i) =>
+                    l.CreateCopy(l.Connections.Where(c => c.ChildNodeId < loadedGenotype.LimbNodes.Count - 1).ToList())
+                ).ToList()
+            )
+        );
     }
 
     private void ClearPhenotypeWindow()

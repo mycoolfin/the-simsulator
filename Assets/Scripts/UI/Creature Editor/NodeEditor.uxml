@@ -1,0 +1,36 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <ui:ScrollView vertical-scroller-visibility="Auto" mouse-wheel-scroll-size="100" mode="Vertical" name="node-editor" style="flex-grow: 1; background-color: rgb(190, 190, 190);">
+        <ui:VisualElement style="background-color: rgba(0, 0, 0, 0);">
+            <ui:VisualElement style="background-color: rgba(0, 0, 0, 0); flex-direction: row;">
+                <ui:Label tabindex="-1" text="Node ?" display-tooltip-when-elided="true" name="node-name" style="-unity-font-style: bold; flex-shrink: 1; align-self: center;" />
+                <ui:Button text="Apply Changes" display-tooltip-when-elided="true" name="apply-changes" />
+            </ui:VisualElement>
+            <ui:VisualElement style="background-color: rgba(0, 0, 0, 0); flex-grow: 1; max-width: 500px;">
+                <ui:Foldout text="Dimensions" name="dimensions" value="false">
+                    <ui:Slider picking-mode="Ignore" label="X" value="42" high-value="100" direction="Horizontal" show-input-field="true" name="x" inverted="false" style="align-items: center;" />
+                    <ui:Slider picking-mode="Ignore" label="Y" value="42" high-value="100" direction="Horizontal" show-input-field="true" name="y" style="align-items: center;" />
+                    <ui:Slider picking-mode="Ignore" label="Z" value="42" high-value="100" direction="Horizontal" show-input-field="true" name="z" style="align-items: center;" />
+                </ui:Foldout>
+                <ui:Foldout text="Joint" name="joint" value="false">
+                    <ui:EnumField label="Type" type="JointType, Assembly-CSharp" include-obsolete-values="false" name="type" />
+                    <ui:Foldout text="Primary Axis" name="primary-axis">
+                        <ui:Slider picking-mode="Ignore" label="Angle Limit" value="42" high-value="90" name="limit" show-input-field="true" />
+                    </ui:Foldout>
+                    <ui:Foldout text="Secondary Axis" name="secondary-axis">
+                        <ui:Slider picking-mode="Ignore" label="Angle Limit" value="42" high-value="90" name="limit" show-input-field="true" />
+                    </ui:Foldout>
+                    <ui:Foldout text="Tertiary Axis" name="tertiary-axis">
+                        <ui:Slider picking-mode="Ignore" label="Angle Limit" value="42" high-value="90" name="limit" show-input-field="true" />
+                    </ui:Foldout>
+                </ui:Foldout>
+                <ui:Foldout text="Connections" name="connections" value="false">
+                    <ui:VisualElement name="connection-list" style="flex-grow: 1; background-color: rgba(0, 0, 0, 0);" />
+                    <ui:Button text="+ Add Connection" display-tooltip-when-elided="true" name="add" style="align-self: center;" />
+                </ui:Foldout>
+                <ui:Foldout text="Other" name="other" value="false">
+                    <ui:SliderInt picking-mode="Ignore" label="Recursive Limit" value="42" high-value="100" show-input-field="true" name="recursive-limit" />
+                </ui:Foldout>
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:ScrollView>
+</ui:UXML>

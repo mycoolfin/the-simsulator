@@ -28,30 +28,51 @@
     </ui:VisualElement>
     <ui:VisualElement picking-mode="Ignore" style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); flex-direction: row; max-height: 100%;">
         <ui:VisualElement name="editor-tab" style="background-color: rgba(0, 0, 0, 0); width: 100%; display: flex; flex-grow: 1;">
-            <ui:ScrollView vertical-scroller-visibility="Auto" mouse-wheel-scroll-size="100" mode="Horizontal" horizontal-scroller-visibility="Auto" style="flex-grow: 1; background-color: rgb(63, 63, 63);">
+            <ui:ScrollView vertical-scroller-visibility="Auto" mouse-wheel-scroll-size="100" mode="Horizontal" horizontal-scroller-visibility="Auto" style="flex-grow: 1; background-color: rgb(63, 63, 63); height: 100%;">
                 <ui:VisualElement name="node-graph" style="background-color: rgba(0, 0, 0, 0); align-items: center; flex-direction: row;" />
+                <ui:Button text="+" display-tooltip-when-elided="true" name="add-node" style="align-self: center;" />
             </ui:ScrollView>
-            <ui:ScrollView vertical-scroller-visibility="Auto" mouse-wheel-scroll-size="100" mode="Vertical" style="flex-grow: 1; background-color: rgb(190, 190, 190);">
-                <ui:VisualElement name="node-editor" style="background-color: rgba(0, 0, 0, 0);">
-                    <ui:VisualElement name="VisualElement" style="background-color: rgba(0, 0, 0, 0); flex-direction: row;">
+            <ui:ScrollView vertical-scroller-visibility="Auto" mouse-wheel-scroll-size="100" mode="Vertical" style="flex-grow: 1; background-color: rgb(190, 190, 190); height: 100%;">
+                <ui:VisualElement name="node-editor" style="background-color: rgba(0, 0, 0, 0); max-width: 600px;">
+                    <ui:VisualElement style="background-color: rgba(0, 0, 0, 0); flex-direction: row;">
                         <ui:Label tabindex="-1" text="Node ?" display-tooltip-when-elided="true" name="node-name" style="-unity-font-style: bold; flex-shrink: 1; align-self: center;" />
-                        <ui:Button text="Apply Changes" display-tooltip-when-elided="true" name="apply-changes" />
+                        <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); flex-direction: row; justify-content: flex-end;">
+                            <ui:Button text="Apply Changes" display-tooltip-when-elided="true" name="apply-changes" />
+                            <ui:Button text="Delete" display-tooltip-when-elided="true" name="delete-node" />
+                        </ui:VisualElement>
                     </ui:VisualElement>
-                    <ui:VisualElement name="dimensions" style="flex-grow: 1; background-color: rgba(0, 0, 0, 0);">
-                        <ui:Label tabindex="-1" text="Dimensions" display-tooltip-when-elided="true" />
-                        <ui:Slider picking-mode="Ignore" label="X" value="42" high-value="100" direction="Horizontal" show-input-field="true" name="x" inverted="false" style="width: 300px; align-items: center;" />
-                        <ui:Slider picking-mode="Ignore" label="Y" value="42" high-value="100" direction="Horizontal" show-input-field="true" name="y" style="width: 300px; align-items: center;" />
-                        <ui:Slider picking-mode="Ignore" label="Z" value="42" high-value="100" direction="Horizontal" show-input-field="true" name="z" style="width: 300px; align-items: center;" />
+                    <ui:VisualElement style="background-color: rgba(0, 0, 0, 0); flex-grow: 1; max-width: 500px;">
+                        <ui:Foldout text="Dimensions" name="dimensions" value="false">
+                            <ui:Slider picking-mode="Ignore" label="X" value="42" high-value="100" direction="Horizontal" show-input-field="true" name="x" inverted="false" style="align-items: center;" />
+                            <ui:Slider picking-mode="Ignore" label="Y" value="42" high-value="100" direction="Horizontal" show-input-field="true" name="y" style="align-items: center;" />
+                            <ui:Slider picking-mode="Ignore" label="Z" value="42" high-value="100" direction="Horizontal" show-input-field="true" name="z" style="align-items: center;" />
+                        </ui:Foldout>
+                        <ui:Foldout text="Joint" name="joint" value="false">
+                            <ui:EnumField label="Type" type="JointType, Assembly-CSharp" include-obsolete-values="false" name="type" />
+                            <ui:Foldout text="Primary Axis" name="primary-axis">
+                                <ui:Slider picking-mode="Ignore" label="Angle Limit" value="42" high-value="90" name="limit" show-input-field="true" />
+                            </ui:Foldout>
+                            <ui:Foldout text="Secondary Axis" name="secondary-axis">
+                                <ui:Slider picking-mode="Ignore" label="Angle Limit" value="42" high-value="90" name="limit" show-input-field="true" />
+                            </ui:Foldout>
+                            <ui:Foldout text="Tertiary Axis" name="tertiary-axis">
+                                <ui:Slider picking-mode="Ignore" label="Angle Limit" value="42" high-value="90" name="limit" show-input-field="true" />
+                            </ui:Foldout>
+                        </ui:Foldout>
+                        <ui:Foldout text="Connections" name="connections" value="false">
+                            <ui:VisualElement name="connection-list" style="flex-grow: 1; background-color: rgba(0, 0, 0, 0);" />
+                            <ui:Button text="+ Add Connection" display-tooltip-when-elided="true" name="add" style="align-self: center;" />
+                        </ui:Foldout>
+                        <ui:Foldout text="Other" name="other" value="false">
+                            <ui:SliderInt picking-mode="Ignore" label="Recursive Limit" value="42" high-value="100" show-input-field="true" name="recursive-limit" />
+                        </ui:Foldout>
                     </ui:VisualElement>
                 </ui:VisualElement>
             </ui:ScrollView>
         </ui:VisualElement>
-        <ui:VisualElement name="phenotype-tab" picking-mode="Ignore" style="background-color: rgba(0, 0, 0, 0); width: 100%; display: flex; flex-grow: 1;">
+        <ui:VisualElement name="phenotype-tab" picking-mode="Ignore" style="background-color: rgba(0, 0, 0, 0); width: 100%; flex-grow: 1;">
             <ui:VisualElement name="viewport" picking-mode="Ignore" style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); justify-content: flex-end;" />
-            <ui:VisualElement name="phenotype-menu" style="background-color: rgb(183, 183, 183); flex-direction: row; justify-content: space-between; flex-shrink: 0;">
-                <ui:DropdownField label="Simulation" index="0" choices="Off,Ground,Water" name="simulation" style="max-width: 300px; align-items: center;" />
-                <ui:Button text="Reset Camera" display-tooltip-when-elided="true" name="reset-camera" style="align-self: flex-start;" />
-            </ui:VisualElement>
+            <ui:VisualElement name="phenotype-menu" style="background-color: rgb(183, 183, 183); flex-direction: row; justify-content: space-between; flex-shrink: 0;" />
         </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>
