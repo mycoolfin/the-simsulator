@@ -10,12 +10,10 @@ public class Genotype
     private static int latestId = 1;
 
     [SerializeField] private string id;
-    [SerializeReference] private Ancestry ancestry;
     [SerializeField] private List<NeuronDefinition> brainNeuronDefinitions;
     [SerializeField] private List<LimbNode> limbNodes;
 
     public string Id => id;
-    public Ancestry Ancestry => ancestry?.CreateCopy();
     public ReadOnlyCollection<NeuronDefinition> BrainNeuronDefinitions => brainNeuronDefinitions.AsReadOnly();
     public ReadOnlyCollection<LimbNode> LimbNodes => limbNodes.AsReadOnly();
 
@@ -38,10 +36,9 @@ public class Genotype
         this.instancedLimbNodes = instancedLimbNodes == null ? null : instancedLimbNodes.ToList();
     }
 
-    public static Genotype Construct(string id, Ancestry ancestry, IList<NeuronDefinition> brainNeuronDefinitions, IList<LimbNode> limbNodes)
+    public static Genotype Construct(string id, IList<NeuronDefinition> brainNeuronDefinitions, IList<LimbNode> limbNodes)
     {
         Genotype genotype = new Genotype(id, brainNeuronDefinitions, limbNodes, null);
-        genotype.ancestry = ancestry ?? new Ancestry(new(genotype), null);
         return genotype;
     }
 
@@ -105,7 +102,7 @@ public class Genotype
         for (int i = 0; i < numberOfBrainNeurons; i++)
             brainNeuronDefinitions.Add(NeuronDefinition.CreateRandom(EmitterAvailabilityMap.GenerateMapForBrain(numberOfBrainNeurons, instancedLimbNodes)));
 
-        Genotype randomGenotype = Genotype.Construct(null, null, brainNeuronDefinitions, limbNodes);
+        Genotype randomGenotype = Genotype.Construct(null, brainNeuronDefinitions, limbNodes);
         randomGenotype.instancedLimbNodes = instancedLimbNodes; // Cache for later.
         return randomGenotype;
     }
@@ -156,35 +153,5 @@ public class Genotype
         }
 
         return visitedNodeIds;
-    }
-}
-
-[Serializable]
-public class GenotypeWithoutAncestry
-{
-    [SerializeField] private string id;
-    [SerializeField] private List<NeuronDefinition> brainNeuronDefinitions;
-    [SerializeField] private List<LimbNode> limbNodes;
-
-    public GenotypeWithoutAncestry(Genotype genotype)
-    {
-        id = genotype.Id;
-        brainNeuronDefinitions = genotype.BrainNeuronDefinitions.ToList();
-        limbNodes = genotype.LimbNodes.ToList();
-    }
-
-    public Genotype ToGenotype()
-    {
-        return Genotype.Construct(id, null, brainNeuronDefinitions, limbNodes);
-    }
-
-    public static bool TestStructuralEquality(Genotype g1, Genotype g2)
-    {
-        // Ignore ancestry and ID.
-        GenotypeWithoutAncestry gwa1 = new(g1);
-        GenotypeWithoutAncestry gwa2 = new(g2);
-        gwa1.id = gwa2.id;
-
-        return string.Compare(JsonUtility.ToJson(gwa1), JsonUtility.ToJson(gwa2)) == 0;
     }
 }

@@ -3,31 +3,8 @@ using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 
-public struct Step
-{
-    public string action;
-    public int? index;
-}
-
-[Serializable]
-public class MutationOperation
-{
-    public string path;
-    public string newValue;
-    public bool invalid;
-
-    public void AddStepToPath(Step step)
-    {
-        path = (string.IsNullOrEmpty(path) ? "" : path + Mutation.levelSeparator) + step.action + (step.index == null ? "" : (Mutation.indexLeftSeparator + step.index + Mutation.indexRightSeparator));
-    }
-}
-
 public static class Mutation
 {
-    public const string levelSeparator = ">";
-    public const string indexLeftSeparator = "[";
-    public const string indexRightSeparator = "]";
-
     private class WeightedActionList : List<(float, Action)>
     {
         public void ChooseAction()
@@ -46,532 +23,367 @@ public static class Mutation
         }
     }
 
-    public static Func<Genotype, Genotype> ParseMutationFunction(MutationOperation mutationOperation)
+    public static Genotype AddPotentialLimbNode(Genotype genotype)
     {
-        if (mutationOperation.invalid)
-            return (genotype) => genotype;
+        List<LimbNode> limbNodes = genotype.LimbNodes.ToList();
 
-        Queue<Step> pathTokens = new();
-
-        // TODO: This is a rare bug. Remove this after we know what causes it.
-        if (string.IsNullOrEmpty(mutationOperation.path)) {
-            Debug.Log("ERROR: Empty Mutation Bug\n" + mutationOperation.path + " : " + mutationOperation.newValue + " : " + mutationOperation.invalid);
-            return (genotype) => genotype;
-        }
-
-        foreach (string token in mutationOperation.path.Split(levelSeparator))
+        bool invalid = genotype.LimbNodes.Count == GenotypeParameters.MaxLimbNodes;
+        if (!invalid)
         {
-            string[] sections = token.Split(indexLeftSeparator);
-            string action = sections[0];
-            int? index = sections.Length > 1 ? int.Parse(sections[1].Split(indexRightSeparator)[0]) : null;
-            pathTokens.Enqueue(new() { action = action, index = index });
+            UnfinishedLimbNode unfinishedLimbNode = UnfinishedLimbNode.CreateRandom(null);
+            List<ILimbNodeEssentialInfo> tempLimbNodes = genotype.LimbNodes.Cast<ILimbNodeEssentialInfo>().ToList();
+            tempLimbNodes.Add(unfinishedLimbNode);
+            LimbNode newLimbNode = LimbNode.CreateRandom(
+                EmitterAvailabilityMap.GenerateMapForLimbNode(genotype.BrainNeuronDefinitions.Count, tempLimbNodes, tempLimbNodes.Count - 1),
+                unfinishedLimbNode
+            );
+            limbNodes.Add(newLimbNode);
         }
-        Func<Genotype, Genotype> mutationFunction = RootMutation.ParseMutationFunction(pathTokens, mutationOperation.newValue);
-        return (Genotype genotype) => mutationFunction(genotype);
+        return Genotype.Construct(
+            genotype.Id,
+            genotype.BrainNeuronDefinitions,
+            limbNodes
+        );
     }
 
-    public static MutationOperation CreateRandomMutation(Genotype genotype)
+    public static Genotype Mutate(Genotype genotype)
     {
-        return RootMutation.CreateRandomMutation(genotype);
+        List<NeuronDefinition> brainNeuronDefinitions = genotype.BrainNeuronDefinitions.ToList();
+        List<LimbNode> limbNodes = genotype.LimbNodes.ToList();
+
+        WeightedActionList mutationChoices = new()
+        {
+            (MutationParameters.Root.ChangeBrain, new Action(() =>
+            {
+                brainNeuronDefinitions = MutateBrain(genotype);
+            })),
+            (MutationParameters.Root.ChangeLimbNode, new Action(() =>
+            {
+                int index = UnityEngine.Random.Range(0, genotype.LimbNodes.Count);
+                bool invalid = genotype.LimbNodes.Count == 0;
+                if (!invalid)
+                    limbNodes.Select((l, i) => i == index ? MutateLimbNode(genotype, index) : l).ToList();
+            }))
+        };
+
+        mutationChoices.ChooseAction();
+        return Genotype.Construct(
+            genotype.Id,
+            brainNeuronDefinitions,
+            limbNodes
+        );
     }
 
-    public static MutationOperation AddPotentialLimbNode(Genotype genotype)
+    private static List<NeuronDefinition> MutateBrain(Genotype genotype)
     {
-        return RootMutation.AddPotentialLimbNode(genotype);
-    }
+        List<NeuronDefinition> brainNeuronDefinitions = genotype.BrainNeuronDefinitions.ToList();
 
-    public static class RootMutation
-    {
-        public const string ChangeBrain = "ChangeBrain";
-        public const string ChangeLimbNode = "ChangeLimbNode";
-        public const string AddDisconnectedLimbNode = "AddDisconnectedLimbNode"; // Special - operation is done once for every child, but is removed if no connections mutate to point to the new node.
-
-        public static Func<Genotype, Genotype> ParseMutationFunction(Queue<Step> pathTokens, string newValue)
+        WeightedActionList mutationChoices = new()
         {
-            Step step = pathTokens.Dequeue();
-            Func<IList<NeuronDefinition>, IList<NeuronDefinition>> brainMutationFunc = step.action == ChangeBrain ? BrainMutation.ParseMutationFunction(pathTokens, newValue) : null;
-            Func<LimbNode, LimbNode> limbNodeMutationFunc = step.action == ChangeLimbNode ? LimbNodeMutation.ParseMutationFunction(pathTokens, newValue) : null;
-            return (genotype) =>
+            (MutationParameters.Brain.AddNeuron, new Action(() =>
             {
-                return Genotype.Construct(
-                    genotype.Id,
-                    genotype.Ancestry,
-                    step.action == ChangeBrain ? brainMutationFunc(genotype.BrainNeuronDefinitions) : genotype.BrainNeuronDefinitions,
-                    step.action == AddDisconnectedLimbNode ? genotype.LimbNodes.Concat(new[] { JsonUtility.FromJson<LimbNode>(newValue) }).ToList()
-                    : step.action == ChangeLimbNode ? genotype.LimbNodes.Select((l, i) => i == (int)step.index ? limbNodeMutationFunc(l) : l).ToList() : genotype.LimbNodes
-                );
-            };
-        }
-
-        public static MutationOperation CreateRandomMutation(Genotype genotype)
-        {
-            MutationOperation mutation = new();
-            WeightedActionList mutationChoices = new()
-            {
-                (MutationParameters.Root.ChangeBrain, new Action(() =>
-                {
-                    mutation.AddStepToPath(new() { action = ChangeBrain });
-                    mutation = BrainMutation.CreateRandomMutation(genotype, mutation);
-                })),
-                (MutationParameters.Root.ChangeLimbNode, new Action(() =>
-                {
-                    int index = UnityEngine.Random.Range(0, genotype.LimbNodes.Count);
-                    mutation.AddStepToPath(new() { action = ChangeLimbNode, index = index });
-                    mutation.invalid = genotype.LimbNodes.Count == 0;
-                    mutation = mutation.invalid ? mutation : LimbNodeMutation.CreateRandomMutation(genotype, index, mutation);
-                }))
-            };
-            mutationChoices.ChooseAction();
-            return mutation;
-        }
-
-        public static MutationOperation AddPotentialLimbNode(Genotype genotype)
-        {
-            MutationOperation mutation = new();
-            mutation.AddStepToPath(new() { action = AddDisconnectedLimbNode });
-            mutation.invalid = genotype.LimbNodes.Count == GenotypeParameters.MaxLimbNodes;
-            if (!mutation.invalid)
-            {
-                UnfinishedLimbNode unfinishedLimbNode = UnfinishedLimbNode.CreateRandom(null);
-                List<ILimbNodeEssentialInfo> tempLimbNodes = genotype.LimbNodes.Cast<ILimbNodeEssentialInfo>().ToList();
-                tempLimbNodes.Add(unfinishedLimbNode);
-                LimbNode newLimbNode = LimbNode.CreateRandom(
-                    EmitterAvailabilityMap.GenerateMapForLimbNode(genotype.BrainNeuronDefinitions.Count, tempLimbNodes, tempLimbNodes.Count - 1),
-                    unfinishedLimbNode
-                );
-                mutation.newValue = JsonUtility.ToJson(newLimbNode);
-            }
-            return mutation;
-        }
-    }
-
-    public static class BrainMutation
-    {
-        public const string AddNeuron = "AddNeuron";
-        public const string RemoveNeuron = "RemoveNeuron";
-        public const string ChangeNeuronDefinition = "ChangeNeuronDefinition";
-
-        public static Func<IList<NeuronDefinition>, IList<NeuronDefinition>> ParseMutationFunction(Queue<Step> pathTokens, string newValue)
-        {
-            Step step = pathTokens.Dequeue();
-            Func<NeuronDefinition, NeuronDefinition> neuronDefinitionMutationFunc = step.action == ChangeNeuronDefinition ? NeuronDefinitionMutation.ParseMutationFunction(pathTokens, newValue) : null;
-            return (brainNeuronDefinitions) =>
-            {
-                return step.action == AddNeuron ? brainNeuronDefinitions.Concat(new[] { JsonUtility.FromJson<NeuronDefinition>(newValue) }).ToList()
-                    : step.action == RemoveNeuron ? brainNeuronDefinitions.Where((n, i) => i != (int)step.index).ToList()
-                    : step.action == ChangeNeuronDefinition ? brainNeuronDefinitions.Select((n, i) => i == (int)step.index ? neuronDefinitionMutationFunc(n) : n).ToList() : brainNeuronDefinitions;
-            };
-        }
-
-        public static MutationOperation CreateRandomMutation(Genotype genotype, MutationOperation mutation)
-        {
-            WeightedActionList mutationChoices = new()
-            {
-                (MutationParameters.Brain.AddNeuron, new Action(() =>
-                {
-                    mutation.AddStepToPath(new() { action = AddNeuron });
-                    mutation.invalid = genotype.BrainNeuronDefinitions.Count == GenotypeParameters.MaxBrainNeurons;
-                    mutation.newValue = mutation.invalid ? null : JsonUtility.ToJson(NeuronDefinition.CreateRandom(
+                bool invalid = genotype.BrainNeuronDefinitions.Count == GenotypeParameters.MaxBrainNeurons;
+                if (!invalid)
+                    brainNeuronDefinitions.Add(NeuronDefinition.CreateRandom(
                         EmitterAvailabilityMap.GenerateMapForBrain(genotype.BrainNeuronDefinitions.Count, genotype.InstancedLimbNodes)
                     ));
-                })),
-                (MutationParameters.Brain.RemoveNeuron, new Action(() =>
+            })),
+            (MutationParameters.Brain.RemoveNeuron, new Action(() =>
+            {
+                int index = UnityEngine.Random.Range(0, genotype.BrainNeuronDefinitions.Count);
+                bool invalid = genotype.BrainNeuronDefinitions.Count == 0;
+                if (!invalid)
+                    brainNeuronDefinitions = brainNeuronDefinitions.Where((n, i) => i != index).ToList();
+            })),
+            (MutationParameters.Brain.ChangeNeuronDefinition, new Action(() =>
+            {
+                int index = UnityEngine.Random.Range(0, genotype.BrainNeuronDefinitions.Count);
+                bool invalid = genotype.BrainNeuronDefinitions.Count == 0;
+                if (!invalid)
                 {
-                    mutation.AddStepToPath(new() { action = RemoveNeuron, index = UnityEngine.Random.Range(0, genotype.BrainNeuronDefinitions.Count) });
-                    mutation.invalid = genotype.BrainNeuronDefinitions.Count == 0;
-                })),
-                (MutationParameters.Brain.ChangeNeuronDefinition, new Action(() =>
-                {
-                    int index = UnityEngine.Random.Range(0, genotype.BrainNeuronDefinitions.Count);
-                    mutation.AddStepToPath(new() { action = ChangeNeuronDefinition, index = index });
-                    mutation.invalid = genotype.BrainNeuronDefinitions.Count == 0;
-                    if (!mutation.invalid)
-                        mutation = NeuronDefinitionMutation.CreateRandomMutation(
-                            EmitterAvailabilityMap.GenerateMapForBrain(genotype.BrainNeuronDefinitions.Count, genotype.InstancedLimbNodes), genotype.BrainNeuronDefinitions[index],
-                            mutation
-                        );
-                }))
-            };
-            mutationChoices.ChooseAction();
-            return mutation;
-        }
+                    EmitterAvailabilityMap map = EmitterAvailabilityMap.GenerateMapForBrain(genotype.BrainNeuronDefinitions.Count, genotype.InstancedLimbNodes);
+                    brainNeuronDefinitions = brainNeuronDefinitions.Select((n, i) => i == index ? MutateNeuronDefinition(map, genotype.BrainNeuronDefinitions[index]) : n).ToList();
+                }
+            }))
+        };
+
+        mutationChoices.ChooseAction();
+        return brainNeuronDefinitions;
     }
 
-    public static class LimbNodeMutation
+    private static LimbNode MutateLimbNode(Genotype genotype, int limbNodeIndex)
     {
-        public const string ChangeDimensions = "ChangeDimensions";
-        public const string ChangeJointDefinition = "ChangeJointDefinition";
-        public const string ChangeRecursiveLimit = "ChangeRecursiveLimit";
-        public const string AddNeuron = "AddNeuron";
-        public const string RemoveNeuron = "RemoveNeuron";
-        public const string ChangeNeuronDefinition = "ChangeNeuronDefinition";
-        public const string AddLimbConnection = "AddLimbConnection";
-        public const string RemoveLimbConnection = "RemoveLimbConnection";
-        public const string ChangeLimbConnection = "ChangeLimbConnection";
+        LimbNode limbNode = genotype.LimbNodes[limbNodeIndex];
+        Vector3 dimensions = limbNode.Dimensions;
+        JointDefinition jointDefinition = limbNode.JointDefinition;
+        int recursiveLimit = limbNode.RecursiveLimit;
+        List<NeuronDefinition> neuronDefinitions = limbNode.NeuronDefinitions.ToList();
+        List<LimbConnection> connections = limbNode.Connections.ToList();
 
-        public static Func<LimbNode, LimbNode> ParseMutationFunction(Queue<Step> pathTokens, string newValue)
+        WeightedActionList mutationChoices = new()
         {
-            Step step = pathTokens.Dequeue();
-            Func<JointDefinition, JointDefinition> jointDefinitionMutationFunc = step.action == ChangeJointDefinition ? JointDefinitionMutation.ParseMutationFunction(pathTokens, newValue) : null;
-            Func<NeuronDefinition, NeuronDefinition> neuronDefinitionMutationFunc = step.action == ChangeNeuronDefinition ? NeuronDefinitionMutation.ParseMutationFunction(pathTokens, newValue) : null;
-            Func<LimbConnection, LimbConnection> limbConnectionMutationFunc = step.action == ChangeLimbConnection ? LimbConnectionMutation.ParseMutationFunction(pathTokens, newValue) : null;
-
-            return (limbNode) =>
+            (MutationParameters.LimbNode.ChangeDimensions, new Action(() =>
             {
-                return new(
-                    step.action == ChangeDimensions ? JsonUtility.FromJson<Vector3>(newValue) : limbNode.Dimensions,
-                    step.action == ChangeJointDefinition ? jointDefinitionMutationFunc(limbNode.JointDefinition) : limbNode.JointDefinition,
-                    step.action == ChangeRecursiveLimit ? int.Parse(newValue) : limbNode.RecursiveLimit,
-                    step.action == AddNeuron ? limbNode.NeuronDefinitions.Concat(new[] { JsonUtility.FromJson<NeuronDefinition>(newValue) }).ToList()
-                    : step.action == RemoveNeuron ? limbNode.NeuronDefinitions.Where((n, i) => i != (int)step.index).ToList()
-                    : step.action == ChangeNeuronDefinition ? limbNode.NeuronDefinitions.Select((n, i) => i == (int)step.index ? neuronDefinitionMutationFunc(n) : n).ToList() : limbNode.NeuronDefinitions,
-                    step.action == AddLimbConnection ? limbNode.Connections.Concat(new[] { JsonUtility.FromJson<LimbConnection>(newValue) }).ToList()
-                    : step.action == RemoveLimbConnection ? limbNode.Connections.Where((c, i) => i != (int)step.index).ToList()
-                    : step.action == ChangeLimbConnection ? limbNode.Connections.Select((c, i) => i == (int)step.index ? limbConnectionMutationFunc(c) : c).ToList() : limbNode.Connections
-                );
-            };
-        }
-
-        public static MutationOperation CreateRandomMutation(Genotype genotype, int limbNodeIndex, MutationOperation mutation)
-        {
-            LimbNode limbNode = genotype.LimbNodes[limbNodeIndex];
-            WeightedActionList mutationChoices = new()
+                dimensions = MutateVector(limbNode.Dimensions, LimbNodeParameters.MinSize, LimbNodeParameters.MaxSize);
+            })),
+            (MutationParameters.LimbNode.ChangeJointDefinition, new Action(() =>
             {
-                (MutationParameters.LimbNode.ChangeDimensions, new Action(() =>
-                {
-                    mutation.AddStepToPath(new() { action = ChangeDimensions });
-                    mutation.newValue = JsonUtility.ToJson(MutateVector(limbNode.Dimensions, LimbNodeParameters.MinSize, LimbNodeParameters.MaxSize));
-                })),
-                (MutationParameters.LimbNode.ChangeJointDefinition, new Action(() =>
-                {
-                    mutation.AddStepToPath(new() { action = ChangeJointDefinition });
-                    EmitterAvailabilityMap map = EmitterAvailabilityMap.GenerateMapForLimbNode(genotype.BrainNeuronDefinitions.Count, genotype.LimbNodes.Cast<ILimbNodeEssentialInfo>().ToList(), limbNodeIndex);
-                    mutation = JointDefinitionMutation.CreateRandomMutation(map, limbNode.JointDefinition, mutation);
-                })),
-                (MutationParameters.LimbNode.ChangeRecursiveLimit, new Action(() =>
-                {
-                    mutation.AddStepToPath(new() { action = ChangeRecursiveLimit });
-                    mutation.newValue = MutateScalar(limbNode.RecursiveLimit, 0, LimbNodeParameters.MaxRecursiveLimit).ToString();
-                })),
-                (MutationParameters.LimbNode.AddNeuron, new Action(() =>
-                {
-                    mutation.AddStepToPath(new() { action = AddNeuron });
-                    mutation.invalid = limbNode.NeuronDefinitions.Count == LimbNodeParameters.MaxNeurons;
-                    mutation.newValue = mutation.invalid ? null : JsonUtility.ToJson(NeuronDefinition.CreateRandom(
+                EmitterAvailabilityMap map = EmitterAvailabilityMap.GenerateMapForLimbNode(genotype.BrainNeuronDefinitions.Count, genotype.LimbNodes.Cast<ILimbNodeEssentialInfo>().ToList(), limbNodeIndex);
+                jointDefinition = MutateJointDefinition(map, limbNode.JointDefinition);
+            })),
+            (MutationParameters.LimbNode.ChangeRecursiveLimit, new Action(() =>
+            {
+                recursiveLimit = MutateScalar(limbNode.RecursiveLimit, 0, LimbNodeParameters.MaxRecursiveLimit);
+            })),
+            (MutationParameters.LimbNode.AddNeuron, new Action(() =>
+            {
+                bool invalid = limbNode.NeuronDefinitions.Count == LimbNodeParameters.MaxNeurons;
+                if (!invalid)
+                    neuronDefinitions.Add(NeuronDefinition.CreateRandom(
                         EmitterAvailabilityMap.GenerateMapForLimbNode(genotype.BrainNeuronDefinitions.Count, genotype.LimbNodes.Cast<ILimbNodeEssentialInfo>().ToList(), limbNodeIndex)
                     ));
-                })),
-                (MutationParameters.LimbNode.RemoveNeuron, new Action(() =>
+            })),
+            (MutationParameters.LimbNode.RemoveNeuron, new Action(() =>
+            {
+                int index = UnityEngine.Random.Range(0, limbNode.NeuronDefinitions.Count);
+                bool invalid = limbNode.NeuronDefinitions.Count == 0;
+                if (!invalid)
+                    neuronDefinitions = neuronDefinitions.Where((n, i) => i != index).ToList();
+            })),
+            (MutationParameters.LimbNode.ChangeNeuronDefinition, new Action(() =>
+            {
+                int index = UnityEngine.Random.Range(0, limbNode.NeuronDefinitions.Count);
+                bool invalid = limbNode.NeuronDefinitions.Count == 0;
+                if (!invalid)
                 {
-                    mutation.AddStepToPath(new() { action = RemoveNeuron, index = UnityEngine.Random.Range(0, limbNode.NeuronDefinitions.Count) });
-                    mutation.invalid = limbNode.NeuronDefinitions.Count == 0;
-                })),
-                (MutationParameters.LimbNode.ChangeNeuronDefinition, new Action(() =>
-                {
-                    int index = UnityEngine.Random.Range(0, limbNode.NeuronDefinitions.Count);
-                    mutation.AddStepToPath(new() { action = ChangeNeuronDefinition, index = index });
-                    mutation.invalid = limbNode.NeuronDefinitions.Count == 0;
-                    if (!mutation.invalid)
-                    {
-                        EmitterAvailabilityMap map = EmitterAvailabilityMap.GenerateMapForLimbNode(genotype.BrainNeuronDefinitions.Count, genotype.LimbNodes.Cast<ILimbNodeEssentialInfo>().ToList(), limbNodeIndex);
-                        mutation = NeuronDefinitionMutation.CreateRandomMutation(map, limbNode.NeuronDefinitions[index], mutation);
-                    }
-                })),
-                (MutationParameters.LimbNode.AddLimbConnection, new Action(() =>
-                {
-                    mutation.AddStepToPath(new() { action = AddLimbConnection });
-                    mutation.invalid = limbNode.Connections.Count == LimbNodeParameters.MaxLimbConnections;
-                    mutation.newValue = mutation.invalid ? null : JsonUtility.ToJson(LimbConnection.CreateRandom(UnityEngine.Random.Range(0, genotype.LimbNodes.Count)));
-                })),
-                (MutationParameters.LimbNode.RemoveLimbConnection, new Action(() =>
-                {
-                    mutation.AddStepToPath(new() { action = RemoveLimbConnection, index = UnityEngine.Random.Range(0, limbNode.Connections.Count) });
-                    mutation.invalid = limbNode.Connections.Count == 0;
-                })),
-                (MutationParameters.LimbNode.ChangeLimbConnection, new Action(() =>
-                {
-                    int index = UnityEngine.Random.Range(0, limbNode.Connections.Count);
-                    mutation.AddStepToPath(new() { action = ChangeLimbConnection, index = index });
-                    mutation.invalid = limbNode.Connections.Count == 0;
-                    if (!mutation.invalid)
-                        mutation = LimbConnectionMutation.CreateRandomMutation(genotype, limbNodeIndex, index, mutation);
-                }))
-            };
-            mutationChoices.ChooseAction();
-            return mutation;
-        }
+                    EmitterAvailabilityMap map = EmitterAvailabilityMap.GenerateMapForLimbNode(genotype.BrainNeuronDefinitions.Count, genotype.LimbNodes.Cast<ILimbNodeEssentialInfo>().ToList(), limbNodeIndex);
+                    neuronDefinitions = neuronDefinitions.Select((n, i) => i == index ? MutateNeuronDefinition(map, limbNode.NeuronDefinitions[index]) : n).ToList();
+                }
+            })),
+            (MutationParameters.LimbNode.AddLimbConnection, new Action(() =>
+            {
+                bool invalid = limbNode.Connections.Count == LimbNodeParameters.MaxLimbConnections;
+                if (!invalid)
+                    connections.Add(LimbConnection.CreateRandom(UnityEngine.Random.Range(0, genotype.LimbNodes.Count)));
+            })),
+            (MutationParameters.LimbNode.RemoveLimbConnection, new Action(() =>
+            {
+                int index = UnityEngine.Random.Range(0, limbNode.Connections.Count);
+                bool invalid = limbNode.Connections.Count == 0;
+                if (!invalid)
+                    connections = connections.Where((c, i) => i != index).ToList();
+            })),
+            (MutationParameters.LimbNode.ChangeLimbConnection, new Action(() =>
+            {
+                int index = UnityEngine.Random.Range(0, limbNode.Connections.Count);
+                bool invalid = limbNode.Connections.Count == 0;
+                if (!invalid)
+                    connections = connections.Select((c, i) => MutateLimbConnection(genotype, limbNodeIndex, index)).ToList();
+            }))
+        };
+
+        mutationChoices.ChooseAction();
+        return new(
+            dimensions,
+            jointDefinition,
+            recursiveLimit,
+            neuronDefinitions,
+            connections
+        );
     }
 
-    public static class JointDefinitionMutation
+    private static JointDefinition MutateJointDefinition(EmitterAvailabilityMap emitterAvailabilityMap, JointDefinition jointDefinition)
     {
-        public const string ChangeJointType = "ChangeJointType";
-        public const string ChangeJointAxisDefinition = "ChangeJointAxisDefinition";
+        JointType type = jointDefinition.Type;
+        List<JointAxisDefinition> axisDefinitions = jointDefinition.AxisDefinitions.ToList();
 
-        public static Func<JointDefinition, JointDefinition> ParseMutationFunction(Queue<Step> pathTokens, string newValue)
+        WeightedActionList mutationChoices = new()
         {
-            Step step = pathTokens.Dequeue();
-            Func<JointAxisDefinition, JointAxisDefinition> jointAxisDefinitionMutationFunc = step.action == ChangeJointAxisDefinition ? JointAxisDefinitionMutation.ParseMutationFunction(pathTokens, newValue) : null;
-            return (jointDefinition) =>
+            (MutationParameters.JointDefinition.ChangeJointType, new Action(() =>
             {
-                return new(
-                    step.action == ChangeJointType ? Enum.Parse<JointType>(Utilities.SentenceToPascalCase(newValue)) : jointDefinition.Type,
-                    step.action == ChangeJointAxisDefinition ? jointDefinition.AxisDefinitions.Select((a, i) => i == (int)step.index ? jointAxisDefinitionMutationFunc(a) : a).ToList() : jointDefinition.AxisDefinitions
-                );
-            };
-        }
+                type = Enum.Parse<JointType>(MutateEnum(jointDefinition.Type).ToString());
+            })),
+            (MutationParameters.JointDefinition.ChangeJointAxisDefinition, new Action(() =>
+            {
+                int index = UnityEngine.Random.Range(0, jointDefinition.AxisDefinitions.Count);
+                bool invalid = jointDefinition.AxisDefinitions.Count == 0;
+                if (!invalid)
+                    axisDefinitions[index] = MutateJointAxisDefinition(emitterAvailabilityMap, jointDefinition.AxisDefinitions[index]);
+            }))
+        };
 
-        public static MutationOperation CreateRandomMutation(EmitterAvailabilityMap emitterAvailabilityMap, JointDefinition jointDefinition, MutationOperation mutation)
-        {
-            WeightedActionList mutationChoices = new()
-            {
-                (MutationParameters.JointDefinition.ChangeJointType, new Action(() =>
-                {
-                    mutation.AddStepToPath(new() { action = ChangeJointType });
-                    mutation.newValue = MutateEnum(jointDefinition.Type).ToString();
-                })),
-                (MutationParameters.JointDefinition.ChangeJointAxisDefinition, new Action(() =>
-                {
-                    int index = UnityEngine.Random.Range(0, jointDefinition.AxisDefinitions.Count);
-                    mutation.AddStepToPath(new() { action = ChangeJointAxisDefinition, index = index });
-                    mutation.invalid = jointDefinition.AxisDefinitions.Count == 0;
-                    if (!mutation.invalid)
-                        mutation = JointAxisDefinitionMutation.CreateRandomMutation(emitterAvailabilityMap, jointDefinition.AxisDefinitions[index], mutation);
-                }))
-            };
-            mutationChoices.ChooseAction();
-            return mutation;
-        }
+        mutationChoices.ChooseAction();
+        return new(
+            type,
+            axisDefinitions
+        );
     }
 
-    public static class JointAxisDefinitionMutation
+    private static JointAxisDefinition MutateJointAxisDefinition(EmitterAvailabilityMap emitterAvailabilityMap, JointAxisDefinition jointAxisDefinition)
     {
-        public const string ChangeJointLimit = "ChangeJointLimit";
-        public const string ChangeInputDefinition = "ChangeInputDefinition";
+        float limit = jointAxisDefinition.Limit;
+        InputDefinition inputDefinition = jointAxisDefinition.InputDefinition;
 
-        public static Func<JointAxisDefinition, JointAxisDefinition> ParseMutationFunction(Queue<Step> pathTokens, string newValue)
+        WeightedActionList mutationChoices = new()
         {
-            Step step = pathTokens.Dequeue();
-            Func<InputDefinition, InputDefinition> inputDefinitionMutationFunc = step.action == ChangeInputDefinition ? InputDefinitionMutation.ParseMutationFunction(pathTokens, newValue) : null;
-            return (jointAxisDefinition) =>
+            (MutationParameters.JointAxisDefinition.ChangeJointLimit, new Action(() =>
             {
-                return new(
-                    step.action == ChangeJointLimit ? float.Parse(newValue) : jointAxisDefinition.Limit,
-                    step.action == ChangeInputDefinition ? inputDefinitionMutationFunc(jointAxisDefinition.InputDefinition) : jointAxisDefinition.InputDefinition
-                );
-            };
-        }
+                limit = MutateScalar(jointAxisDefinition.Limit, JointDefinitionParameters.MinAngle, JointDefinitionParameters.MaxAngle);
+            })),
+            (MutationParameters.JointAxisDefinition.ChangeInputDefinition, new Action(() =>
+            {
+                inputDefinition = MutateInputDefinition(emitterAvailabilityMap, jointAxisDefinition.InputDefinition);
+            }))
+        };
 
-        public static MutationOperation CreateRandomMutation(EmitterAvailabilityMap emitterAvailabilityMap, JointAxisDefinition jointAxisDefinition, MutationOperation mutation)
-        {
-            WeightedActionList mutationChoices = new()
-            {
-                (MutationParameters.JointAxisDefinition.ChangeJointLimit, new Action(() =>
-                {
-                    mutation.AddStepToPath(new() { action = ChangeJointLimit });
-                    mutation.newValue = MutateScalar(jointAxisDefinition.Limit, JointDefinitionParameters.MinAngle, JointDefinitionParameters.MaxAngle).ToString();
-                })),
-                (MutationParameters.JointAxisDefinition.ChangeInputDefinition, new Action(() =>
-                {
-                    mutation.AddStepToPath(new() { action = ChangeInputDefinition });
-                    mutation = InputDefinitionMutation.CreateRandomMutation(emitterAvailabilityMap, jointAxisDefinition.InputDefinition, mutation);
-                }))
-            };
-            mutationChoices.ChooseAction();
-            return mutation;
-        }
+        mutationChoices.ChooseAction();
+        return new(
+            limit,
+            inputDefinition
+        );
     }
 
-    public static class LimbConnectionMutation
+    private static LimbConnection MutateLimbConnection(Genotype genotype, int limbNodeIndex, int limbConnectionIndex)
     {
-        public const string ChangeChildNode = "ChangeChildNode";
-        public const string ChangeParentFace = "ChangeParentFace";
-        public const string ChangePosition = "ChangePosition";
-        public const string ChangeOrientation = "ChangeOrientation";
-        public const string ChangeScale = "ChangeScale";
-        public const string ChangeReflectionX = "ChangeReflectionX";
-        public const string ChangeReflectionY = "ChangeReflectionY";
-        public const string ChangeReflectionZ = "ChangeReflectionZ";
-        public const string ChangeTerminalOnly = "ChangeTerminalOnly";
+        LimbConnection connection = genotype.LimbNodes[limbNodeIndex].Connections[limbConnectionIndex];
+        int childNodeId = connection.ChildNodeId;
+        int parentFace = connection.ParentFace;
+        Vector2 position = connection.Position;
+        Vector3 orientation = connection.Orientation;
+        Vector3 scale = connection.Scale;
+        bool reflectionX = connection.ReflectionX;
+        bool reflectionY = connection.ReflectionY;
+        bool reflectionZ = connection.ReflectionZ;
+        bool terminalOnly = connection.TerminalOnly;
 
-        public static Func<LimbConnection, LimbConnection> ParseMutationFunction(Queue<Step> pathTokens, string newValue)
+        WeightedActionList mutationChoices = new()
         {
-            Step step = pathTokens.Dequeue();
-            return (connection) =>
+            (MutationParameters.LimbConnection.ChangeChildNode, new Action(() =>
             {
-                return new(
-                    step.action == ChangeChildNode ? int.Parse(newValue) : connection.ChildNodeId,
-                    step.action == ChangeParentFace ? int.Parse(newValue) : connection.ParentFace,
-                    step.action == ChangePosition ? JsonUtility.FromJson<Vector3>(newValue) : connection.Position,
-                    step.action == ChangeOrientation ? JsonUtility.FromJson<Vector3>(newValue) : connection.Orientation,
-                    step.action == ChangeScale ? JsonUtility.FromJson<Vector3>(newValue) : connection.Scale,
-                    step.action == ChangeReflectionX ? bool.Parse(newValue) : connection.ReflectionX,
-                    step.action == ChangeReflectionY ? bool.Parse(newValue) : connection.ReflectionY,
-                    step.action == ChangeReflectionZ ? bool.Parse(newValue) : connection.ReflectionZ,
-                    step.action == ChangeTerminalOnly ? bool.Parse(newValue) : connection.TerminalOnly
-                );
-            };
-        }
+                childNodeId = MutateScalar(connection.ChildNodeId, 0, genotype.LimbNodes.Count - 1);
+            })),
+            (MutationParameters.LimbConnection.ChangeParentFace, new Action(() =>
+            {
+                parentFace = MutateScalar(connection.ParentFace, 0, 5);
+            })),
+            (MutationParameters.LimbConnection.ChangePosition, new Action(() =>
+            {
+                position = MutateVector(connection.Position, -1f, 1f);
+            })),
+            (MutationParameters.LimbConnection.ChangeOrientation, new Action(() =>
+            {
+                orientation = MutateVector(connection.Orientation, LimbConnectionParameters.MinAngle, LimbConnectionParameters.MaxAngle);
+            })),
+            (MutationParameters.LimbConnection.ChangeScale, new Action(() =>
+            {
+                scale = MutateVector(connection.Scale, LimbConnectionParameters.MinScale, LimbConnectionParameters.MaxScale);
+            })),
+            (MutationParameters.LimbConnection.ChangeReflectionX, new Action(() =>
+            {
+                reflectionX = !connection.ReflectionX;
+            })),
+            (MutationParameters.LimbConnection.ChangeReflectionY, new Action(() =>
+            {
+                reflectionY = !connection.ReflectionY;
+            })),
+            (MutationParameters.LimbConnection.ChangeReflectionZ, new Action(() =>
+            {
+                reflectionZ = !connection.ReflectionZ;
+            })),
+            (MutationParameters.LimbConnection.ChangeTerminalOnly, new Action(() =>
+            {
+                terminalOnly = !connection.TerminalOnly;
+            }))
+        };
 
-        public static MutationOperation CreateRandomMutation(Genotype genotype, int limbNodeIndex, int limbConnectionIndex, MutationOperation mutation)
-        {
-            LimbConnection connection = genotype.LimbNodes[limbNodeIndex].Connections[limbConnectionIndex];
-            WeightedActionList mutationChoices = new()
-            {
-                (MutationParameters.LimbConnection.ChangeChildNode, new Action(() =>
-                {
-                    mutation.AddStepToPath(new() { action = ChangeChildNode });
-                    mutation.newValue = MutateScalar(connection.ChildNodeId, 0, genotype.LimbNodes.Count - 1).ToString();
-                })),
-                (MutationParameters.LimbConnection.ChangeParentFace, new Action(() =>
-                {
-                    mutation.AddStepToPath(new() { action = ChangeParentFace });
-                    mutation.newValue = MutateScalar(connection.ParentFace, 0, 5).ToString();
-                })),
-                (MutationParameters.LimbConnection.ChangePosition, new Action(() =>
-                {
-                    mutation.AddStepToPath(new() { action = ChangePosition });
-                    mutation.newValue = JsonUtility.ToJson(MutateVector(connection.Position, -1f, 1f));
-                })),
-                (MutationParameters.LimbConnection.ChangeOrientation, new Action(() =>
-                {
-                    mutation.AddStepToPath(new() { action = ChangeOrientation });
-                    mutation.newValue = JsonUtility.ToJson(MutateVector(connection.Orientation, LimbConnectionParameters.MinAngle, LimbConnectionParameters.MaxAngle));
-                })),
-                (MutationParameters.LimbConnection.ChangeScale, new Action(() =>
-                {
-                    mutation.AddStepToPath(new() { action = ChangeScale });
-                    mutation.newValue = JsonUtility.ToJson(MutateVector(connection.Scale, LimbConnectionParameters.MinScale, LimbConnectionParameters.MaxScale));
-                })),
-                (MutationParameters.LimbConnection.ChangeReflectionX, new Action(() =>
-                {
-                    mutation.AddStepToPath(new() { action = ChangeReflectionX });
-                    mutation.newValue = (!connection.ReflectionX).ToString();
-                })),
-                (MutationParameters.LimbConnection.ChangeReflectionY, new Action(() =>
-                {
-                    mutation.AddStepToPath(new() { action = ChangeReflectionY });
-                    mutation.newValue = (!connection.ReflectionY).ToString();
-                })),
-                (MutationParameters.LimbConnection.ChangeReflectionZ, new Action(() =>
-                {
-                    mutation.AddStepToPath(new() { action = ChangeReflectionZ });
-                    mutation.newValue = (!connection.ReflectionZ).ToString();
-                })),
-                (MutationParameters.LimbConnection.ChangeTerminalOnly, new Action(() =>
-                {
-                    mutation.AddStepToPath(new() { action = ChangeTerminalOnly });
-                    mutation.newValue = (!connection.TerminalOnly).ToString();
-                }))
-            };
-            mutationChoices.ChooseAction();
-            return mutation;
-        }
+        mutationChoices.ChooseAction();
+        return new(
+            childNodeId,
+            parentFace,
+            position,
+            orientation,
+            scale,
+            reflectionX,
+            reflectionY,
+            reflectionZ,
+            terminalOnly
+        );
     }
 
-    public static class NeuronDefinitionMutation
+    private static NeuronDefinition MutateNeuronDefinition(EmitterAvailabilityMap emitterAvailabilityMap, NeuronDefinition neuronDefinition)
     {
-        public const string ChangeNeuronType = "ChangeNeuronType";
-        public const string ChangeInputDefinition = "ChangeInputDefinition";
+        NeuronType type = neuronDefinition.Type;
+        List<InputDefinition> inputDefinitions = neuronDefinition.InputDefinitions.ToList();
 
-        public static Func<NeuronDefinition, NeuronDefinition> ParseMutationFunction(Queue<Step> pathTokens, string newValue)
+        WeightedActionList mutationChoices = new()
         {
-            Step step = pathTokens.Dequeue();
-            Func<InputDefinition, InputDefinition> inputDefinitionMutationFunc = step.action == ChangeInputDefinition ? InputDefinitionMutation.ParseMutationFunction(pathTokens, newValue) : null;
-            return (neuronDefinition) =>
+            (MutationParameters.NeuronDefinition.ChangeNeuronType, new Action(() =>
             {
-                return new(
-                    step.action == ChangeNeuronType ? Enum.Parse<NeuronType>(newValue) : neuronDefinition.Type,
-                    step.action == ChangeInputDefinition ? neuronDefinition.InputDefinitions.Select((def, i) => i == (int)step.index ? inputDefinitionMutationFunc(def) : def).ToList() : neuronDefinition.InputDefinitions
-                );
-            };
-        }
+                type = Enum.Parse<NeuronType>(MutateEnum(neuronDefinition.Type).ToString());
+            })),
+            (MutationParameters.NeuronDefinition.ChangeInputDefinition, new Action(() =>
+            {
+                int index = UnityEngine.Random.Range(0, neuronDefinition.InputDefinitions.Count);
+                bool invalid = neuronDefinition.InputDefinitions.Count == 0;
+                if (!invalid)
+                    inputDefinitions[index] = MutateInputDefinition(emitterAvailabilityMap, inputDefinitions[index]);
+            }))
+        };
 
-        public static MutationOperation CreateRandomMutation(EmitterAvailabilityMap emitterAvailabilityMap, NeuronDefinition neuronDefinition, MutationOperation mutation)
-        {
-            WeightedActionList mutationChoices = new()
-            {
-                (MutationParameters.NeuronDefinition.ChangeNeuronType, new Action(() =>
-                {
-                    mutation.AddStepToPath(new() { action = ChangeNeuronType });
-                    mutation.newValue = MutateEnum(neuronDefinition.Type).ToString();
-                })),
-                (MutationParameters.NeuronDefinition.ChangeInputDefinition, new Action(() =>
-                {
-                    int index = UnityEngine.Random.Range(0, neuronDefinition.InputDefinitions.Count);
-                    mutation.AddStepToPath(new() { action = ChangeInputDefinition, index = index });
-                    mutation.invalid = neuronDefinition.InputDefinitions.Count == 0;
-                    if (!mutation.invalid)
-                        mutation = InputDefinitionMutation.CreateRandomMutation(emitterAvailabilityMap, neuronDefinition.InputDefinitions[index], mutation);
-                }))
-            };
-            mutationChoices.ChooseAction();
-            return mutation;
-        }
+        mutationChoices.ChooseAction();
+        return new(
+            type,
+            inputDefinitions
+        );
     }
 
-    public static class InputDefinitionMutation
+    private static InputDefinition MutateInputDefinition(EmitterAvailabilityMap emitterAvailabilityMap, InputDefinition inputDefinition)
     {
-        public const string ChangeEmitterSetLocation = "ChangeEmitterSetLocation";
-        public const string ChangeChildLimbIndex = "ChangeChildLimbIndex";
-        public const string ChangeInstanceId = "ChangeInstanceId";
-        public const string ChangeEmitterIndex = "ChangeEmitterIndex";
-        public const string ChangeWeight = "ChangeWeight";
+        EmitterSetLocation emitterSetLocation = inputDefinition.EmitterSetLocation;
+        int childLimbIndex = inputDefinition.ChildLimbIndex;
+        string instanceId = inputDefinition.InstanceId;
+        int emitterIndex = inputDefinition.EmitterIndex;
+        float weight = inputDefinition.Weight;
 
-        public static Func<InputDefinition, InputDefinition> ParseMutationFunction(Queue<Step> pathTokens, string newValue)
+        WeightedActionList mutationChoices = new()
         {
-            Step step = pathTokens.Dequeue();
-            return (inputDefinition) =>
+            (MutationParameters.InputDefinition.ChangeEmitterSetLocation, new Action(() =>
             {
-                return new(
-                    step.action == ChangeEmitterSetLocation ? Enum.Parse<EmitterSetLocation>(newValue) : inputDefinition.EmitterSetLocation,
-                    step.action == ChangeChildLimbIndex ? int.Parse(newValue) : inputDefinition.ChildLimbIndex,
-                    step.action == ChangeInstanceId ? newValue : inputDefinition.InstanceId,
-                    step.action == ChangeEmitterIndex ? int.Parse(newValue) : inputDefinition.EmitterIndex,
-                    step.action == ChangeWeight ? float.Parse(newValue) : inputDefinition.Weight
-                );
-            };
-        }
+                List<EmitterSetLocation> validLocations = emitterAvailabilityMap.GetValidInputSetLocations();
+                emitterSetLocation = validLocations[UnityEngine.Random.Range(0, validLocations.Count)];
+            })),
+            (MutationParameters.InputDefinition.ChangeChildLimbIndex, new Action(() =>
+            {
+                List<int> validChildLimbIndices = emitterAvailabilityMap.GetValidChildLimbIndices();
+                bool invalid = validChildLimbIndices.Count == 0;
+                childLimbIndex = invalid ? 0 : validChildLimbIndices[UnityEngine.Random.Range(0, validChildLimbIndices.Count)];
+            })),
+            (MutationParameters.InputDefinition.ChangeInstanceId, new Action(() =>
+            {
+                List<string> validInstanceIds = emitterAvailabilityMap.GetValidLimbInstanceIds();
+                bool invalid = validInstanceIds.Count == 0;
+                instanceId = invalid ? null : validInstanceIds[UnityEngine.Random.Range(0, validInstanceIds.Count)];
+            })),
+            (MutationParameters.InputDefinition.ChangeEmitterIndex, new Action(() =>
+            {
+                int emitterCount = emitterAvailabilityMap.GetEmitterCountAtLocation(inputDefinition.EmitterSetLocation, inputDefinition.ChildLimbIndex, inputDefinition.InstanceId);
+                bool invalid = emitterCount <= 0;
+                emitterIndex = invalid ? 0 : UnityEngine.Random.Range(0, emitterCount);
+            })),
+            (MutationParameters.InputDefinition.ChangeWeight, new Action(() =>
+            {
+                weight = MutateScalar(inputDefinition.Weight, InputDefinitionParameters.MinWeight, InputDefinitionParameters.MaxWeight);
+            }))
+        };
 
-        public static MutationOperation CreateRandomMutation(EmitterAvailabilityMap emitterAvailabilityMap, InputDefinition inputDefinition, MutationOperation mutation)
-        {
-            WeightedActionList mutationChoices = new()
-            {
-                (MutationParameters.InputDefinition.ChangeEmitterSetLocation, new Action(() =>
-                {
-                    mutation.AddStepToPath(new() { action = ChangeEmitterSetLocation });
-                    List<EmitterSetLocation> validLocations = emitterAvailabilityMap.GetValidInputSetLocations();
-                    mutation.newValue = validLocations[UnityEngine.Random.Range(0, validLocations.Count)].ToString();
-                })),
-                (MutationParameters.InputDefinition.ChangeChildLimbIndex, new Action(() =>
-                {
-                    mutation.AddStepToPath(new() { action = ChangeChildLimbIndex });
-                    List<int> validChildLimbIndices = emitterAvailabilityMap.GetValidChildLimbIndices();
-                    mutation.invalid = validChildLimbIndices.Count == 0;
-                    mutation.newValue = mutation.invalid ? null : validChildLimbIndices[UnityEngine.Random.Range(0, validChildLimbIndices.Count)].ToString();
-                })),
-                (MutationParameters.InputDefinition.ChangeInstanceId, new Action(() =>
-                {
-                    mutation.AddStepToPath(new() { action = ChangeInstanceId });
-                    List<string> validInstanceIds = emitterAvailabilityMap.GetValidLimbInstanceIds();
-                    mutation.invalid = validInstanceIds.Count == 0;
-                    mutation.newValue = mutation.invalid ? null : validInstanceIds[UnityEngine.Random.Range(0, validInstanceIds.Count)].ToString();
-                })),
-                (MutationParameters.InputDefinition.ChangeEmitterIndex, new Action(() =>
-                {
-                    mutation.AddStepToPath(new() { action = ChangeEmitterIndex });
-                    int emitterCount = emitterAvailabilityMap.GetEmitterCountAtLocation(inputDefinition.EmitterSetLocation, inputDefinition.ChildLimbIndex, inputDefinition.InstanceId);
-                    mutation.invalid = emitterCount <= 0;
-                    mutation.newValue = mutation.invalid ? null : UnityEngine.Random.Range(0, emitterCount).ToString();
-                })),
-                (MutationParameters.InputDefinition.ChangeWeight, new Action(() =>
-                {
-                    mutation.AddStepToPath(new() { action = ChangeWeight });
-                    mutation.newValue = MutateScalar(inputDefinition.Weight, InputDefinitionParameters.MinWeight, InputDefinitionParameters.MaxWeight).ToString();
-                }))
-            };
-            mutationChoices.ChooseAction();
-            return mutation;
-        }
+        mutationChoices.ChooseAction();
+        return new(
+            emitterSetLocation,
+            childLimbIndex,
+            instanceId,
+            emitterIndex,
+            weight
+        );
     }
 
     private static object MutateEnum(Enum e)

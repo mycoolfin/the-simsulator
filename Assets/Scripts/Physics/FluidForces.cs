@@ -3,7 +3,6 @@ using UnityEngine;
 public class FluidForces : MonoBehaviour
 {
     private Rigidbody rb;
-    private Bounds bounds;
     private Vector3 surfaceAreas;
     private Vector3[] facePositions;
     private Vector3[][] quadrantPositions;
@@ -12,7 +11,6 @@ public class FluidForces : MonoBehaviour
     private void Start()
     {
         rb = GetComponent<Rigidbody>();
-        bounds = GetComponent<BoxCollider>().bounds;
 
         surfaceAreas = new Vector3(
             transform.localScale.y * transform.localScale.z,
@@ -40,8 +38,8 @@ public class FluidForces : MonoBehaviour
             for (int quadrant = 0; quadrant < 4; quadrant++)
             {
                 Vector3 localFaceQuadrant = localFaceCenter;
-                localFaceQuadrant[(perpendicularAxis + 1) % 3] = (quadrant < 2 ? -0.25f : 0.25f);
-                localFaceQuadrant[(perpendicularAxis + 2) % 3] = (quadrant % 2 == 0 ? -0.25f : 0.25f);
+                localFaceQuadrant[(perpendicularAxis + 1) % 3] = quadrant < 2 ? -0.25f : 0.25f;
+                localFaceQuadrant[(perpendicularAxis + 2) % 3] = quadrant % 2 == 0 ? -0.25f : 0.25f;
                 quadrantPositions[face][quadrant] = localFaceQuadrant;
             }
         }
@@ -108,14 +106,13 @@ public class FluidForces : MonoBehaviour
 
     private void OnDrawGizmosSelected()
     {
-        if (!this.enabled) return;
+        if (!enabled) return;
         if (WorldManager.Instance.simulateFluid)
         {
             if (rb.IsSleeping() || GetMassNormalizedKE() < rb.sleepThreshold) return;
 
             Gizmos.color = Color.cyan;
 
-            Vector3[] directions = GetTransformDirections();
             for (int face = 0; face < 6; face++)
             {
                 for (int quadrant = 0; quadrant < 4; quadrant++)

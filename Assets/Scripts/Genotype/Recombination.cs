@@ -12,20 +12,20 @@ public enum RecombinationOperationType
 public class RecombinationOperation
 {
     [SerializeField] private RecombinationOperationType type;
-    [SerializeField] private GenotypeWithoutAncestry mate;
+    [SerializeField] private Genotype mate;
     [SerializeField] private int crossoverInterval;
     [SerializeField] private float recipientNodeChoice;
     [SerializeField] private float recipientConnectionChoice;
     [SerializeField] private float donorNodeChoice;
 
     public RecombinationOperationType Type => type;
-    public GenotypeWithoutAncestry Mate => mate;
+    public Genotype Mate => mate;
     public int CrossoverInterval => crossoverInterval;
     public float RecipientNodeChoice => recipientNodeChoice;
     public float RecipientConnectionChoice => recipientConnectionChoice;
     public float DonorNodeChoice => donorNodeChoice;
 
-    private RecombinationOperation(RecombinationOperationType type, GenotypeWithoutAncestry mate, int crossoverInterval,
+    private RecombinationOperation(RecombinationOperationType type, Genotype mate, int crossoverInterval,
         float recipientNodeChoice, float recipientConnectionChoice, float donorNodeChoice)
     {
         this.type = type;
@@ -43,12 +43,11 @@ public class RecombinationOperation
 
     public static RecombinationOperation CreateCrossover(Genotype mate)
     {
-        return new(RecombinationOperationType.Crossover, new(mate), ReproductionParameters.CrossoverInterval, -1, -1, -1);
+        return new(RecombinationOperationType.Crossover, mate, ReproductionParameters.CrossoverInterval, -1, -1, -1);
     }
 
     public static RecombinationOperation CreateGrafting(Genotype mate)
     {
         // Randomly choose a destination node from the donor side.
-        return new(RecombinationOperationType.Grafting, new(mate), -1, UnityEngine.Random.value, UnityEngine.Random.value, UnityEngine.Random.value);
-    }
+        return new(RecombinationOperationType.Grafting, mate, -1, UnityEngine.Random.value, UnityEngine.Random.value, UnityEngine.Random.value);    }
 }

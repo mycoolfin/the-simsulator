@@ -271,7 +271,6 @@ public class CreatureEditor : MonoBehaviour
         LimbNode newLimbNode = LimbNode.CreateRandom(emitterAvailabilityMap, unfinishedLimbNode);
         SetLoadedGenotype(Genotype.Construct(
             loadedGenotype.Id,
-            loadedGenotype.Ancestry,
             loadedGenotype.BrainNeuronDefinitions,
             loadedGenotype.LimbNodes.Concat(new List<LimbNode>() { newLimbNode }).ToList()
         ));
@@ -281,7 +280,6 @@ public class CreatureEditor : MonoBehaviour
     {
         SetLoadedGenotype(Genotype.Construct(
             loadedGenotype.Id,
-            loadedGenotype.Ancestry,
             loadedGenotype.BrainNeuronDefinitions,
             loadedGenotype.LimbNodes.Select((l, i) => i == limbNodeIndex ? editedLimbNode : l).ToList()
         ));
@@ -294,7 +292,6 @@ public class CreatureEditor : MonoBehaviour
         SetLoadedGenotype(
             loadedGenotype = Genotype.Construct(
                 loadedGenotype.Id,
-                loadedGenotype.Ancestry,
                 loadedGenotype.BrainNeuronDefinitions,
                 loadedGenotype.LimbNodes.Where((l, i) => i != limbNodeIndex).Select((l, i) =>
                     l.CreateCopy(l.Connections.Where(c => c.ChildNodeId < loadedGenotype.LimbNodes.Count - 1).ToList())

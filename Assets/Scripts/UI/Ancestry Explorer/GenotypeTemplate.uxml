@@ -1,4 +1,0 @@
-<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
-    <Style src="project://database/Assets/Scripts/UI/Ancestry%20Explorer/AncestryExplorer.uss?fileID=7433441132597879392&amp;guid=82a00f6beac574cfc81968ce2d1862c1&amp;type=3#AncestryExplorer" />
-    <ui:Button text="genotype-template" display-tooltip-when-elided="true" name="genotype-template" class="genotype" style="border-top-left-radius: 5px; border-bottom-left-radius: 5px; border-top-right-radius: 5px; border-bottom-right-radius: 5px; margin-left: 10px; margin-right: 10px; margin-top: 10px; margin-bottom: 10px;" />
-</ui:UXML>

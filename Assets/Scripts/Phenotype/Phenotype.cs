@@ -184,7 +184,6 @@ public class Phenotype : MonoBehaviour, ISelectable, IPlaceable
         {
             Genotype genotypeToSave = Genotype.Construct(
                 savedName,
-                genotype.Ancestry,
                 genotype.BrainNeuronDefinitions,
                 genotype.LimbNodes
             );
