@@ -30,7 +30,7 @@
                         <ui:Button text="&lt;none&gt;" display-tooltip-when-elided="true" name="seed-genotype" focusable="true" style="flex-grow: 1;" />
                         <ui:Button text="x" display-tooltip-when-elided="true" name="remove-seed" enable-rich-text="false" focusable="true" style="flex-grow: 0; display: flex; -unity-font-style: bold;" />
                     </ui:VisualElement>
-                    <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); flex-direction: row; align-items: stretch; justify-content: flex-start; align-self: stretch; padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px; width: auto;">
+                    <ui:VisualElement name="seed-genotype-options" style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); flex-direction: row; align-items: stretch; justify-content: flex-start; align-self: stretch; padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px; width: auto;">
                         <ui:Label tabindex="-1" text="Evolve nervous systems only" display-tooltip-when-elided="true" enable-rich-text="true" style="flex-basis: auto; flex-direction: column; margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0; justify-content: flex-start; align-items: auto; align-self: center; width: 50%; -unity-text-align: upper-left;" />
                         <ui:Toggle name="lock-morphologies" />
                     </ui:VisualElement>
@@ -60,7 +60,7 @@
         </ui:Button>
     </ui:VisualElement>
     <ui:VisualElement name="runtime-menu-container" style="flex-grow: 0; background-color: rgb(154, 206, 245); position: absolute; bottom: 48px; right: 0; width: 400px; height: auto; border-top-left-radius: 5px; border-bottom-left-radius: 5px; border-top-right-radius: 0; border-bottom-right-radius: 0; border-left-color: rgba(255, 255, 255, 0.5); border-right-color: rgba(255, 255, 255, 0.5); border-top-color: rgba(255, 255, 255, 0.5); border-bottom-color: rgba(255, 255, 255, 0.5); border-left-width: 3px; border-right-width: 3px; border-top-width: 3px; border-bottom-width: 3px; max-height: 300px; display: flex;">
-        <ui:ScrollView mouse-wheel-scroll-size="100" name="ScrollView" style="display: flex;">
+        <ui:ScrollView mouse-wheel-scroll-size="100" style="display: flex;">
             <ui:VisualElement name="parameters" focusable="false" style="flex-grow: 0; background-color: rgba(0, 0, 0, 0); visibility: visible; opacity: 1; display: flex;">
                 <ui:Label tabindex="-1" text="Evolution Parameters" display-tooltip-when-elided="true" style="-unity-text-align: upper-center; -unity-font-style: bold; align-items: stretch;" />
                 <ui:VisualElement style="flex-grow: 0; background-color: rgba(0, 0, 0, 0);">
@@ -83,6 +83,14 @@
                     <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); flex-direction: row; align-items: stretch; justify-content: space-between; align-self: stretch; padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px;">
                         <ui:Label tabindex="-1" text="Mutation Rate" display-tooltip-when-elided="true" style="flex-basis: auto; flex-direction: column; margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0; justify-content: flex-start; align-items: auto; align-self: center; width: 50%;" />
                         <ui:Label tabindex="-1" text="&lt;none&gt;" display-tooltip-when-elided="true" name="mutation-rate" style="width: 50%; margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0;" />
+                    </ui:VisualElement>
+                    <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); flex-direction: row; align-items: stretch; justify-content: space-between; align-self: stretch; padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px;">
+                        <ui:Label tabindex="-1" text="Seed Genotype" display-tooltip-when-elided="true" style="flex-basis: auto; flex-direction: column; margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0; justify-content: flex-start; align-items: auto; align-self: center; width: 50%;" />
+                        <ui:Label tabindex="-1" text="&lt;none&gt;" display-tooltip-when-elided="true" name="seed-genotype" style="width: 50%; margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0;" />
+                    </ui:VisualElement>
+                    <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); flex-direction: row; align-items: stretch; justify-content: space-between; align-self: stretch; padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px;">
+                        <ui:Label tabindex="-1" text="Lock Morphologies" display-tooltip-when-elided="true" style="flex-basis: auto; flex-direction: column; margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0; justify-content: flex-start; align-items: auto; align-self: center; width: 50%;" />
+                        <ui:Label tabindex="-1" text="&lt;none&gt;" display-tooltip-when-elided="true" name="lock-morphologies" style="width: 50%; margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0;" />
                     </ui:VisualElement>
                 </ui:VisualElement>
             </ui:VisualElement>

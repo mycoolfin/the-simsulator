@@ -32,6 +32,7 @@ public class EvolutionSimulator : MonoBehaviour
     [SerializeField] private float survivalPercentage;
     public float SurvivalPercentage => survivalPercentage;
     [SerializeField] private Genotype seedGenotype;
+    public Genotype SeedGenotype => seedGenotype;
     [SerializeField] private bool run;
 
     [Header("Runtime Parameters")]

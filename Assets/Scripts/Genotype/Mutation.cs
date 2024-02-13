@@ -122,7 +122,7 @@ public static class Mutation
 
         WeightedActionList mutationChoices = new()
         {
-            (MutationParameters.LimbNode.ChangeDimensions, new Action(() =>
+            (MutationParameters.LimbNode.ChangeDimensions * (ReproductionParameters.LockMorphologies ? 0f : 1f), new Action(() =>
             {
                 dimensions = MutateVector(limbNode.Dimensions, LimbNodeParameters.MinSize, LimbNodeParameters.MaxSize);
             })),
@@ -131,7 +131,7 @@ public static class Mutation
                 EmitterAvailabilityMap map = EmitterAvailabilityMap.GenerateMapForLimbNode(genotype.BrainNeuronDefinitions.Count, genotype.LimbNodes.Cast<ILimbNodeEssentialInfo>().ToList(), limbNodeIndex);
                 jointDefinition = MutateJointDefinition(map, limbNode.JointDefinition);
             })),
-            (MutationParameters.LimbNode.ChangeRecursiveLimit, new Action(() =>
+            (MutationParameters.LimbNode.ChangeRecursiveLimit * (ReproductionParameters.LockMorphologies ? 0f : 1f), new Action(() =>
             {
                 recursiveLimit = MutateScalar(limbNode.RecursiveLimit, 0, LimbNodeParameters.MaxRecursiveLimit);
             })),
@@ -160,20 +160,20 @@ public static class Mutation
                     neuronDefinitions = neuronDefinitions.Select((n, i) => i == index ? MutateNeuronDefinition(map, limbNode.NeuronDefinitions[index]) : n).ToList();
                 }
             })),
-            (MutationParameters.LimbNode.AddLimbConnection, new Action(() =>
+            (MutationParameters.LimbNode.AddLimbConnection * (ReproductionParameters.LockMorphologies ? 0f : 1f), new Action(() =>
             {
                 bool invalid = limbNode.Connections.Count == LimbNodeParameters.MaxLimbConnections;
                 if (!invalid)
                     connections.Add(LimbConnection.CreateRandom(UnityEngine.Random.Range(0, genotype.LimbNodes.Count)));
             })),
-            (MutationParameters.LimbNode.RemoveLimbConnection, new Action(() =>
+            (MutationParameters.LimbNode.RemoveLimbConnection * (ReproductionParameters.LockMorphologies ? 0f : 1f), new Action(() =>
             {
                 int index = UnityEngine.Random.Range(0, limbNode.Connections.Count);
                 bool invalid = limbNode.Connections.Count == 0;
                 if (!invalid)
                     connections = connections.Where((c, i) => i != index).ToList();
             })),
-            (MutationParameters.LimbNode.ChangeLimbConnection, new Action(() =>
+            (MutationParameters.LimbNode.ChangeLimbConnection * (ReproductionParameters.LockMorphologies ? 0f : 1f), new Action(() =>
             {
                 int index = UnityEngine.Random.Range(0, limbNode.Connections.Count);
                 bool invalid = limbNode.Connections.Count == 0;

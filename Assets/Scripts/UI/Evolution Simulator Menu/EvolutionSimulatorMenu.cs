@@ -94,6 +94,9 @@ public class EvolutionModeMenu : MonoBehaviour
         mutationRate.value = Mathf.FloorToInt(MutationParameters.MutationRate);
         Button seedGenotypeButton = initialisationMenuContainer.Q<Button>("seed-genotype");
         Button removeSeedButton = initialisationMenuContainer.Q<Button>("remove-seed");
+        VisualElement seedGenotypeOptions = initialisationMenuContainer.Q<VisualElement>("seed-genotype-options");
+        Toggle lockMorphologies = seedGenotypeOptions.Q<Toggle>("lock-morphologies");
+        lockMorphologies.value = ReproductionParameters.LockMorphologies;
         seedGenotypeButton.clicked += () =>
         {
             string seedGenotypePath = FileBrowser.Instance.OpenSingleFile(
@@ -119,6 +122,7 @@ public class EvolutionModeMenu : MonoBehaviour
                 seedGenotypeButton.style.backgroundColor = buttonActiveColor;
                 removeSeedButton.style.display = DisplayStyle.Flex;
                 seedGenotype = genotype;
+                seedGenotypeOptions.style.display = DisplayStyle.Flex;
             }
         };
         removeSeedButton.clicked += () =>
@@ -129,6 +133,7 @@ public class EvolutionModeMenu : MonoBehaviour
             seedGenotype = null;
         };
         removeSeedButton.style.display = DisplayStyle.None;
+        seedGenotypeOptions.style.display = DisplayStyle.None;
 
         initialisationMenuContainer.Q<Button>("run").clicked += () =>
         {
@@ -137,10 +142,10 @@ public class EvolutionModeMenu : MonoBehaviour
                 ShowInitialisationMenu(false);
                 ShowRuntimeMenu(true);
                 ToggleRuntimeMenuTab(RuntimeMenuTab.Status);
-                TrialType t;
-                Enum.TryParse<TrialType>(Utilities.SentenceToPascalCase(trialType.value), out t);
+                Enum.TryParse(Utilities.SentenceToPascalCase(trialType.value), out TrialType t);
                 numberOfIterations = maxIterations.value;
                 MutationParameters.MutationRate = mutationRate.value;
+                ReproductionParameters.LockMorphologies = lockMorphologies.value;
                 StartCoroutine(simulator.Run(
                     t,
                     maxIterations.value,
@@ -198,6 +203,8 @@ public class EvolutionModeMenu : MonoBehaviour
         Label populationSize = parametersTab.Q<Label>("population-size");
         Label survivalPercentage = parametersTab.Q<Label>("survival-percentage");
         Label mutationRate = parametersTab.Q<Label>("mutation-rate");
+        Label seedGenotype = parametersTab.Q<Label>("seed-genotype");
+        Label lockMorphologies = parametersTab.Q<Label>("lock-morphologies");
 
         simulator.OnSimulationStart += () =>
         {
@@ -206,6 +213,9 @@ public class EvolutionModeMenu : MonoBehaviour
             populationSize.text = simulator.PopulationSize.ToString();
             survivalPercentage.text = Mathf.FloorToInt(simulator.SurvivalPercentage * 100f).ToString() + "%";
             mutationRate.text = MutationParameters.MutationRate == 0 ? "Mutation disabled" : "~" + MutationParameters.MutationRate.ToString() + " mutation" + (MutationParameters.MutationRate == 1f ? "" : "s") + "/child";
+            seedGenotype.text = simulator.SeedGenotype != null ? simulator.SeedGenotype.Id : "<none>";
+            lockMorphologies.parent.style.display = simulator.SeedGenotype != null ? DisplayStyle.Flex : DisplayStyle.None;
+            lockMorphologies.text = ReproductionParameters.LockMorphologies ? "Yes" : "No";
         };
     }
 

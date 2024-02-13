@@ -67,6 +67,12 @@ public static class PhenotypeBuilderParameters
 
 public static class ReproductionParameters
 {
+    public static bool LockMorphologies = false; // Whether recombination and mutation can affect creature morphologies.
+}
+
+public static class RecombinationParameters
+{
+
     public static float AsexualProbability = 0.4f;
     public static float CrossoverProbability = 0.3f;
     public static float GraftingProbability = 0.3f;
