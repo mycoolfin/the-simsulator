@@ -22,9 +22,32 @@
                 <ui:Button text="Save" display-tooltip-when-elided="true" name="save-genotype" style="flex-grow: 1;" />
             </ui:VisualElement>
         </ui:VisualElement>
-        <ui:Button display-tooltip-when-elided="true" name="exit" style="position: absolute; right: 0; padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px; width: 30px; height: 30px;">
-            <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); background-image: url(&apos;project://database/Assets/Scripts/UI/Icons/right-from-bracket-solid.png?fileID=2800000&amp;guid=c052d0a10b1e04853bb312eecf330d7d&amp;type=3#right-from-bracket-solid&apos;); -unity-background-scale-mode: scale-to-fit; width: 100%; height: 100%;" />
-        </ui:Button>
+        <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); position: absolute; flex-direction: row; align-items: center; right: 0;">
+            <ui:VisualElement name="camera-behaviour-toggle" style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); position: relative; flex-direction: row; margin-left: 4px; margin-right: 50px; margin-top: 2px; margin-bottom: 2px;">
+                <ui:Button display-tooltip-when-elided="true" name="normal" class="active" style="padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px; width: 30px; height: 30px; margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0;">
+                    <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); background-image: url(&apos;project://database/Assets/Scripts/UI/Icons/video-solid.png?fileID=2800000&amp;guid=646517f7230d3422690d46a59bfc2483&amp;type=3#video-solid&apos;); -unity-background-scale-mode: scale-to-fit; width: 100%; height: 100%;" />
+                </ui:Button>
+                <ui:Button display-tooltip-when-elided="true" name="orbit" style="padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px; width: 30px; height: 30px; margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0;">
+                    <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); background-image: url(&apos;project://database/Assets/Scripts/UI/Icons/satellite-solid.png?fileID=2800000&amp;guid=c07ed0bb759b54092a23b58c6706cc97&amp;type=3#satellite-solid&apos;); -unity-background-scale-mode: scale-to-fit; width: 100%; height: 100%;" />
+                </ui:Button>
+            </ui:VisualElement>
+            <ui:VisualElement name="simulation-environment-toggle" style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); position: relative; flex-direction: row; margin-left: 4px; margin-right: 50px; margin-top: 2px; margin-bottom: 2px;">
+                <ui:Button display-tooltip-when-elided="true" name="pause" style="padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px; width: 30px; height: 30px; margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0;">
+                    <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); background-image: url(&apos;project://database/Assets/Scripts/UI/Icons/pause-solid.png?fileID=2800000&amp;guid=c02a3edab5cac43ac885575a7d1b11a2&amp;type=3#pause-solid&apos;); -unity-background-scale-mode: scale-to-fit; width: 100%; height: 100%;" />
+                </ui:Button>
+                <ui:Button display-tooltip-when-elided="true" name="ground" class="active" style="padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px; width: 30px; height: 30px; margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0;">
+                    <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); background-image: url(&apos;project://database/Assets/Scripts/UI/Icons/person-walking-solid.png?fileID=2800000&amp;guid=f2b85001038ff4db0b332931a7337fbe&amp;type=3#person-walking-solid&apos;); -unity-background-scale-mode: scale-to-fit; width: 100%; height: 100%;" />
+                </ui:Button>
+                <ui:Button display-tooltip-when-elided="true" name="water" style="padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px; width: 30px; height: 30px; margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0;">
+                    <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); background-image: url(&apos;project://database/Assets/Scripts/UI/Icons/person-swimming-solid.png?fileID=2800000&amp;guid=5a650225bc24b4febb2b318bf6ef9f38&amp;type=3#person-swimming-solid&apos;); -unity-background-scale-mode: scale-to-fit; width: 100%; height: 100%;" />
+                </ui:Button>
+            </ui:VisualElement>
+            <ui:VisualElement style="flex-grow: 0; background-color: rgba(0, 0, 0, 0); flex-direction: row; padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px; margin-left: 20px;">
+                <ui:Button display-tooltip-when-elided="true" name="exit" style="padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px; width: 30px; height: 30px;">
+                    <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); background-image: url(&apos;project://database/Assets/Scripts/UI/Icons/right-from-bracket-solid.png?fileID=2800000&amp;guid=c052d0a10b1e04853bb312eecf330d7d&amp;type=3#right-from-bracket-solid&apos;); -unity-background-scale-mode: scale-to-fit; width: 100%; height: 100%;" />
+                </ui:Button>
+            </ui:VisualElement>
+        </ui:VisualElement>
     </ui:VisualElement>
     <ui:VisualElement picking-mode="Ignore" style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); flex-direction: row; max-height: 100%;">
         <ui:VisualElement name="editor-tab" style="background-color: rgba(0, 0, 0, 0); width: 100%; display: flex; flex-grow: 1;">

@@ -54,7 +54,7 @@ public class PickAndPlaceManager : MonoBehaviour
         if (held != null)
         {
             held.gameObject.SetActive(true);
-            float yOffset = -held.GetBounds().center.y + held.GetBounds().extents.y;
+            float yOffset = -held.GetBounds().center.y + held.GetBounds().extents.y * 2f;
             held.gameObject.transform.position = position + new Vector3(0f, yOffset, 0f);
             Action cb = placedCallback;
             Reset();

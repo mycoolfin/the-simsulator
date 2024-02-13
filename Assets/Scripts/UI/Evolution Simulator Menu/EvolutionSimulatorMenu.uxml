@@ -30,6 +30,10 @@
                         <ui:Button text="&lt;none&gt;" display-tooltip-when-elided="true" name="seed-genotype" focusable="true" style="flex-grow: 1;" />
                         <ui:Button text="x" display-tooltip-when-elided="true" name="remove-seed" enable-rich-text="false" focusable="true" style="flex-grow: 0; display: flex; -unity-font-style: bold;" />
                     </ui:VisualElement>
+                    <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); flex-direction: row; align-items: stretch; justify-content: flex-start; align-self: stretch; padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px; width: auto;">
+                        <ui:Label tabindex="-1" text="Evolve nervous systems only" display-tooltip-when-elided="true" enable-rich-text="true" style="flex-basis: auto; flex-direction: column; margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0; justify-content: flex-start; align-items: auto; align-self: center; width: 50%; -unity-text-align: upper-left;" />
+                        <ui:Toggle name="lock-morphologies" />
+                    </ui:VisualElement>
                 </ui:VisualElement>
                 <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); flex-direction: row; justify-content: center;">
                     <ui:Button text="Run Simulation" display-tooltip-when-elided="true" name="run" focusable="true" style="flex-shrink: 0; min-width: auto; width: 150px; height: auto; margin-left: 10px; margin-right: 10px; margin-top: 10px; margin-bottom: 10px; padding-left: 10px; padding-right: 10px; padding-top: 10px; padding-bottom: 10px; align-items: stretch; align-self: center; white-space: normal;" />

@@ -26,6 +26,12 @@ public class CreatureEditor : MonoBehaviour
     private Button expandRightButton;
     private Button splitTabsButton;
     private Button expandLeftButton;
+    private Button pauseSimulationButton;
+    private Button groundSimulationButton;
+    private Button waterSimulationButton;
+    private Button normalCameraButton;
+    private Button orbitCameraButton;
+    private bool orbitPhenotype;
 
     private Genotype loadedGenotype;
     private int? focusedLimbNodeIndex;
@@ -53,6 +59,10 @@ public class CreatureEditor : MonoBehaviour
         };
 
         SetLoadedGenotype(null);
+
+        ToggleTabLayout(TabLayout.SplitTabs);
+        ToggleSimulationEnvironment(SimulationEnvironment.Ground);
+        ToggleCameraBehaviour(CameraBehaviour.Orbit);
     }
 
     private void InitialiseHeader()
@@ -61,12 +71,27 @@ public class CreatureEditor : MonoBehaviour
         Button exitButton = header.Q<Button>("exit");
         exitButton.clicked += () => SceneManager.LoadScene("MainMenu");
 
-        splitTabsButton = header.Q<Button>("split-tabs");
-        expandLeftButton = header.Q<Button>("expand-left");
-        expandRightButton = header.Q<Button>("expand-right");
+        VisualElement tabLayoutToggle = header.Q<VisualElement>("tab-layout-toggle");
+        splitTabsButton = tabLayoutToggle.Q<Button>("split-tabs");
+        expandLeftButton = tabLayoutToggle.Q<Button>("expand-left");
+        expandRightButton = tabLayoutToggle.Q<Button>("expand-right");
         splitTabsButton.clicked += () => ToggleTabLayout(TabLayout.SplitTabs);
         expandLeftButton.clicked += () => ToggleTabLayout(TabLayout.ExpandLeft);
         expandRightButton.clicked += () => ToggleTabLayout(TabLayout.ExpandRight);
+
+        VisualElement simulationEnvironmentToggle = header.Q<VisualElement>("simulation-environment-toggle");
+        pauseSimulationButton = simulationEnvironmentToggle.Q<Button>("pause");
+        groundSimulationButton = simulationEnvironmentToggle.Q<Button>("ground");
+        waterSimulationButton = simulationEnvironmentToggle.Q<Button>("water");
+        pauseSimulationButton.clicked += () => ToggleSimulationEnvironment(SimulationEnvironment.Pause);
+        groundSimulationButton.clicked += () => ToggleSimulationEnvironment(SimulationEnvironment.Ground);
+        waterSimulationButton.clicked += () => ToggleSimulationEnvironment(SimulationEnvironment.Water);
+
+        VisualElement cameraBehaviourToggle = header.Q<VisualElement>("camera-behaviour-toggle");
+        normalCameraButton = cameraBehaviourToggle.Q<Button>("normal");
+        orbitCameraButton = cameraBehaviourToggle.Q<Button>("orbit");
+        normalCameraButton.clicked += () => ToggleCameraBehaviour(CameraBehaviour.Normal);
+        orbitCameraButton.clicked += () => ToggleCameraBehaviour(CameraBehaviour.Orbit);
 
         Button loadedGenotypeButton = header.Q<Button>("loaded-genotype");
         Button removeLoadedGenotypeButton = header.Q<Button>("remove-loaded-genotype");
@@ -149,6 +174,7 @@ public class CreatureEditor : MonoBehaviour
     {
         nodeGraph.Clear();
         ClearPhenotypeWindow();
+        SetFocusedLimbNode(null);
         loadedGenotype = genotype;
 
         if (loadedGenotype != null)
@@ -157,7 +183,7 @@ public class CreatureEditor : MonoBehaviour
             phenotype.SetLimbsSelectable(true);
             PickAndPlaceManager.Instance.PickUp(phenotype, null, null);
             PickAndPlaceManager.Instance.Place(Vector3.zero);
-            playerController.orbitTarget = phenotype.limbs[0].transform;
+            playerController.orbitTarget = orbitPhenotype && phenotype.limbs.Count > 0 ? phenotype.limbs[0].transform : null;
 
             for (int nodeIndex = 0; nodeIndex < loadedGenotype.LimbNodes.Count; nodeIndex++)
                 nodeGraph.Add(InstantiateLimbNodeElement(nodeIndex));
@@ -223,15 +249,46 @@ public class CreatureEditor : MonoBehaviour
         if (tabLayout == TabLayout.ExpandRight) expandRightButton.AddToClassList("active"); else expandRightButton.RemoveFromClassList("active");
         editorTab.style.display = tabLayout == TabLayout.ExpandLeft ? DisplayStyle.None : DisplayStyle.Flex;
         phenotypeTab.style.display = tabLayout == TabLayout.ExpandRight ? DisplayStyle.None : DisplayStyle.Flex;
-        ToggleCameraViewport(tabLayout != TabLayout.ExpandLeft);
+        playerController.playerCamera.rect = new Rect() { x = tabLayout != TabLayout.ExpandLeft ? 0.5f : 0f, y = 0f, width = 1f, height = 1f };
+    }
+
+    private enum SimulationEnvironment
+    {
+        Pause,
+        Ground,
+        Water
+    }
+
+    private void ToggleSimulationEnvironment(SimulationEnvironment simulationEnvironment)
+    {
+        if (simulationEnvironment == SimulationEnvironment.Pause) pauseSimulationButton.AddToClassList("active"); else pauseSimulationButton.RemoveFromClassList("active");
+        if (simulationEnvironment == SimulationEnvironment.Ground) groundSimulationButton.AddToClassList("active"); else groundSimulationButton.RemoveFromClassList("active");
+        if (simulationEnvironment == SimulationEnvironment.Water) waterSimulationButton.AddToClassList("active"); else waterSimulationButton.RemoveFromClassList("active");
+        WorldManager.Instance.timeScale = simulationEnvironment == SimulationEnvironment.Pause ? 0f : 1f;
+        WorldManager.Instance.gravity = simulationEnvironment == SimulationEnvironment.Ground;
+        WorldManager.Instance.simulateFluid = simulationEnvironment == SimulationEnvironment.Water;
+    }
+
+    private enum CameraBehaviour
+    {
+        Normal,
+        Orbit
+    }
+
+    private void ToggleCameraBehaviour(CameraBehaviour cameraBehaviour)
+    {
+        if (cameraBehaviour == CameraBehaviour.Normal) normalCameraButton.AddToClassList("active"); else normalCameraButton.RemoveFromClassList("active");
+        if (cameraBehaviour == CameraBehaviour.Orbit) orbitCameraButton.AddToClassList("active"); else orbitCameraButton.RemoveFromClassList("active");
+        orbitPhenotype = cameraBehaviour == CameraBehaviour.Orbit;
+        playerController.orbitTarget = orbitPhenotype && phenotype != null && phenotype.limbs.Count > 0 ? phenotype.limbs[0].transform : null;
     }
 
     private void SetFocusedLimbNode(int? nodeIndex)
     {
-        if (focusedLimbNodeIndex != null)
+        if (focusedLimbNodeIndex != null && nodeGraph.Children().Count() > 0)
         {
             VisualElement focusedLimbNodeElement = nodeGraph.Children().ElementAt((int)focusedLimbNodeIndex);
-            focusedLimbNodeElement?.Q<Button>("limb-node").RemoveFromClassList("active");
+            focusedLimbNodeElement.Q<Button>("limb-node").RemoveFromClassList("active");
         }
 
         focusedLimbNodeIndex = nodeIndex;
@@ -306,11 +363,6 @@ public class CreatureEditor : MonoBehaviour
         {
             Destroy(phenotype.gameObject);
         }
-    }
-
-    private void ToggleCameraViewport(bool halve)
-    {
-        playerController.playerCamera.rect = new Rect() { x = halve ? 0.5f : 0f, y = 0f, width = 1f, height = 1f };
     }
 
     private void OnGenerateVisualContent(MeshGenerationContext mgc)

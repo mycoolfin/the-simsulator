@@ -62,7 +62,7 @@ public static class Mutation
                 int index = UnityEngine.Random.Range(0, genotype.LimbNodes.Count);
                 bool invalid = genotype.LimbNodes.Count == 0;
                 if (!invalid)
-                    limbNodes.Select((l, i) => i == index ? MutateLimbNode(genotype, index) : l).ToList();
+                    limbNodes = limbNodes.Select((l, i) => i == index ? MutateLimbNode(genotype, index) : l).ToList();
             }))
         };
 

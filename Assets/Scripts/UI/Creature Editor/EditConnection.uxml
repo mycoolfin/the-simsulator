@@ -8,7 +8,6 @@
             <ui:Foldout text="Position" name="position" value="false">
                 <ui:Slider picking-mode="Ignore" label="X" value="42" high-value="100" direction="Horizontal" show-input-field="true" name="x" inverted="false" style="align-items: center;" />
                 <ui:Slider picking-mode="Ignore" label="Y" value="42" high-value="100" direction="Horizontal" show-input-field="true" name="y" style="align-items: center;" />
-                <ui:Slider picking-mode="Ignore" label="Z" value="42" high-value="100" direction="Horizontal" show-input-field="true" name="z" style="align-items: center;" />
             </ui:Foldout>
             <ui:Foldout text="Orientation" name="orientation" value="false">
                 <ui:Slider picking-mode="Ignore" label="X" value="42" high-value="100" direction="Horizontal" show-input-field="true" name="x" inverted="false" style="align-items: center;" />
