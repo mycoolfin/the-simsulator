@@ -1,49 +1,53 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
     <Style src="project://database/Assets/Scripts/UI/Creature%20Editor/CreatureEditor.uss?fileID=7433441132597879392&amp;guid=b925ef5dd8585481a93bb52f6bec9fe4&amp;type=3#CreatureEditor" />
-    <ui:VisualElement name="header" style="flex-grow: 0; background-color: rgb(64, 75, 91); height: 56px; flex-direction: row; justify-content: center; flex-shrink: 1; align-items: center;">
-        <ui:Label tabindex="-1" text="Creature Editor" display-tooltip-when-elided="true" style="color: rgb(255, 255, 255); -unity-font-style: bold; font-size: 24px; margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0; padding-left: 0; padding-right: 0; padding-top: 0; padding-bottom: 0;" />
-        <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); position: absolute; left: 0; flex-direction: row; align-items: center;">
-            <ui:VisualElement name="tab-layout-toggle" style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); position: relative; justify-content: center; flex-direction: row; margin-left: 4px; margin-right: 4px; margin-top: 2px; margin-bottom: 2px;">
-                <ui:Button display-tooltip-when-elided="true" name="expand-right" style="padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px; width: 30px; height: 30px; margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0;">
-                    <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); background-image: url(&apos;project://database/Assets/Scripts/UI/Icons/arrow-right-solid.png?fileID=2800000&amp;guid=fc09a0e7018ad430389599a54a1f8575&amp;type=3#arrow-right-solid&apos;); -unity-background-scale-mode: scale-to-fit; width: 100%; height: 100%;" />
-                </ui:Button>
-                <ui:Button display-tooltip-when-elided="true" name="split-tabs" class="active" style="padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px; width: 30px; height: 30px; margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0;">
-                    <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); background-image: url(&apos;project://database/Assets/Scripts/UI/Icons/table-columns-solid.png?fileID=2800000&amp;guid=e4ec7beb68e68409da4c7a3353283fd3&amp;type=3#table-columns-solid&apos;); -unity-background-scale-mode: scale-to-fit; width: 100%; height: 100%;" />
-                </ui:Button>
-                <ui:Button display-tooltip-when-elided="true" name="expand-left" style="padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px; width: 30px; height: 30px; margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0;">
-                    <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); background-image: url(&apos;project://database/Assets/Scripts/UI/Icons/arrow-left-solid.png?fileID=2800000&amp;guid=e5bb2cf1985614ca190876fc35847d94&amp;type=3#arrow-left-solid&apos;); -unity-background-scale-mode: scale-to-fit; width: 100%; height: 100%;" />
-                </ui:Button>
+    <ui:VisualElement name="header" style="background-color: rgb(64, 75, 91); height: 56px; flex-direction: row; justify-content: space-between; flex-shrink: 1; align-items: center; width: 100%;">
+        <ui:VisualElement style="background-color: rgba(0, 0, 0, 0); flex-direction: row; align-items: center; width: 35%; height: 100%;">
+            <ui:VisualElement style="flex-grow: 0; background-color: rgba(0, 0, 0, 0); flex-direction: row; padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px; margin-left: 20px;">
+                <ui:Button text="Select a genotype..." display-tooltip-when-elided="true" name="loaded-genotype" focusable="false" style="flex-grow: 1; max-width: 170px;" />
+                <ui:Button text="x" display-tooltip-when-elided="true" name="remove-loaded-genotype" enable-rich-text="false" focusable="false" style="flex-grow: 0; display: flex; -unity-font-style: bold;" />
             </ui:VisualElement>
             <ui:VisualElement style="flex-grow: 0; background-color: rgba(0, 0, 0, 0); flex-direction: row; padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px; margin-left: 20px;">
-                <ui:Button text="Select a genotype..." display-tooltip-when-elided="true" name="loaded-genotype" style="flex-grow: 1; max-width: 170px;" />
-                <ui:Button text="x" display-tooltip-when-elided="true" name="remove-loaded-genotype" enable-rich-text="false" style="flex-grow: 0; display: flex; -unity-font-style: bold;" />
-            </ui:VisualElement>
-            <ui:VisualElement style="flex-grow: 0; background-color: rgba(0, 0, 0, 0); flex-direction: row; padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px; margin-left: 20px;">
-                <ui:Button text="Save" display-tooltip-when-elided="true" name="save-genotype" style="flex-grow: 1;" />
+                <ui:Button text="Save" display-tooltip-when-elided="true" name="save-genotype" focusable="false" style="flex-grow: 1;" />
             </ui:VisualElement>
         </ui:VisualElement>
-        <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); position: absolute; flex-direction: row; align-items: center; right: 0;">
-            <ui:VisualElement name="camera-behaviour-toggle" style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); position: relative; flex-direction: row; margin-left: 4px; margin-right: 50px; margin-top: 2px; margin-bottom: 2px;">
-                <ui:Button display-tooltip-when-elided="true" name="normal" class="active" style="padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px; width: 30px; height: 30px; margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0;">
-                    <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); background-image: url(&apos;project://database/Assets/Scripts/UI/Icons/video-solid.png?fileID=2800000&amp;guid=646517f7230d3422690d46a59bfc2483&amp;type=3#video-solid&apos;); -unity-background-scale-mode: scale-to-fit; width: 100%; height: 100%;" />
-                </ui:Button>
-                <ui:Button display-tooltip-when-elided="true" name="orbit" style="padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px; width: 30px; height: 30px; margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0;">
-                    <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); background-image: url(&apos;project://database/Assets/Scripts/UI/Icons/satellite-solid.png?fileID=2800000&amp;guid=c07ed0bb759b54092a23b58c6706cc97&amp;type=3#satellite-solid&apos;); -unity-background-scale-mode: scale-to-fit; width: 100%; height: 100%;" />
-                </ui:Button>
+        <ui:VisualElement style="background-color: rgba(0, 0, 0, 0); width: 30%; height: 100%; justify-content: center; align-items: center;">
+            <ui:Label tabindex="-1" text="Creature Editor" display-tooltip-when-elided="true" style="color: rgb(255, 255, 255); -unity-font-style: bold; font-size: 24px; margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0; padding-left: 0; padding-right: 0; padding-top: 0; padding-bottom: 0;" />
+        </ui:VisualElement>
+        <ui:VisualElement style="background-color: rgba(0, 0, 0, 0); width: 35%; height: 100%; justify-content: space-between; flex-direction: row; align-items: center;">
+            <ui:VisualElement style="background-color: rgba(0, 0, 0, 0); flex-direction: row; align-items: center; width: 300px; justify-content: space-between;">
+                <ui:VisualElement name="tab-layout-toggle" style="background-color: rgba(0, 0, 0, 0); position: relative; justify-content: center; flex-direction: row;">
+                    <ui:Button display-tooltip-when-elided="true" name="expand-right" focusable="false" style="padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px; width: 30px; height: 30px; margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0;">
+                        <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); background-image: url(&apos;project://database/Assets/Scripts/UI/Icons/arrow-right-solid.png?fileID=2800000&amp;guid=fc09a0e7018ad430389599a54a1f8575&amp;type=3#arrow-right-solid&apos;); -unity-background-scale-mode: scale-to-fit; width: 100%; height: 100%;" />
+                    </ui:Button>
+                    <ui:Button display-tooltip-when-elided="true" name="split-tabs" focusable="false" class="active" style="padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px; width: 30px; height: 30px; margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0;">
+                        <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); background-image: url(&apos;project://database/Assets/Scripts/UI/Icons/table-columns-solid.png?fileID=2800000&amp;guid=e4ec7beb68e68409da4c7a3353283fd3&amp;type=3#table-columns-solid&apos;); -unity-background-scale-mode: scale-to-fit; width: 100%; height: 100%;" />
+                    </ui:Button>
+                    <ui:Button display-tooltip-when-elided="true" name="expand-left" focusable="false" style="padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px; width: 30px; height: 30px; margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0;">
+                        <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); background-image: url(&apos;project://database/Assets/Scripts/UI/Icons/arrow-left-solid.png?fileID=2800000&amp;guid=e5bb2cf1985614ca190876fc35847d94&amp;type=3#arrow-left-solid&apos;); -unity-background-scale-mode: scale-to-fit; width: 100%; height: 100%;" />
+                    </ui:Button>
+                </ui:VisualElement>
+                <ui:VisualElement name="camera-behaviour-toggle" style="background-color: rgba(0, 0, 0, 0); position: relative; flex-direction: row;">
+                    <ui:Button display-tooltip-when-elided="true" name="normal" focusable="false" class="active" style="padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px; width: 30px; height: 30px; margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0;">
+                        <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); background-image: url(&apos;project://database/Assets/Scripts/UI/Icons/video-solid.png?fileID=2800000&amp;guid=646517f7230d3422690d46a59bfc2483&amp;type=3#video-solid&apos;); -unity-background-scale-mode: scale-to-fit; width: 100%; height: 100%;" />
+                    </ui:Button>
+                    <ui:Button display-tooltip-when-elided="true" name="orbit" focusable="false" style="padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px; width: 30px; height: 30px; margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0;">
+                        <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); background-image: url(&apos;project://database/Assets/Scripts/UI/Icons/satellite-solid.png?fileID=2800000&amp;guid=c07ed0bb759b54092a23b58c6706cc97&amp;type=3#satellite-solid&apos;); -unity-background-scale-mode: scale-to-fit; width: 100%; height: 100%;" />
+                    </ui:Button>
+                </ui:VisualElement>
+                <ui:VisualElement name="simulation-environment-toggle" style="background-color: rgba(0, 0, 0, 0); position: relative; flex-direction: row;">
+                    <ui:Button display-tooltip-when-elided="true" name="pause" focusable="false" style="padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px; width: 30px; height: 30px; margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0;">
+                        <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); background-image: url(&apos;project://database/Assets/Scripts/UI/Icons/pause-solid.png?fileID=2800000&amp;guid=c02a3edab5cac43ac885575a7d1b11a2&amp;type=3#pause-solid&apos;); -unity-background-scale-mode: scale-to-fit; width: 100%; height: 100%;" />
+                    </ui:Button>
+                    <ui:Button display-tooltip-when-elided="true" name="ground" focusable="false" class="active" style="padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px; width: 30px; height: 30px; margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0;">
+                        <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); background-image: url(&apos;project://database/Assets/Scripts/UI/Icons/person-walking-solid.png?fileID=2800000&amp;guid=f2b85001038ff4db0b332931a7337fbe&amp;type=3#person-walking-solid&apos;); -unity-background-scale-mode: scale-to-fit; width: 100%; height: 100%;" />
+                    </ui:Button>
+                    <ui:Button display-tooltip-when-elided="true" name="water" focusable="false" style="padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px; width: 30px; height: 30px; margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0;">
+                        <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); background-image: url(&apos;project://database/Assets/Scripts/UI/Icons/person-swimming-solid.png?fileID=2800000&amp;guid=5a650225bc24b4febb2b318bf6ef9f38&amp;type=3#person-swimming-solid&apos;); -unity-background-scale-mode: scale-to-fit; width: 100%; height: 100%;" />
+                    </ui:Button>
+                </ui:VisualElement>
             </ui:VisualElement>
-            <ui:VisualElement name="simulation-environment-toggle" style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); position: relative; flex-direction: row; margin-left: 4px; margin-right: 50px; margin-top: 2px; margin-bottom: 2px;">
-                <ui:Button display-tooltip-when-elided="true" name="pause" style="padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px; width: 30px; height: 30px; margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0;">
-                    <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); background-image: url(&apos;project://database/Assets/Scripts/UI/Icons/pause-solid.png?fileID=2800000&amp;guid=c02a3edab5cac43ac885575a7d1b11a2&amp;type=3#pause-solid&apos;); -unity-background-scale-mode: scale-to-fit; width: 100%; height: 100%;" />
-                </ui:Button>
-                <ui:Button display-tooltip-when-elided="true" name="ground" class="active" style="padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px; width: 30px; height: 30px; margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0;">
-                    <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); background-image: url(&apos;project://database/Assets/Scripts/UI/Icons/person-walking-solid.png?fileID=2800000&amp;guid=f2b85001038ff4db0b332931a7337fbe&amp;type=3#person-walking-solid&apos;); -unity-background-scale-mode: scale-to-fit; width: 100%; height: 100%;" />
-                </ui:Button>
-                <ui:Button display-tooltip-when-elided="true" name="water" style="padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px; width: 30px; height: 30px; margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0;">
-                    <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); background-image: url(&apos;project://database/Assets/Scripts/UI/Icons/person-swimming-solid.png?fileID=2800000&amp;guid=5a650225bc24b4febb2b318bf6ef9f38&amp;type=3#person-swimming-solid&apos;); -unity-background-scale-mode: scale-to-fit; width: 100%; height: 100%;" />
-                </ui:Button>
-            </ui:VisualElement>
-            <ui:VisualElement style="flex-grow: 0; background-color: rgba(0, 0, 0, 0); flex-direction: row; padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px; margin-left: 20px;">
-                <ui:Button display-tooltip-when-elided="true" name="exit" style="padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px; width: 30px; height: 30px;">
+            <ui:VisualElement style="background-color: rgba(0, 0, 0, 0); flex-direction: row; padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px;">
+                <ui:Button display-tooltip-when-elided="true" name="exit" focusable="false" style="padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px; width: 30px; height: 30px;">
                     <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); background-image: url(&apos;project://database/Assets/Scripts/UI/Icons/right-from-bracket-solid.png?fileID=2800000&amp;guid=c052d0a10b1e04853bb312eecf330d7d&amp;type=3#right-from-bracket-solid&apos;); -unity-background-scale-mode: scale-to-fit; width: 100%; height: 100%;" />
                 </ui:Button>
             </ui:VisualElement>
@@ -53,41 +57,41 @@
         <ui:VisualElement name="editor-tab" style="background-color: rgba(0, 0, 0, 0); width: 100%; display: flex; flex-grow: 1;">
             <ui:ScrollView vertical-scroller-visibility="Auto" mouse-wheel-scroll-size="100" mode="Horizontal" horizontal-scroller-visibility="Auto" style="flex-grow: 1; background-color: rgb(63, 63, 63); height: 100%;">
                 <ui:VisualElement name="node-graph" style="background-color: rgba(0, 0, 0, 0); align-items: center; flex-direction: row;" />
-                <ui:Button text="+" display-tooltip-when-elided="true" name="add-node" style="align-self: center;" />
+                <ui:Button text="+" display-tooltip-when-elided="true" name="add-node" focusable="false" style="align-self: center;" />
             </ui:ScrollView>
             <ui:ScrollView vertical-scroller-visibility="Auto" mouse-wheel-scroll-size="100" mode="Vertical" style="flex-grow: 1; background-color: rgb(190, 190, 190); height: 100%;">
                 <ui:VisualElement name="node-editor" style="background-color: rgba(0, 0, 0, 0); max-width: 600px;">
                     <ui:VisualElement style="background-color: rgba(0, 0, 0, 0); flex-direction: row;">
                         <ui:Label tabindex="-1" text="Node ?" display-tooltip-when-elided="true" name="node-name" style="-unity-font-style: bold; flex-shrink: 1; align-self: center;" />
                         <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); flex-direction: row; justify-content: flex-end;">
-                            <ui:Button text="Apply Changes" display-tooltip-when-elided="true" name="apply-changes" />
-                            <ui:Button text="Delete" display-tooltip-when-elided="true" name="delete-node" />
+                            <ui:Button text="Apply Changes" display-tooltip-when-elided="true" name="apply-changes" focusable="false" />
+                            <ui:Button text="Delete" display-tooltip-when-elided="true" name="delete-node" focusable="false" />
                         </ui:VisualElement>
                     </ui:VisualElement>
                     <ui:VisualElement style="background-color: rgba(0, 0, 0, 0); flex-grow: 1; max-width: 500px;">
                         <ui:Foldout text="Dimensions" name="dimensions" value="false">
-                            <ui:Slider picking-mode="Ignore" label="X" value="42" high-value="100" direction="Horizontal" show-input-field="true" name="x" inverted="false" style="align-items: center;" />
-                            <ui:Slider picking-mode="Ignore" label="Y" value="42" high-value="100" direction="Horizontal" show-input-field="true" name="y" style="align-items: center;" />
-                            <ui:Slider picking-mode="Ignore" label="Z" value="42" high-value="100" direction="Horizontal" show-input-field="true" name="z" style="align-items: center;" />
+                            <ui:Slider picking-mode="Ignore" label="X" value="42" high-value="100" direction="Horizontal" show-input-field="true" name="x" inverted="false" focusable="false" style="align-items: center;" />
+                            <ui:Slider picking-mode="Ignore" label="Y" value="42" high-value="100" direction="Horizontal" show-input-field="true" name="y" focusable="false" style="align-items: center;" />
+                            <ui:Slider picking-mode="Ignore" label="Z" value="42" high-value="100" direction="Horizontal" show-input-field="true" name="z" focusable="false" style="align-items: center;" />
                         </ui:Foldout>
                         <ui:Foldout text="Joint" name="joint" value="false">
-                            <ui:EnumField label="Type" type="JointType, Assembly-CSharp" include-obsolete-values="false" name="type" />
+                            <ui:EnumField label="Type" type="JointType, Assembly-CSharp" include-obsolete-values="false" name="type" focusable="false" />
                             <ui:Foldout text="Primary Axis" name="primary-axis">
-                                <ui:Slider picking-mode="Ignore" label="Angle Limit" value="42" high-value="90" name="limit" show-input-field="true" />
+                                <ui:Slider picking-mode="Ignore" label="Angle Limit" value="42" high-value="90" name="limit" show-input-field="true" focusable="false" />
                             </ui:Foldout>
                             <ui:Foldout text="Secondary Axis" name="secondary-axis">
-                                <ui:Slider picking-mode="Ignore" label="Angle Limit" value="42" high-value="90" name="limit" show-input-field="true" />
+                                <ui:Slider picking-mode="Ignore" label="Angle Limit" value="42" high-value="90" name="limit" show-input-field="true" focusable="false" />
                             </ui:Foldout>
                             <ui:Foldout text="Tertiary Axis" name="tertiary-axis">
-                                <ui:Slider picking-mode="Ignore" label="Angle Limit" value="42" high-value="90" name="limit" show-input-field="true" />
+                                <ui:Slider picking-mode="Ignore" label="Angle Limit" value="42" high-value="90" name="limit" show-input-field="true" focusable="false" />
                             </ui:Foldout>
                         </ui:Foldout>
                         <ui:Foldout text="Connections" name="connections" value="false">
                             <ui:VisualElement name="connection-list" style="flex-grow: 1; background-color: rgba(0, 0, 0, 0);" />
-                            <ui:Button text="+ Add Connection" display-tooltip-when-elided="true" name="add" style="align-self: center;" />
+                            <ui:Button text="+ Add Connection" display-tooltip-when-elided="true" name="add" focusable="false" style="align-self: center;" />
                         </ui:Foldout>
                         <ui:Foldout text="Other" name="other" value="false">
-                            <ui:SliderInt picking-mode="Ignore" label="Recursive Limit" value="42" high-value="100" show-input-field="true" name="recursive-limit" />
+                            <ui:SliderInt picking-mode="Ignore" label="Recursive Limit" value="42" high-value="100" show-input-field="true" name="recursive-limit" focusable="false" />
                         </ui:Foldout>
                     </ui:VisualElement>
                 </ui:VisualElement>

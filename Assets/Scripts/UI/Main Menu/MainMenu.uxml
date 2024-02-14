@@ -1,24 +1,31 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
     <Style src="project://database/Assets/Scripts/UI/Main%20Menu/MainMenu.uss?fileID=7433441132597879392&amp;guid=bca3f8cf78dfc4615b60aa13a510ca5e&amp;type=3#MainMenu" />
-    <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0);">
-        <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); width: 50%; justify-content: center; align-items: center;">
-            <ui:Label tabindex="-1" text="The Simsulator" display-tooltip-when-elided="true" style="-unity-font-style: bold; -unity-text-align: upper-center; color: rgb(255, 255, 255);" />
-            <ui:VisualElement style="flex-grow: 0; background-color: rgba(0, 0, 0, 0);">
-                <ui:VisualElement name="evolution-mode-container" style="flex-grow: 1; background-color: rgba(0, 0, 0, 0);">
-                    <ui:Button text="Evolution Mode" display-tooltip-when-elided="true" name="evolution-mode" />
-                    <ui:Label tabindex="-1" text="Evolve new creatures." display-tooltip-when-elided="true" style="position: absolute; right: -220px; top: 5px; width: 200px; white-space: normal;" />
+    <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); justify-content: center;">
+        <ui:VisualElement style="background-color: rgba(0, 0, 0, 0); align-self: center; justify-content: center; margin-bottom: 100px; margin-top: 50px;">
+            <ui:Label tabindex="-1" text="The Simsulator" display-tooltip-when-elided="true" style="-unity-font-style: bold; -unity-text-align: upper-center; color: rgb(0, 0, 0); font-size: 24px;" />
+        </ui:VisualElement>
+        <ui:VisualElement style="background-color: rgba(0, 0, 0, 0); justify-content: center; align-items: center;">
+            <ui:VisualElement name="mode-selection-menu" style="background-color: rgba(0, 0, 0, 0); flex-direction: row; width: 75%; justify-content: space-around;">
+                <ui:VisualElement name="evolution-mode-container" style="background-color: rgba(0, 0, 0, 0); width: 150px;">
+                    <ui:Button text="Evolution Mode" display-tooltip-when-elided="true" name="evolution-mode" style="height: 150px; white-space: normal; font-size: 20px;" />
+                    <ui:Label tabindex="-1" text="Evolve new creatures." display-tooltip-when-elided="true" style="white-space: normal; -unity-text-align: upper-center; flex-wrap: wrap;" />
                 </ui:VisualElement>
-                <ui:VisualElement name="zoo-mode-container" style="flex-grow: 1; background-color: rgba(0, 0, 0, 0);">
-                    <ui:Button text="Zoo Mode" display-tooltip-when-elided="true" name="zoo-mode" />
-                    <ui:Label tabindex="-1" text="Interact with and manually breed existing creatures." display-tooltip-when-elided="true" style="position: absolute; right: -220px; top: -3px; width: 200px; white-space: normal;" />
+                <ui:VisualElement name="zoo-mode-container" style="background-color: rgba(0, 0, 0, 0); width: 150px;">
+                    <ui:Button text="Zoo Mode" display-tooltip-when-elided="true" name="zoo-mode" style="height: 150px; white-space: normal; font-size: 20px;" />
+                    <ui:Label tabindex="-1" text="Interact with and manually breed existing creatures." display-tooltip-when-elided="true" style="white-space: normal; -unity-text-align: upper-center; flex-wrap: wrap;" />
                 </ui:VisualElement>
-                <ui:VisualElement name="creature-editor-container" style="flex-grow: 1; background-color: rgba(0, 0, 0, 0);">
-                    <ui:Button text="Creature Editor" display-tooltip-when-elided="true" name="creature-editor" />
-                    <ui:Label tabindex="-1" text="Modify creature DNA directly." display-tooltip-when-elided="true" style="position: absolute; right: -220px; top: 5px; width: 200px; white-space: normal;" />
+                <ui:VisualElement name="creature-editor-container" style="background-color: rgba(0, 0, 0, 0); width: 150px;">
+                    <ui:Button text="Creature Editor" display-tooltip-when-elided="true" name="creature-editor" style="height: 150px; white-space: normal; font-size: 20px;" />
+                    <ui:Label tabindex="-1" text="Modify creature DNA directly." display-tooltip-when-elided="true" style="white-space: normal; -unity-text-align: upper-center; flex-wrap: wrap;" />
                 </ui:VisualElement>
-                <ui:Button text="Controls" display-tooltip-when-elided="true" name="controls" style="margin-top: 15px;" />
-                <ui:Button text="Quit" display-tooltip-when-elided="true" name="quit" style="margin-top: 15px;" />
             </ui:VisualElement>
+        </ui:VisualElement>
+        <ui:VisualElement style="background-color: rgba(0, 0, 0, 0); align-self: center; flex-direction: row; margin-top: 50px;">
+            <ui:Button text="Controls" display-tooltip-when-elided="true" name="controls" style="width: 100px;" />
+            <ui:Button text="About" display-tooltip-when-elided="true" name="about" style="width: 100px;" />
+        </ui:VisualElement>
+        <ui:VisualElement style="background-color: rgba(0, 0, 0, 0); align-self: center; margin-bottom: 50px;">
+            <ui:Button text="Quit" display-tooltip-when-elided="true" name="quit" style="margin-top: 50px;" />
         </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>

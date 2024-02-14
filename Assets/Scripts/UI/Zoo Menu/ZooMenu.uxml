@@ -1,5 +1,5 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
-    <Style src="project://database/Assets/Scripts/UI/Zoo%20Mode%20Menu/ZooModeMenu.uss?fileID=7433441132597879392&amp;guid=ef30afc54a32b41e0901a2a98e9366f2&amp;type=3#ZooModeMenu" />
+    <Style src="project://database/Assets/Scripts/UI/Zoo%20Menu/ZooMenu.uss?fileID=7433441132597879392&amp;guid=ef30afc54a32b41e0901a2a98e9366f2&amp;type=3#ZooMenu" />
     <ui:VisualElement name="runtime-menu-bar" style="flex-grow: 1; bottom: 0; width: auto; height: 50px; flex-shrink: 1; flex-direction: row; top: auto; position: absolute; right: 0; border-left-width: 2px; border-right-width: 2px; border-top-width: 2px; border-bottom-width: 2px; border-left-color: rgba(255, 255, 255, 0.5); border-right-color: rgba(255, 255, 255, 0.5); border-top-color: rgba(255, 255, 255, 0.5); border-bottom-color: rgba(255, 255, 255, 0.5); border-top-left-radius: 0; border-bottom-left-radius: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; min-width: auto; -unity-background-scale-mode: stretch-to-fill;">
         <ui:Button display-tooltip-when-elided="false" focusable="false" tooltip="Creature" name="creature-tab-toggle" style="border-left-width: 1px; border-right-width: 1px; border-top-width: 1px; border-bottom-width: 1px; margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0; padding-left: 4px; padding-right: 4px; padding-top: 4px; padding-bottom: 4px; flex-grow: 1; background-image: none; -unity-background-scale-mode: scale-to-fit; border-left-color: rgba(255, 255, 255, 0.5); border-right-color: rgba(255, 255, 255, 0.5); border-top-color: rgba(255, 255, 255, 0.5); border-bottom-color: rgba(255, 255, 255, 0.5); flex-shrink: 0; display: flex; width: 50px; height: 100%;">
             <ui:VisualElement style="flex-grow: 1; background-image: url(&apos;project://database/Assets/Scripts/UI/Icons/dna-solid.png?fileID=2800000&amp;guid=dd5765691c44c445098b01105280e89a&amp;type=3#dna-solid&apos;); -unity-background-scale-mode: scale-to-fit;" />
@@ -20,11 +20,11 @@
                 <ui:Label tabindex="-1" text="Creature" display-tooltip-when-elided="true" style="-unity-text-align: upper-center; -unity-font-style: bold; align-items: stretch;" />
                 <ui:VisualElement style="flex-grow: 0; background-color: rgba(0, 0, 0, 0);">
                     <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); flex-direction: row; align-items: stretch; justify-content: space-between; align-self: stretch; padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px; width: auto;">
-                        <ui:Button text="Select a genotype..." display-tooltip-when-elided="true" name="genotype" style="flex-grow: 1;" />
-                        <ui:Button text="x" display-tooltip-when-elided="true" name="remove-genotype" enable-rich-text="false" style="flex-grow: 0; display: flex; -unity-font-style: bold;" />
+                        <ui:Button text="Select a genotype..." display-tooltip-when-elided="true" name="genotype" focusable="false" style="flex-grow: 1;" />
+                        <ui:Button text="x" display-tooltip-when-elided="true" name="remove-genotype" enable-rich-text="false" focusable="false" style="flex-grow: 0; display: flex; -unity-font-style: bold;" />
                     </ui:VisualElement>
                     <ui:VisualElement style="flex-grow: 0; background-color: rgba(0, 0, 0, 0); flex-direction: row; align-items: stretch; justify-content: space-around; align-self: stretch; padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px;">
-                        <ui:Button text="Place Creature" display-tooltip-when-elided="true" name="place-creature" style="flex-shrink: 0; min-width: auto; width: auto; height: auto; margin-left: 10px; margin-right: 10px; margin-top: 10px; margin-bottom: 10px; padding-left: 10px; padding-right: 10px; padding-top: 10px; padding-bottom: 10px; align-items: stretch; align-self: center;" />
+                        <ui:Button text="Place Creature" display-tooltip-when-elided="true" name="place-creature" focusable="false" style="flex-shrink: 0; min-width: auto; width: auto; height: auto; margin-left: 10px; margin-right: 10px; margin-top: 10px; margin-bottom: 10px; padding-left: 10px; padding-right: 10px; padding-top: 10px; padding-bottom: 10px; align-items: stretch; align-self: center;" />
                     </ui:VisualElement>
                 </ui:VisualElement>
             </ui:VisualElement>
@@ -33,7 +33,7 @@
                 <ui:VisualElement style="flex-grow: 0; background-color: rgba(0, 0, 0, 0);">
                     <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); flex-direction: row; align-items: stretch; justify-content: space-between; align-self: stretch; padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px;">
                         <ui:Label tabindex="-1" text="Emit Light From Self" display-tooltip-when-elided="true" style="flex-basis: auto; flex-direction: column; margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0; justify-content: flex-start; align-items: auto; align-self: center; width: 50%;" />
-                        <ui:Toggle name="emit-light-from-self" style="width: 50%;" />
+                        <ui:Toggle name="emit-light-from-self" focusable="false" style="width: 50%;" />
                     </ui:VisualElement>
                 </ui:VisualElement>
             </ui:VisualElement>
@@ -42,24 +42,24 @@
                 <ui:VisualElement style="flex-grow: 0; background-color: rgba(0, 0, 0, 0);">
                     <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); flex-direction: row; align-items: stretch; justify-content: space-between; align-self: stretch; padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px;">
                         <ui:Label tabindex="-1" text="Water" display-tooltip-when-elided="true" style="flex-basis: auto; flex-direction: column; margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0; justify-content: flex-start; align-items: auto; align-self: center; width: 50%;" />
-                        <ui:Toggle name="water" style="width: 50%;" />
+                        <ui:Toggle name="water" focusable="false" style="width: 50%; height: 24px;" />
                     </ui:VisualElement>
                     <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); flex-direction: row; align-items: stretch; justify-content: space-between; align-self: stretch; padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px;">
                         <ui:Label tabindex="-1" text="Time of Day" display-tooltip-when-elided="true" style="flex-basis: auto; flex-direction: column; margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0; justify-content: flex-start; align-items: auto; align-self: center; width: 50%;" />
-                        <ui:DropdownField index="0" name="time-of-day" style="flex-basis: auto; margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0; width: 50%;" />
+                        <ui:DropdownField index="0" name="time-of-day" focusable="false" style="flex-basis: auto; margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0; width: 50%;" />
                     </ui:VisualElement>
                     <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); flex-direction: row; align-items: stretch; justify-content: space-between; align-self: stretch; padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px;">
                         <ui:Label tabindex="-1" text="Radiation (mutation rate)" display-tooltip-when-elided="true" style="flex-basis: auto; flex-direction: column; margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0; justify-content: flex-start; align-items: auto; align-self: center; width: 50%;" />
-                        <ui:SliderInt picking-mode="Ignore" value="1" high-value="50" show-input-field="true" name="mutation-rate" style="flex-grow: 1;" />
+                        <ui:SliderInt picking-mode="Ignore" value="1" high-value="50" show-input-field="true" name="mutation-rate" focusable="false" style="flex-grow: 1;" />
                     </ui:VisualElement>
                 </ui:VisualElement>
             </ui:VisualElement>
             <ui:VisualElement name="selected-phenotype-options" style="flex-grow: 0; background-color: rgba(0, 0, 0, 0); display: none;">
                 <ui:Label tabindex="-1" text="Selected Phenotype Options" display-tooltip-when-elided="true" style="-unity-text-align: upper-center; -unity-font-style: bold;" />
                 <ui:VisualElement style="flex-grow: 0; background-color: rgba(0, 0, 0, 0); flex-direction: row; align-items: stretch; justify-content: space-around; align-self: stretch; padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px;">
-                    <ui:Button text="Save To File" display-tooltip-when-elided="true" name="save-to-file" style="flex-shrink: 0; min-width: auto; width: 100px; height: auto; margin-left: 10px; margin-right: 10px; margin-top: 10px; margin-bottom: 10px; padding-left: 10px; padding-right: 10px; padding-top: 10px; padding-bottom: 10px; align-items: stretch; align-self: center;" />
-                    <ui:Button text="Protect" display-tooltip-when-elided="true" name="protect" style="flex-shrink: 0; min-width: auto; width: 100px; height: auto; margin-left: 10px; margin-right: 10px; margin-top: 10px; margin-bottom: 10px; padding-left: 10px; padding-right: 10px; padding-top: 10px; padding-bottom: 10px; align-items: stretch; align-self: center;" />
-                    <ui:Button text="Cull" display-tooltip-when-elided="true" name="cull" style="flex-shrink: 0; min-width: auto; width: 100px; height: auto; margin-left: 10px; margin-right: 10px; margin-top: 10px; margin-bottom: 10px; padding-left: 10px; padding-right: 10px; padding-top: 10px; padding-bottom: 10px; align-items: stretch; align-self: center;" />
+                    <ui:Button text="Save To File" display-tooltip-when-elided="true" name="save-to-file" focusable="false" style="flex-shrink: 0; min-width: auto; width: 100px; height: auto; margin-left: 10px; margin-right: 10px; margin-top: 10px; margin-bottom: 10px; padding-left: 10px; padding-right: 10px; padding-top: 10px; padding-bottom: 10px; align-items: stretch; align-self: center;" />
+                    <ui:Button text="Protect" display-tooltip-when-elided="true" name="protect" focusable="false" style="flex-shrink: 0; min-width: auto; width: 100px; height: auto; margin-left: 10px; margin-right: 10px; margin-top: 10px; margin-bottom: 10px; padding-left: 10px; padding-right: 10px; padding-top: 10px; padding-bottom: 10px; align-items: stretch; align-self: center;" />
+                    <ui:Button text="Cull" display-tooltip-when-elided="true" name="cull" focusable="false" style="flex-shrink: 0; min-width: auto; width: 100px; height: auto; margin-left: 10px; margin-right: 10px; margin-top: 10px; margin-bottom: 10px; padding-left: 10px; padding-right: 10px; padding-top: 10px; padding-bottom: 10px; align-items: stretch; align-self: center;" />
                 </ui:VisualElement>
                 <ui:Label tabindex="-1" display-tooltip-when-elided="true" name="phenotype-options-log" style="-unity-text-align: upper-center;" />
             </ui:VisualElement>

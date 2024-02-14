@@ -84,9 +84,8 @@ public class EvolutionModeMenu : MonoBehaviour
     private void InitialiseInitialisationMenu()
     {
         initialisationMenuContainer = doc.rootVisualElement.Q<VisualElement>("initialisation-menu-container");
-        DropdownField trialType = initialisationMenuContainer.Q<DropdownField>("trial-type");
-        trialType.choices = Enum.GetNames(typeof(TrialType)).Select(name => Utilities.PascalToSentenceCase(name)).ToList();
-        trialType.index = 0;
+        EnumField trialType = initialisationMenuContainer.Q<EnumField>("trial-type");
+        trialType.value = TrialType.GroundDistance;
         SliderInt maxIterations = initialisationMenuContainer.Q<SliderInt>("max-iterations");
         SliderInt populationSize = initialisationMenuContainer.Q<SliderInt>("population-size");
         SliderInt survivalPercentage = initialisationMenuContainer.Q<SliderInt>("survival-percentage");
@@ -142,12 +141,11 @@ public class EvolutionModeMenu : MonoBehaviour
                 ShowInitialisationMenu(false);
                 ShowRuntimeMenu(true);
                 ToggleRuntimeMenuTab(RuntimeMenuTab.Status);
-                Enum.TryParse(Utilities.SentenceToPascalCase(trialType.value), out TrialType t);
                 numberOfIterations = maxIterations.value;
                 MutationParameters.MutationRate = mutationRate.value;
                 ReproductionParameters.LockMorphologies = lockMorphologies.value;
                 StartCoroutine(simulator.Run(
-                    t,
+                    (TrialType)trialType.value,
                     maxIterations.value,
                     populationSize.value,
                     survivalPercentage.value / 100f,

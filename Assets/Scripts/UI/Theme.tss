@@ -1,0 +1,44 @@
+@import url("unity-theme://default");
+
+:root {
+    -unity-font-definition: url('project://database/Assets/Scripts/UI/Fonts/OpenSans.asset?fileID=11400000&guid=a721205b2fa094953ada14edcda815a5&type=2#OpenSans');
+}
+
+Button.unity-button,
+DropdownField > .unity-popup-field__input,
+EnumField > .unity-enum-field__input {
+    background-color: rgba(220,220,220,1);
+    border-color: rgba(255,255,255,1);
+    border-width: 2px;
+    border-radius: 5px;
+}
+
+Button.unity-button:hover,
+DropdownField:hover > .unity-popup-field__input,
+EnumField:hover > .unity-enum-field__input,
+#trial-type:hover > .unity-enum-field__input /** Hardcoded fix for this stubborn case. **/ {
+    background-color: rgba(240,240,240,1);
+    border-color: rgba(255,255,255,1);
+    border-width: 2px;
+    border-radius: 5px;
+}
+
+#unity-progress-bar .unity-progress-bar__background {
+    border-color: rgba(255,255,255,1);
+    border-width: 2px;
+    border-radius: 5px;
+}
+
+#unity-progress-bar .unity-progress-bar__progress {
+    border-radius: 5px;
+}
+
+#unity-tracker {
+    background-color: rgba(150,150,150,1);
+    border-width: 0px;
+}
+
+#unity-dragger, #unity-checkmark, #unity-text-input {
+    border-width: 0px;
+    border-radius: 5px;
+}

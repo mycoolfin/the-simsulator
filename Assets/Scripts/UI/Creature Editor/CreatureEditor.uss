@@ -1,4 +1,25 @@
 #tab-layout-toggle > Button {
+    border-color: rgb(149, 149, 149);
+    border-width: 1px;
+    border-radius: 0;
+}
+
+#simulation-environment-toggle > Button {
+    border-color: rgb(149, 149, 149);
+    border-width: 1px;
+    border-radius: 0;
+}
+
+#camera-behaviour-toggle > Button {
+    border-color: rgb(149, 149, 149);
+    border-width: 1px;
+    border-radius: 0;
+}
+
+#exit {
+    border-color: rgb(149, 149, 149);
+    border-width: 1px;
+    border-radius: 0;
 }
 
 #tab-layout-toggle > Button.active {

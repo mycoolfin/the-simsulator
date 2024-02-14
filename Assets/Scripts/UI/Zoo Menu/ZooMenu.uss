@@ -1,9 +1,21 @@
-#runtime-menu-container, #runtime-menu-bar, #exit-menu-container > VisualElement {
+#runtime-menu-container {
+    background-color: rgb(254, 207, 187);
+}
+
+#runtime-menu-bar {
+    background-color: rgb(254, 207, 187);
+}
+
+#exit-menu-container > VisualElement {
     background-color: rgb(254, 207, 187);
 }
 
 #runtime-menu-bar > Button {
     background-color: rgba(0, 0, 0, 0);
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
 }
 
 #runtime-menu-bar > Button:hover {
