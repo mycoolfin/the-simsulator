@@ -10,11 +10,15 @@ public class PlayerController : MonoBehaviour
     public float lookMultiplier;
     public float scrollMultiplier;
     public float panMultiplier;
+    public bool passThroughUI = false;
+    public bool toggleOnSelect = true;
+
     private Vector2 horizontalMovement;
     private float verticalMovement;
     private Vector2 lookDeltas;
     private Vector2 scrollDeltas;
     private Vector2 cursorPosition;
+    public Vector2 CursorPosition => cursorPosition;
     private bool primarySelectActive;
     private bool secondarySelectActive;
     private bool tertiarySelectActive;
@@ -22,7 +26,7 @@ public class PlayerController : MonoBehaviour
 
     private void Update() // Using Update so that we can still move when time is stopped.
     {
-        isPointerOverUI = EventSystem.current.IsPointerOverGameObject();
+        isPointerOverUI = !passThroughUI && EventSystem.current.IsPointerOverGameObject();
 
         if (orbitTarget != null)
             OrbitTarget();
@@ -30,6 +34,7 @@ public class PlayerController : MonoBehaviour
         HandleLook();
         HandleMove();
         HandleZoom();
+        ClampMovement();
 
         if (PickAndPlaceManager.Instance.Held != null)
             VisualisePlacement();
@@ -72,6 +77,12 @@ public class PlayerController : MonoBehaviour
             Vector3 movementVector = playerCamera.transform.localRotation * Vector3.forward * scrollDeltas.y * scrollMultiplier;
             transform.position += transform.rotation * movementVector;
         }
+    }
+
+
+    private void ClampMovement()
+    {
+        transform.position = new Vector3(transform.position.x, Mathf.Max(0.5f, transform.position.y), transform.position.z);
     }
 
     private void OrbitTarget()
@@ -120,7 +131,7 @@ public class PlayerController : MonoBehaviour
         {
             if (hit.transform.TryGetComponent(out ISelectable selected))
             {
-                selected.Select(true, false);
+                selected.Select(toggleOnSelect, false);
                 return;
             }
         }

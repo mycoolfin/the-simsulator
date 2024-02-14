@@ -1,68 +1,86 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using UnityEngine.UIElements;
 
 public class MainMenu : MonoBehaviour
 {
-    public UIDocument controlsInfo;
-    public GameObject evolutionModeLight;
-    public GameObject zooModeLight;
-    public GameObject creatureEditorLight;
-    public GameObject controlsLight;
-    public GameObject aboutLight;
-    public GameObject quitLight;
+    public PlayerController player;
+    public MainMenuButton evolutionModeButton;
+    public MainMenuButton zooModeButton;
+    public MainMenuButton creatureEditorButton;
+    public MainMenuButton controlsButton;
+    public MainMenuButton aboutButton;
+    public MainMenuButton quitButton;
+    public GameObject controlsPanel;
+    public MainMenuButton controlsBackButton;
+    public GameObject aboutPanel;
+    public MainMenuButton aboutBackButton;
 
-    private void Awake()
+    private Vector3 defaultCameraPosition;
+    private Quaternion defaultCameraRotation;
+    private Vector3 desiredCameraPosition;
+    private Quaternion desiredCameraRotation;
+
+    private MainMenuButton hoveringOver;
+
+    private void Start()
     {
-        UIDocument doc = GetComponent<UIDocument>();
-        Button evolutionMode = doc.rootVisualElement.Q<Button>("evolution-mode");
-        Button zooMode = doc.rootVisualElement.Q<Button>("zoo-mode");
-        Button creatureEditor = doc.rootVisualElement.Q<Button>("creature-editor");
-        Button controls = doc.rootVisualElement.Q<Button>("controls");
-        Button about = doc.rootVisualElement.Q<Button>("about");
-        Button quit = doc.rootVisualElement.Q<Button>("quit");
-        evolutionMode.RegisterCallback<MouseOverEvent>((e) => ToggleGlowButton(GlowButton.EvolutionMode));
-        zooMode.RegisterCallback<MouseOverEvent>((e) => ToggleGlowButton(GlowButton.ZooMode));
-        creatureEditor.RegisterCallback<MouseOverEvent>((e) => ToggleGlowButton(GlowButton.CreatureEditor));
-        controls.RegisterCallback<MouseOverEvent>((e) => ToggleGlowButton(GlowButton.Controls));
-        about.RegisterCallback<MouseOverEvent>((e) => ToggleGlowButton(GlowButton.About));
-        quit.RegisterCallback<MouseOverEvent>((e) => ToggleGlowButton(GlowButton.Quit));
-        evolutionMode.RegisterCallback<MouseOutEvent>((e) => ToggleGlowButton(GlowButton.None));
-        zooMode.RegisterCallback<MouseOutEvent>((e) => ToggleGlowButton(GlowButton.None));
-        creatureEditor.RegisterCallback<MouseOutEvent>((e) => ToggleGlowButton(GlowButton.None));
-        controls.RegisterCallback<MouseOutEvent>((e) => ToggleGlowButton(GlowButton.None));
-        about.RegisterCallback<MouseOutEvent>((e) => ToggleGlowButton(GlowButton.None));
-        quit.RegisterCallback<MouseOutEvent>((e) => ToggleGlowButton(GlowButton.None));
-        evolutionMode.clicked += () => SceneManager.LoadScene("EvolutionMode");
-        zooMode.clicked += () => SceneManager.LoadScene("ZooMode");
-        creatureEditor.clicked += () => SceneManager.LoadScene("CreatureEditor");
-        controls.clicked += () =>
+        evolutionModeButton.OnSelect += () => SceneManager.LoadScene("EvolutionMode");
+        zooModeButton.OnSelect += () => SceneManager.LoadScene("ZooMode");
+        creatureEditorButton.OnSelect += () => SceneManager.LoadScene("CreatureEditor");
+        controlsButton.OnSelect += () =>
         {
-            controlsInfo.rootVisualElement.style.display = DisplayStyle.Flex;
-            doc.rootVisualElement.style.display = DisplayStyle.None;
+            desiredCameraPosition = new Vector3(controlsPanel.transform.position.x, controlsPanel.transform.position.y, defaultCameraPosition.z);
+            desiredCameraRotation = Quaternion.identity;
         };
-        about.clicked += () => { };
-        quit.clicked += () => Application.Quit();
+        aboutButton.OnSelect += () =>
+        {
+            desiredCameraPosition = new Vector3(aboutPanel.transform.position.x, aboutPanel.transform.position.y, defaultCameraPosition.z);
+            desiredCameraRotation = Quaternion.identity;
+        };
+        controlsBackButton.OnSelect += () =>
+        {
+            desiredCameraPosition = defaultCameraPosition;
+            desiredCameraRotation = defaultCameraRotation;
+        };
+        aboutBackButton.OnSelect += () =>
+        {
+            desiredCameraPosition = defaultCameraPosition;
+            desiredCameraRotation = defaultCameraRotation;
+        };
+        quitButton.OnSelect += () => Application.Quit();
+
+        defaultCameraPosition = player.playerCamera.transform.position;
+        defaultCameraRotation = player.playerCamera.transform.rotation;
+        desiredCameraPosition = defaultCameraPosition;
+        desiredCameraRotation = defaultCameraRotation;
     }
 
-    private enum GlowButton
+    private void Update()
     {
-        None,
-        EvolutionMode,
-        ZooMode,
-        CreatureEditor,
-        Controls,
-        About,
-        Quit
+        player.playerCamera.transform.position = Vector3.Lerp(player.playerCamera.transform.position, desiredCameraPosition, Time.deltaTime * 10f);
+        player.playerCamera.transform.rotation = Quaternion.Lerp(player.playerCamera.transform.rotation, desiredCameraRotation, Time.deltaTime * 10f);
+        HoverEffect();
     }
 
-    private void ToggleGlowButton(GlowButton glowButton)
+    private void HoverEffect()
     {
-        evolutionModeLight.SetActive(glowButton == GlowButton.EvolutionMode);
-        zooModeLight.SetActive(glowButton == GlowButton.ZooMode);
-        creatureEditorLight.SetActive(glowButton == GlowButton.CreatureEditor);
-        controlsLight.SetActive(glowButton == GlowButton.Controls);
-        aboutLight.SetActive(glowButton == GlowButton.About);
-        quitLight.SetActive(glowButton == GlowButton.Quit);
+        Ray ray = player.playerCamera.ScreenPointToRay(player.CursorPosition);
+        if (Physics.Raycast(ray, out RaycastHit hit))
+        {
+            if (hit.transform.TryGetComponent(out MainMenuButton button))
+            {
+                if (hoveringOver != button)
+                {
+                    if (hoveringOver != null) hoveringOver.hovering = false;
+                    button.hovering = true;
+                }
+                hoveringOver = button;
+            }
+            else
+            {
+                if (hoveringOver != null) hoveringOver.hovering = false;
+                hoveringOver = null;
+            }
+        }
     }
 }

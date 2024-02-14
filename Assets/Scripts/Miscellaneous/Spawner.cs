@@ -9,6 +9,7 @@ public class SpawnLooper : MonoBehaviour
     public List<Genotype> loadedGenotypes;
     public Queue<Phenotype> queue;
     public float timer;
+    public float radius = 10f;
 
     private void Start()
     {
@@ -33,8 +34,8 @@ public class SpawnLooper : MonoBehaviour
             Phenotype p = Phenotype.Construct(g);
             queue.Enqueue(p);
             p.transform.position = transform.position
-                + Quaternion.Euler(0, UnityEngine.Random.Range(0, 360), 0)
-                * Vector3.forward * UnityEngine.Random.Range(0f, 5f);
+                + Quaternion.Euler(0, Random.Range(0, 360), 0)
+                * Vector3.forward * Random.Range(0f, radius);
             p.transform.rotation = Quaternion.Euler(Random.Range(0, 360), Random.Range(0, 360), Random.Range(0, 360));
             timer = 10;
         }

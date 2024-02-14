@@ -34,7 +34,6 @@ public class ZooModeMenu : MonoBehaviour
 
     private Genotype loadedGenotype;
     Button placeCreatureButton;
-    Button breedCreatureButton;
     private bool placingCreature;
     private bool breedingCreature;
     private Phenotype readyParent;
@@ -210,7 +209,7 @@ public class ZooModeMenu : MonoBehaviour
         {
             if (readyParent != null)
             {
-                Phenotype potentialParent = (Phenotype)selected[0];
+                Phenotype potentialParent = selected.Count == 0 ? null : (Phenotype)selected[0];
                 if (potentialParent != null)
                 {
                     Genotype childGenotype = Reproduction.CreateOffspringWithChance(readyParent.genotype, potentialParent.genotype, 0f, 0.5f, 0.5f);
@@ -218,13 +217,12 @@ public class ZooModeMenu : MonoBehaviour
                     TogglePlacing(true);
                     PickAndPlaceManager.Instance.PickUp(
                         child,
-                        () => TogglePlacing(false),
+                        () => { TogglePlacing(false); selectedPhenotypeMenu.SetTarget(child); },
                         () => { TogglePlacing(false); Destroy(child.gameObject); }
                     );
                 }
                 ToggleBreeding(false);
             }
-
         };
     }
 
@@ -241,6 +239,7 @@ public class ZooModeMenu : MonoBehaviour
     private void ToggleBreeding(bool breeding)
     {
         breedingCreature = breeding;
+        playerController.toggleOnSelect = !breeding;
         selectedPhenotypeMenu.SetInfoText(breedingCreature ? "Select a creature to breed with..." : null);
         if (breeding)
         {
