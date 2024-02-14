@@ -78,8 +78,7 @@ public class GroundDistanceAssessment : Assessment
 
     public override void BeforeSimulationStart()
     {
-        WorldManager.Instance.simulateFluid = false;
-        WorldManager.Instance.gravity = true;
+        WorldManager.Instance.ChangeEnvironment(WorldEnvironment.Surface);
         WorldManager.Instance.pointLight.SetActive(false);
     }
 
@@ -113,8 +112,7 @@ public class WaterDistanceAssessment : Assessment
 
     public override void BeforeSimulationStart()
     {
-        WorldManager.Instance.simulateFluid = true;
-        WorldManager.Instance.gravity = false;
+        WorldManager.Instance.ChangeEnvironment(WorldEnvironment.Underwater);
         WorldManager.Instance.pointLight.SetActive(false);
     }
 
@@ -181,8 +179,7 @@ public class GroundLightClosenessAssessment : LightClosenessAssessment
 
     public override void BeforeSimulationStart()
     {
-        WorldManager.Instance.simulateFluid = false;
-        WorldManager.Instance.gravity = true;
+        WorldManager.Instance.ChangeEnvironment(WorldEnvironment.Surface);
         WorldManager.Instance.pointLight.SetActive(false);
     }
 
@@ -196,8 +193,8 @@ public class GroundLightClosenessAssessment : LightClosenessAssessment
         WorldManager.Instance.pointLight.SetActive(true);
         WorldManager.Instance.pointLight.transform.position =
             trialOrigin.position
-            + Quaternion.Euler(0, UnityEngine.Random.Range(0, 360), 0)
-            * Vector3.forward * UnityEngine.Random.Range(0f, 20f)
+            + Quaternion.Euler(0, Random.Range(0, 360), 0)
+            * Vector3.forward * Random.Range(0f, 20f)
             + Vector3.up * 1f;
     }
 }
@@ -208,8 +205,7 @@ public class WaterLightClosenessAssessment : LightClosenessAssessment
 
     public override void BeforeSimulationStart()
     {
-        WorldManager.Instance.simulateFluid = true;
-        WorldManager.Instance.gravity = false;
+        WorldManager.Instance.ChangeEnvironment(WorldEnvironment.Underwater);
         WorldManager.Instance.pointLight.SetActive(false);
     }
 
@@ -223,7 +219,7 @@ public class WaterLightClosenessAssessment : LightClosenessAssessment
         WorldManager.Instance.pointLight.SetActive(true);
         WorldManager.Instance.pointLight.transform.position =
             trialOrigin.position
-            + Quaternion.Euler(UnityEngine.Random.Range(0, 360), UnityEngine.Random.Range(0, 360), UnityEngine.Random.Range(0, 360))
-            * Vector3.forward * UnityEngine.Random.Range(0f, 40f);
+            + Quaternion.Euler(Random.Range(0, 360), Random.Range(0, 360), Random.Range(0, 360))
+            * Vector3.forward * Random.Range(0f, 40f);
     }
 }

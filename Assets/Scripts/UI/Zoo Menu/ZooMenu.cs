@@ -155,8 +155,7 @@ public class ZooModeMenu : MonoBehaviour
         water.value = WorldManager.Instance.simulateFluid;
         water.RegisterValueChangedCallback((ChangeEvent<bool> e) =>
         {
-            WorldManager.Instance.gravity = !e.newValue;
-            WorldManager.Instance.simulateFluid = e.newValue;
+            WorldManager.Instance.ChangeEnvironment(e.newValue ? WorldEnvironment.Underwater : WorldEnvironment.Surface);
         });
         DropdownField timeOfDay = environmentTab.Q<DropdownField>("time-of-day");
         timeOfDay.choices = Enum.GetNames(typeof(TimeOfDay)).Select(name => Utilities.PascalToSentenceCase(name)).ToList();

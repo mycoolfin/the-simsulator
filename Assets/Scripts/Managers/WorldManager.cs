@@ -2,6 +2,12 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+public enum WorldEnvironment
+{
+    Surface,
+    Underwater
+}
+
 public enum TimeOfDay
 {
     Morning,
@@ -28,7 +34,7 @@ public class WorldManager : MonoBehaviour
     }
 
     [Header("World Objects")]
-    public GameObject directionalLight;
+    public Light directionalLight;
     public GameObject world;
     public GameObject groundOrigin;
     public GameObject waterOrigin;
@@ -46,8 +52,7 @@ public class WorldManager : MonoBehaviour
     public float throttledTimeScale;
     public bool simulateFluid;
     public float fluidDensity;
-    public bool gravity;
-    private Vector3 defaultGravity = new Vector3(0f, -9.81f, 0f);
+    private Vector3 defaultGravity = new(0f, -9.81f, 0f);
 
     private void Start()
     {
@@ -60,11 +65,6 @@ public class WorldManager : MonoBehaviour
     {
         Screen.sleepTimeout = SleepTimeout.NeverSleep;
         ThrottleTimeScaling();
-    }
-
-    private void FixedUpdate()
-    {
-        Physics.gravity = gravity ? defaultGravity : Vector3.zero;
     }
 
     private void ThrottleTimeScaling()
@@ -112,6 +112,14 @@ public class WorldManager : MonoBehaviour
                 soulsConsumed += 1;
             }
         }
+    }
+
+    public void ChangeEnvironment(WorldEnvironment environment)
+    {
+        Physics.gravity = environment == WorldEnvironment.Underwater ? Vector3.zero : defaultGravity;
+        simulateFluid = environment == WorldEnvironment.Underwater;
+        RenderSettings.fog = environment == WorldEnvironment.Underwater;
+        directionalLight.intensity = environment == WorldEnvironment.Underwater ? 0.5f : 1f;
     }
 
     public void ChangeTimeOfDay(TimeOfDay timeOfDay)

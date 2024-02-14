@@ -265,8 +265,8 @@ public class CreatureEditor : MonoBehaviour
         if (simulationEnvironment == SimulationEnvironment.Ground) groundSimulationButton.AddToClassList("active"); else groundSimulationButton.RemoveFromClassList("active");
         if (simulationEnvironment == SimulationEnvironment.Water) waterSimulationButton.AddToClassList("active"); else waterSimulationButton.RemoveFromClassList("active");
         WorldManager.Instance.timeScale = simulationEnvironment == SimulationEnvironment.Pause ? 0f : 1f;
-        WorldManager.Instance.gravity = simulationEnvironment == SimulationEnvironment.Ground;
-        WorldManager.Instance.simulateFluid = simulationEnvironment == SimulationEnvironment.Water;
+        if (simulationEnvironment != SimulationEnvironment.Pause)
+            WorldManager.Instance.ChangeEnvironment(simulationEnvironment == SimulationEnvironment.Water ? WorldEnvironment.Underwater : WorldEnvironment.Surface);
     }
 
     private enum CameraBehaviour

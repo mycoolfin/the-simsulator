@@ -15,9 +15,9 @@ RenderSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 9
   m_Fog: 0
-  m_FogColor: {r: 0.48220006, g: 0.681903, b: 0.7924528, a: 1}
+  m_FogColor: {r: 0.23529412, g: 0.39215687, b: 0.47058824, a: 1}
   m_FogMode: 3
-  m_FogDensity: 0.01
+  m_FogDensity: 0.005
   m_LinearFogStart: 0
   m_LinearFogEnd: 300
   m_AmbientSkyColor: {r: 0.212, g: 0.227, b: 0.259, a: 1}
@@ -679,6 +679,76 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 9158548512716789175, guid: aa36e3e87973443edb4dc4449c944080, type: 3}
   m_PrefabInstance: {fileID: 800063403}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &903398518 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 1339021372258506602, guid: a4cae177f8e6e4ea0b5409d3cc274fab, type: 3}
+  m_PrefabInstance: {fileID: 288844874297625781}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &903398521 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 936826175158094750, guid: a4cae177f8e6e4ea0b5409d3cc274fab, type: 3}
+  m_PrefabInstance: {fileID: 288844874297625781}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &903398523
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 903398518}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 948f4100a11a5c24981795d21301da5c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  volumeTrigger: {fileID: 903398521}
+  volumeLayer:
+    serializedVersion: 2
+    m_Bits: 64
+  stopNaNPropagation: 1
+  finalBlitToCameraTarget: 1
+  antialiasingMode: 0
+  temporalAntialiasing:
+    jitterSpread: 0.75
+    sharpness: 0.25
+    stationaryBlending: 0.95
+    motionBlending: 0.85
+  subpixelMorphologicalAntialiasing:
+    quality: 2
+  fastApproximateAntialiasing:
+    fastMode: 0
+    keepAlpha: 0
+  fog:
+    enabled: 1
+    excludeSkybox: 0
+  debugLayer:
+    lightMeter:
+      width: 512
+      height: 256
+      showCurves: 1
+    histogram:
+      width: 512
+      height: 256
+      channel: 3
+    waveform:
+      exposure: 0.12
+      height: 256
+    vectorscope:
+      size: 256
+      exposure: 0.12
+    overlaySettings:
+      linearDepth: 0
+      motionColorIntensity: 4
+      motionGridSize: 64
+      colorBlindnessType: 0
+      colorBlindnessStrength: 1
+  m_Resources: {fileID: 11400000, guid: d82512f9c8e5d4a4d938b575d47f88d4, type: 2}
+  m_ShowToolkit: 0
+  m_ShowCustomSorter: 0
+  breakBeforeColorGrading: 0
+  m_BeforeTransparentBundles: []
+  m_BeforeStackBundles: []
+  m_AfterStackBundles: []
 --- !u!1 &958854961
 GameObject:
   m_ObjectHideFlags: 0
@@ -740,7 +810,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a5a22f7800e7e43848fc6b74242fb321, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  directionalLight: {fileID: 0}
+  directionalLight: {fileID: 583422338}
   world: {fileID: 765893586}
   groundOrigin: {fileID: 50673965445851462}
   waterOrigin: {fileID: 279443275}
@@ -751,7 +821,6 @@ MonoBehaviour:
   throttledTimeScale: 0
   simulateFluid: 0
   fluidDensity: 1
-  gravity: 1
 --- !u!114 &958854965
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -894,8 +963,6 @@ MonoBehaviour:
   survivalPercentage: 0
   seedGenotype:
     id: 
-    ancestry:
-      rid: -2
     brainNeuronDefinitions: []
     limbNodes: []
   run: 0
@@ -908,11 +975,6 @@ MonoBehaviour:
   assessmentProgress: 0
   bestFitnesses: []
   averageFitnesses: []
-  references:
-    version: 2
-    RefIds:
-    - rid: -2
-      type: {class: , ns: , asm: }
 --- !u!4 &1294992366
 Transform:
   m_ObjectHideFlags: 0
@@ -1090,6 +1152,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1339021372258506602, guid: a4cae177f8e6e4ea0b5409d3cc274fab, type: 3}
+      propertyPath: m_Layer
+      value: 6
+      objectReference: {fileID: 0}
     - target: {fileID: 2280888512591259788, guid: a4cae177f8e6e4ea0b5409d3cc274fab, type: 3}
       propertyPath: m_Name
       value: Player
@@ -1141,7 +1207,10 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 1339021372258506602, guid: a4cae177f8e6e4ea0b5409d3cc274fab, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 903398523}
   m_SourcePrefab: {fileID: 100100000, guid: a4cae177f8e6e4ea0b5409d3cc274fab, type: 3}
 --- !u!1001 &339352313704584338
 PrefabInstance:

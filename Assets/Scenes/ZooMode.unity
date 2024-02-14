@@ -2580,7 +2580,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a5a22f7800e7e43848fc6b74242fb321, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  directionalLight: {fileID: 583422337}
+  directionalLight: {fileID: 583422338}
   world: {fileID: 765893586}
   groundOrigin: {fileID: 0}
   waterOrigin: {fileID: 0}
@@ -2591,7 +2591,6 @@ MonoBehaviour:
   throttledTimeScale: 0
   simulateFluid: 0
   fluidDensity: 1
-  gravity: 1
 --- !u!114 &958854965
 MonoBehaviour:
   m_ObjectHideFlags: 0
