@@ -1,38 +1,61 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
     <Style src="project://database/Assets/Scripts/UI/Evolution%20Simulator%20Menu/EvolutionSimulatorMenu.uss?fileID=7433441132597879392&amp;guid=fda342bbe1b954b9daf6a7643a50446c&amp;type=3#EvolutionSimulatorMenu" />
-    <ui:VisualElement name="initialisation-menu-container" style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); justify-content: center; align-items: center; min-width: auto; min-height: auto; -unity-background-scale-mode: stretch-to-fill;">
-        <ui:VisualElement style="background-color: rgb(154, 206, 245); position: relative; bottom: auto; right: auto; width: 600px; height: auto; border-top-left-radius: 5px; border-bottom-left-radius: 5px; border-top-right-radius: 5px; border-bottom-right-radius: 5px; border-left-color: rgba(255, 255, 255, 0.5); border-right-color: rgba(255, 255, 255, 0.5); border-top-color: rgba(255, 255, 255, 0.5); border-bottom-color: rgba(255, 255, 255, 0.5); border-left-width: 4px; border-right-width: 4px; border-top-width: 4px; border-bottom-width: 4px; max-height: 450px; align-items: stretch; align-self: center;">
+    <ui:VisualElement name="initialisation-menu-container" style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); justify-content: center; align-items: center; -unity-background-scale-mode: stretch-to-fill;">
+        <ui:VisualElement style="background-color: rgb(154, 206, 245); position: relative; bottom: auto; right: auto; width: 600px; height: auto; border-top-left-radius: 5px; border-bottom-left-radius: 5px; border-top-right-radius: 5px; border-bottom-right-radius: 5px; border-left-color: rgba(255, 255, 255, 0.5); border-right-color: rgba(255, 255, 255, 0.5); border-top-color: rgba(255, 255, 255, 0.5); border-bottom-color: rgba(255, 255, 255, 0.5); border-left-width: 4px; border-right-width: 4px; border-top-width: 4px; border-bottom-width: 4px; max-height: 500px; align-items: stretch; align-self: center;">
             <ui:ScrollView mouse-wheel-scroll-size="100" style="flex-grow: 1;">
                 <ui:Label tabindex="-1" text="Evolution Simulator" display-tooltip-when-elided="true" style="-unity-text-align: upper-center; -unity-font-style: bold;" />
                 <ui:VisualElement style="flex-grow: 0; background-color: rgba(0, 0, 0, 0);">
-                    <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); flex-direction: row; align-items: stretch; justify-content: space-between; align-self: stretch; padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px;">
-                        <ui:Label tabindex="-1" text="Trial Type" display-tooltip-when-elided="true" style="flex-basis: auto; flex-direction: column; margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0; justify-content: flex-start; align-items: auto; align-self: center; width: 50%;" />
-                        <ui:EnumField type="TrialType, Assembly-CSharp" focusable="false" name="trial-type" style="width: 50%; margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0;" />
+                    <ui:VisualElement name="trial-type" style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); flex-direction: row; align-items: stretch; justify-content: space-between; align-self: stretch; padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px;">
+                        <ui:VisualElement style="background-color: rgba(0, 0, 0, 0); flex-direction: row; width: 100%;">
+                            <ui:Button focusable="false" name="tooltip-button" style="width: 15px; height: 15px;" />
+                            <ui:Label tabindex="-1" text="Trial Type" display-tooltip-when-elided="true" style="flex-basis: auto; flex-direction: column; margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0; justify-content: flex-start; align-items: auto; align-self: center; width: 50%;" />
+                        </ui:VisualElement>
+                        <ui:EnumField type="TrialType, Assembly-CSharp" focusable="false" style="margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0; width: 100%; flex-shrink: 1;" />
                     </ui:VisualElement>
-                    <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); flex-direction: row; align-items: stretch; justify-content: space-between; align-self: stretch; padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px; width: auto;">
-                        <ui:Label tabindex="-1" text="Max. Iterations" display-tooltip-when-elided="true" enable-rich-text="true" style="flex-basis: auto; flex-direction: column; margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0; justify-content: flex-start; align-items: auto; align-self: center; width: 50%;" />
-                        <ui:SliderInt picking-mode="Ignore" value="300" high-value="1000" show-input-field="true" name="max-iterations" low-value="-1" focusable="false" style="margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0; width: 50%;" />
+                    <ui:VisualElement name="max-iterations" style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); flex-direction: row; align-items: stretch; justify-content: space-between; align-self: stretch; padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px; width: auto;">
+                        <ui:VisualElement style="background-color: rgba(0, 0, 0, 0); flex-direction: row; width: 100%;">
+                            <ui:Button focusable="false" name="tooltip-button" style="width: 15px; height: 15px;" />
+                            <ui:Label tabindex="-1" text="Max. Iterations" display-tooltip-when-elided="true" enable-rich-text="true" style="flex-basis: auto; flex-direction: column; margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0; justify-content: flex-start; align-items: auto; align-self: center; width: 50%;" />
+                        </ui:VisualElement>
+                        <ui:SliderInt picking-mode="Ignore" value="300" high-value="1000" show-input-field="true" low-value="0" focusable="false" style="margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0; width: 100%; flex-shrink: 1;" />
                     </ui:VisualElement>
-                    <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); flex-direction: row; align-items: stretch; justify-content: space-between; align-self: stretch; padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px; width: auto;">
-                        <ui:Label tabindex="-1" text="Population Size" display-tooltip-when-elided="true" enable-rich-text="true" style="flex-basis: auto; flex-direction: column; margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0; justify-content: flex-start; align-items: auto; align-self: center; width: 50%;" />
-                        <ui:SliderInt picking-mode="Ignore" value="100" high-value="200" show-input-field="true" name="population-size" low-value="10" focusable="false" style="margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0; width: 50%;" />
+                    <ui:VisualElement name="population-size" style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); flex-direction: row; align-items: stretch; justify-content: space-between; align-self: stretch; padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px; width: auto;">
+                        <ui:VisualElement style="background-color: rgba(0, 0, 0, 0); flex-direction: row; width: 100%;">
+                            <ui:Button focusable="false" name="tooltip-button" style="width: 15px; height: 15px;" />
+                            <ui:Label tabindex="-1" text="Population Size" display-tooltip-when-elided="true" enable-rich-text="true" style="flex-basis: auto; flex-direction: column; margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0; justify-content: flex-start; align-items: auto; align-self: center; width: 50%;" />
+                        </ui:VisualElement>
+                        <ui:SliderInt picking-mode="Ignore" value="100" high-value="200" show-input-field="true" low-value="10" focusable="false" style="margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0; width: 100%; flex-shrink: 1;" />
                     </ui:VisualElement>
-                    <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); flex-direction: row; align-items: stretch; justify-content: space-between; align-self: stretch; padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px; width: auto;">
-                        <ui:Label tabindex="-1" text="Survival Percentage" display-tooltip-when-elided="true" enable-rich-text="true" style="flex-basis: auto; flex-direction: column; margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0; justify-content: flex-start; align-items: auto; align-self: center; width: 50%;" />
-                        <ui:SliderInt picking-mode="Ignore" value="20" high-value="100" show-input-field="true" name="survival-percentage" low-value="0" focusable="false" style="margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0; width: 50%;" />
+                    <ui:VisualElement name="survival-percentage" style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); flex-direction: row; align-items: stretch; justify-content: space-between; align-self: stretch; padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px; width: auto;">
+                        <ui:VisualElement style="background-color: rgba(0, 0, 0, 0); flex-direction: row; width: 100%;">
+                            <ui:Button focusable="false" name="tooltip-button" style="width: 15px; height: 15px;" />
+                            <ui:Label tabindex="-1" text="Survival Percentage" display-tooltip-when-elided="true" enable-rich-text="true" style="flex-basis: auto; flex-direction: column; margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0; justify-content: flex-start; align-items: auto; align-self: center; width: 50%;" />
+                        </ui:VisualElement>
+                        <ui:SliderInt picking-mode="Ignore" value="20" high-value="100" show-input-field="true" low-value="0" focusable="false" style="margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0; width: 100%; flex-shrink: 1;" />
                     </ui:VisualElement>
-                    <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); flex-direction: row; align-items: stretch; justify-content: space-between; align-self: stretch; padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px; width: auto;">
-                        <ui:Label tabindex="-1" text="Mutation Rate" display-tooltip-when-elided="true" enable-rich-text="true" style="flex-basis: auto; flex-direction: column; margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0; justify-content: flex-start; align-items: auto; align-self: center; width: 50%;" />
-                        <ui:SliderInt picking-mode="Ignore" value="1" high-value="50" show-input-field="true" name="mutation-rate" low-value="0" focusable="false" style="margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0; width: 50%;" />
+                    <ui:VisualElement name="mutation-rate" style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); flex-direction: row; align-items: stretch; justify-content: space-between; align-self: stretch; padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px; width: auto;">
+                        <ui:VisualElement style="background-color: rgba(0, 0, 0, 0); flex-direction: row; width: 100%;">
+                            <ui:Button focusable="false" name="tooltip-button" style="width: 15px; height: 15px;" />
+                            <ui:Label tabindex="-1" text="Mutation Rate" display-tooltip-when-elided="true" enable-rich-text="true" style="flex-basis: auto; flex-direction: column; margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0; justify-content: flex-start; align-items: auto; align-self: center; width: 50%;" />
+                        </ui:VisualElement>
+                        <ui:SliderInt picking-mode="Ignore" value="1" high-value="50" show-input-field="true" low-value="0" focusable="false" style="margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0; width: 100%; flex-shrink: 1;" />
                     </ui:VisualElement>
-                    <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); flex-direction: row; align-items: stretch; justify-content: space-between; align-self: stretch; padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px; width: auto;">
-                        <ui:Label tabindex="-1" text="Seed Genotype (Optional)" display-tooltip-when-elided="true" enable-rich-text="true" style="flex-basis: auto; flex-direction: column; margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0; justify-content: flex-start; align-items: auto; align-self: center; width: 50%; -unity-text-align: upper-left;" />
-                        <ui:Button text="&lt;none&gt;" display-tooltip-when-elided="true" name="seed-genotype" focusable="false" style="flex-grow: 1;" />
-                        <ui:Button text="x" display-tooltip-when-elided="true" name="remove-seed" enable-rich-text="false" focusable="false" style="flex-grow: 0; display: flex; -unity-font-style: bold;" />
+                    <ui:VisualElement name="seed-genotype" style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); flex-direction: row; align-items: stretch; justify-content: space-between; align-self: stretch; padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px; width: auto;">
+                        <ui:VisualElement style="background-color: rgba(0, 0, 0, 0); flex-direction: row; width: 100%;">
+                            <ui:Button focusable="false" name="tooltip-button" style="width: 15px; height: 15px;" />
+                            <ui:Label tabindex="-1" text="(Optional) Seed Genotype" display-tooltip-when-elided="true" enable-rich-text="true" style="flex-basis: auto; flex-direction: column; margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0; justify-content: flex-start; align-items: auto; align-self: center; width: 50%; -unity-text-align: upper-left;" />
+                        </ui:VisualElement>
+                        <ui:VisualElement style="background-color: rgba(0, 0, 0, 0); width: 100%; flex-direction: row;">
+                            <ui:Button text="&lt;none&gt;" display-tooltip-when-elided="true" name="seed-genotype" focusable="false" style="flex-grow: 1;" />
+                            <ui:Button text="x" display-tooltip-when-elided="true" name="remove-seed" enable-rich-text="false" focusable="false" style="flex-grow: 0; display: flex; -unity-font-style: bold;" />
+                        </ui:VisualElement>
                     </ui:VisualElement>
-                    <ui:VisualElement name="seed-genotype-options" style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); flex-direction: row; align-items: stretch; justify-content: flex-start; align-self: stretch; padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px; width: auto;">
-                        <ui:Label tabindex="-1" text="Evolve nervous systems only" display-tooltip-when-elided="true" enable-rich-text="true" style="flex-basis: auto; flex-direction: column; margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0; justify-content: flex-start; align-items: auto; align-self: center; width: 50%; -unity-text-align: upper-left;" />
-                        <ui:Toggle name="lock-morphologies" focusable="false" />
+                    <ui:VisualElement name="lock-morphologies" style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); flex-direction: row; align-items: stretch; justify-content: flex-start; align-self: stretch; padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px; width: auto;">
+                        <ui:VisualElement style="background-color: rgba(0, 0, 0, 0); flex-direction: row; width: 100%;">
+                            <ui:Button focusable="false" name="tooltip-button" style="width: 15px; height: 15px;" />
+                            <ui:Label tabindex="-1" text="Evolve nervous systems only" display-tooltip-when-elided="true" enable-rich-text="true" style="flex-basis: auto; flex-direction: column; margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0; justify-content: flex-start; align-items: auto; align-self: center; width: 50%; -unity-text-align: upper-left;" />
+                        </ui:VisualElement>
+                        <ui:Toggle focusable="false" style="flex-shrink: 1; width: 100%;" />
                     </ui:VisualElement>
                 </ui:VisualElement>
                 <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); flex-direction: row; justify-content: center;">
@@ -61,7 +84,7 @@
     </ui:VisualElement>
     <ui:VisualElement name="runtime-menu-container" style="flex-grow: 0; background-color: rgb(154, 206, 245); position: absolute; bottom: 48px; right: 0; width: 400px; height: auto; border-top-left-radius: 5px; border-bottom-left-radius: 5px; border-top-right-radius: 0; border-bottom-right-radius: 0; border-left-color: rgba(255, 255, 255, 0.5); border-right-color: rgba(255, 255, 255, 0.5); border-top-color: rgba(255, 255, 255, 0.5); border-bottom-color: rgba(255, 255, 255, 0.5); border-left-width: 3px; border-right-width: 3px; border-top-width: 3px; border-bottom-width: 3px; max-height: 400px; display: flex;">
         <ui:ScrollView mouse-wheel-scroll-size="100" style="display: flex;">
-            <ui:VisualElement name="parameters" focusable="false" style="flex-grow: 0; background-color: rgba(0, 0, 0, 0); visibility: visible; opacity: 1; display: flex;">
+            <ui:VisualElement name="parameters" focusable="false" style="flex-grow: 0; background-color: rgba(0, 0, 0, 0); visibility: visible; opacity: 1; display: none;">
                 <ui:Label tabindex="-1" text="Evolution Parameters" display-tooltip-when-elided="true" style="-unity-text-align: upper-center; -unity-font-style: bold; align-items: stretch;" />
                 <ui:VisualElement style="flex-grow: 0; background-color: rgba(0, 0, 0, 0);">
                     <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); flex-direction: row; align-items: stretch; justify-content: space-between; align-self: stretch; padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px;">
@@ -118,9 +141,12 @@
             <ui:VisualElement name="controls" style="flex-grow: 0; background-color: rgba(0, 0, 0, 0); display: none;">
                 <ui:Label tabindex="-1" text="Controls" display-tooltip-when-elided="true" style="-unity-text-align: upper-center; -unity-font-style: bold;" />
                 <ui:VisualElement style="flex-grow: 0; background-color: rgba(0, 0, 0, 0);">
-                    <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); flex-direction: row; padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px;">
-                        <ui:Label tabindex="-1" text="Speed Control" display-tooltip-when-elided="true" style="flex-basis: auto; flex-direction: column; margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0; justify-content: flex-start; align-items: auto; align-self: center; width: 50%;" />
-                        <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); width: 50%; flex-direction: column; align-items: center; align-self: center; justify-content: flex-start;">
+                    <ui:VisualElement name="speed-control" style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); flex-direction: row; padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px;">
+                        <ui:VisualElement style="background-color: rgba(0, 0, 0, 0); flex-direction: row; width: 100%;">
+                            <ui:Button focusable="false" name="tooltip-button" style="width: 15px; height: 15px;" />
+                            <ui:Label tabindex="-1" text="Speed Control" display-tooltip-when-elided="true" style="flex-basis: auto; flex-direction: column; margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0; justify-content: flex-start; align-items: auto; align-self: center; width: 50%;" />
+                        </ui:VisualElement>
+                        <ui:VisualElement style="background-color: rgba(0, 0, 0, 0); width: 100%; flex-direction: column; align-items: center; align-self: center; justify-content: flex-start;">
                             <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); flex-direction: row; width: 100%; justify-content: center; padding-left: 5px; padding-right: 5px; padding-top: 0; padding-bottom: 0;">
                                 <ui:ProgressBar value="0.75" name="throttled-time" high-value="1" style="width: 100%; margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0; background-color: rgba(0, 0, 0, 0); -unity-background-image-tint-color: rgb(255, 255, 255);" />
                                 <ui:VisualElement style="flex-grow: 1; background-color: rgb(128, 128, 128); position: absolute; width: 1px; height: 100%; align-self: center;" />
@@ -138,26 +164,38 @@
                             </ui:VisualElement>
                         </ui:VisualElement>
                     </ui:VisualElement>
-                    <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); flex-direction: row; align-items: stretch; justify-content: space-between; align-self: stretch; padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px;">
-                        <ui:Label tabindex="-1" text="Wait Before Next Iteration" display-tooltip-when-elided="true" style="flex-basis: auto; flex-direction: column; margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0; justify-content: flex-start; align-items: auto; align-self: center; width: 50%;" />
-                        <ui:Toggle name="pause-iterating" focusable="false" style="width: 50%;" />
+                    <ui:VisualElement name="pause-iterating" style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); flex-direction: row; align-items: stretch; justify-content: space-between; align-self: stretch; padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px;">
+                        <ui:VisualElement style="background-color: rgba(0, 0, 0, 0); flex-direction: row; width: 100%;">
+                            <ui:Button focusable="false" name="tooltip-button" style="width: 15px; height: 15px;" />
+                            <ui:Label tabindex="-1" text="Pause Iterating&#x9;" display-tooltip-when-elided="true" style="flex-basis: auto; flex-direction: column; margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0; justify-content: flex-start; align-items: auto; align-self: center; width: 50%;" />
+                        </ui:VisualElement>
+                        <ui:Toggle focusable="false" style="width: 100%; flex-shrink: 1;" />
                     </ui:VisualElement>
                 </ui:VisualElement>
             </ui:VisualElement>
-            <ui:VisualElement name="settings" style="flex-grow: 0; background-color: rgba(0, 0, 0, 0); display: none;">
+            <ui:VisualElement name="settings" style="flex-grow: 0; background-color: rgba(0, 0, 0, 0); display: flex;">
                 <ui:Label tabindex="-1" text="Settings" display-tooltip-when-elided="true" style="-unity-text-align: upper-center; -unity-font-style: bold;" />
                 <ui:VisualElement style="flex-grow: 0; background-color: rgba(0, 0, 0, 0);">
-                    <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); flex-direction: row; align-items: stretch; justify-content: space-between; align-self: stretch; padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px;">
-                        <ui:Label tabindex="-1" text="Colour By Fitness" display-tooltip-when-elided="true" style="flex-basis: auto; flex-direction: column; margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0; justify-content: flex-start; align-items: auto; align-self: center; width: 50%;" />
-                        <ui:Toggle name="colour-by-fitness" focusable="false" style="width: 50%;" />
+                    <ui:VisualElement name="colour-by-fitness" style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); flex-direction: row; align-items: stretch; justify-content: space-between; align-self: stretch; padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px;">
+                        <ui:VisualElement style="background-color: rgba(0, 0, 0, 0); flex-direction: row; width: 100%;">
+                            <ui:Button focusable="false" name="tooltip-button" style="width: 15px; height: 15px;" />
+                            <ui:Label tabindex="-1" text="Colour By Fitness" display-tooltip-when-elided="true" style="flex-basis: auto; flex-direction: column; margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0; justify-content: flex-start; align-items: auto; align-self: center; width: 50%;" />
+                        </ui:VisualElement>
+                        <ui:Toggle focusable="false" style="width: 100%; flex-shrink: 1;" />
                     </ui:VisualElement>
-                    <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); flex-direction: row; align-items: stretch; justify-content: space-between; align-self: stretch; padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px;">
-                        <ui:Label tabindex="-1" text="Orbit Camera" display-tooltip-when-elided="true" style="flex-basis: auto; flex-direction: column; margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0; justify-content: flex-start; align-items: auto; align-self: center; width: 50%;" />
-                        <ui:Toggle name="orbit-camera" focusable="false" style="width: 50%;" />
+                    <ui:VisualElement name="orbit-camera" style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); flex-direction: row; align-items: stretch; justify-content: space-between; align-self: stretch; padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px;">
+                        <ui:VisualElement style="background-color: rgba(0, 0, 0, 0); flex-direction: row; width: 100%;">
+                            <ui:Button focusable="false" name="tooltip-button" style="width: 15px; height: 15px;" />
+                            <ui:Label tabindex="-1" text="Orbit Camera" display-tooltip-when-elided="true" style="flex-basis: auto; flex-direction: column; margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0; justify-content: flex-start; align-items: auto; align-self: center; width: 50%;" />
+                        </ui:VisualElement>
+                        <ui:Toggle focusable="false" style="width: 100%; flex-shrink: 1;" />
                     </ui:VisualElement>
-                    <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); flex-direction: row; align-items: stretch; justify-content: space-between; align-self: stretch; padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px;">
-                        <ui:Label tabindex="-1" text="Focus Best Creatures" display-tooltip-when-elided="true" style="flex-basis: auto; flex-direction: column; margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0; justify-content: flex-start; align-items: auto; align-self: center; width: 50%;" />
-                        <ui:SliderInt picking-mode="Ignore" value="0" high-value="12" direction="Horizontal" show-input-field="true" name="focus-best" focusable="false" style="flex-grow: 1;" />
+                    <ui:VisualElement name="focus-best" style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); flex-direction: row; align-items: stretch; justify-content: space-between; align-self: stretch; padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px;">
+                        <ui:VisualElement style="background-color: rgba(0, 0, 0, 0); flex-direction: row; width: 100%;">
+                            <ui:Button focusable="false" name="tooltip-button" style="width: 15px; height: 15px;" />
+                            <ui:Label tabindex="-1" text="Focus Best Creatures" display-tooltip-when-elided="true" style="flex-basis: auto; flex-direction: column; margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0; justify-content: flex-start; align-items: auto; align-self: center; width: 50%;" />
+                        </ui:VisualElement>
+                        <ui:SliderInt picking-mode="Ignore" value="0" high-value="12" direction="Horizontal" show-input-field="true" focusable="false" style="flex-shrink: 1; width: 100%;" />
                     </ui:VisualElement>
                 </ui:VisualElement>
             </ui:VisualElement>
@@ -181,5 +219,8 @@
                 <ui:Button text="Cancel" display-tooltip-when-elided="true" name="cancel" style="flex-shrink: 0; margin-left: 10px; margin-right: 10px; margin-top: 10px; margin-bottom: 10px; padding-left: 10px; padding-right: 10px; padding-top: 10px; padding-bottom: 10px;" />
             </ui:VisualElement>
         </ui:VisualElement>
+    </ui:VisualElement>
+    <ui:VisualElement name="tooltip" picking-mode="Ignore" style="background-color: rgba(0, 0, 0, 0.71); color: rgb(255, 255, 255); -unity-font-style: normal; justify-content: center; align-self: center; position: absolute; display: none; max-width: 300px;">
+        <ui:Label tabindex="-1" text="TEST TOOLTIP" display-tooltip-when-elided="true" style="padding-left: 2px; padding-right: 2px; padding-top: 2px; padding-bottom: 2px; white-space: normal;" />
     </ui:VisualElement>
 </ui:UXML>

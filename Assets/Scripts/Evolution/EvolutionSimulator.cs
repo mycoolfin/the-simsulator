@@ -101,7 +101,7 @@ public class EvolutionSimulator : MonoBehaviour
         OnSimulationStart();
 
         currentIteration = 0;
-        while (currentIteration < maxIterations || maxIterations == -1)
+        while (currentIteration < maxIterations || maxIterations == 0)
         {
             currentIteration++;
 

@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UIElements;
@@ -36,8 +35,8 @@ public class EvolutionModeMenu : MonoBehaviour
     private VisualElement controlsTab;
     private VisualElement settingsTab;
     private RuntimeMenuTab currentRuntimeMenuTab;
-
     private VisualElement exitMenuContainer;
+    private VisualElement tooltipElement;
 
     private ProgressBar throttledTime;
     private ProgressBar iterationProgress;
@@ -56,6 +55,7 @@ public class EvolutionModeMenu : MonoBehaviour
     {
         doc = GetComponent<UIDocument>();
 
+        InitialiseTooltip();
         InitialiseInitialisationMenu();
         InitialiseRuntimeMenu();
         InitialiseExitMenu();
@@ -81,21 +81,75 @@ public class EvolutionModeMenu : MonoBehaviour
         }
     }
 
+    private void InitialiseTooltip()
+    {
+        tooltipElement = doc.rootVisualElement.Q<VisualElement>("tooltip");
+    }
+
     private void InitialiseInitialisationMenu()
     {
         initialisationMenuContainer = doc.rootVisualElement.Q<VisualElement>("initialisation-menu-container");
-        EnumField trialType = initialisationMenuContainer.Q<EnumField>("trial-type");
+
+        VisualElement trialTypeContainer = initialisationMenuContainer.Q<VisualElement>("trial-type");
+        EnumField trialType = trialTypeContainer.Q<EnumField>();
         trialType.value = TrialType.GroundDistance;
-        SliderInt maxIterations = initialisationMenuContainer.Q<SliderInt>("max-iterations");
-        SliderInt populationSize = initialisationMenuContainer.Q<SliderInt>("population-size");
-        SliderInt survivalPercentage = initialisationMenuContainer.Q<SliderInt>("survival-percentage");
-        SliderInt mutationRate = initialisationMenuContainer.Q<SliderInt>("mutation-rate");
+        new Tooltip(
+            tooltipElement,
+            trialTypeContainer.Q<Button>("tooltip-button"),
+            "The method used to assess creature fitnesses."
+        );
+
+        VisualElement maxIterationsContainer = initialisationMenuContainer.Q<VisualElement>("max-iterations");
+        SliderInt maxIterations = maxIterationsContainer.Q<SliderInt>();
+        new Tooltip(
+            tooltipElement,
+            maxIterationsContainer.Q<Button>("tooltip-button"),
+            "The maximum number of iterations to run for. Set to 0 to run forever."
+        );
+
+        VisualElement populationSizeContainer = initialisationMenuContainer.Q<VisualElement>("population-size");
+        SliderInt populationSize = populationSizeContainer.Q<SliderInt>();
+        new Tooltip(
+            tooltipElement,
+            populationSizeContainer.Q<Button>("tooltip-button"),
+            "The number of creatures competing together each iteration."
+        );
+
+        VisualElement survivalPercentageContainer = initialisationMenuContainer.Q<VisualElement>("survival-percentage");
+        SliderInt survivalPercentage = survivalPercentageContainer.Q<SliderInt>();
+        new Tooltip(
+            tooltipElement,
+            survivalPercentageContainer.Q<Button>("tooltip-button"),
+            "The top percentage of creatures that are selected to survive each iteration."
+        );
+
+        VisualElement mutationRateContainer = initialisationMenuContainer.Q<VisualElement>("mutation-rate");
+        SliderInt mutationRate = mutationRateContainer.Q<SliderInt>();
         mutationRate.value = Mathf.FloorToInt(ParameterManager.Instance.Mutation.MutationRate);
-        Button seedGenotypeButton = initialisationMenuContainer.Q<Button>("seed-genotype");
-        Button removeSeedButton = initialisationMenuContainer.Q<Button>("remove-seed");
-        VisualElement seedGenotypeOptions = initialisationMenuContainer.Q<VisualElement>("seed-genotype-options");
-        Toggle lockMorphologies = seedGenotypeOptions.Q<Toggle>("lock-morphologies");
+        new Tooltip(
+            tooltipElement,
+            mutationRateContainer.Q<Button>("tooltip-button"),
+            "The average number of mutations per child."
+        );
+
+        VisualElement seedGenotypeContainer = initialisationMenuContainer.Q<VisualElement>("seed-genotype");
+        Button seedGenotypeButton = seedGenotypeContainer.Q<Button>("seed-genotype");
+        Button removeSeedButton = seedGenotypeContainer.Q<Button>("remove-seed");
+        new Tooltip(
+            tooltipElement,
+            seedGenotypeContainer.Q<Button>("tooltip-button"),
+            "The genotype used to generate the initial population."
+        );
+
+        VisualElement lockMorphologiesContainer = initialisationMenuContainer.Q<VisualElement>("lock-morphologies");
+        Toggle lockMorphologies = lockMorphologiesContainer.Q<Toggle>();
         lockMorphologies.value = ParameterManager.Instance.Reproduction.LockMorphologies;
+        new Tooltip(
+            tooltipElement,
+            lockMorphologiesContainer.Q<Button>("tooltip-button"),
+            "Check this to prevent creature morphologies from changing during evolution."
+        );
+
         seedGenotypeButton.clicked += () =>
         {
             string seedGenotypePath = FileBrowser.Instance.OpenSingleFile(
@@ -121,7 +175,7 @@ public class EvolutionModeMenu : MonoBehaviour
                 seedGenotypeButton.style.backgroundColor = buttonActiveColor;
                 removeSeedButton.style.display = DisplayStyle.Flex;
                 seedGenotype = genotype;
-                seedGenotypeOptions.style.display = DisplayStyle.Flex;
+                lockMorphologiesContainer.style.display = DisplayStyle.Flex;
             }
         };
         removeSeedButton.clicked += () =>
@@ -132,7 +186,7 @@ public class EvolutionModeMenu : MonoBehaviour
             seedGenotype = null;
         };
         removeSeedButton.style.display = DisplayStyle.None;
-        seedGenotypeOptions.style.display = DisplayStyle.None;
+        lockMorphologiesContainer.style.display = DisplayStyle.None;
 
         initialisationMenuContainer.Q<Button>("run").clicked += () =>
         {
@@ -237,9 +291,11 @@ public class EvolutionModeMenu : MonoBehaviour
     private void InitialiseControlsTab()
     {
         controlsTab = runtimeMenuContainer.Q<VisualElement>("controls");
-        Button pauseButton = controlsTab.Q<Button>("pause-simulation");
-        Button playButton = controlsTab.Q<Button>("play-simulation");
-        Button fastForwardButton = controlsTab.Q<Button>("fastforward-simulation");
+
+        VisualElement speedControlContainer = controlsTab.Q<VisualElement>("speed-control");
+        Button pauseButton = speedControlContainer.Q<Button>("pause-simulation");
+        Button playButton = speedControlContainer.Q<Button>("play-simulation");
+        Button fastForwardButton = speedControlContainer.Q<Button>("fastforward-simulation");
         pauseButton.style.backgroundColor = buttonInactiveColor;
         playButton.style.backgroundColor = buttonActiveColor;
         fastForwardButton.style.backgroundColor = buttonInactiveColor;
@@ -264,21 +320,54 @@ public class EvolutionModeMenu : MonoBehaviour
             playButton.style.backgroundColor = buttonInactiveColor;
             fastForwardButton.style.backgroundColor = buttonActiveColor;
         };
-        throttledTime = controlsTab.Q<ProgressBar>("throttled-time");
-        controlsTab.Q<Toggle>("pause-iterating").RegisterValueChangedCallback((ChangeEvent<bool> e) => simulator.pauseIterating = e.newValue);
+        throttledTime = speedControlContainer.Q<ProgressBar>("throttled-time");
+        new Tooltip(
+            tooltipElement,
+            speedControlContainer.Q<Button>("tooltip-button"),
+            "Changes the simulation speed. The maximum speed is dependent on system performance."
+        );
+
+        VisualElement pauseIteratingContainer = controlsTab.Q<VisualElement>("pause-iterating");
+        pauseIteratingContainer.Q<Toggle>().RegisterValueChangedCallback((ChangeEvent<bool> e) => simulator.pauseIterating = e.newValue);
+        new Tooltip(
+            tooltipElement,
+            pauseIteratingContainer.Q<Button>("tooltip-button"),
+            "Click this to prevent the simulator from proceeding to the next iteration until you are ready."
+        );
     }
 
     private void InitialiseSettingsTab()
     {
         settingsTab = runtimeMenuContainer.Q<VisualElement>("settings");
-        Toggle colourByFitness = settingsTab.Q<Toggle>("colour-by-fitness");
+
+        VisualElement colourByFitnessContainer = settingsTab.Q<VisualElement>("colour-by-fitness");
+        Toggle colourByFitness = colourByFitnessContainer.Q<Toggle>();
         colourByFitness.value = simulator.colourByRelativeFitness;
         colourByFitness.RegisterValueChangedCallback((ChangeEvent<bool> e) => simulator.colourByRelativeFitness = e.newValue);
-        SliderInt focusBestCreatures = settingsTab.Q<SliderInt>("focus-best");
+        new Tooltip(
+            tooltipElement,
+            colourByFitnessContainer.Q<Button>("tooltip-button"),
+            "Visualises relative creature fitness by colour. Red = poor fitness; Green = good fitness; Blue = best fitness."
+        );
+
+        VisualElement focusBestCreaturesContainer = settingsTab.Q<VisualElement>("focus-best");
+        SliderInt focusBestCreatures = focusBestCreaturesContainer.Q<SliderInt>();
         focusBestCreatures.RegisterValueChangedCallback((ChangeEvent<int> e) => simulator.focusBestCreatures = e.newValue);
-        Toggle orbitCamera = settingsTab.Q<Toggle>("orbit-camera");
+        new Tooltip(
+            tooltipElement,
+            focusBestCreaturesContainer.Q<Button>("tooltip-button"),
+            "Shows the best creatures from the previous iteration in their own separate boxes."
+        );
+
+        VisualElement orbitCameraContainer = settingsTab.Q<VisualElement>("orbit-camera");
+        Toggle orbitCamera = orbitCameraContainer.Q<Toggle>();
         orbitCamera.value = playerController.orbitTarget != null;
         orbitCamera.RegisterValueChangedCallback((ChangeEvent<bool> e) => playerController.orbitTarget = e.newValue ? simulator.GetSimulationOrigin() : null);
+                new Tooltip(
+            tooltipElement,
+            orbitCameraContainer.Q<Button>("tooltip-button"),
+            "Orbits the camera around the simulator origin."
+        );
     }
 
     private void InitialiseSelectedPhenotypeMenu()
@@ -344,10 +433,10 @@ public class EvolutionModeMenu : MonoBehaviour
 
     private void UpdateStatus(bool simulationComplete)
     {
-        iterationProgress.value = (float)simulator.currentIteration / (float)numberOfIterations;
+        iterationProgress.value = numberOfIterations == 0 ? 1f : (float)simulator.currentIteration / (float)numberOfIterations;
         iterationProgress.title = simulationComplete
         ? "Simulation Complete (" + numberOfIterations + " iteration" + (numberOfIterations != 1 ? "s" : "") + ")"
-        : "Iteration " + simulator.currentIteration + "/" + (numberOfIterations == -1 ? "∞" : numberOfIterations);
+        : "Iteration " + simulator.currentIteration + "/" + (numberOfIterations == 0 ? "∞" : numberOfIterations);
 
         bestFitness.text = simulator.bestFitnesses.Count == 0 ? "?" : simulator.bestFitnesses[simulator.bestFitnesses.Count - 1].ToString("0.000");
         averageFitness.text = simulator.averageFitnesses.Count == 0 ? "?" : simulator.averageFitnesses[simulator.averageFitnesses.Count - 1].ToString("0.000");

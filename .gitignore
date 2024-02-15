@@ -78,5 +78,3 @@ mono_crash.*.*.json
 .vs/
 .vsconfig
 .vscode/
-
-*.genotype
