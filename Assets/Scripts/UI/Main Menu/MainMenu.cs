@@ -58,7 +58,7 @@ public class MainMenu : MonoBehaviour
         defaultCameraRotation = player.playerCamera.transform.rotation;
         desiredCameraPosition = defaultCameraPosition;
         desiredCameraRotation = defaultCameraRotation;
-        Debug.Log(Random.value);
+
         if (Random.value > 0.5f)
             Surface();
         else
