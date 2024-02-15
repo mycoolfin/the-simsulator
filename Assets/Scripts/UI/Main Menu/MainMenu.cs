@@ -1,9 +1,14 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
 public class MainMenu : MonoBehaviour
 {
     public PlayerController player;
+    public Spawner spawner;
+    public List<Vector3> surfaceSpawnPositions;
+    public List<Vector3> underwaterSpawnPositions;
+    public MainMenuTitle title;
     public MainMenuButton evolutionModeButton;
     public MainMenuButton zooModeButton;
     public MainMenuButton creatureEditorButton;
@@ -53,6 +58,11 @@ public class MainMenu : MonoBehaviour
         defaultCameraRotation = player.playerCamera.transform.rotation;
         desiredCameraPosition = defaultCameraPosition;
         desiredCameraRotation = defaultCameraRotation;
+        Debug.Log(Random.value);
+        if (Random.value > 0.5f)
+            Surface();
+        else
+            Underwater();
     }
 
     private void Update()
@@ -82,5 +92,21 @@ public class MainMenu : MonoBehaviour
                 hoveringOver = null;
             }
         }
+    }
+
+    private void Surface()
+    {
+        WorldManager.Instance.ChangeEnvironment(WorldEnvironment.Surface);
+        title.ToggleLit(false);
+        spawner.spawnType = SpawnType.Surface;
+        spawner.spawnLocations = surfaceSpawnPositions;
+    }
+
+    private void Underwater()
+    {
+        WorldManager.Instance.ChangeEnvironment(WorldEnvironment.Underwater);
+        title.ToggleLit(true);
+        spawner.spawnType = SpawnType.Underwater;
+        spawner.spawnLocations = underwaterSpawnPositions;
     }
 }
