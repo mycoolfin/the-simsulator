@@ -129,7 +129,7 @@ public abstract class JointBase : MonoBehaviour
             ConvertExcitationToAngle(e[2], limits[2])
         );
 
-        smoothedAngleTargets = Vector3.SmoothDamp(smoothedAngleTargets, angleTargets, ref smoothingVelocity, JointParameters.SmoothingFactor);
+        smoothedAngleTargets = Vector3.SmoothDamp(smoothedAngleTargets, angleTargets, ref smoothingVelocity, ParameterManager.Instance.Joint.SmoothingFactor);
 
         HandleCramping();
 
@@ -221,7 +221,7 @@ public abstract class JointBase : MonoBehaviour
         joint.enableCollision = true;
         joint.enablePreprocessing = true;
         joint.rotationDriveMode = RotationDriveMode.XYAndZ;
-        maxForce = maximumJointStrength * JointParameters.StrengthMultiplier;
+        maxForce = maximumJointStrength * ParameterManager.Instance.Joint.StrengthMultiplier;
         jointDrive = new JointDrive
         {
             positionSpring = 10000f * maxForce,

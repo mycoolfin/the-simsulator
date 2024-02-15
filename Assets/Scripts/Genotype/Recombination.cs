@@ -12,7 +12,7 @@ public static class Recombination
         bool copyFromParent1 = parent1.LimbNodes.Count < parent2.LimbNodes.Count;
         for (int i = 0; i < Mathf.Max(parent1.LimbNodes.Count, parent2.LimbNodes.Count); i++)
         {
-            if (i > 0 && i % RecombinationParameters.CrossoverInterval == 0)
+            if (i > 0 && i % ParameterManager.Instance.Recombination.CrossoverInterval == 0)
                 copyFromParent1 = !copyFromParent1;
 
             Genotype copySource = copyFromParent1 ? parent1 : parent2;
@@ -90,15 +90,15 @@ public static class Recombination
         );
 
         // Truncate new limb node set if too large.
-        bool tooManyLimbNodes = newGenotype.LimbNodes.Count > GenotypeParameters.MaxLimbNodes;
+        bool tooManyLimbNodes = newGenotype.LimbNodes.Count > ParameterManager.Instance.Genotype.MaxLimbNodes;
         if (tooManyLimbNodes)
         {
             return Genotype.Construct
             (
                 newGenotype.Id,
                 newGenotype.BrainNeuronDefinitions,
-                newGenotype.LimbNodes.Take(GenotypeParameters.MaxLimbNodes).Select(node => // Remove connections that point out of bounds.
-                    node.CreateCopy(node.Connections.Where(c => c.ChildNodeId < GenotypeParameters.MaxLimbNodes).ToList())).ToList()
+                newGenotype.LimbNodes.Take(ParameterManager.Instance.Genotype.MaxLimbNodes).Select(node => // Remove connections that point out of bounds.
+                    node.CreateCopy(node.Connections.Where(c => c.ChildNodeId < ParameterManager.Instance.Genotype.MaxLimbNodes).ToList())).ToList()
             );
         }
         else

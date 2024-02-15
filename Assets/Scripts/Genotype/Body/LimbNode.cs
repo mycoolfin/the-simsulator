@@ -32,31 +32,31 @@ public class LimbNode : ILimbNodeEssentialInfo
 
     public void Validate(EmitterAvailabilityMap emitterAvailabilityMap)
     {
-        bool validDimensions = dimensions.x >= LimbNodeParameters.MinSize && dimensions.x <= LimbNodeParameters.MaxSize
-                     && dimensions.y >= LimbNodeParameters.MinSize && dimensions.y <= LimbNodeParameters.MaxSize
-                     && dimensions.z >= LimbNodeParameters.MinSize && dimensions.z <= LimbNodeParameters.MaxSize;
+        bool validDimensions = dimensions.x >= ParameterManager.Instance.LimbNode.MinSize && dimensions.x <= ParameterManager.Instance.LimbNode.MaxSize
+                     && dimensions.y >= ParameterManager.Instance.LimbNode.MinSize && dimensions.y <= ParameterManager.Instance.LimbNode.MaxSize
+                     && dimensions.z >= ParameterManager.Instance.LimbNode.MinSize && dimensions.z <= ParameterManager.Instance.LimbNode.MaxSize;
         if (!validDimensions)
             throw new ArgumentException("Dimensions out of bounds. Specified: " + dimensions);
 
         jointDefinition.Validate(emitterAvailabilityMap);
 
-        bool validRecursiveLimit = recursiveLimit >= 0 && recursiveLimit <= LimbNodeParameters.MaxRecursiveLimit;
+        bool validRecursiveLimit = recursiveLimit >= 0 && recursiveLimit <= ParameterManager.Instance.LimbNode.MaxRecursiveLimit;
         if (!validRecursiveLimit)
-            throw new ArgumentException("Recursive limit must be between 0 and " + LimbNodeParameters.MaxRecursiveLimit + ". Specified: " + recursiveLimit);
+            throw new ArgumentException("Recursive limit must be between 0 and " + ParameterManager.Instance.LimbNode.MaxRecursiveLimit + ". Specified: " + recursiveLimit);
 
-        bool validNeuronDefinitionsCount = neuronDefinitions.Count >= LimbNodeParameters.MinNeurons && neuronDefinitions.Count <= LimbNodeParameters.MaxNeurons;
+        bool validNeuronDefinitionsCount = neuronDefinitions.Count >= ParameterManager.Instance.LimbNode.MinNeurons && neuronDefinitions.Count <= ParameterManager.Instance.LimbNode.MaxNeurons;
         if (!validNeuronDefinitionsCount)
-            throw new ArgumentException("The number of neuron definitions must be between " + LimbNodeParameters.MinNeurons
-            + " and " + LimbNodeParameters.MaxNeurons + ". Specified: " + neuronDefinitions.Count);
+            throw new ArgumentException("The number of neuron definitions must be between " + ParameterManager.Instance.LimbNode.MinNeurons
+            + " and " + ParameterManager.Instance.LimbNode.MaxNeurons + ". Specified: " + neuronDefinitions.Count);
 
         foreach (NeuronDefinition neuronDefinition in neuronDefinitions)
             neuronDefinition.Validate(emitterAvailabilityMap);
 
         if (connections != null)
         {
-            bool validLimbConnectionCount = connections.Count >= 0 && connections.Count <= LimbNodeParameters.MaxLimbConnections;
+            bool validLimbConnectionCount = connections.Count >= 0 && connections.Count <= ParameterManager.Instance.LimbNode.MaxLimbConnections;
             if (!validLimbConnectionCount)
-                throw new ArgumentException("Limb connection count must be between 0 and " + LimbNodeParameters.MaxLimbConnections + ". Specified: " + connections.Count);
+                throw new ArgumentException("Limb connection count must be between 0 and " + ParameterManager.Instance.LimbNode.MaxLimbConnections + ". Specified: " + connections.Count);
             foreach (LimbConnection connection in connections)
                 connection.Validate();
         }
@@ -79,9 +79,9 @@ public class LimbNode : ILimbNodeEssentialInfo
     )
     {
         Vector3 dimensions = new(
-            UnityEngine.Random.Range(LimbNodeParameters.MinSize, LimbNodeParameters.MaxSize),
-            UnityEngine.Random.Range(LimbNodeParameters.MinSize, LimbNodeParameters.MaxSize),
-            UnityEngine.Random.Range(LimbNodeParameters.MinSize, LimbNodeParameters.MaxSize)
+            UnityEngine.Random.Range(ParameterManager.Instance.LimbNode.MinSize, ParameterManager.Instance.LimbNode.MaxSize),
+            UnityEngine.Random.Range(ParameterManager.Instance.LimbNode.MinSize, ParameterManager.Instance.LimbNode.MaxSize),
+            UnityEngine.Random.Range(ParameterManager.Instance.LimbNode.MinSize, ParameterManager.Instance.LimbNode.MaxSize)
         );
 
         JointDefinition jointDefinition = JointDefinition.CreateRandom(emitterAvailabilityMap, unfinishedLimbNode.jointType);

@@ -7,9 +7,9 @@ public static class Reproduction
         return CreateOffspringWithChance(
             parent1,
             parent2,
-            RecombinationParameters.AsexualProbability,
-            RecombinationParameters.GraftingProbability,
-            RecombinationParameters.CrossoverProbability
+            ParameterManager.Instance.Recombination.AsexualProbability,
+            ParameterManager.Instance.Recombination.GraftingProbability,
+            ParameterManager.Instance.Recombination.CrossoverProbability
         );
     }
 
@@ -19,7 +19,7 @@ public static class Reproduction
         // If morphologies are locked, disable grafting.
         // This is because grafting can alter morphologies even if
         // both parents have the same morphology.
-        graftingChance *= ReproductionParameters.LockMorphologies ? 0f : 1f;
+        graftingChance *= ParameterManager.Instance.Reproduction.LockMorphologies ? 0f : 1f;
 
         // Choose reproduction method with set probability.
         float methodChoice = Random.Range(
@@ -39,7 +39,7 @@ public static class Reproduction
             child = Recombination.Asexual(parent1);
 
         // Mutation.
-        int numberOfMutations = Mathf.Max(0, Mathf.RoundToInt(MutationParameters.MutationRate + (Utilities.RandomGaussian() * MutationParameters.MutationRate)));
+        int numberOfMutations = Mathf.Max(0, Mathf.RoundToInt(ParameterManager.Instance.Mutation.MutationRate + (Utilities.RandomGaussian() * ParameterManager.Instance.Mutation.MutationRate)));
         if (numberOfMutations > 0)
         {
             // Always add a new disconnected limb node if mutations are incoming.

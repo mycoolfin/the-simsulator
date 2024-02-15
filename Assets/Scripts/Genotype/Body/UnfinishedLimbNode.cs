@@ -26,8 +26,8 @@ public class UnfinishedLimbNode : ILimbNodeEssentialInfo
     {
         return new(
             Utilities.RandomEnumValue<JointType>(),
-            Random.Range(LimbNodeParameters.MinNeurons, LimbNodeParameters.MaxNeurons + 1),
-            UnityEngine.Random.Range(0, LimbNodeParameters.MaxRecursiveLimit + 1),
+            Random.Range(ParameterManager.Instance.LimbNode.MinNeurons, ParameterManager.Instance.LimbNode.MaxNeurons + 1),
+            UnityEngine.Random.Range(0, ParameterManager.Instance.LimbNode.MaxRecursiveLimit + 1),
             connections
         );
     }

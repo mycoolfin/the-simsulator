@@ -107,7 +107,11 @@ public class Limb : MonoBehaviour, ISelectable
          * Quaternion.FromToRotation(Vector3.forward, localParentFaceNormal);
 
         Vector3 existingScaling = Vector3.Scale(transform.localScale, new Vector3(1f / unscaledDimensions.x, 1f / unscaledDimensions.y, 1f / unscaledDimensions.z));
-        Vector3 childDimensions = ClampDimensions(Vector3.Scale(Vector3.Scale(node.LimbNode.Dimensions, existingScaling), node.ConnectionToParent.Scale));
+        Vector3 childDimensions = Vector3.Scale(Vector3.Scale(node.LimbNode.Dimensions, existingScaling), node.ConnectionToParent.Scale);
+        if (childDimensions.x < ParameterManager.Instance.LimbNode.MinSize || childDimensions.x > ParameterManager.Instance.LimbNode.MaxSize ||
+            childDimensions.y < ParameterManager.Instance.LimbNode.MinSize || childDimensions.y > ParameterManager.Instance.LimbNode.MaxSize ||
+            childDimensions.z < ParameterManager.Instance.LimbNode.MinSize || childDimensions.z > ParameterManager.Instance.LimbNode.MaxSize)
+            return AbandonChildCreation();
 
         // Only apply these reflections if the parent and child have opposing reflections.
         if (reflectedX ^ node.ReflectedX)
@@ -288,9 +292,9 @@ public class Limb : MonoBehaviour, ISelectable
     private static Vector3 ClampDimensions(Vector3 dimensions)
     {
         return new Vector3(
-            Mathf.Clamp(dimensions.x, LimbParameters.MinSize, LimbParameters.MaxSize),
-            Mathf.Clamp(dimensions.y, LimbParameters.MinSize, LimbParameters.MaxSize),
-            Mathf.Clamp(dimensions.z, LimbParameters.MinSize, LimbParameters.MaxSize)
+            Mathf.Clamp(dimensions.x, ParameterManager.Instance.Limb.MinSize, ParameterManager.Instance.Limb.MaxSize),
+            Mathf.Clamp(dimensions.y, ParameterManager.Instance.Limb.MinSize, ParameterManager.Instance.Limb.MaxSize),
+            Mathf.Clamp(dimensions.z, ParameterManager.Instance.Limb.MinSize, ParameterManager.Instance.Limb.MaxSize)
         );
     }
 

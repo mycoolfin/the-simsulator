@@ -44,18 +44,18 @@ public class Genotype
 
     public void Validate()
     {
-        bool validNeuronDefinitionsCount = brainNeuronDefinitions.Count >= GenotypeParameters.MinBrainNeurons && brainNeuronDefinitions.Count <= GenotypeParameters.MaxBrainNeurons;
+        bool validNeuronDefinitionsCount = brainNeuronDefinitions.Count >= ParameterManager.Instance.Genotype.MinBrainNeurons && brainNeuronDefinitions.Count <= ParameterManager.Instance.Genotype.MaxBrainNeurons;
         if (!validNeuronDefinitionsCount)
-            throw new System.ArgumentException("The number of brain neuron definitions must be between " + GenotypeParameters.MinBrainNeurons
-            + " and " + GenotypeParameters.MaxBrainNeurons + ". Specified: " + brainNeuronDefinitions.Count);
+            throw new System.ArgumentException("The number of brain neuron definitions must be between " + ParameterManager.Instance.Genotype.MinBrainNeurons
+            + " and " + ParameterManager.Instance.Genotype.MaxBrainNeurons + ". Specified: " + brainNeuronDefinitions.Count);
 
         foreach (NeuronDefinition neuronDefinition in brainNeuronDefinitions)
             neuronDefinition.Validate(EmitterAvailabilityMap.GenerateMapForBrain(brainNeuronDefinitions.Count, InstancedLimbNodes));
 
-        bool validLimbNodesCount = limbNodes.Count >= GenotypeParameters.MinLimbNodes && limbNodes.Count <= GenotypeParameters.MaxLimbNodes;
+        bool validLimbNodesCount = limbNodes.Count >= ParameterManager.Instance.Genotype.MinLimbNodes && limbNodes.Count <= ParameterManager.Instance.Genotype.MaxLimbNodes;
         if (!validLimbNodesCount)
-            throw new System.ArgumentException("The number of limb nodes must be between " + GenotypeParameters.MinLimbNodes
-            + " and " + GenotypeParameters.MaxLimbNodes + ". Specified: " + limbNodes.Count);
+            throw new System.ArgumentException("The number of limb nodes must be between " + ParameterManager.Instance.Genotype.MinLimbNodes
+            + " and " + ParameterManager.Instance.Genotype.MaxLimbNodes + ". Specified: " + limbNodes.Count);
 
         for (int i = 0; i < limbNodes.Count; i++)
             limbNodes[i].Validate(EmitterAvailabilityMap.GenerateMapForLimbNode(brainNeuronDefinitions.Count, limbNodes.Cast<ILimbNodeEssentialInfo>().ToList(), i));
@@ -63,22 +63,22 @@ public class Genotype
 
     public static Genotype CreateRandom()
     {
-        int numberOfBrainNeurons = UnityEngine.Random.Range(GenotypeParameters.MinBrainNeurons, GenotypeParameters.MaxBrainNeurons + 1);
-        int numberOfLimbNodes = UnityEngine.Random.Range(GenotypeParameters.MinLimbNodes, GenotypeParameters.MaxLimbNodes + 1);
+        int numberOfBrainNeurons = UnityEngine.Random.Range(ParameterManager.Instance.Genotype.MinBrainNeurons, ParameterManager.Instance.Genotype.MaxBrainNeurons + 1);
+        int numberOfLimbNodes = UnityEngine.Random.Range(ParameterManager.Instance.Genotype.MinLimbNodes, ParameterManager.Instance.Genotype.MaxLimbNodes + 1);
 
         List<ILimbNodeEssentialInfo> unfinishedLimbNodes = new();
         for (int i = 0; i < numberOfLimbNodes; i++)
         {
             List<int> connectedNodeIds = new List<int>();
-            for (int attemptNum = 0; attemptNum < GenotypeGenerationParameters.MaxConnectionAttempts; attemptNum++)
+            for (int attemptNum = 0; attemptNum < ParameterManager.Instance.GenotypeGeneration.MaxConnectionAttempts; attemptNum++)
             {
-                if (connectedNodeIds.Count == LimbNodeParameters.MaxLimbConnections)
+                if (connectedNodeIds.Count == ParameterManager.Instance.LimbNode.MaxLimbConnections)
                     break;
                 bool attemptSuccess;
                 if (i == 0 && attemptNum == 0) // Guarantee at least one connection for the root node.
                     attemptSuccess = true;
                 else
-                    attemptSuccess = UnityEngine.Random.value > GenotypeGenerationParameters.ConnectionAttemptChance;
+                    attemptSuccess = UnityEngine.Random.value > ParameterManager.Instance.GenotypeGeneration.ConnectionAttemptChance;
                 if (attemptSuccess)
                     connectedNodeIds.Add(UnityEngine.Random.Range(0, numberOfLimbNodes));
                 else

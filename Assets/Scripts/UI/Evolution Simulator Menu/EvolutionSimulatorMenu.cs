@@ -90,12 +90,12 @@ public class EvolutionModeMenu : MonoBehaviour
         SliderInt populationSize = initialisationMenuContainer.Q<SliderInt>("population-size");
         SliderInt survivalPercentage = initialisationMenuContainer.Q<SliderInt>("survival-percentage");
         SliderInt mutationRate = initialisationMenuContainer.Q<SliderInt>("mutation-rate");
-        mutationRate.value = Mathf.FloorToInt(MutationParameters.MutationRate);
+        mutationRate.value = Mathf.FloorToInt(ParameterManager.Instance.Mutation.MutationRate);
         Button seedGenotypeButton = initialisationMenuContainer.Q<Button>("seed-genotype");
         Button removeSeedButton = initialisationMenuContainer.Q<Button>("remove-seed");
         VisualElement seedGenotypeOptions = initialisationMenuContainer.Q<VisualElement>("seed-genotype-options");
         Toggle lockMorphologies = seedGenotypeOptions.Q<Toggle>("lock-morphologies");
-        lockMorphologies.value = ReproductionParameters.LockMorphologies;
+        lockMorphologies.value = ParameterManager.Instance.Reproduction.LockMorphologies;
         seedGenotypeButton.clicked += () =>
         {
             string seedGenotypePath = FileBrowser.Instance.OpenSingleFile(
@@ -142,8 +142,8 @@ public class EvolutionModeMenu : MonoBehaviour
                 ShowRuntimeMenu(true);
                 ToggleRuntimeMenuTab(RuntimeMenuTab.Status);
                 numberOfIterations = maxIterations.value;
-                MutationParameters.MutationRate = mutationRate.value;
-                ReproductionParameters.LockMorphologies = lockMorphologies.value;
+                ParameterManager.Instance.Mutation.MutationRate = mutationRate.value;
+                ParameterManager.Instance.Reproduction.LockMorphologies = lockMorphologies.value;
                 StartCoroutine(simulator.Run(
                     (TrialType)trialType.value,
                     maxIterations.value,
@@ -210,10 +210,10 @@ public class EvolutionModeMenu : MonoBehaviour
             maxIterations.text = simulator.MaxIterations == -1 ? "∞" : simulator.MaxIterations.ToString();
             populationSize.text = simulator.PopulationSize.ToString();
             survivalPercentage.text = Mathf.FloorToInt(simulator.SurvivalPercentage * 100f).ToString() + "%";
-            mutationRate.text = MutationParameters.MutationRate == 0 ? "Mutation disabled" : "~" + MutationParameters.MutationRate.ToString() + " mutation" + (MutationParameters.MutationRate == 1f ? "" : "s") + "/child";
+            mutationRate.text = ParameterManager.Instance.Mutation.MutationRate == 0 ? "Mutation disabled" : "~" + ParameterManager.Instance.Mutation.MutationRate.ToString() + " mutation" + (ParameterManager.Instance.Mutation.MutationRate == 1f ? "" : "s") + "/child";
             seedGenotype.text = simulator.SeedGenotype != null ? simulator.SeedGenotype.Id : "<none>";
             lockMorphologies.parent.style.display = simulator.SeedGenotype != null ? DisplayStyle.Flex : DisplayStyle.None;
-            lockMorphologies.text = ReproductionParameters.LockMorphologies ? "Yes" : "No";
+            lockMorphologies.text = ParameterManager.Instance.Reproduction.LockMorphologies ? "Yes" : "No";
         };
     }
 

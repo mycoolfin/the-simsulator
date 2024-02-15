@@ -58,7 +58,7 @@ public class NodeEditor
             editedLimbNode = new(newValue, editedLimbNode.JointDefinition, editedLimbNode.RecursiveLimit, editedLimbNode.NeuronDefinitions, editedLimbNode.Connections);
             // RegisterNodeChanges(editedLimbNode);
         };
-        InitialiseVector3Fields(dimensions, LimbNodeParameters.MinSize, LimbNodeParameters.MaxSize, editNodeDimensions);
+        InitialiseVector3Fields(dimensions, ParameterManager.Instance.LimbNode.MinSize, ParameterManager.Instance.LimbNode.MaxSize, editNodeDimensions);
     }
 
     private void PopulateDimensions()
@@ -108,8 +108,8 @@ public class NodeEditor
         for (int i = 0; i < axes.Length; i++)
         {
             Slider limit = axes[i].Q<Slider>("limit");
-            limit.lowValue = JointDefinitionParameters.MinAngle;
-            limit.highValue = JointDefinitionParameters.MaxAngle;
+            limit.lowValue = ParameterManager.Instance.JointDefinition.MinAngle;
+            limit.highValue = ParameterManager.Instance.JointDefinition.MaxAngle;
             int index = i;
             limit.RegisterCallback<MouseCaptureOutEvent>((e) => editJointLimit(index, limit.value));
         }
@@ -166,7 +166,7 @@ public class NodeEditor
         VisualElement connections = nodeEditorElement.Q("connections");
         VisualElement connectionList = connections.Q<VisualElement>("connection-list");
         Button addConnectionButton = connections.Q<Button>("add");
-        addConnectionButton.style.display = editedLimbNode.Connections.Count < LimbNodeParameters.MaxLimbConnections ? DisplayStyle.Flex : DisplayStyle.None;
+        addConnectionButton.style.display = editedLimbNode.Connections.Count < ParameterManager.Instance.LimbNode.MaxLimbConnections ? DisplayStyle.Flex : DisplayStyle.None;
 
         connectionList.Clear();
         for (int i = 0; i < editedLimbNode.Connections.Count; i++)
@@ -274,7 +274,7 @@ public class NodeEditor
             );
             editConnection(editedLimbConnection);
         };
-        InitialiseVector3Fields(orientation, LimbConnectionParameters.MinAngle, LimbConnectionParameters.MaxAngle, editOrientation);
+        InitialiseVector3Fields(orientation, ParameterManager.Instance.LimbConnection.MinAngle, ParameterManager.Instance.LimbConnection.MaxAngle, editOrientation);
         PopulateVector3Fields(orientation, editedLimbNode.Connections[connectionIndex].Orientation);
 
         VisualElement scale = connection.Q("scale");
@@ -293,7 +293,7 @@ public class NodeEditor
             );
             editConnection(editedLimbConnection);
         };
-        InitialiseVector3Fields(scale, LimbConnectionParameters.MinScale, LimbConnectionParameters.MaxScale, editScale);
+        InitialiseVector3Fields(scale, ParameterManager.Instance.LimbConnection.MinScale, ParameterManager.Instance.LimbConnection.MaxScale, editScale);
         PopulateVector3Fields(scale, editedLimbNode.Connections[connectionIndex].Scale);
 
         VisualElement reflection = connection.Q("reflection");
@@ -347,7 +347,7 @@ public class NodeEditor
         VisualElement recursiveLimitContainer = nodeEditorElement.Q("recursive-limit");
         SliderInt recursiveLimit = recursiveLimitContainer.Q<SliderInt>();
         recursiveLimit.lowValue = 0;
-        recursiveLimit.highValue = LimbNodeParameters.MaxRecursiveLimit;
+        recursiveLimit.highValue = ParameterManager.Instance.LimbNode.MaxRecursiveLimit;
         void editRecursiveLimit()
         {
             editedLimbNode = new(editedLimbNode.Dimensions, editedLimbNode.JointDefinition, recursiveLimit.value, editedLimbNode.NeuronDefinitions, editedLimbNode.Connections);

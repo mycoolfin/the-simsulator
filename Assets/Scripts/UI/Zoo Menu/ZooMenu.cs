@@ -168,8 +168,8 @@ public class ZooModeMenu : MonoBehaviour
         });
         WorldManager.Instance.ChangeTimeOfDay((TimeOfDay)Enum.GetValues(typeof(TimeOfDay)).GetValue(timeOfDay.index));
         SliderInt mutationRate = environmentTab.Q<SliderInt>("mutation-rate");
-        mutationRate.value = Mathf.FloorToInt(MutationParameters.MutationRate);
-        mutationRate.RegisterValueChangedCallback((ChangeEvent<int> e) => MutationParameters.MutationRate = e.newValue);
+        mutationRate.value = Mathf.FloorToInt(ParameterManager.Instance.Mutation.MutationRate);
+        mutationRate.RegisterValueChangedCallback((ChangeEvent<int> e) => ParameterManager.Instance.Mutation.MutationRate = e.newValue);
     }
 
     private void InitialiseExitMenu()

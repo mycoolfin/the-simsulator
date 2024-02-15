@@ -85,7 +85,7 @@ public class InstancedLimbNode : ILimbNodeEssentialInfo
 
                 int potentialInstances = (int)Math.Pow(2, (connectionToParent.ReflectionX ? 1 : 0) + (connectionToParent.ReflectionY ? 1 : 0) + (connectionToParent.ReflectionZ ? 1 : 0));
                 int limbsToAdd = canBeginReflectedSubtrees ? potentialInstances : 1;
-                bool canAddMoreLimbs = (numberOfLimbs + limbsToAdd) <= PhenotypeBuilderParameters.MaxLimbs;
+                bool canAddMoreLimbs = (numberOfLimbs + limbsToAdd) <= ParameterManager.Instance.PhenotypeBuilder.MaxLimbs;
 
                 bool recursing = node == parentNodeInstance.limbNode;
                 bool recursionLimitReached = nodeRecursionCount > node.RecursiveLimit;

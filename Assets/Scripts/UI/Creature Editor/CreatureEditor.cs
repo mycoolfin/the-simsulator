@@ -191,7 +191,7 @@ public class CreatureEditor : MonoBehaviour
             WireUpLimbNodeElements();
         }
 
-        addNodeButton.style.display = loadedGenotype != null && loadedGenotype.LimbNodes.Count < GenotypeParameters.MaxLimbNodes ? DisplayStyle.Flex : DisplayStyle.None;
+        addNodeButton.style.display = loadedGenotype != null && loadedGenotype.LimbNodes.Count < ParameterManager.Instance.Genotype.MaxLimbNodes ? DisplayStyle.Flex : DisplayStyle.None;
     }
 
     private VisualElement InstantiateLimbNodeElement(int nodeIndex)

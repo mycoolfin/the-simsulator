@@ -388,6 +388,7 @@ GameObject:
   - component: {fileID: 958854964}
   - component: {fileID: 958854966}
   - component: {fileID: 958854967}
+  - component: {fileID: 958854968}
   m_Layer: 0
   m_Name: Managers
   m_TagString: Untagged
@@ -472,6 +473,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   placementCursorPrefab: {fileID: 3255343998154770517, guid: d80961e5e2a0c4d97bb652934de7859e, type: 3}
+--- !u!114 &958854968
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 958854961}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ef061fd4c95434bc08551df7245bf58c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!114 &1274942282 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 6608767855898382989, guid: a4cae177f8e6e4ea0b5409d3cc274fab, type: 3}

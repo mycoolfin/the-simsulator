@@ -51,15 +51,15 @@ public class LimbConnection
         if (!validPosition)
             throw new System.ArgumentException("Position out of bounds. Specified: " + position);
 
-        bool validOrientation = orientation.x >= LimbConnectionParameters.MinAngle && orientation.x <= LimbConnectionParameters.MaxAngle
-                     && orientation.y >= LimbConnectionParameters.MinAngle && orientation.y <= LimbConnectionParameters.MaxAngle
-                     && orientation.z >= LimbConnectionParameters.MinAngle && orientation.z <= LimbConnectionParameters.MaxAngle;
+        bool validOrientation = orientation.x >= ParameterManager.Instance.LimbConnection.MinAngle && orientation.x <= ParameterManager.Instance.LimbConnection.MaxAngle
+                     && orientation.y >= ParameterManager.Instance.LimbConnection.MinAngle && orientation.y <= ParameterManager.Instance.LimbConnection.MaxAngle
+                     && orientation.z >= ParameterManager.Instance.LimbConnection.MinAngle && orientation.z <= ParameterManager.Instance.LimbConnection.MaxAngle;
         if (!validOrientation)
             throw new System.ArgumentException("Orientation out of bounds. Specified: " + orientation);
 
-        bool validScale = scale.x >= LimbConnectionParameters.MinAngle && scale.x <= LimbConnectionParameters.MaxAngle
-             && scale.y >= LimbConnectionParameters.MinAngle && scale.y <= LimbConnectionParameters.MaxAngle
-             && scale.z >= LimbConnectionParameters.MinAngle && scale.z <= LimbConnectionParameters.MaxAngle;
+        bool validScale = scale.x >= ParameterManager.Instance.LimbConnection.MinAngle && scale.x <= ParameterManager.Instance.LimbConnection.MaxAngle
+             && scale.y >= ParameterManager.Instance.LimbConnection.MinAngle && scale.y <= ParameterManager.Instance.LimbConnection.MaxAngle
+             && scale.z >= ParameterManager.Instance.LimbConnection.MinAngle && scale.z <= ParameterManager.Instance.LimbConnection.MaxAngle;
         if (!validScale)
             throw new System.ArgumentException("Scale out of bounds. Specified: " + scale);
     }
@@ -84,14 +84,14 @@ public class LimbConnection
         int parentFace = Random.Range(0, 6);
         Vector2 position = new(Random.Range(-1f, 1f), Random.Range(-1f, 1f));
         Vector3 orientation = new(
-            Random.Range(LimbConnectionParameters.MinAngle, LimbConnectionParameters.MaxAngle),
-            Random.Range(LimbConnectionParameters.MinAngle, LimbConnectionParameters.MaxAngle),
-            Random.Range(LimbConnectionParameters.MinAngle, LimbConnectionParameters.MaxAngle)
+            Random.Range(ParameterManager.Instance.LimbConnection.MinAngle, ParameterManager.Instance.LimbConnection.MaxAngle),
+            Random.Range(ParameterManager.Instance.LimbConnection.MinAngle, ParameterManager.Instance.LimbConnection.MaxAngle),
+            Random.Range(ParameterManager.Instance.LimbConnection.MinAngle, ParameterManager.Instance.LimbConnection.MaxAngle)
         );
         Vector3 scale = new(
-            Random.Range(LimbConnectionParameters.MinScale, LimbConnectionParameters.MaxScale),
-            Random.Range(LimbConnectionParameters.MinScale, LimbConnectionParameters.MaxScale),
-            Random.Range(LimbConnectionParameters.MinScale, LimbConnectionParameters.MaxScale)
+            Random.Range(ParameterManager.Instance.LimbConnection.MinScale, ParameterManager.Instance.LimbConnection.MaxScale),
+            Random.Range(ParameterManager.Instance.LimbConnection.MinScale, ParameterManager.Instance.LimbConnection.MaxScale),
+            Random.Range(ParameterManager.Instance.LimbConnection.MinScale, ParameterManager.Instance.LimbConnection.MaxScale)
         );
         bool reflectionX = Random.value > 0.5f;
         bool reflectionY = Random.value > 0.5f;

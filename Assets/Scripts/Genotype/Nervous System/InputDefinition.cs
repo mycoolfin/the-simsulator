@@ -28,10 +28,10 @@ public class InputDefinition
 
     public void Validate(EmitterAvailabilityMap map)
     {
-        bool validWeight = weight >= InputDefinitionParameters.MinWeight && weight <= InputDefinitionParameters.MaxWeight;
+        bool validWeight = weight >= ParameterManager.Instance.InputDefinition.MinWeight && weight <= ParameterManager.Instance.InputDefinition.MaxWeight;
         if (!validWeight)
-            throw new ArgumentException("Weight out of bounds. Min: " + InputDefinitionParameters.MinWeight
-            + ", Max: " + InputDefinitionParameters.MaxWeight + ", Specified: " + weight);
+            throw new ArgumentException("Weight out of bounds. Min: " + ParameterManager.Instance.InputDefinition.MinWeight
+            + ", Max: " + ParameterManager.Instance.InputDefinition.MaxWeight + ", Specified: " + weight);
     }
 
     public static InputDefinition CreateRandom(EmitterAvailabilityMap emitterAvailabilityMap)
@@ -68,7 +68,7 @@ public class InputDefinition
                 throw new ArgumentException("Emitter set location not known: " + emitterSetLocation);
         }
 
-        float weight = UnityEngine.Random.Range(InputDefinitionParameters.MinWeight, InputDefinitionParameters.MaxWeight);
+        float weight = UnityEngine.Random.Range(ParameterManager.Instance.InputDefinition.MinWeight, ParameterManager.Instance.InputDefinition.MaxWeight);
 
         return new(
             emitterSetLocation,

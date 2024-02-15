@@ -73,7 +73,7 @@ public class Phenotype : MonoBehaviour, ISelectable, IPlaceable
         bool atLeastTwoLimbs = limbs.Count > 1;
 
         Bounds phenotypeBounds = GetBounds();
-        bool validSize = phenotypeBounds.extents.x < PhenotypeParameters.MaxSize && phenotypeBounds.extents.y < PhenotypeParameters.MaxSize && phenotypeBounds.extents.z < PhenotypeParameters.MaxSize;
+        bool validSize = phenotypeBounds.extents.x < ParameterManager.Instance.Phenotype.MaxSize && phenotypeBounds.extents.y < ParameterManager.Instance.Phenotype.MaxSize && phenotypeBounds.extents.z < ParameterManager.Instance.Phenotype.MaxSize;
 
         return atLeastTwoLimbs && validSize;
     }

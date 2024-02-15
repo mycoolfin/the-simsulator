@@ -18,17 +18,17 @@ public class JointAxisDefinition
 
     public void Validate(EmitterAvailabilityMap emitterAvailabilityMap)
     {
-        bool validLimit = limit >= JointDefinitionParameters.MinAngle && limit <= JointDefinitionParameters.MaxAngle;
+        bool validLimit = limit >= ParameterManager.Instance.JointDefinition.MinAngle && limit <= ParameterManager.Instance.JointDefinition.MaxAngle;
         if (!validLimit)
-            throw new ArgumentException("The joint axis limit was out of bounds. Min: " + JointDefinitionParameters.MinAngle + ", Max: "
-            + JointDefinitionParameters.MaxAngle + ", Specified: " + limit);
+            throw new ArgumentException("The joint axis limit was out of bounds. Min: " + ParameterManager.Instance.JointDefinition.MinAngle + ", Max: "
+            + ParameterManager.Instance.JointDefinition.MaxAngle + ", Specified: " + limit);
 
         inputDefinition.Validate(emitterAvailabilityMap);
     }
 
     public static JointAxisDefinition CreateRandom(EmitterAvailabilityMap emitterAvailabilityMap)
     {
-        float limit = UnityEngine.Random.Range(JointDefinitionParameters.MinAngle, JointDefinitionParameters.MaxAngle);
+        float limit = UnityEngine.Random.Range(ParameterManager.Instance.JointDefinition.MinAngle, ParameterManager.Instance.JointDefinition.MaxAngle);
         InputDefinition inputDefinition = InputDefinition.CreateRandom(emitterAvailabilityMap);
         return new(limit, inputDefinition);
     }

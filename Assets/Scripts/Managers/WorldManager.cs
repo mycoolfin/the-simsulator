@@ -58,6 +58,7 @@ public class WorldManager : MonoBehaviour
     {
         trashCan = new List<GameObject>();
         throttledTimeScale = timeScale;
+        ChangeEnvironment(WorldEnvironment.Surface);
         StartCoroutine(TheVoidConsumesAll());
     }
 
