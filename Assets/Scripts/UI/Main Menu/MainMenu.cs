@@ -63,12 +63,18 @@ public class MainMenu : MonoBehaviour
             Surface();
         else
             Underwater();
+
+        player.playerCamera.transform.position = new Vector3(
+            player.playerCamera.transform.position.x,
+            player.playerCamera.transform.position.y + 50f,
+            player.playerCamera.transform.position.z
+        );
     }
 
     private void Update()
     {
-        player.playerCamera.transform.position = Vector3.Lerp(player.playerCamera.transform.position, desiredCameraPosition, Time.deltaTime * 10f);
-        player.playerCamera.transform.rotation = Quaternion.Lerp(player.playerCamera.transform.rotation, desiredCameraRotation, Time.deltaTime * 10f);
+        player.playerCamera.transform.position = Vector3.Lerp(player.playerCamera.transform.position, desiredCameraPosition, Time.deltaTime * 5f);
+        player.playerCamera.transform.rotation = Quaternion.Lerp(player.playerCamera.transform.rotation, desiredCameraRotation, Time.deltaTime * 5f);
         HoverEffect();
     }
 
