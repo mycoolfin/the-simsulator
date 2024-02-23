@@ -216,7 +216,7 @@ public class ZooModeMenu : MonoBehaviour
                     TogglePlacing(true);
                     PickAndPlaceManager.Instance.PickUp(
                         child,
-                        () => { TogglePlacing(false); selectedPhenotypeMenu.SetTarget(child); },
+                        () => { TogglePlacing(false); child.Select(false, false); },
                         () => { TogglePlacing(false); Destroy(child.gameObject); }
                     );
                 }

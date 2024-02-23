@@ -149,13 +149,33 @@ public abstract class LightClosenessAssessment : Assessment
 {
     public LightClosenessAssessment(Transform trialOrigin, int settleSeconds, int runtimeSeconds) : base(trialOrigin, settleSeconds, runtimeSeconds) { }
 
+    public override void BeforeSimulationStart()
+    {
+        WorldManager.Instance.ChangeEnvironment(WorldEnvironment.Surface);
+        WorldManager.Instance.pointLight.SetActive(false);
+        WorldManager.Instance.pointLight.AddComponent<RandomTeleporter>();
+    }
+
+    public override void BeforeIterationStart()
+    {
+        WorldManager.Instance.pointLight.SetActive(false);
+    }
+
+    public override void BeforeAssessmentStart()
+    {
+        WorldManager.Instance.pointLight.SetActive(true);
+    }
+
     public override IEnumerator Assess(Individual individual)
     {
         if (individual.phenotype == null) { individual.Cull(); yield break; }
 
         Vector3 startPosition = individual.phenotype.GetBounds().center;
 
-        float maxDistance = Vector3.Distance(startPosition, WorldManager.Instance.pointLight.transform.position);
+        Vector3 currentLightPosition = WorldManager.Instance.pointLight.transform.position;
+        float maxDistance = Vector3.Distance(startPosition, currentLightPosition);
+
+        List<float> segmentFitnesses = new();
 
         float intervalLength = (float)runtimeSeconds / (float)fitnessUpdateIntervals;
         for (int i = 0; i < fitnessUpdateIntervals; i++)
@@ -166,8 +186,21 @@ public abstract class LightClosenessAssessment : Assessment
             Bounds bounds = individual.phenotype.GetBounds();
             Vector3 currentPosition = bounds.center;
 
-            float currentDistance = Vector3.Distance(currentPosition, WorldManager.Instance.pointLight.transform.position);
-            individual.fitness = Mathf.Max(0, (maxDistance - currentDistance) / maxDistance);
+            float currentDistance = Vector3.Distance(currentPosition, currentLightPosition);
+            float segmentFitness = (maxDistance - currentDistance) / maxDistance;
+
+            // Check if the light moved.
+            if (WorldManager.Instance.pointLight.transform.position != currentLightPosition)
+            {
+                // Update for the new light position.
+                currentLightPosition = WorldManager.Instance.pointLight.transform.position;
+                maxDistance = Vector3.Distance(currentPosition, currentLightPosition);
+
+                // Record segment.
+                segmentFitnesses.Add(segmentFitness);
+            }
+
+            individual.fitness = Mathf.Max(0, segmentFitnesses.Sum() + segmentFitness);
             individual.assessmentProgress = (float)(i + 1) / (float)fitnessUpdateIntervals;
         }
     }
@@ -175,27 +208,21 @@ public abstract class LightClosenessAssessment : Assessment
 
 public class GroundLightClosenessAssessment : LightClosenessAssessment
 {
-    public GroundLightClosenessAssessment() : base(WorldManager.Instance.groundOrigin.transform, 10, 10) { }
+    public GroundLightClosenessAssessment() : base(WorldManager.Instance.groundOrigin.transform, 10, 20) { }
 
     public override void BeforeSimulationStart()
     {
+        base.BeforeSimulationStart();
         WorldManager.Instance.ChangeEnvironment(WorldEnvironment.Surface);
-        WorldManager.Instance.pointLight.SetActive(false);
+        RandomTeleporter r = WorldManager.Instance.pointLight.GetComponent<RandomTeleporter>();
+        r.radii = new Vector3(20f, 0f, 20f);
+        r.waitTime = runtimeSeconds / 2f;
     }
 
     public override void BeforeIterationStart()
     {
-        WorldManager.Instance.pointLight.SetActive(false);
-    }
-
-    public override void BeforeAssessmentStart()
-    {
-        WorldManager.Instance.pointLight.SetActive(true);
-        WorldManager.Instance.pointLight.transform.position =
-            trialOrigin.position
-            + Quaternion.Euler(0, Random.Range(0, 360), 0)
-            * Vector3.forward * Random.Range(0f, 20f)
-            + Vector3.up * 1f;
+        base.BeforeIterationStart();
+        WorldManager.Instance.pointLight.transform.position = trialOrigin.position + Vector3.up * 2f;
     }
 }
 
@@ -203,23 +230,18 @@ public class WaterLightClosenessAssessment : LightClosenessAssessment
 {
     public WaterLightClosenessAssessment() : base(WorldManager.Instance.waterOrigin.transform, 5, 15) { }
 
-    public override void BeforeSimulationStart()
-    {
-        WorldManager.Instance.ChangeEnvironment(WorldEnvironment.Underwater);
-        WorldManager.Instance.pointLight.SetActive(false);
-    }
-
     public override void BeforeIterationStart()
     {
-        WorldManager.Instance.pointLight.SetActive(false);
+        base.BeforeIterationStart();
+        WorldManager.Instance.pointLight.transform.position = trialOrigin.position;
     }
 
-    public override void BeforeAssessmentStart()
+    public override void BeforeSimulationStart()
     {
-        WorldManager.Instance.pointLight.SetActive(true);
-        WorldManager.Instance.pointLight.transform.position =
-            trialOrigin.position
-            + Quaternion.Euler(Random.Range(0, 360), Random.Range(0, 360), Random.Range(0, 360))
-            * Vector3.forward * Random.Range(0f, 40f);
+        base.BeforeSimulationStart();
+        WorldManager.Instance.ChangeEnvironment(WorldEnvironment.Underwater);
+        RandomTeleporter r = WorldManager.Instance.pointLight.GetComponent<RandomTeleporter>();
+        r.radii = new Vector3(20f, 20f, 20f);
+        r.waitTime = runtimeSeconds / 2f;
     }
 }

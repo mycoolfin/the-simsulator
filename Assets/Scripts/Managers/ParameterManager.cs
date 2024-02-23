@@ -61,8 +61,8 @@ public class LimbConnectionParameters
 {
     public float MinScale = 0.1f;
     public float MaxScale = 2f;
-    public float MinAngle = -45f;
-    public float MaxAngle = 45f;
+    public float MinAngle = -90f;
+    public float MaxAngle = 90f;
 }
 
 public class JointDefinitionParameters
