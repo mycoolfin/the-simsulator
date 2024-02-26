@@ -135,10 +135,10 @@ public class EvolutionSimulator : MonoBehaviour
 
             yield return null;
 
-            if (currentIteration == maxIterations - 1) // This is the final iteration, so don't reset the world.
+            if (currentIteration == maxIterations) // This is the final iteration, so don't reset the world.
                 break;
 
-            Population nextGeneration = new Population();
+            Population nextGeneration = new();
             yield return ProduceNextGeneration(populationSize, populationSize - maxSurvivors, survivors, (next) => nextGeneration = next);
 
             ResetWorld();
@@ -148,9 +148,9 @@ public class EvolutionSimulator : MonoBehaviour
             population = nextGeneration;
         }
 
-        Debug.Log("Finished.");
-
         OnSimulationEnd();
+
+        Debug.Log("Finished.");
     }
 
     public Transform GetSimulationOrigin()

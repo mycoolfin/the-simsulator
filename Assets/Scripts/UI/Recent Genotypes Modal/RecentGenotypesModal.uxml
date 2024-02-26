@@ -1,0 +1,12 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0.5); justify-content: center; align-items: center;">
+        <ui:VisualElement name="modal" style="background-color: rgb(197, 197, 197); width: 50%; height: 50%; border-left-width: 2px; border-right-width: 2px; border-top-width: 2px; border-bottom-width: 2px; border-left-color: rgb(0, 0, 0); border-right-color: rgb(0, 0, 0); border-top-color: rgb(0, 0, 0); border-bottom-color: rgb(0, 0, 0); border-top-left-radius: 5px; border-bottom-left-radius: 5px; border-top-right-radius: 5px; border-bottom-right-radius: 5px;">
+            <ui:Label tabindex="-1" text="Recent Genotypes" display-tooltip-when-elided="true" style="-unity-text-align: upper-center; font-size: 20px; -unity-font-style: bold;" />
+            <ui:Button text="x" display-tooltip-when-elided="true" focusable="false" name="close" style="align-self: center; position: absolute; right: 0; width: 40px; height: 40px; -unity-font-style: bold;" />
+            <ui:VisualElement name="no-recents-warning" style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); justify-content: center; align-items: center;">
+                <ui:Label tabindex="-1" text="Genotypes from recent evolution runs will show up here." display-tooltip-when-elided="true" style="flex-wrap: wrap; white-space: normal;" />
+            </ui:VisualElement>
+            <ui:ScrollView vertical-scroller-visibility="AlwaysVisible" style="flex-grow: 1; margin-top: 10px;" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

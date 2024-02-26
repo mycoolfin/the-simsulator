@@ -6,46 +6,52 @@ public class FocusGrid : MonoBehaviour
 {
     public VisualTreeAsset focusedPhenotypeFrameAsset;
     public GameObject followCameraPrefab;
-    public EvolutionSimulator simulator;
+    public int numVisibleFrames;
+    public const int maxFrames = 12;
 
     private List<FocusFrame> frames;
-    private VisualElement grid;
 
     private const string phenotypeLayer = "Phenotype";
     private const string bestIndividualLayer = "Best Individual";
 
-    private const int numFrames = 12;
-
     private void Start()
     {
-        grid = GetComponent<UIDocument>().rootVisualElement.Q<VisualElement>("grid");
-
+        VisualElement grid = GetComponent<UIDocument>().rootVisualElement.Q<VisualElement>("grid");
         frames = new();
-        for (int i = 0; i < numFrames; i++)
-            frames.Add(new(transform, grid, focusedPhenotypeFrameAsset, followCameraPrefab, simulator));
-
-        simulator.OnIterationStart += () =>
-        {
-            List<Individual> bestIndividuals = simulator.GetTopIndividuals(numFrames);
-            for (int i = 0; i < frames.Count; i++)
-            {
-                if (i < bestIndividuals.Count)
-                {
-                    string layerName = bestIndividualLayer + " " + (i + 1);
-                    if (bestIndividuals[i].phenotype != null)
-                        bestIndividuals[i].phenotype.SetLayer(layerName);
-                    frames[i].SetTarget(bestIndividuals[i], layerName, "#" + (i + 1) + ": ");
-                }
-                frames[i].SetActive(i < simulator.focusBestCreatures);
-            }
-        };
+        for (int i = 0; i < maxFrames; i++)
+            frames.Add(new(transform, grid, focusedPhenotypeFrameAsset, followCameraPrefab));
     }
 
     private void Update()
     {
         for (int i = 0; i < frames.Count; i++)
         {
-            frames[i].SetActive(i < simulator.focusBestCreatures);
+            frames[i].SetActive(i < numVisibleFrames);
         }
+    }
+
+    public void SetFrameTargets(List<Individual> focusedIndividuals)
+    {
+        for (int i = 0; i < frames.Count; i++)
+        {
+            if (i < focusedIndividuals.Count)
+            {
+                // Unset old target layer.
+                if (frames[i].focusedIndividual?.phenotype != null)
+                    frames[i].focusedIndividual.phenotype.SetLayer(phenotypeLayer);
+
+                string layerName = bestIndividualLayer + " " + (i + 1);
+                if (focusedIndividuals[i].phenotype != null)
+                    focusedIndividuals[i].phenotype.SetLayer(layerName);
+                frames[i].SetTarget(focusedIndividuals[i], layerName, "#" + (i + 1) + ": ");
+            }
+        }
+    }
+
+    public FollowCamera GetBestIndividualCamera()
+    {
+        if (frames.Count == 0)
+            return null;
+        return frames[0].followCamera;
     }
 }

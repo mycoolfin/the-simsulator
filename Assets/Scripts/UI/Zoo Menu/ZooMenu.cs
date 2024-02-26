@@ -9,6 +9,7 @@ public class ZooModeMenu : MonoBehaviour
 {
     public PlayerController playerController;
     public SelectedPhenotypeMenu selectedPhenotypeMenu;
+    public RecentGenotypesModal recentGenotypesModal;
 
     private enum RuntimeMenuTab
     {
@@ -38,7 +39,6 @@ public class ZooModeMenu : MonoBehaviour
     private bool breedingCreature;
     private Phenotype readyParent;
 
-    private Color buttonInactiveColor = new Color(0.74f, 0.74f, 0.74f);
     private Color buttonActiveColor = Color.white;
     private Color buttonErrorColor = Color.red;
 
@@ -76,7 +76,38 @@ public class ZooModeMenu : MonoBehaviour
     {
         creatureTab = doc.rootVisualElement.Q<VisualElement>("creature");
         Button genotypeButton = creatureTab.Q<Button>("genotype");
+        Button openRecentsButton = creatureTab.Q<Button>("open-recents");
         Button removeGenotypeButton = creatureTab.Q<Button>("remove-genotype");
+
+        void loadGenotype(Genotype genotype)
+        {
+            if (genotype == null)
+            {
+                genotypeButton.text = "Validation Error";
+                genotypeButton.style.backgroundColor = buttonErrorColor;
+                openRecentsButton.style.display = DisplayStyle.Flex;
+                removeGenotypeButton.style.display = DisplayStyle.None;
+                loadedGenotype = null;
+            }
+            else
+            {
+                genotypeButton.text = "Loaded '" + genotype.Id + "'";
+                genotypeButton.style.backgroundColor = buttonActiveColor;
+                openRecentsButton.style.display = DisplayStyle.None;
+                removeGenotypeButton.style.display = DisplayStyle.Flex;
+                loadedGenotype = genotype;
+            }
+        }
+
+        void unloadGenotype()
+        {
+            genotypeButton.text = "Select a genotype...";
+            genotypeButton.style.backgroundColor = StyleKeyword.Null;
+            openRecentsButton.style.display = DisplayStyle.Flex;
+            removeGenotypeButton.style.display = DisplayStyle.None;
+            loadedGenotype = null;
+        }
+
         genotypeButton.clicked += () =>
         {
             string seedGenotypePath = FileBrowser.Instance.OpenSingleFile(
@@ -89,29 +120,10 @@ public class ZooModeMenu : MonoBehaviour
                 return;
 
             Genotype genotype = GenotypeSerializer.ReadGenotypeFromFile(seedGenotypePath);
-            if (genotype == null)
-            {
-                genotypeButton.text = "Validation Error";
-                genotypeButton.style.backgroundColor = buttonErrorColor;
-                removeGenotypeButton.style.display = DisplayStyle.None;
-                loadedGenotype = null;
-            }
-            else
-            {
-                genotypeButton.text = "Loaded '" + genotype.Id + "'";
-                genotypeButton.style.backgroundColor = buttonActiveColor;
-                removeGenotypeButton.style.display = DisplayStyle.Flex;
-                loadedGenotype = genotype;
-            }
+            loadGenotype(genotype);
         };
-        removeGenotypeButton.clicked += () =>
-        {
-            genotypeButton.text = "Select a genotype...";
-            genotypeButton.style.backgroundColor = buttonInactiveColor;
-            removeGenotypeButton.style.display = DisplayStyle.None;
-            loadedGenotype = null;
-        };
-        removeGenotypeButton.style.display = DisplayStyle.None;
+        openRecentsButton.clicked += () => recentGenotypesModal.gameObject.SetActive(true);
+        removeGenotypeButton.clicked += unloadGenotype;
 
         placeCreatureButton = doc.rootVisualElement.Q<Button>("place-creature");
         placeCreatureButton.clicked += () =>
@@ -129,6 +141,10 @@ public class ZooModeMenu : MonoBehaviour
                 );
             }
         };
+
+        recentGenotypesModal.OnSelect += loadGenotype;
+
+        unloadGenotype();
     }
 
     private void InitialiseInteractionTab()

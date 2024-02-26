@@ -9,6 +9,7 @@ public class EvolutionModeMenu : MonoBehaviour
     public EvolutionSimulator simulator;
     public PlayerController playerController;
     public SelectedPhenotypeMenu selectedPhenotypeMenu;
+    public FocusGrid focusGrid;
 
     private enum RuntimeMenuTab
     {
@@ -47,7 +48,6 @@ public class EvolutionModeMenu : MonoBehaviour
     private LineGraph bestFitnessGraph;
     private LineGraph averageFitnessGraph;
 
-    private Color buttonInactiveColor = new Color(0.74f, 0.74f, 0.74f);
     private Color buttonActiveColor = Color.white;
     private Color buttonErrorColor = Color.red;
 
@@ -181,7 +181,7 @@ public class EvolutionModeMenu : MonoBehaviour
         removeSeedButton.clicked += () =>
         {
             seedGenotypeButton.text = "<none>";
-            seedGenotypeButton.style.backgroundColor = buttonInactiveColor;
+            seedGenotypeButton.style.backgroundColor = StyleKeyword.Null;
             removeSeedButton.style.display = DisplayStyle.None;
             seedGenotype = null;
         };
@@ -242,8 +242,18 @@ public class EvolutionModeMenu : MonoBehaviour
         Button exit = exitMenuContainer.Q<Button>("exit");
         Button cancel = exitMenuContainer.Q<Button>("cancel");
 
-        reset.clicked += () => SceneManager.LoadScene(SceneManager.GetActiveScene().name);
-        exit.clicked += () => SceneManager.LoadScene("MainMenu");
+        void recordBestGenotype()
+        {
+            if (simulator.bestIndividual != null)
+                GenotypeMemory.RecordRecentGenotype(
+                    simulator.bestIndividual.genotype,
+                    "Iteration " + simulator.currentIteration + "/" + simulator.MaxIterations + ".",
+                    focusGrid.GetBestIndividualCamera().CaptureImage()
+                );
+        }
+
+        reset.clicked += () => { recordBestGenotype(); SceneManager.LoadScene(SceneManager.GetActiveScene().name); };
+        exit.clicked += () => { recordBestGenotype(); SceneManager.LoadScene("MainMenu"); };
         cancel.clicked += () => ShowExitMenu(false);
     }
 
@@ -296,28 +306,28 @@ public class EvolutionModeMenu : MonoBehaviour
         Button pauseButton = speedControlContainer.Q<Button>("pause-simulation");
         Button playButton = speedControlContainer.Q<Button>("play-simulation");
         Button fastForwardButton = speedControlContainer.Q<Button>("fastforward-simulation");
-        pauseButton.style.backgroundColor = buttonInactiveColor;
+        pauseButton.style.backgroundColor = StyleKeyword.Null;
         playButton.style.backgroundColor = buttonActiveColor;
-        fastForwardButton.style.backgroundColor = buttonInactiveColor;
+        fastForwardButton.style.backgroundColor = StyleKeyword.Null;
         pauseButton.clicked += () =>
         {
             WorldManager.Instance.timeScale = 0f;
             pauseButton.style.backgroundColor = buttonActiveColor;
-            playButton.style.backgroundColor = buttonInactiveColor;
-            fastForwardButton.style.backgroundColor = buttonInactiveColor;
+            playButton.style.backgroundColor = StyleKeyword.Null;
+            fastForwardButton.style.backgroundColor = StyleKeyword.Null;
         };
         playButton.clicked += () =>
         {
             WorldManager.Instance.timeScale = 1f;
-            pauseButton.style.backgroundColor = buttonInactiveColor;
+            pauseButton.style.backgroundColor = StyleKeyword.Null;
             playButton.style.backgroundColor = buttonActiveColor;
-            fastForwardButton.style.backgroundColor = buttonInactiveColor;
+            fastForwardButton.style.backgroundColor = StyleKeyword.Null;
         };
         fastForwardButton.clicked += () =>
         {
             WorldManager.Instance.timeScale = 5f;
-            pauseButton.style.backgroundColor = buttonInactiveColor;
-            playButton.style.backgroundColor = buttonInactiveColor;
+            pauseButton.style.backgroundColor = StyleKeyword.Null;
+            playButton.style.backgroundColor = StyleKeyword.Null;
             fastForwardButton.style.backgroundColor = buttonActiveColor;
         };
         throttledTime = speedControlContainer.Q<ProgressBar>("throttled-time");
@@ -352,18 +362,21 @@ public class EvolutionModeMenu : MonoBehaviour
 
         VisualElement focusBestCreaturesContainer = settingsTab.Q<VisualElement>("focus-best");
         SliderInt focusBestCreatures = focusBestCreaturesContainer.Q<SliderInt>();
-        focusBestCreatures.RegisterValueChangedCallback((ChangeEvent<int> e) => simulator.focusBestCreatures = e.newValue);
+        focusBestCreatures.RegisterValueChangedCallback((ChangeEvent<int> e) => focusGrid.numVisibleFrames = e.newValue);
         new Tooltip(
             tooltipElement,
             focusBestCreaturesContainer.Q<Button>("tooltip-button"),
             "Shows the best creatures from the previous iteration in their own separate boxes."
         );
+        void updateFocusGrid() => focusGrid.SetFrameTargets(simulator.GetTopIndividuals(FocusGrid.maxFrames));
+        simulator.OnIterationStart += updateFocusGrid;
+        simulator.OnSimulationEnd += updateFocusGrid;
 
         VisualElement orbitCameraContainer = settingsTab.Q<VisualElement>("orbit-camera");
         Toggle orbitCamera = orbitCameraContainer.Q<Toggle>();
         orbitCamera.value = playerController.orbitTarget != null;
         orbitCamera.RegisterValueChangedCallback((ChangeEvent<bool> e) => playerController.orbitTarget = e.newValue ? simulator.GetSimulationOrigin() : null);
-                new Tooltip(
+        new Tooltip(
             tooltipElement,
             orbitCameraContainer.Q<Button>("tooltip-button"),
             "Orbits the camera around the simulator origin."

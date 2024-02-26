@@ -15,12 +15,15 @@
         </ui:Button>
     </ui:VisualElement>
     <ui:VisualElement name="runtime-menu-container" style="flex-grow: 0; position: absolute; bottom: 48px; right: 0; width: 400px; height: auto; border-top-left-radius: 5px; border-bottom-left-radius: 5px; border-top-right-radius: 0; border-bottom-right-radius: 0; border-left-color: rgba(255, 255, 255, 0.5); border-right-color: rgba(255, 255, 255, 0.5); border-top-color: rgba(255, 255, 255, 0.5); border-bottom-color: rgba(255, 255, 255, 0.5); border-left-width: 3px; border-right-width: 3px; border-top-width: 3px; border-bottom-width: 3px; max-height: 300px; display: flex;">
-        <ui:ScrollView mouse-wheel-scroll-size="100" name="ScrollView" style="display: flex;">
-            <ui:VisualElement name="creature" focusable="false" style="flex-grow: 0; background-color: rgba(0, 0, 0, 0); visibility: visible; opacity: 1; display: none;">
+        <ui:ScrollView mouse-wheel-scroll-size="100" style="display: flex;">
+            <ui:VisualElement name="creature" focusable="false" style="flex-grow: 0; background-color: rgba(0, 0, 0, 0); visibility: visible; opacity: 1; display: flex;">
                 <ui:Label tabindex="-1" text="Creature" display-tooltip-when-elided="true" style="-unity-text-align: upper-center; -unity-font-style: bold; align-items: stretch;" />
                 <ui:VisualElement style="flex-grow: 0; background-color: rgba(0, 0, 0, 0);">
-                    <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); flex-direction: row; align-items: stretch; justify-content: space-between; align-self: stretch; padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px; width: auto;">
+                    <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); flex-direction: row; align-items: center; justify-content: space-between; align-self: stretch; padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px; width: auto;">
                         <ui:Button text="Select a genotype..." display-tooltip-when-elided="true" name="genotype" focusable="false" style="flex-grow: 1;" />
+                        <ui:Button display-tooltip-when-elided="true" name="open-recents" focusable="false" style="padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px; height: 40px; width: 40px;">
+                            <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); background-image: url(&apos;project://database/Assets/Scripts/UI/Icons/clock-rotate-left-solid.png?fileID=2800000&amp;guid=5fae86fca153a407a8846a5976a87485&amp;type=3#clock-rotate-left-solid&apos;); -unity-background-scale-mode: scale-to-fit; width: 100%; height: 100%;" />
+                        </ui:Button>
                         <ui:Button text="x" display-tooltip-when-elided="true" name="remove-genotype" enable-rich-text="false" focusable="false" style="flex-grow: 0; display: flex; -unity-font-style: bold;" />
                     </ui:VisualElement>
                     <ui:VisualElement style="flex-grow: 0; background-color: rgba(0, 0, 0, 0); flex-direction: row; align-items: stretch; justify-content: space-around; align-self: stretch; padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px;">
@@ -37,7 +40,7 @@
                     </ui:VisualElement>
                 </ui:VisualElement>
             </ui:VisualElement>
-            <ui:VisualElement name="environment" focusable="false" style="flex-grow: 0; background-color: rgba(0, 0, 0, 0); visibility: visible; opacity: 1; display: flex;">
+            <ui:VisualElement name="environment" focusable="false" style="flex-grow: 0; background-color: rgba(0, 0, 0, 0); visibility: visible; opacity: 1; display: none;">
                 <ui:Label tabindex="-1" text="Environment" display-tooltip-when-elided="true" style="-unity-text-align: upper-center; -unity-font-style: bold;" />
                 <ui:VisualElement style="flex-grow: 0; background-color: rgba(0, 0, 0, 0);">
                     <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); flex-direction: row; align-items: stretch; justify-content: space-between; align-self: stretch; padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px;">

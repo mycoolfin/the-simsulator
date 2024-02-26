@@ -42,4 +42,14 @@ public class FollowCamera : MonoBehaviour
             transform.rotation = lookingRotation;
         }
     }
+
+    public Texture2D CaptureImage()
+    {
+        Texture2D image = new(cam.targetTexture.width, cam.targetTexture.height, TextureFormat.ARGB32, false);
+        RenderTexture.active = cam.targetTexture;
+        image.ReadPixels(new Rect(0, 0, cam.targetTexture.width, cam.targetTexture.height), 0, 0);
+        image.Apply();
+        RenderTexture.active = null;
+        return image;
+    }
 }

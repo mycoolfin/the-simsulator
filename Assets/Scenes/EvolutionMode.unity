@@ -187,6 +187,7 @@ MonoBehaviour:
   simulator: {fileID: 1294992365}
   playerController: {fileID: 1959972267347088198}
   selectedPhenotypeMenu: {fileID: 1148685555}
+  focusGrid: {fileID: 324227552}
 --- !u!20 &117836466 stripped
 Camera:
   m_CorrespondingSourceObject: {fileID: 6975621557057364701, guid: a4cae177f8e6e4ea0b5409d3cc274fab, type: 3}

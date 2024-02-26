@@ -14,6 +14,7 @@ public class CreatureEditor : MonoBehaviour
     public VisualTreeAsset connectionRootTemplate;
     public VisualTreeAsset editConnectionTemplate;
     public Limb phantomLimb;
+    public RecentGenotypesModal recentGenotypesModal;
 
     private UIDocument doc;
 
@@ -37,7 +38,6 @@ public class CreatureEditor : MonoBehaviour
     private int? focusedLimbNodeIndex;
     private Phenotype phenotype;
 
-    private Color buttonInactiveColor = new(0.74f, 0.74f, 0.74f);
     private Color buttonActiveColor = Color.white;
     private Color buttonErrorColor = Color.red;
 
@@ -94,8 +94,42 @@ public class CreatureEditor : MonoBehaviour
         orbitCameraButton.clicked += () => ToggleCameraBehaviour(CameraBehaviour.Orbit);
 
         Button loadedGenotypeButton = header.Q<Button>("loaded-genotype");
+        Button openRecentsButton = header.Q<Button>("open-recents");
         Button removeLoadedGenotypeButton = header.Q<Button>("remove-loaded-genotype");
         Button saveGenotypeButton = header.Q<Button>("save-genotype");
+
+        void loadGenotype(Genotype genotype)
+        {
+            if (genotype == null)
+            {
+                loadedGenotypeButton.text = "Validation Error";
+                loadedGenotypeButton.style.backgroundColor = buttonErrorColor;
+                openRecentsButton.style.display = DisplayStyle.Flex;
+                removeLoadedGenotypeButton.style.display = DisplayStyle.None;
+                saveGenotypeButton.style.display = DisplayStyle.None;
+                SetLoadedGenotype(null);
+            }
+            else
+            {
+                loadedGenotypeButton.text = "Loaded '" + genotype.Id + "'";
+                loadedGenotypeButton.style.backgroundColor = buttonActiveColor;
+                openRecentsButton.style.display = DisplayStyle.None;
+                removeLoadedGenotypeButton.style.display = DisplayStyle.Flex;
+                saveGenotypeButton.style.display = DisplayStyle.Flex;
+                SetLoadedGenotype(genotype);
+            }
+        }
+
+        void unloadGenotype()
+        {
+            loadedGenotypeButton.text = "Select a genotype...";
+            loadedGenotypeButton.style.backgroundColor = StyleKeyword.Null;
+            openRecentsButton.style.display = DisplayStyle.Flex;
+            removeLoadedGenotypeButton.style.display = DisplayStyle.None;
+            saveGenotypeButton.style.display = DisplayStyle.None;
+            SetLoadedGenotype(null);
+        }
+
         loadedGenotypeButton.clicked += () =>
         {
             string genotypeFilePath = FileBrowser.Instance.OpenSingleFile(
@@ -108,38 +142,19 @@ public class CreatureEditor : MonoBehaviour
                 return;
 
             Genotype genotype = GenotypeSerializer.ReadGenotypeFromFile(genotypeFilePath);
-            if (genotype == null)
-            {
-                loadedGenotypeButton.text = "Validation Error";
-                loadedGenotypeButton.style.backgroundColor = buttonErrorColor;
-                removeLoadedGenotypeButton.style.display = DisplayStyle.None;
-                saveGenotypeButton.style.display = DisplayStyle.None;
-                SetLoadedGenotype(null);
-            }
-            else
-            {
-                loadedGenotypeButton.text = "Loaded '" + genotype.Id + "'";
-                loadedGenotypeButton.style.backgroundColor = buttonActiveColor;
-                removeLoadedGenotypeButton.style.display = DisplayStyle.Flex;
-                saveGenotypeButton.style.display = DisplayStyle.Flex;
-                SetLoadedGenotype(genotype);
-            }
+            loadGenotype(genotype);
         };
-        removeLoadedGenotypeButton.clicked += () =>
-        {
-            loadedGenotypeButton.text = "Select a genotype...";
-            loadedGenotypeButton.style.backgroundColor = buttonInactiveColor;
-            removeLoadedGenotypeButton.style.display = DisplayStyle.None;
-            saveGenotypeButton.style.display = DisplayStyle.None;
-            SetLoadedGenotype(null);
-        };
+        removeLoadedGenotypeButton.clicked += unloadGenotype;
+        openRecentsButton.clicked += () => recentGenotypesModal.gameObject.SetActive(true);
         saveGenotypeButton.clicked += () =>
         {
             if (phenotype != null)
                 phenotype.SaveGenotypeToFile();
         };
-        removeLoadedGenotypeButton.style.display = DisplayStyle.None;
-        saveGenotypeButton.style.display = DisplayStyle.None;
+
+        recentGenotypesModal.OnSelect += loadGenotype;
+
+        unloadGenotype();
     }
 
     private void InitialiseEditorTab()
@@ -172,6 +187,9 @@ public class CreatureEditor : MonoBehaviour
 
     private void SetLoadedGenotype(Genotype genotype)
     {
+        if (nodeGraph == null)
+            return;
+
         nodeGraph.Clear();
         ClearPhenotypeWindow();
         SetFocusedLimbNode(null);

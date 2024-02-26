@@ -1,0 +1,17 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <ui:VisualElement name="recent-genotype" style="background-color: rgba(0, 0, 0, 0); height: 200px; flex-direction: row; margin-top: 10px; margin-left: 10px; margin-right: 10px; margin-bottom: 10px;">
+        <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); justify-content: space-between;">
+            <ui:VisualElement style="background-color: rgba(0, 0, 0, 0); flex-direction: row; flex-wrap: wrap;">
+                <ui:Label tabindex="-1" text="ID:" display-tooltip-when-elided="true" style="-unity-font-style: normal; white-space: normal;" />
+                <ui:Label tabindex="-1" text="XXX" display-tooltip-when-elided="true" name="id" style="-unity-font-style: bold; white-space: normal;" />
+            </ui:VisualElement>
+            <ui:VisualElement style="background-color: rgba(0, 0, 0, 0); flex-direction: row; flex-wrap: wrap;">
+                <ui:Label tabindex="-1" text="Recorded at:" display-tooltip-when-elided="true" style="-unity-font-style: normal; white-space: normal;" />
+                <ui:Label tabindex="-1" text="2000-01-01 12:05:01" display-tooltip-when-elided="true" name="recorded-at" style="-unity-font-style: bold; white-space: normal;" />
+            </ui:VisualElement>
+            <ui:Label tabindex="-1" text="Example description, blah blah blah." display-tooltip-when-elided="true" name="description" style="white-space: normal;" />
+            <ui:Button text="Select" display-tooltip-when-elided="true" name="select" focusable="false" />
+        </ui:VisualElement>
+        <ui:VisualElement name="phenotype-display" style="background-color: rgb(0, 0, 0); height: 200px; width: 300px;" />
+    </ui:VisualElement>
+</ui:UXML>
