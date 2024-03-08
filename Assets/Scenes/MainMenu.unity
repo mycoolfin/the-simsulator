@@ -1865,7 +1865,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Evolution Mode
+  m_text: Evolution Simulator
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: b40e1347d155c4acb844ea52f50f0132, type: 2}
   m_sharedMaterial: {fileID: 8035683010003755872, guid: b40e1347d155c4acb844ea52f50f0132, type: 2}

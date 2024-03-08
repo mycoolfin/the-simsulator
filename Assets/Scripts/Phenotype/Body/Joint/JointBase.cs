@@ -131,13 +131,13 @@ public abstract class JointBase : MonoBehaviour
 
         smoothedAngleTargets = Vector3.SmoothDamp(smoothedAngleTargets, angleTargets, ref smoothingVelocity, ParameterManager.Instance.Joint.SmoothingFactor);
 
-        HandleCramping();
-
         joint.targetRotation = Quaternion.Euler(
-            (switchPrimaryAndSecondaryAxes ? smoothedAngleTargets[1] : smoothedAngleTargets[0]),
-            (switchPrimaryAndSecondaryAxes ? smoothedAngleTargets[0] : smoothedAngleTargets[1]),
+            switchPrimaryAndSecondaryAxes ? smoothedAngleTargets[1] : smoothedAngleTargets[0],
+            switchPrimaryAndSecondaryAxes ? smoothedAngleTargets[0] : smoothedAngleTargets[1],
             smoothedAngleTargets[2]
         );
+
+        HandleDislocation();
 
         UpdateSensors();
         ApplyEffectors();
@@ -165,31 +165,17 @@ public abstract class JointBase : MonoBehaviour
         Destroy(this);
     }
 
-    // Reduce joint strength if:
-    // - it pushes hard with no effect for too long, and
-    // - we're spinning.
-    // This is unfortunately necessary because Unity does not
-    // conserve angular momentum. Certain joint configurations
-    // can create it out of nowhere and induce unrealistic spinning.
-    private void HandleCramping()
+    // A joint is 'dislocated' when its anchor becomes separated from its connected anchor.
+    // This can generate angular momentum out of nowhere, resulting in physically unrealistic behaviour.
+    // We can ameliorate the issue somewhat by reducing the joint maximum force if we detect dislocation.
+    private void HandleDislocation()
     {
-        for (int i = 0; i < 3; i++)
-        {
-            if (excitations[i] == 0f)
-                continue;
-            float currentAngle = angles[i];
-            bool noSignificantMovement = Mathf.Abs(previousAngles[i] - currentAngle) < 10f * Time.fixedDeltaTime;
-            bool targetAngleStillAhead = (currentAngle > 0f && smoothedAngleTargets[i] > currentAngle + 0.1f)
-            || (currentAngle < 0f && smoothedAngleTargets[i] < currentAngle - 0.1f);
-            bool spinning = joint.connectedBody.angularVelocity.magnitude > 0.5f;
+        Vector3 diff = transform.TransformPoint(joint.anchor) - joint.connectedBody.transform.TransformPoint(joint.connectedAnchor);
 
-            if (targetAngleStillAhead && noSignificantMovement && spinning)
-                crampLevels[i] = Mathf.Min(3, crampLevels[i] + Time.fixedDeltaTime);
-            else
-                crampLevels[i] = Mathf.Max(0, crampLevels[i] - Time.fixedDeltaTime);
-        }
+        float weaknessFactor = 1f - 100f * diff.magnitude / Mathf.Max(1f, Physics.gravity.magnitude);
 
-        jointDrive.maximumForce = maxForce * (1f / (1f + 5f * Mathf.Pow(Mathf.Max(crampLevels[0], crampLevels[1], crampLevels[2]), 2)));
+        jointDrive.maximumForce = Mathf.Lerp(jointDrive.maximumForce, maxForce * Mathf.Max(0f, weaknessFactor), Time.fixedDeltaTime);
+
         if (joint.angularXDrive.maximumForce != jointDrive.maximumForce)
             joint.angularXDrive = jointDrive;
         if (joint.angularYZDrive.maximumForce != jointDrive.maximumForce)
@@ -276,13 +262,6 @@ public abstract class JointBase : MonoBehaviour
     private float ConvertExcitationToAngle(float excitation, float angleLimit)
     {
         return Mathf.LerpAngle(0f, angleLimit, Mathf.Abs(excitation)) * Mathf.Sign(excitation);
-    }
-
-    private float GetAngleAroundAxis(Vector3 planeNormal, Vector3 a, Vector3 b)
-    {
-        Vector3 projectionA = Vector3.ProjectOnPlane(a, planeNormal);
-        Vector3 projectionB = Vector3.ProjectOnPlane(b, planeNormal);
-        return Vector3.Angle(projectionA, projectionB);
     }
 
     private void OnDrawGizmosSelected()
