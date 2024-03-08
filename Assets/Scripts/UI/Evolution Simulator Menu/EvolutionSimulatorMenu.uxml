@@ -17,14 +17,14 @@
                             <ui:Button focusable="false" name="tooltip-button" style="width: 15px; height: 15px;" />
                             <ui:Label tabindex="-1" text="Max. Iterations" display-tooltip-when-elided="true" enable-rich-text="true" style="flex-basis: auto; flex-direction: column; margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0; justify-content: flex-start; align-items: auto; align-self: center; width: 50%;" />
                         </ui:VisualElement>
-                        <ui:SliderInt picking-mode="Ignore" value="300" high-value="1000" show-input-field="true" low-value="0" focusable="true" style="margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0; width: 100%; flex-shrink: 1;" />
+                        <ui:SliderInt picking-mode="Ignore" value="100" high-value="1000" show-input-field="true" low-value="0" focusable="true" style="margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0; width: 100%; flex-shrink: 1;" />
                     </ui:VisualElement>
                     <ui:VisualElement name="population-size" style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); flex-direction: row; align-items: stretch; justify-content: space-between; align-self: stretch; padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px; width: auto;">
                         <ui:VisualElement style="background-color: rgba(0, 0, 0, 0); flex-direction: row; width: 100%;">
                             <ui:Button focusable="false" name="tooltip-button" style="width: 15px; height: 15px;" />
                             <ui:Label tabindex="-1" text="Population Size" display-tooltip-when-elided="true" enable-rich-text="true" style="flex-basis: auto; flex-direction: column; margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0; justify-content: flex-start; align-items: auto; align-self: center; width: 50%;" />
                         </ui:VisualElement>
-                        <ui:SliderInt picking-mode="Ignore" value="100" high-value="200" show-input-field="true" low-value="10" focusable="true" style="margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0; width: 100%; flex-shrink: 1;" />
+                        <ui:SliderInt picking-mode="Ignore" value="100" high-value="1000" show-input-field="true" low-value="10" focusable="true" style="margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0; width: 100%; flex-shrink: 1;" />
                     </ui:VisualElement>
                     <ui:VisualElement name="survival-percentage" style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); flex-direction: row; align-items: stretch; justify-content: space-between; align-self: stretch; padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px; width: auto;">
                         <ui:VisualElement style="background-color: rgba(0, 0, 0, 0); flex-direction: row; width: 100%;">
