@@ -12,7 +12,6 @@ public class Phenotype : MonoBehaviour, ISelectable, IPlaceable
     public Brain brain;
     public List<Limb> limbs;
     private Color originalLimbColor;
-    public List<Collider> activeColliders;
     private List<MeshRenderer> meshRenderers;
     private List<Outline> outlines;
     public bool lostLimbs;
@@ -132,12 +131,28 @@ public class Phenotype : MonoBehaviour, ISelectable, IPlaceable
         phenotype.genotype = genotype;
         phenotype.brain = brain;
         phenotype.limbs = limbs;
-        phenotype.activeColliders = limbs.SelectMany(limb => limb.activeColliders).ToList();
+
+        phenotype.EnableSelfCollisions();
 
         // Wire up nervous system.
         NervousSystem.Configure(brain, limbs);
 
         return phenotype;
+    }
+
+    private void EnableSelfCollisions()
+    {
+        for (int i = 0; i < limbs.Count; i++)
+        {
+            Limb limb1 = limbs[i];
+            for (int j = i + 1; j < limbs.Count; j++)
+            {
+                Limb limb2 = limbs[j];
+                bool parentChildRelationship = limb2.parentLimb == limb1 || limb1.parentLimb == limb2;
+                if (!parentChildRelationship)
+                    Physics.IgnoreCollision(limb1.fullBodyCollider, limb2.fullBodyCollider, false);
+            }
+        }
     }
 
     public void SetLimbsSelectable(bool limbsSelectable)

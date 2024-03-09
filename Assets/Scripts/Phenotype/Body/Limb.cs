@@ -203,6 +203,10 @@ public class Limb : MonoBehaviour, ISelectable
                 Physics.IgnoreCollision(childLimb.yzMidwayCollider, parentLimbMidwayColliders[i]);
                 Physics.IgnoreCollision(childLimb.xzMidwayCollider, parentLimbMidwayColliders[i]);
             }
+            else // Explicitly enable collisions otherwise.
+            {
+                Physics.IgnoreCollision(childLimb.fullBodyCollider, parentLimbMidwayColliders[i], false);
+            }
         }
 
         // Note which midway colliders have been used so that we can disable the unused ones later.

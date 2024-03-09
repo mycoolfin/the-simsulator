@@ -83,6 +83,8 @@ public class EvolutionSimulator : MonoBehaviour
         int maxSurvivors = Mathf.CeilToInt(populationSize * survivalPercentage);
         assessment = PickAssessment(trialType);
 
+        EnableInterPhenotypeCollisions(false);
+
         // Reset outputs.
         bestIndividual = null;
         bestFitnesses = new List<float>();
@@ -166,6 +168,30 @@ public class EvolutionSimulator : MonoBehaviour
             return new();
         else
             return SelectSurvivors(population, count, includeZeroFitness: true);
+    }
+
+    private void EnableInterPhenotypeCollisions(bool enable)
+    {
+        string[] phenotypeLayers = new string[] {
+            "Phenotype",
+            "Best Individual 1",
+            "Best Individual 2",
+            "Best Individual 3",
+            "Best Individual 4",
+            "Best Individual 5",
+            "Best Individual 6",
+            "Best Individual 7",
+            "Best Individual 8",
+            "Best Individual 9",
+            "Best Individual 10",
+            "Best Individual 11",
+            "Best Individual 12"
+        };
+        foreach (string layerName in phenotypeLayers)
+        {
+            LayerMask layerMask = LayerMask.NameToLayer(layerName);
+            Physics.IgnoreLayerCollision(layerMask, layerMask, !enable);
+        }
     }
 
     private Assessment PickAssessment(TrialType trialType)

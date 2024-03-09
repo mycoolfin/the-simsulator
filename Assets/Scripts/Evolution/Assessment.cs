@@ -24,7 +24,6 @@ public abstract class Assessment
     public virtual IEnumerator PreProcess(Individual individual, Population population)
     {
         if (individual.phenotype == null) { individual.Cull(); yield break; }
-        yield return DisablePhenotypeCollisions(individual, population);
         if (individual.phenotype == null) { individual.Cull(); yield break; }
         PlacePhenotype(individual.phenotype, trialOrigin);
         individual.preProcessingComplete = true;
@@ -36,30 +35,6 @@ public abstract class Assessment
     }
 
     public abstract IEnumerator Assess(Individual individual);
-
-    // This function is costly, so I've designed it to spread out over multiple frames.
-    // There may be a better way to prevent phenotypes from colliding with each other
-    // while maintaining self collisions, but I haven't found it yet.
-    protected IEnumerator DisablePhenotypeCollisions(Individual self, Population population)
-    {
-        int maxOpsPerFrame = 100000 / population.individuals.Count;
-        int opsCount = 0;
-        foreach (Collider col in self.phenotype.activeColliders)
-        {
-            foreach (Individual other in population.individuals)
-                if (other != self && !other.preProcessingComplete && other.phenotype != null)
-                    foreach (Collider otherCol in other.phenotype.activeColliders)
-                    {
-                        Physics.IgnoreCollision(col, otherCol);
-                        opsCount += 1;
-                        if (opsCount >= maxOpsPerFrame)
-                        {
-                            yield return null;
-                            opsCount = 0;
-                        }
-                    }
-        }
-    }
 
     protected void PlacePhenotype(Phenotype phenotype, Transform trialOrigin)
     {
