@@ -4,7 +4,7 @@ using UnityEngine.SceneManagement;
 using UnityEngine.UIElements;
 using Crosstales.FB;
 
-public class EvolutionModeMenu : MonoBehaviour
+public class EvolutionSimulatorMenu : MonoBehaviour
 {
     public EvolutionSimulator simulator;
     public PlayerController playerController;
@@ -196,15 +196,15 @@ public class EvolutionModeMenu : MonoBehaviour
                 ShowRuntimeMenu(true);
                 ToggleRuntimeMenuTab(RuntimeMenuTab.Status);
                 numberOfIterations = maxIterations.value;
-                ParameterManager.Instance.Mutation.MutationRate = mutationRate.value;
                 ParameterManager.Instance.Reproduction.LockMorphologies = lockMorphologies.value;
-                StartCoroutine(simulator.Run(
+                simulator.StartSimulation(
                     (TrialType)trialType.value,
                     maxIterations.value,
                     populationSize.value,
                     survivalPercentage.value / 100f,
+                    mutationRate.value,
                     seedGenotype
-                ));
+                );
             }
         };
 

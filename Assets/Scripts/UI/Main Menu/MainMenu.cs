@@ -9,7 +9,7 @@ public class MainMenu : MonoBehaviour
     public List<Vector3> surfaceSpawnPositions;
     public List<Vector3> underwaterSpawnPositions;
     public MainMenuTitle title;
-    public MainMenuButton evolutionModeButton;
+    public MainMenuButton evolutionSimulatorButton;
     public MainMenuButton zooModeButton;
     public MainMenuButton creatureEditorButton;
     public MainMenuButton controlsButton;
@@ -29,7 +29,7 @@ public class MainMenu : MonoBehaviour
 
     private void Start()
     {
-        evolutionModeButton.OnSelect += () => SceneManager.LoadScene("EvolutionMode");
+        evolutionSimulatorButton.OnSelect += () => SceneManager.LoadScene("EvolutionSimulator");
         zooModeButton.OnSelect += () => SceneManager.LoadScene("ZooMode");
         creatureEditorButton.OnSelect += () => SceneManager.LoadScene("CreatureEditor");
         controlsButton.OnSelect += () =>

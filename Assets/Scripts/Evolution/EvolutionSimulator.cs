@@ -12,12 +12,9 @@ public enum TrialType
     WaterLightFollowing
 };
 
-public enum SpeedControl
-{
-    Pause,
-    Play,
-    FastForward
-}
+public enum SpeedControl { Pause, Play, FastForward }
+
+public enum Status { Pending, InProgress, Complete }
 
 public class EvolutionSimulator : MonoBehaviour
 {
@@ -31,6 +28,7 @@ public class EvolutionSimulator : MonoBehaviour
     [Range(0f, 1f)]
     [SerializeField] private float survivalPercentage;
     public float SurvivalPercentage => survivalPercentage;
+    public float MutationRate => ParameterManager.Instance.Mutation.MutationRate;
     [SerializeField] private Genotype seedGenotype;
     public Genotype SeedGenotype => seedGenotype;
     [SerializeField] private bool run;
@@ -46,10 +44,16 @@ public class EvolutionSimulator : MonoBehaviour
 
     [Header("Outputs")]
     public int currentIteration;
+    public Status simulationStatus;
+    public Status iterationStatus;
+    public Status preparationStatus;
+    public Status assessmentStatus;
     public float assessmentProgress;
     public Individual bestIndividual;
     public List<float> bestFitnesses;
     public List<float> averageFitnesses;
+    public DateTime lastIterationTime;
+    public List<float> iterationElapsedSeconds;
 
     public event Action OnSimulationStart = delegate { };
     public event Action OnIterationStart = delegate { };
@@ -59,9 +63,16 @@ public class EvolutionSimulator : MonoBehaviour
     public event Action OnSimulationEnd = delegate { };
 
     private Population population;
+    private int maxSurvivors;
+    private List<Individual> survivors;
     private Assessment assessment;
 
     public bool Running => population != null;
+
+    private void Awake()
+    {
+        simulationStatus = Status.Pending;
+    }
 
     private void Update()
     {
@@ -70,18 +81,22 @@ public class EvolutionSimulator : MonoBehaviour
             VisualisePopulation();
             CalculateAssessmentProgress();
         }
+
+        if (simulationStatus == Status.InProgress && iterationStatus == Status.Complete && !pauseIterating)
+            StartNextIteration();
     }
 
-    public IEnumerator Run(TrialType trialType, int maxIterations, int populationSize, float survivalPercentage, Genotype seedGenotype)
+    public void StartSimulation(TrialType trial, int maxIterations, int populationSize, float survivalPercentage, float mutationRate, Genotype seedGenotype)
     {
-        this.trial = trialType;
+        this.trial = trial;
         this.maxIterations = maxIterations;
         this.populationSize = populationSize;
         this.survivalPercentage = survivalPercentage;
+        ParameterManager.Instance.Mutation.MutationRate = mutationRate;
         this.seedGenotype = seedGenotype;
 
-        int maxSurvivors = Mathf.CeilToInt(populationSize * survivalPercentage);
-        assessment = PickAssessment(trialType);
+        maxSurvivors = Mathf.CeilToInt(populationSize * survivalPercentage);
+        assessment = PickAssessment(trial);
 
         EnableInterPhenotypeCollisions(false);
 
@@ -89,40 +104,53 @@ public class EvolutionSimulator : MonoBehaviour
         bestIndividual = null;
         bestFitnesses = new List<float>();
         averageFitnesses = new List<float>();
+        iterationElapsedSeconds = new List<float>();
 
-        if (seedGenotype != null)
-        {
-            population = new Population(Enumerable.Range(0, maxSurvivors).Select(_ => seedGenotype).ToList());
-            population.individuals.ForEach(i => i.fitness = 1f);
-            yield return ProduceNextGeneration(populationSize, populationSize - maxSurvivors, population.individuals, (nextGeneration) => population = nextGeneration);
-        }
-        else
-            population = new Population(populationSize);
-
+        Debug.Log("Starting simulation...");
+        simulationStatus = Status.InProgress;
         assessment.BeforeSimulationStart();
         OnSimulationStart();
 
+        lastIterationTime = DateTime.Now;
+
         currentIteration = 0;
-        while (currentIteration < maxIterations || maxIterations == 0)
+        StartNextIteration();
+    }
+
+    private void EndSimulation()
+    {
+        Debug.Log("Finished simulation.");
+        simulationStatus = Status.Complete;
+        OnSimulationEnd();
+    }
+
+    private void StartNextIteration()
+    {
+        currentIteration++;
+        iterationStatus = Status.InProgress;
+        preparationStatus = Status.Pending;
+        assessmentStatus = Status.Pending;
+
+        ResetWorld();
+
+        population = currentIteration == 1
+            ? ProduceInitialPopulation(seedGenotype, maxSurvivors)
+            : ProduceNextGeneration(populationSize, populationSize - maxSurvivors, survivors);
+
+        ConstructPhenotypes(population);
+
+        Debug.Log("Starting iteration " + currentIteration + "...");
+        assessment.BeforeIterationStart();
+        OnIterationStart();
+
+        StartPreparation();
+    }
+
+    private void EndCurrentIteration()
+    {
+        if (currentIteration > 0)
         {
-            currentIteration++;
-
-            yield return ConstructPhenotypes(population);
-
-            assessment.BeforeIterationStart();
-            OnIterationStart();
-
-            yield return PreparePopulation(population, assessment);
-
-            assessment.BeforeAssessmentStart();
-            OnAssessmentStart();
-            yield return AssessFitnesses(population, assessment);
-            OnAssessmentEnd();
-
-            while (pauseIterating)
-                yield return null;
-
-            List<Individual> survivors = SelectSurvivors(population, maxSurvivors, includeZeroFitness: false);
+            survivors = SelectSurvivors(population, maxSurvivors, includeZeroFitness: false);
             int survivorCount = survivors.Count;
 
             if (survivorCount > 0)
@@ -130,29 +158,51 @@ public class EvolutionSimulator : MonoBehaviour
 
             bestFitnesses.Add(bestIndividual?.fitness ?? 0f);
             averageFitnesses.Add(population.individuals.Average(x => x.fitness));
+            float elapsedSeconds = (float)(DateTime.Now - lastIterationTime).TotalSeconds;
+            iterationElapsedSeconds.Add(elapsedSeconds);
+            lastIterationTime = DateTime.Now;
 
-            Debug.Log("Iteration " + currentIteration + ": Best fitness = " + bestFitnesses.Last() + ", Average Fitness = " + averageFitnesses.Last());
-
+            Debug.Log("Finished iteration " + currentIteration + ".");
+            Debug.Log("STATS: " + "Best fitness = " + bestFitnesses.Last() + ", Average Fitness = " + averageFitnesses.Last() + ", Elapsed Time = " + elapsedSeconds + " secs");
+            iterationStatus = Status.Complete;
             OnIterationEnd();
 
-            yield return null;
-
-            if (currentIteration == maxIterations) // This is the final iteration, so don't reset the world.
-                break;
-
-            Population nextGeneration = new();
-            yield return ProduceNextGeneration(populationSize, populationSize - maxSurvivors, survivors, (next) => nextGeneration = next);
-
-            ResetWorld();
-
-            yield return null; // Gives time for cleanup to complete.
-
-            population = nextGeneration;
+            if (currentIteration == maxIterations)
+                EndSimulation();
         }
+    }
 
-        OnSimulationEnd();
+    private void StartPreparation()
+    {
+        Debug.Log("Starting preparation...");
+        preparationStatus = Status.InProgress;
+        StartCoroutine(PreparePopulation(population, assessment));
+    }
 
-        Debug.Log("Finished.");
+    private void EndPreparation()
+    {
+        Debug.Log("Finished preparation.");
+        preparationStatus = Status.Complete;
+
+        StartAssessment();
+    }
+
+    private void StartAssessment()
+    {
+        Debug.Log("Starting assessment...");
+        assessmentStatus = Status.InProgress;
+        assessment.BeforeAssessmentStart();
+        OnAssessmentStart();
+        StartCoroutine(AssessFitnesses(population, assessment));
+    }
+
+    private void EndAssessment()
+    {
+        Debug.Log("Finished assessment.");
+        assessmentStatus = Status.Complete;
+        OnAssessmentEnd();
+
+        EndCurrentIteration();
     }
 
     public Transform GetSimulationOrigin()
@@ -217,7 +267,7 @@ public class EvolutionSimulator : MonoBehaviour
         return assessment;
     }
 
-    private IEnumerator ConstructPhenotypes(Population population)
+    private void ConstructPhenotypes(Population population)
     {
         Physics.simulationMode = SimulationMode.Script;
 
@@ -229,8 +279,6 @@ public class EvolutionSimulator : MonoBehaviour
                 individual.Cull();
         }
 
-        yield return null; // Ensure the invalid phenotypes are completely destroyed.
-
         Physics.simulationMode = SimulationMode.FixedUpdate;
     }
 
@@ -238,11 +286,13 @@ public class EvolutionSimulator : MonoBehaviour
     {
         yield return ProcessPopulationAsync(population, (individual) => assessment.PreProcess(individual, population));
         yield return ProcessPopulationAsync(population, (individual) => assessment.WaitUntilSettled(individual));
+        EndPreparation();
     }
 
     private IEnumerator AssessFitnesses(Population population, Assessment assessment)
     {
         yield return ProcessPopulationAsync(population, (individual) => assessment.Assess(individual));
+        EndAssessment();
     }
 
     private IEnumerator ProcessPopulationAsync(Population population, Func<Individual, IEnumerator> function)
@@ -265,7 +315,21 @@ public class EvolutionSimulator : MonoBehaviour
         .ToList();
     }
 
-    private IEnumerator ProduceNextGeneration(int populationSize, int maxChildren, List<Individual> seedIndividuals, Action<Population> doneCallback)
+    private Population ProduceInitialPopulation(Genotype seedGenotype, int maxSurvivors)
+    {
+        Population population;
+        if (seedGenotype != null)
+        {
+            population = new Population(Enumerable.Range(0, maxSurvivors).Select(_ => seedGenotype).ToList());
+            population.individuals.ForEach(i => i.fitness = 1f);
+            population = ProduceNextGeneration(populationSize, populationSize - maxSurvivors, population.individuals);
+        }
+        else
+            population = new Population(populationSize);
+        return population;
+    }
+
+    private Population ProduceNextGeneration(int populationSize, int maxChildren, List<Individual> seedIndividuals)
     {
         Population nextGeneration = new Population(seedIndividuals);
 
@@ -305,8 +369,6 @@ public class EvolutionSimulator : MonoBehaviour
                     {
                         genotype = Reproduction.CreateRandomisedOffspring(parent1, parent2)
                     });
-
-                yield return null;
             }
         }
 
@@ -320,13 +382,12 @@ public class EvolutionSimulator : MonoBehaviour
         if (populationDiscrepancy > 0)
             Debug.Log("Added " + populationDiscrepancy + " seed genotypes to maintain population size.");
 
-        doneCallback(nextGeneration);
-        yield return null;
+        return nextGeneration;
     }
 
     private void ResetWorld()
     {
-        foreach (Individual individual in population.individuals)
+        foreach (Individual individual in population?.individuals ?? new())
         {
             if (individual.phenotype != null)
                 WorldManager.Instance.SendGameObjectToTheVoid(individual.phenotype.gameObject);

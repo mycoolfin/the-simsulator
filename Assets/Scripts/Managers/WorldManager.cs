@@ -56,15 +56,15 @@ public class WorldManager : MonoBehaviour
 
     private void Start()
     {
+        Screen.sleepTimeout = SleepTimeout.NeverSleep;
         trashCan = new List<GameObject>();
-        throttledTimeScale = timeScale;
+        throttledTimeScale = 1f;
         ChangeEnvironment(WorldEnvironment.Surface);
         StartCoroutine(TheVoidConsumesAll());
     }
 
     private void Update()
     {
-        Screen.sleepTimeout = SleepTimeout.NeverSleep;
         ThrottleTimeScaling();
     }
 

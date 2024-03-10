@@ -276,6 +276,65 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 279443275}
   m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &319697305
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 319697307}
+  - component: {fileID: 319697306}
+  - component: {fileID: 319697308}
+  m_Layer: 0
+  m_Name: Experiment Supervisor
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &319697306
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 319697305}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 58e91470df6814429a8490475fd55ec0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  simulator: {fileID: 1294992365}
+--- !u!4 &319697307
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 319697305}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.58433723, y: 8.569273, z: 12.8335495}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 8
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &319697308
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 319697305}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d4a303de4097a4ab289dd87a9228c3c6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  behaviour: 1
 --- !u!1 &324227550
 GameObject:
   m_ObjectHideFlags: 0
@@ -323,7 +382,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   focusedPhenotypeFrameAsset: {fileID: 9197481963319205126, guid: 6610ccb68d2674f4b80c527cf7462fd1, type: 3}
   followCameraPrefab: {fileID: 4654032986182265884, guid: 96026b5d5157346fb991ce71c5e1780d, type: 3}
-  simulator: {fileID: 1294992365}
+  numVisibleFrames: 0
 --- !u!114 &324227553
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -986,9 +1045,14 @@ MonoBehaviour:
   colourByRelativeFitness: 1
   focusBestCreatures: 0
   currentIteration: 0
+  simulationStatus: 0
+  iterationStatus: 0
+  preparationStatus: 0
+  assessmentStatus: 0
   assessmentProgress: 0
   bestFitnesses: []
   averageFitnesses: []
+  iterationElapsedSeconds: []
 --- !u!4 &1294992366
 Transform:
   m_ObjectHideFlags: 0
@@ -1091,6 +1155,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1982460595}
+  - component: {fileID: 1982460596}
   m_Layer: 0
   m_Name: UI
   m_TagString: Untagged
@@ -1118,6 +1183,19 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1982460596
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1982460594}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d4a303de4097a4ab289dd87a9228c3c6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  behaviour: 0
 --- !u!1 &50673965445851462
 GameObject:
   m_ObjectHideFlags: 0
