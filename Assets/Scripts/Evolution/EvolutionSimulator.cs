@@ -31,7 +31,7 @@ public class EvolutionSimulator : MonoBehaviour
     public float MutationRate => ParameterManager.Instance.Mutation.MutationRate;
     [SerializeField] private Genotype seedGenotype;
     public Genotype SeedGenotype => seedGenotype;
-    [SerializeField] private bool run;
+    private int? batchSize;
 
     [Header("Runtime Parameters")]
     public SpeedControl speedControl;
@@ -44,8 +44,11 @@ public class EvolutionSimulator : MonoBehaviour
 
     [Header("Outputs")]
     public int currentIteration;
+    public int currentBatch;
+    public int numberOfBatches;
     public Status simulationStatus;
     public Status iterationStatus;
+    public Status batchStatus;
     public Status preparationStatus;
     public Status assessmentStatus;
     public float assessmentProgress;
@@ -57,6 +60,8 @@ public class EvolutionSimulator : MonoBehaviour
 
     public event Action OnSimulationStart = delegate { };
     public event Action OnIterationStart = delegate { };
+    public event Action OnPreparationStart = delegate { };
+    public event Action OnPreparationEnd = delegate { };
     public event Action OnAssessmentStart = delegate { };
     public event Action OnAssessmentEnd = delegate { };
     public event Action OnIterationEnd = delegate { };
@@ -86,7 +91,7 @@ public class EvolutionSimulator : MonoBehaviour
             StartNextIteration();
     }
 
-    public void StartSimulation(TrialType trial, int maxIterations, int populationSize, float survivalPercentage, float mutationRate, Genotype seedGenotype)
+    public void StartSimulation(TrialType trial, int maxIterations, int populationSize, float survivalPercentage, float mutationRate, Genotype seedGenotype, int? batchSize)
     {
         this.trial = trial;
         this.maxIterations = maxIterations;
@@ -94,6 +99,7 @@ public class EvolutionSimulator : MonoBehaviour
         this.survivalPercentage = survivalPercentage;
         ParameterManager.Instance.Mutation.MutationRate = mutationRate;
         this.seedGenotype = seedGenotype;
+        this.batchSize = batchSize;
 
         maxSurvivors = Mathf.CeilToInt(populationSize * survivalPercentage);
         assessment = PickAssessment(trial);
@@ -128,6 +134,7 @@ public class EvolutionSimulator : MonoBehaviour
     {
         currentIteration++;
         iterationStatus = Status.InProgress;
+        batchStatus = Status.Pending;
         preparationStatus = Status.Pending;
         assessmentStatus = Status.Pending;
 
@@ -137,22 +144,20 @@ public class EvolutionSimulator : MonoBehaviour
             ? ProduceInitialPopulation(seedGenotype, maxSurvivors)
             : ProduceNextGeneration(populationSize, populationSize - maxSurvivors, survivors);
 
-        ConstructPhenotypes(population);
-
         Debug.Log("Starting iteration " + currentIteration + "...");
-        assessment.BeforeIterationStart();
         OnIterationStart();
 
-        StartPreparation();
+        numberOfBatches = population.individuals.Count / (int)Mathf.Min((float)(batchSize ?? population.individuals.Count), population.individuals.Count);
+        StartNextBatch();
     }
 
     private void EndCurrentIteration()
     {
         if (currentIteration > 0)
         {
-            survivors = SelectSurvivors(population, maxSurvivors, includeZeroFitness: false);
-            int survivorCount = survivors.Count;
+            survivors = SelectSurvivors(population, maxSurvivors, includeZeroFitness: false, includeNullPhenotype: true);
 
+            int survivorCount = survivors.Count;
             if (survivorCount > 0)
                 bestIndividual = survivors.OrderByDescending(x => x.fitness).First();
 
@@ -172,28 +177,70 @@ public class EvolutionSimulator : MonoBehaviour
         }
     }
 
-    private void StartPreparation()
+    private void StartNextBatch()
+    {
+        currentBatch++;
+        batchStatus = Status.InProgress;
+
+        int batchIndex = currentBatch - 1;
+        int individualsStartIndex = batchIndex * (batchSize ?? population.individuals.Count);
+
+        List<Individual> batchIndividuals;
+        if (batchIndex + 1 < numberOfBatches)
+            batchIndividuals = population.individuals.Skip(individualsStartIndex).Take(batchSize ?? population.individuals.Count).ToList();
+        else // Last batch. Include all remaining individuals. 
+            batchIndividuals = population.individuals.Skip(individualsStartIndex).ToList();
+
+        Debug.Log("Starting batch " + currentBatch + "...");
+
+        ResetWorld();
+
+        ConstructPhenotypes(batchIndividuals);
+
+        StartPreparation(batchIndividuals);
+    }
+
+    private void EndCurrentBatch()
+    {
+        Debug.Log("Finished batch " + currentBatch + ".");
+        batchStatus = Status.Complete;
+
+        if (currentBatch == numberOfBatches)
+        {
+            currentBatch = 0;
+            EndCurrentIteration();
+        }
+        else
+        {
+            StartNextBatch();
+        }
+    }
+
+    private void StartPreparation(List<Individual> individuals)
     {
         Debug.Log("Starting preparation...");
         preparationStatus = Status.InProgress;
-        StartCoroutine(PreparePopulation(population, assessment));
+        assessment.BeforePreparationStart();
+        OnPreparationStart();
+        StartCoroutine(PrepareIndividuals(individuals, assessment));
     }
 
-    private void EndPreparation()
+    private void EndPreparation(List<Individual> individuals)
     {
         Debug.Log("Finished preparation.");
         preparationStatus = Status.Complete;
+        OnPreparationEnd();
 
-        StartAssessment();
+        StartAssessment(individuals);
     }
 
-    private void StartAssessment()
+    private void StartAssessment(List<Individual> individuals)
     {
         Debug.Log("Starting assessment...");
         assessmentStatus = Status.InProgress;
         assessment.BeforeAssessmentStart();
         OnAssessmentStart();
-        StartCoroutine(AssessFitnesses(population, assessment));
+        StartCoroutine(AssessFitnesses(individuals, assessment));
     }
 
     private void EndAssessment()
@@ -202,7 +249,7 @@ public class EvolutionSimulator : MonoBehaviour
         assessmentStatus = Status.Complete;
         OnAssessmentEnd();
 
-        EndCurrentIteration();
+        EndCurrentBatch();
     }
 
     public Transform GetSimulationOrigin()
@@ -217,7 +264,7 @@ public class EvolutionSimulator : MonoBehaviour
         if (population == null)
             return new();
         else
-            return SelectSurvivors(population, count, includeZeroFitness: true);
+            return SelectSurvivors(population, count, includeZeroFitness: true, includeNullPhenotype: true);
     }
 
     private void EnableInterPhenotypeCollisions(bool enable)
@@ -267,11 +314,11 @@ public class EvolutionSimulator : MonoBehaviour
         return assessment;
     }
 
-    private void ConstructPhenotypes(Population population)
+    private void ConstructPhenotypes(List<Individual> individuals)
     {
         Physics.simulationMode = SimulationMode.Script;
 
-        foreach (Individual individual in population.individuals)
+        foreach (Individual individual in individuals)
         {
             individual.phenotype = Phenotype.Construct(individual.genotype);
             individual.phenotype.gameObject.SetActive(false);
@@ -282,23 +329,23 @@ public class EvolutionSimulator : MonoBehaviour
         Physics.simulationMode = SimulationMode.FixedUpdate;
     }
 
-    private IEnumerator PreparePopulation(Population population, Assessment assessment)
+    private IEnumerator PrepareIndividuals(List<Individual> individuals, Assessment assessment)
     {
-        yield return ProcessPopulationAsync(population, (individual) => assessment.PreProcess(individual, population));
-        yield return ProcessPopulationAsync(population, (individual) => assessment.WaitUntilSettled(individual));
-        EndPreparation();
+        yield return ProcessIndividualsAsync(individuals, (individual) => assessment.PreProcess(individual, population));
+        yield return ProcessIndividualsAsync(individuals, (individual) => assessment.WaitUntilSettled(individual));
+        EndPreparation(individuals);
     }
 
-    private IEnumerator AssessFitnesses(Population population, Assessment assessment)
+    private IEnumerator AssessFitnesses(List<Individual> individuals, Assessment assessment)
     {
-        yield return ProcessPopulationAsync(population, (individual) => assessment.Assess(individual));
+        yield return ProcessIndividualsAsync(individuals, (individual) => assessment.Assess(individual));
         EndAssessment();
     }
 
-    private IEnumerator ProcessPopulationAsync(Population population, Func<Individual, IEnumerator> function)
+    private IEnumerator ProcessIndividualsAsync(List<Individual> individuals, Func<Individual, IEnumerator> function)
     {
-        List<Coroutine> coroutines = new List<Coroutine>();
-        foreach (Individual individual in population.individuals)
+        List<Coroutine> coroutines = new();
+        foreach (Individual individual in individuals)
             coroutines.Add(StartCoroutine(function(individual)));
 
         // Wait for all coroutines to finish.
@@ -306,10 +353,10 @@ public class EvolutionSimulator : MonoBehaviour
             yield return coroutine;
     }
 
-    private List<Individual> SelectSurvivors(Population population, int maxSurvivors, bool includeZeroFitness)
+    private List<Individual> SelectSurvivors(Population population, int maxSurvivors, bool includeZeroFitness, bool includeNullPhenotype)
     {
         return population.individuals
-        .FindAll(x => x.phenotype != null && (x.isProtected || includeZeroFitness || x.fitness > 0))
+        .FindAll(x => (includeNullPhenotype || x.phenotype != null) && (x.isProtected || includeZeroFitness || x.fitness > 0))
         .OrderByDescending(x => x.isProtected ? Mathf.Infinity : x.fitness)
         .Take(maxSurvivors)
         .ToList();
@@ -331,7 +378,7 @@ public class EvolutionSimulator : MonoBehaviour
 
     private Population ProduceNextGeneration(int populationSize, int maxChildren, List<Individual> seedIndividuals)
     {
-        Population nextGeneration = new Population(seedIndividuals);
+        Population nextGeneration = new(seedIndividuals);
 
         float totalFitness = seedIndividuals.Sum(x => x.fitness);
         if (totalFitness > 0)
@@ -401,7 +448,7 @@ public class EvolutionSimulator : MonoBehaviour
         if (population == null)
             return;
 
-        List<Individual> survivors = SelectSurvivors(population, Mathf.CeilToInt(populationSize * survivalPercentage), includeZeroFitness: false);
+        List<Individual> survivors = SelectSurvivors(population, Mathf.CeilToInt(populationSize * survivalPercentage), includeZeroFitness: false, includeNullPhenotype: false);
         Individual currentBestIndividual = survivors.Count > 0 ? survivors[0] : null;
 
         float currentAverageFitness = 0f;

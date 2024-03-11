@@ -46,9 +46,7 @@ public class WorldManager : MonoBehaviour
     [Header("Parameters")]
     public const float minTimeScale = 0f;
     public const float maxTimeScale = 5f;
-    [Range(minTimeScale, maxTimeScale)]
     public float timeScale;
-    [Range(15, 60)]
     public int minimumFps = 30;
     public float throttledTimeScale;
     public bool simulateFluid;

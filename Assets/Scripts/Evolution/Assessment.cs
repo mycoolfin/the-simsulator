@@ -18,7 +18,7 @@ public abstract class Assessment
     }
 
     public virtual void BeforeSimulationStart() { }
-    public virtual void BeforeIterationStart() { }
+    public virtual void BeforePreparationStart() { }
     public virtual void BeforeAssessmentStart() { }
 
     public virtual IEnumerator PreProcess(Individual individual, Population population)
@@ -131,7 +131,7 @@ public abstract class LightClosenessAssessment : Assessment
         WorldManager.Instance.pointLight.AddComponent<RandomTeleporter>();
     }
 
-    public override void BeforeIterationStart()
+    public override void BeforePreparationStart()
     {
         WorldManager.Instance.pointLight.SetActive(false);
     }
@@ -194,9 +194,9 @@ public class GroundLightClosenessAssessment : LightClosenessAssessment
         r.waitTime = runtimeSeconds / 2f;
     }
 
-    public override void BeforeIterationStart()
+    public override void BeforePreparationStart()
     {
-        base.BeforeIterationStart();
+        base.BeforePreparationStart();
         WorldManager.Instance.pointLight.transform.position = trialOrigin.position + Vector3.up * 2f;
     }
 }
@@ -205,9 +205,9 @@ public class WaterLightClosenessAssessment : LightClosenessAssessment
 {
     public WaterLightClosenessAssessment() : base(WorldManager.Instance.waterOrigin.transform, 5, 15) { }
 
-    public override void BeforeIterationStart()
+    public override void BeforePreparationStart()
     {
-        base.BeforeIterationStart();
+        base.BeforePreparationStart();
         WorldManager.Instance.pointLight.transform.position = trialOrigin.position;
     }
 

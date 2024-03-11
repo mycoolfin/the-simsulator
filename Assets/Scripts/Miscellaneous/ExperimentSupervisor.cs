@@ -18,6 +18,7 @@ public class ExperimentSupervisor : MonoBehaviour
         int? populationSize = null;
         float? survivalPercentage = null;
         float? mutationRate = null;
+        int? batchSize = null;
 
         // Assuming the command line arguments are in the format "-name value".
         string[] args = Environment.GetCommandLineArgs();
@@ -43,6 +44,9 @@ public class ExperimentSupervisor : MonoBehaviour
                 case "-mutationRate":
                     mutationRate = float.Parse(args[i + 1]);
                     break;
+                case "-batchSize":
+                    batchSize = int.Parse(args[i + 1]);
+                    break;
             }
         }
 
@@ -58,6 +62,8 @@ public class ExperimentSupervisor : MonoBehaviour
             MissingParameter("survivalPercentage");
         if (mutationRate == null)
             MissingParameter("mutationRate");
+        if (batchSize == null)
+            MissingParameter("batchSize");
 
         simulator.OnSimulationEnd += FinishExperiment;
 
@@ -66,7 +72,8 @@ public class ExperimentSupervisor : MonoBehaviour
             "Max Iterations: " + maxIterations.ToString() + "\n" +
             "Population Size: " + populationSize.ToString() + "\n" +
             "Survival Percentage: " + survivalPercentage.ToString() + "\n" +
-            "Mutation Rate: " + mutationRate.ToString() + "\n"
+            "Mutation Rate: " + mutationRate.ToString() + "\n" +
+            "Batch Size: " + batchSize.ToString() + "\n"
         );
 
         // Run as fast as possible.
@@ -78,7 +85,8 @@ public class ExperimentSupervisor : MonoBehaviour
             (int)populationSize,
             (float)survivalPercentage,
             (float)mutationRate,
-            null
+            null,
+            (int)batchSize
         );
     }
 

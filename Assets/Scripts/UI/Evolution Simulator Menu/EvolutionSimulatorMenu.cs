@@ -203,7 +203,8 @@ public class EvolutionSimulatorMenu : MonoBehaviour
                     populationSize.value,
                     survivalPercentage.value / 100f,
                     mutationRate.value,
-                    seedGenotype
+                    seedGenotype,
+                    null
                 );
             }
         };
@@ -325,7 +326,7 @@ public class EvolutionSimulatorMenu : MonoBehaviour
         };
         fastForwardButton.clicked += () =>
         {
-            WorldManager.Instance.timeScale = 5f;
+            WorldManager.Instance.timeScale = WorldManager.maxTimeScale;
             pauseButton.style.backgroundColor = StyleKeyword.Null;
             playButton.style.backgroundColor = StyleKeyword.Null;
             fastForwardButton.style.backgroundColor = buttonActiveColor;
@@ -369,7 +370,7 @@ public class EvolutionSimulatorMenu : MonoBehaviour
             "Shows the best creatures from the previous iteration in their own separate boxes."
         );
         void updateFocusGrid() => focusGrid.SetFrameTargets(simulator.GetTopIndividuals(FocusGrid.maxFrames));
-        simulator.OnIterationStart += updateFocusGrid;
+        simulator.OnPreparationStart += updateFocusGrid;
         simulator.OnSimulationEnd += updateFocusGrid;
 
         VisualElement orbitCameraContainer = settingsTab.Q<VisualElement>("orbit-camera");
