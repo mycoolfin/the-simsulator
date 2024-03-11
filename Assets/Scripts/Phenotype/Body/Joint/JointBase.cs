@@ -10,8 +10,8 @@ public abstract class JointBase : MonoBehaviour
     protected float maximumJointStrength;
     protected List<float> dofAngleLimits;
     protected bool switchPrimaryAndSecondaryAxes;
-    public List<JointAngleSensor> sensors;
-    public List<JointAngleEffector> effectors;
+    public List<Sensor> sensors;
+    public List<Effector> effectors;
 
     private float maxForce;
     private JointDrive jointDrive;
@@ -184,20 +184,16 @@ public abstract class JointBase : MonoBehaviour
 
     protected void InitialiseSensors()
     {
-        sensors = new List<JointAngleSensor>();
+        sensors = new();
         for (int i = 0; i < dofAngleLimits.Count; i++)
-        {
-            sensors.Add(new JointAngleSensor());
-        }
+            sensors.Add(new Sensor(SensorType.JointAngle));
     }
 
     protected void InitialiseEffectors(ReadOnlyCollection<InputDefinition> inputDefinitions)
     {
-        effectors = new List<JointAngleEffector>();
+        effectors = new();
         for (int i = 0; i < dofAngleLimits.Count; i++)
-        {
-            effectors.Add(EffectorBase.CreateEffector(EffectorType.JointAngle, inputDefinitions) as JointAngleEffector);
-        }
+            effectors.Add(new(EffectorType.JointAngle, inputDefinitions));
     }
 
     protected void InitialiseJoint(Rigidbody connectedBody, float maximumJointStrength)
@@ -236,8 +232,8 @@ public abstract class JointBase : MonoBehaviour
     {
         for (int dofIndex = 0; dofIndex < sensors?.Count; dofIndex++)
         {
-            if (!sensors[dofIndex].Disabled)
-                sensors[dofIndex].OutputValue = dofAngleLimits[dofIndex] == 0 ? 0 : angles[dofIndex] / dofAngleLimits[dofIndex];
+            if (!sensors[dofIndex].Processor.Emitter.Disabled)
+                sensors[dofIndex].Excitation = dofAngleLimits[dofIndex] == 0 ? 0 : angles[dofIndex] / dofAngleLimits[dofIndex];
         }
     }
 
@@ -245,7 +241,7 @@ public abstract class JointBase : MonoBehaviour
     {
         for (int dofIndex = 0; dofIndex < effectors?.Count; dofIndex++)
         {
-            float excitation = effectors[dofIndex].GetExcitation();
+            float excitation = effectors[dofIndex].Excitation;
             excitations[dofIndex] = float.IsNaN(excitation) ? 0f : excitation;
         }
     }

@@ -40,19 +40,31 @@ public class Phenotype : MonoBehaviour, ISelectable, IPlaceable
         UpdateNeurons();
     }
 
-    private void UpdateNeurons()
+    public void UpdateNeurons()
     {
-        foreach (NeuronBase neuron in brain.neurons)
-            neuron.PropagatePhaseOne();
+        foreach (Neuron neuron in brain.neurons)
+            neuron.Processor.PropagatePhaseOne();
         foreach (Limb limb in limbs)
-            foreach (NeuronBase neuron in limb.neurons)
-                neuron.PropagatePhaseOne();
+        {
+            foreach (Sensor sensor in limb.sensors)
+                sensor.Processor.PropagatePhaseOne();
+            foreach (Neuron neuron in limb.neurons)
+                neuron.Processor.PropagatePhaseOne();
+            foreach (Effector effector in limb.effectors)
+                effector.Processor.PropagatePhaseOne();
+        }
 
-        foreach (NeuronBase neuron in brain.neurons)
-            neuron.PropagatePhaseTwo();
+        foreach (Neuron neuron in brain.neurons)
+            neuron.Processor.PropagatePhaseTwo();
         foreach (Limb limb in limbs)
-            foreach (NeuronBase neuron in limb.neurons)
-                neuron.PropagatePhaseTwo();
+        {
+            foreach (Sensor sensor in limb.sensors)
+                sensor.Processor.PropagatePhaseTwo();
+            foreach (Neuron neuron in limb.neurons)
+                neuron.Processor.PropagatePhaseTwo();
+            foreach (Effector effector in limb.effectors)
+                effector.Processor.PropagatePhaseTwo();
+        }
     }
 
     public Bounds GetBounds()
