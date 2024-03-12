@@ -312,21 +312,21 @@ public class EvolutionSimulatorMenu : MonoBehaviour
         fastForwardButton.style.backgroundColor = StyleKeyword.Null;
         pauseButton.clicked += () =>
         {
-            WorldManager.Instance.timeScale = 0f;
+            WorldManager.Instance.targetTimeScale = 0f;
             pauseButton.style.backgroundColor = buttonActiveColor;
             playButton.style.backgroundColor = StyleKeyword.Null;
             fastForwardButton.style.backgroundColor = StyleKeyword.Null;
         };
         playButton.clicked += () =>
         {
-            WorldManager.Instance.timeScale = 1f;
+            WorldManager.Instance.targetTimeScale = 1f;
             pauseButton.style.backgroundColor = StyleKeyword.Null;
             playButton.style.backgroundColor = buttonActiveColor;
             fastForwardButton.style.backgroundColor = StyleKeyword.Null;
         };
         fastForwardButton.clicked += () =>
         {
-            WorldManager.Instance.timeScale = WorldManager.maxTimeScale;
+            WorldManager.Instance.targetTimeScale = WorldManager.maxTimeScale;
             pauseButton.style.backgroundColor = StyleKeyword.Null;
             playButton.style.backgroundColor = StyleKeyword.Null;
             fastForwardButton.style.backgroundColor = buttonActiveColor;

@@ -155,7 +155,7 @@ public class EvolutionSimulator : MonoBehaviour
     {
         if (currentIteration > 0)
         {
-            survivors = SelectSurvivors(population, maxSurvivors, includeZeroFitness: false, includeNullPhenotype: true);
+            survivors = SelectSurvivors(population, maxSurvivors, includeZeroFitness: true, includeNullPhenotype: true);
 
             int survivorCount = survivors.Count;
             if (survivorCount > 0)

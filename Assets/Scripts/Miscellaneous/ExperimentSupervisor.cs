@@ -77,7 +77,7 @@ public class ExperimentSupervisor : MonoBehaviour
         );
 
         // Run as fast as possible.
-        WorldManager.Instance.timeScale = 100f;
+        WorldManager.Instance.targetTimeScale = 100f;
 
         simulator.StartSimulation(
             (TrialType)trial,
@@ -126,7 +126,7 @@ public class ExperimentSupervisor : MonoBehaviour
         DataExporter.ExportToCSV(data, csvPath);
 
         string genotypePath = Path.Combine(outputDir, identifier + ".genotype");
-        simulator.bestIndividual.genotype.SaveToFile(genotypePath);
+        simulator.bestIndividual?.genotype?.SaveToFile(genotypePath);
 
         Application.Quit();
     }
