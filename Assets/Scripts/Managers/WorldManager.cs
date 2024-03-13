@@ -47,8 +47,8 @@ public class WorldManager : MonoBehaviour
     public const float minTimeScale = 0f;
     public const float maxTimeScale = 5f;
     public int minimumFps = 30;
-    public float targetTimeScale;
-    public float throttledTimeScale;
+    public float targetTimeScale = 1f;
+    public float throttledTimeScale = 1f;
     public bool simulateFluid;
     public float fluidDensity;
     private Vector3 defaultGravity = new(0f, -9.81f, 0f);
@@ -57,8 +57,6 @@ public class WorldManager : MonoBehaviour
     {
         Screen.sleepTimeout = SleepTimeout.NeverSleep;
         trashCan = new List<GameObject>();
-        targetTimeScale = 1f;
-        throttledTimeScale = 1f;
         ChangeEnvironment(WorldEnvironment.Surface);
         StartCoroutine(TheVoidConsumesAll());
     }

@@ -877,9 +877,9 @@ MonoBehaviour:
   waterOrigin: {fileID: 279443275}
   pointLight: {fileID: 446693486}
   trashCan: []
-  timeScale: 1
   minimumFps: 30
-  throttledTimeScale: 0
+  targetTimeScale: 1
+  throttledTimeScale: 1
   simulateFluid: 0
   fluidDensity: 1
 --- !u!114 &958854965
@@ -1038,15 +1038,17 @@ MonoBehaviour:
     id: 
     brainNeuronDefinitions: []
     limbNodes: []
-  run: 0
   speedControl: 0
   pauseIterating: 0
   stopSimulation: 0
   colourByRelativeFitness: 1
   focusBestCreatures: 0
   currentIteration: 0
+  currentBatch: 0
+  numberOfBatches: 0
   simulationStatus: 0
   iterationStatus: 0
+  batchStatus: 0
   preparationStatus: 0
   assessmentStatus: 0
   assessmentProgress: 0
