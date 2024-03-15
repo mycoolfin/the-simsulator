@@ -54,7 +54,7 @@ public class LimbNodeParameters
     public int MaxRecursiveLimit = 5;
     public int MinNeurons = 0;
     public int MaxNeurons = 10;
-    public int MaxLimbConnections = 4;
+    public int MaxLimbConnections = 5;
 }
 
 public class LimbConnectionParameters
