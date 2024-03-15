@@ -19,7 +19,7 @@ The Simsulator is an open-source platform for evolving, breeding and experimenti
 
 ## Build
 
-1. Clone this repository to your local machine using `git clone https://github.com/mycoolfin/The-Simsulator.git`
+1. Clone this repository to your local machine using `git clone https://github.com/mycoolfin/the-simsulator.git`
 2. Install [Unity](https://store.unity.com/download).
 3. Open the project in Unity.
 4. Follow the instructions in the [Unity Manual](https://docs.unity3d.com/Manual/PlatformSpecific.html) to build the project for your target operating system.
