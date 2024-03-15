@@ -12,7 +12,6 @@ public class Phenotype : MonoBehaviour, ISelectable, IPlaceable
     public Brain brain;
     public List<Limb> limbs;
     private Color originalLimbColor;
-    public List<Collider> activeColliders;
     private List<MeshRenderer> meshRenderers;
     private List<Outline> outlines;
     public bool lostLimbs;
@@ -41,19 +40,31 @@ public class Phenotype : MonoBehaviour, ISelectable, IPlaceable
         UpdateNeurons();
     }
 
-    private void UpdateNeurons()
+    public void UpdateNeurons()
     {
-        foreach (NeuronBase neuron in brain.neurons)
-            neuron.PropagatePhaseOne();
+        foreach (Neuron neuron in brain.neurons)
+            neuron.Processor.PropagatePhaseOne();
         foreach (Limb limb in limbs)
-            foreach (NeuronBase neuron in limb.neurons)
-                neuron.PropagatePhaseOne();
+        {
+            foreach (Sensor sensor in limb.sensors)
+                sensor.Processor.PropagatePhaseOne();
+            foreach (Neuron neuron in limb.neurons)
+                neuron.Processor.PropagatePhaseOne();
+            foreach (Effector effector in limb.effectors)
+                effector.Processor.PropagatePhaseOne();
+        }
 
-        foreach (NeuronBase neuron in brain.neurons)
-            neuron.PropagatePhaseTwo();
+        foreach (Neuron neuron in brain.neurons)
+            neuron.Processor.PropagatePhaseTwo();
         foreach (Limb limb in limbs)
-            foreach (NeuronBase neuron in limb.neurons)
-                neuron.PropagatePhaseTwo();
+        {
+            foreach (Sensor sensor in limb.sensors)
+                sensor.Processor.PropagatePhaseTwo();
+            foreach (Neuron neuron in limb.neurons)
+                neuron.Processor.PropagatePhaseTwo();
+            foreach (Effector effector in limb.effectors)
+                effector.Processor.PropagatePhaseTwo();
+        }
     }
 
     public Bounds GetBounds()
@@ -122,7 +133,7 @@ public class Phenotype : MonoBehaviour, ISelectable, IPlaceable
     public static Phenotype Construct(Genotype genotype)
     {
         // Create brain.
-        Brain brain = new Brain(genotype.BrainNeuronDefinitions);
+        Brain brain = new(genotype.BrainNeuronDefinitions);
 
         // Create limbs.
         GameObject limbContainer = new(genotype.Id);
@@ -132,7 +143,6 @@ public class Phenotype : MonoBehaviour, ISelectable, IPlaceable
         phenotype.genotype = genotype;
         phenotype.brain = brain;
         phenotype.limbs = limbs;
-        phenotype.activeColliders = limbs.SelectMany(limb => limb.activeColliders).ToList();
 
         // Wire up nervous system.
         NervousSystem.Configure(brain, limbs);
@@ -170,7 +180,7 @@ public class Phenotype : MonoBehaviour, ISelectable, IPlaceable
         }
     }
 
-    public void SaveGenotypeToFile()
+    public bool SaveGenotypeToFile()
     {
         string savePath = FileBrowser.Instance.SaveFile(
             "Save Genotype",
@@ -189,5 +199,6 @@ public class Phenotype : MonoBehaviour, ISelectable, IPlaceable
             );
             saveSuccess = !string.IsNullOrEmpty(genotypeToSave.SaveToFile(savePath));
         }
+        return saveSuccess;
     }
 }

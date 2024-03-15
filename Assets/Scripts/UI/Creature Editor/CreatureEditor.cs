@@ -282,7 +282,7 @@ public class CreatureEditor : MonoBehaviour
         if (simulationEnvironment == SimulationEnvironment.Pause) pauseSimulationButton.AddToClassList("active"); else pauseSimulationButton.RemoveFromClassList("active");
         if (simulationEnvironment == SimulationEnvironment.Ground) groundSimulationButton.AddToClassList("active"); else groundSimulationButton.RemoveFromClassList("active");
         if (simulationEnvironment == SimulationEnvironment.Water) waterSimulationButton.AddToClassList("active"); else waterSimulationButton.RemoveFromClassList("active");
-        WorldManager.Instance.timeScale = simulationEnvironment == SimulationEnvironment.Pause ? 0f : 1f;
+        WorldManager.Instance.targetTimeScale = simulationEnvironment == SimulationEnvironment.Pause ? 0f : 1f;
         if (simulationEnvironment != SimulationEnvironment.Pause)
             WorldManager.Instance.ChangeEnvironment(simulationEnvironment == SimulationEnvironment.Water ? WorldEnvironment.Underwater : WorldEnvironment.Surface);
     }

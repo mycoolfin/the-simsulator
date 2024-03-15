@@ -18,14 +18,13 @@ public abstract class Assessment
     }
 
     public virtual void BeforeSimulationStart() { }
-    public virtual void BeforeIterationStart() { }
+    public virtual void BeforePreparationStart() { }
     public virtual void BeforeAssessmentStart() { }
 
-    public virtual IEnumerator PreProcess(Individual individual, Population population)
+    public virtual IEnumerator PreProcess(Individual individual, List<Individual> individuals)
     {
-        if (individual.phenotype == null) { individual.Cull(); yield break; }
-        yield return DisablePhenotypeCollisions(individual, population);
-        if (individual.phenotype == null) { individual.Cull(); yield break; }
+        if (individual.phenotype == null) { individual.Cull(); yield return null; yield break; }
+        yield return DisablePhenotypeCollisions(individual, individuals);
         PlacePhenotype(individual.phenotype, trialOrigin);
         individual.preProcessingComplete = true;
     }
@@ -40,17 +39,20 @@ public abstract class Assessment
     // This function is costly, so I've designed it to spread out over multiple frames.
     // There may be a better way to prevent phenotypes from colliding with each other
     // while maintaining self collisions, but I haven't found it yet.
-    protected IEnumerator DisablePhenotypeCollisions(Individual self, Population population)
+    protected IEnumerator DisablePhenotypeCollisions(Individual self, List<Individual> individuals)
     {
-        int maxOpsPerFrame = 100000 / population.individuals.Count;
+        if (!self.phenotype) { self.Cull(); yield return null; yield break; }
+        int maxOpsPerFrame = 100000 / individuals.Count;
         int opsCount = 0;
-        foreach (Collider col in self.phenotype.activeColliders)
+        foreach (Collider col in self.phenotype.limbs.SelectMany(l => l.activeColliders))
         {
-            foreach (Individual other in population.individuals)
+            foreach (Individual other in individuals)
                 if (other != self && !other.preProcessingComplete && other.phenotype != null)
-                    foreach (Collider otherCol in other.phenotype.activeColliders)
+                    foreach (Collider otherCol in other.phenotype.limbs.SelectMany(l => l.activeColliders))
                     {
-                        Physics.IgnoreCollision(col, otherCol);
+                        if (col != null && otherCol != null)
+                            Physics.IgnoreCollision(col, otherCol);
+
                         opsCount += 1;
                         if (opsCount >= maxOpsPerFrame)
                         {
@@ -63,6 +65,7 @@ public abstract class Assessment
 
     protected void PlacePhenotype(Phenotype phenotype, Transform trialOrigin)
     {
+        if (phenotype == null) return;
         Vector3 offset = Vector3.zero;
         if (trialOrigin.position == Vector3.zero) // Offset so we don't intersect the ground.
             offset = new Vector3(0, -phenotype.GetBounds().center.y + phenotype.GetBounds().extents.y * 2f, 0);
@@ -156,7 +159,7 @@ public abstract class LightClosenessAssessment : Assessment
         WorldManager.Instance.pointLight.AddComponent<RandomTeleporter>();
     }
 
-    public override void BeforeIterationStart()
+    public override void BeforePreparationStart()
     {
         WorldManager.Instance.pointLight.SetActive(false);
     }
@@ -219,9 +222,9 @@ public class GroundLightClosenessAssessment : LightClosenessAssessment
         r.waitTime = runtimeSeconds / 2f;
     }
 
-    public override void BeforeIterationStart()
+    public override void BeforePreparationStart()
     {
-        base.BeforeIterationStart();
+        base.BeforePreparationStart();
         WorldManager.Instance.pointLight.transform.position = trialOrigin.position + Vector3.up * 2f;
     }
 }
@@ -230,9 +233,9 @@ public class WaterLightClosenessAssessment : LightClosenessAssessment
 {
     public WaterLightClosenessAssessment() : base(WorldManager.Instance.waterOrigin.transform, 5, 15) { }
 
-    public override void BeforeIterationStart()
+    public override void BeforePreparationStart()
     {
-        base.BeforeIterationStart();
+        base.BeforePreparationStart();
         WorldManager.Instance.pointLight.transform.position = trialOrigin.position;
     }
 

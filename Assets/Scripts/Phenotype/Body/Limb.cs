@@ -28,9 +28,10 @@ public class Limb : MonoBehaviour, ISelectable
 
     public JointBase joint;
 
-    public List<PhotoSensor> photoSensors;
-
-    public List<NeuronBase> neurons;
+    public List<Sensor> sensors;
+    public List<Neuron> neurons;
+    public List<Effector> effectors;
+    public List<Sensor> photoSensors;
 
     public Limb parentLimb;
     public List<Limb> childLimbs;
@@ -42,19 +43,14 @@ public class Limb : MonoBehaviour, ISelectable
     [SerializeField] private bool reflectedY;
     [SerializeField] private bool reflectedZ;
 
-    public List<ISignalReceiver> GetSignalReceivers()
+    public List<SignalReceiver> GetSignalReceivers()
     {
-        return neurons
-            .Concat(joint?.effectors.Cast<ISignalReceiver>() ?? new List<ISignalReceiver>())
-            .ToList();
+        return neurons.Select(n => n.Processor.Receiver).Concat(effectors.Select(e => e.Processor.Receiver)).ToList();
     }
 
-    public List<ISignalEmitter> GetSignalEmitters()
+    public List<SignalEmitter> GetSignalEmitters()
     {
-        return neurons
-            .Concat(joint?.sensors.Cast<ISignalEmitter>() ?? new List<ISignalEmitter>())
-            .Concat(photoSensors)
-            .ToList();
+        return neurons.Select(n => n.Processor.Emitter).Concat(sensors.Select(s => s.Processor.Emitter)).ToList();
     }
 
     private void Awake()
@@ -76,13 +72,13 @@ public class Limb : MonoBehaviour, ISelectable
             float luminosityAtPoint = 1 / (1 + (displacement.sqrMagnitude / 100f));
             Vector3 lightDirection = displacement.normalized;
             for (int i = 0; i < 3; i++)
-                if (!photoSensors[i].Disabled)
-                    photoSensors[i].OutputValue = Vector3.Dot(limbAxes[i], lightDirection) * luminosityAtPoint;
+                if (!photoSensors[i].Processor.Emitter.Disabled)
+                    photoSensors[i].Excitation = Vector3.Dot(limbAxes[i], lightDirection) * luminosityAtPoint;
         }
         else
             for (int i = 0; i < 3; i++)
-                if (!photoSensors[i].Disabled)
-                    photoSensors[i].OutputValue = 0f;
+                if (!photoSensors[i].Processor.Emitter.Disabled)
+                    photoSensors[i].Excitation = 0f;
     }
 
     private Limb AddChildLimb(InstancedLimbNode node)
@@ -189,6 +185,8 @@ public class Limb : MonoBehaviour, ISelectable
             node.ReflectedY,
             node.ReflectedZ
         );
+        childLimb.sensors = (childLimb.joint != null ? childLimb.joint.sensors : new()).Concat(childLimb.sensors).ToList();
+        childLimb.effectors = (childLimb.joint != null ? childLimb.joint.effectors : new()).Concat(childLimb.effectors).ToList();
 
         // Enable parent/child interpenetration.
         Physics.IgnoreCollision(fullBodyCollider, childLimb.fullBodyCollider);
@@ -243,9 +241,11 @@ public class Limb : MonoBehaviour, ISelectable
         limb.name = "Limb " + containerTransform.childCount;
         limb.instanceId = node.InstanceId;
 
-        // Add sensors and neurons, but don't wire them up until later (when we have a complete morphology to reference).
-        limb.photoSensors = new() { new(), new(), new() };
-        limb.neurons = node.LimbNode.NeuronDefinitions.Select(neuronDefinition => NeuronBase.CreateNeuron(neuronDefinition)).ToList();
+        // Add sensors, neurons and effectors, but don't wire them up until later (when we have a complete morphology to reference).
+        limb.photoSensors = new() { new(SensorType.PhotoSensor), new(SensorType.PhotoSensor), new(SensorType.PhotoSensor) };
+        limb.neurons = node.LimbNode.NeuronDefinitions.Select(neuronDefinition => new Neuron(neuronDefinition)).ToList();
+        limb.sensors = limb.photoSensors.ToList();
+        limb.effectors = new();
 
         limb.activeColliders = new List<Collider> { limb.fullBodyCollider };
 

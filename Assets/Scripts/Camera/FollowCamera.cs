@@ -19,7 +19,7 @@ public class FollowCamera : MonoBehaviour
             Bounds bounds = target.GetBounds();
             Vector3 toTarget = (bounds.center - transform.position).normalized;
             Vector3 toTargetXZ = Vector3.ProjectOnPlane(toTarget, Vector3.up).normalized;
-            Quaternion lookingRotation = Quaternion.LookRotation(toTarget, Vector3.up);
+            Quaternion lookingRotation = toTarget == Vector3.zero ? Quaternion.identity : Quaternion.LookRotation(toTarget, Vector3.up);
             transform.position = bounds.center - Quaternion.Euler(0f, 5f * Time.unscaledDeltaTime, 0f) * toTargetXZ * desiredDistance + Vector3.up * desiredHeight;
             transform.rotation = Quaternion.Slerp(transform.rotation, lookingRotation, Time.unscaledDeltaTime * 1f);
         }
@@ -38,7 +38,7 @@ public class FollowCamera : MonoBehaviour
             desiredDistance = maxLength * 1.5f;
             transform.position = bounds.center - target.gameObject.transform.forward * desiredDistance + Vector3.up * desiredHeight;
             Vector3 toTarget = (bounds.center - transform.position).normalized;
-            Quaternion lookingRotation = Quaternion.LookRotation(toTarget, Vector3.up);
+            Quaternion lookingRotation = toTarget == Vector3.zero ? Quaternion.identity : Quaternion.LookRotation(toTarget, Vector3.up);
             transform.rotation = lookingRotation;
         }
     }

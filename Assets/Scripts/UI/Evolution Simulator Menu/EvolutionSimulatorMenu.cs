@@ -4,7 +4,7 @@ using UnityEngine.SceneManagement;
 using UnityEngine.UIElements;
 using Crosstales.FB;
 
-public class EvolutionModeMenu : MonoBehaviour
+public class EvolutionSimulatorMenu : MonoBehaviour
 {
     public EvolutionSimulator simulator;
     public PlayerController playerController;
@@ -196,15 +196,16 @@ public class EvolutionModeMenu : MonoBehaviour
                 ShowRuntimeMenu(true);
                 ToggleRuntimeMenuTab(RuntimeMenuTab.Status);
                 numberOfIterations = maxIterations.value;
-                ParameterManager.Instance.Mutation.MutationRate = mutationRate.value;
                 ParameterManager.Instance.Reproduction.LockMorphologies = lockMorphologies.value;
-                StartCoroutine(simulator.Run(
+                simulator.StartSimulation(
                     (TrialType)trialType.value,
                     maxIterations.value,
                     populationSize.value,
                     survivalPercentage.value / 100f,
-                    seedGenotype
-                ));
+                    mutationRate.value,
+                    seedGenotype,
+                    null
+                );
             }
         };
 
@@ -311,21 +312,21 @@ public class EvolutionModeMenu : MonoBehaviour
         fastForwardButton.style.backgroundColor = StyleKeyword.Null;
         pauseButton.clicked += () =>
         {
-            WorldManager.Instance.timeScale = 0f;
+            WorldManager.Instance.targetTimeScale = 0f;
             pauseButton.style.backgroundColor = buttonActiveColor;
             playButton.style.backgroundColor = StyleKeyword.Null;
             fastForwardButton.style.backgroundColor = StyleKeyword.Null;
         };
         playButton.clicked += () =>
         {
-            WorldManager.Instance.timeScale = 1f;
+            WorldManager.Instance.targetTimeScale = 1f;
             pauseButton.style.backgroundColor = StyleKeyword.Null;
             playButton.style.backgroundColor = buttonActiveColor;
             fastForwardButton.style.backgroundColor = StyleKeyword.Null;
         };
         fastForwardButton.clicked += () =>
         {
-            WorldManager.Instance.timeScale = 5f;
+            WorldManager.Instance.targetTimeScale = WorldManager.maxTimeScale;
             pauseButton.style.backgroundColor = StyleKeyword.Null;
             playButton.style.backgroundColor = StyleKeyword.Null;
             fastForwardButton.style.backgroundColor = buttonActiveColor;
@@ -369,7 +370,7 @@ public class EvolutionModeMenu : MonoBehaviour
             "Shows the best creatures from the previous iteration in their own separate boxes."
         );
         void updateFocusGrid() => focusGrid.SetFrameTargets(simulator.GetTopIndividuals(FocusGrid.maxFrames));
-        simulator.OnIterationStart += updateFocusGrid;
+        simulator.OnAssessmentStart += updateFocusGrid;
         simulator.OnSimulationEnd += updateFocusGrid;
 
         VisualElement orbitCameraContainer = settingsTab.Q<VisualElement>("orbit-camera");

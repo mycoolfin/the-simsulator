@@ -9,9 +9,9 @@ public class NervousSystemDisplay : MonoBehaviour
     public VisualTreeAsset nervousSystemSection;
     public VisualTreeAsset nervousSystemNode;
 
-    private List<SensorBase> sensors;
-    private List<NeuronBase> neurons;
-    private List<EffectorBase> effectors;
+    private List<Sensor> sensors;
+    private List<Neuron> neurons;
+    private List<Effector> effectors;
 
     private List<VisualElement> nodes;
     private List<Action> updateFunctions;
@@ -25,8 +25,7 @@ public class NervousSystemDisplay : MonoBehaviour
             Phenotype[] phenotypes = FindObjectsOfType<Phenotype>();
             if (phenotypes.Length != 0)
             {
-                phenotype = phenotypes[phenotypes.Length - 1];
-                Initialise(phenotype);
+                Initialise(phenotypes[^1]);
             }
             else
                 updateFunctions = null;
@@ -53,13 +52,13 @@ public class NervousSystemDisplay : MonoBehaviour
         scrollView.Add(brainSection);
         VisualElement brainNeuronsPanel = brainSection.Q<VisualElement>("neurons");
         for (int i = 0; i < phenotype.brain.neurons.Count; i++)
-            brainNeuronsPanel.Add(InstantiateNervousSystemNode(phenotype.brain.neurons[i].GetType().Name, phenotype.brain.neurons[i], phenotype.brain.neurons[i]));
+            brainNeuronsPanel.Add(InstantiateNervousSystemNode(phenotype.brain.neurons[i].GetType().Name, phenotype.brain.neurons[i].Processor.Receiver, phenotype.brain.neurons[i].Processor.Emitter));
 
         foreach (Limb limb in phenotype.limbs)
         {
-            sensors = (limb.joint?.sensors.Cast<SensorBase>().ToList() ?? new List<SensorBase>()).Concat(limb.photoSensors).ToList();
+            sensors = (limb.joint?.sensors.Cast<Sensor>().ToList() ?? new List<Sensor>()).Concat(limb.photoSensors).ToList();
             neurons = limb.neurons;
-            effectors = limb.joint?.effectors.Cast<EffectorBase>().ToList() ?? new List<EffectorBase>();
+            effectors = limb.joint?.effectors.Cast<Effector>().ToList() ?? new List<Effector>();
 
             VisualElement section = nervousSystemSection.Instantiate();
             section.Q<Label>("instance-id").text = limb.instanceId;
@@ -70,11 +69,11 @@ public class NervousSystemDisplay : MonoBehaviour
             VisualElement effectorsPanel = section.Q<VisualElement>("effectors");
 
             for (int i = 0; i < sensors.Count; i++)
-                sensorsPanel.Add(InstantiateNervousSystemNode(sensors[i].GetType().Name, null, sensors[i]));
+                sensorsPanel.Add(InstantiateNervousSystemNode(sensors[i].GetType().Name, null, sensors[i].Processor.Emitter));
             for (int i = 0; i < neurons.Count; i++)
-                neuronsPanel.Add(InstantiateNervousSystemNode(neurons[i].GetType().Name, neurons[i], neurons[i]));
+                neuronsPanel.Add(InstantiateNervousSystemNode(neurons[i].GetType().Name, neurons[i].Processor.Receiver, neurons[i].Processor.Emitter));
             for (int i = 0; i < effectors.Count; i++)
-                effectorsPanel.Add(InstantiateNervousSystemNode(effectors[i].GetType().Name, effectors[i], null));
+                effectorsPanel.Add(InstantiateNervousSystemNode(effectors[i].GetType().Name, effectors[i].Processor.Receiver, null));
         }
 
         scrollView.generateVisualContent += OnGenerateVisualContent;
@@ -85,10 +84,10 @@ public class NervousSystemDisplay : MonoBehaviour
 
     }
 
-    private VisualElement InstantiateNervousSystemNode(string nodeName, ISignalReceiver selfReceiver, ISignalEmitter selfEmitter)
+    private VisualElement InstantiateNervousSystemNode(string nodeName, SignalReceiver selfReceiver, SignalEmitter selfEmitter)
     {
         VisualElement node = nervousSystemNode.Instantiate();
-        if (selfEmitter != null && selfEmitter.Disabled)
+        if (selfEmitter != null && ((SignalEmitter)selfEmitter).Disabled)
             node.Q<VisualElement>("block").style.backgroundColor = Color.red;
         node.Q<Label>("node-name").text = nodeName;
         Label input1Label = node.Q<Label>("input-1");
@@ -98,11 +97,11 @@ public class NervousSystemDisplay : MonoBehaviour
 
         Action updateFunction = () =>
         {
-            List<float> inputValues = selfReceiver?.WeightedInputValues;
+            float[] inputValues = selfReceiver?.WeightedInputValues;
             float? outputValue = selfEmitter?.OutputValue;
-            input1Label.text = inputValues?.Count > 0 ? inputValues[0].ToString("0.00") : "";
-            input2Label.text = inputValues?.Count > 1 ? inputValues[1].ToString("0.00") : "";
-            input3Label.text = inputValues?.Count > 2 ? inputValues[2].ToString("0.00") : "";
+            input1Label.text = inputValues?.Length > 0 ? inputValues[0].ToString("0.00") : "";
+            input2Label.text = inputValues?.Length > 1 ? inputValues[1].ToString("0.00") : "";
+            input3Label.text = inputValues?.Length > 2 ? inputValues[2].ToString("0.00") : "";
             outputLabel.text = outputValue?.ToString("0.00") ?? "";
         };
         updateFunctions.Add(updateFunction);
@@ -124,14 +123,14 @@ public class NervousSystemDisplay : MonoBehaviour
 
         foreach (TemplateContainer node in nodes)
         {
-            (List<ISignalEmitter> inputs, ISignalEmitter output) = ((List<ISignalEmitter>, ISignalEmitter))node.userData;
+            (List<SignalEmitter> inputs, SignalEmitter output) = ((List<SignalEmitter>, SignalEmitter))node.userData;
 
             for (int i = 0; i < inputs?.Count; i++)
             {
                 foreach (TemplateContainer otherNode in nodes)
                 {
-                    (List<ISignalEmitter> otherInputs, ISignalEmitter otherOutput) = ((List<ISignalEmitter>, ISignalEmitter))otherNode.userData;
-                    if (otherOutput != null && inputs[i] == otherOutput)
+                    (List<SignalEmitter> otherInputs, SignalEmitter otherOutput) = ((List<SignalEmitter>, SignalEmitter))otherNode.userData;
+                    if (otherOutput != null && inputs[i].Equals((SignalEmitter)otherOutput))
                     {
                         VisualElement inputLabel = node.Q("input-" + (i + 1));
                         VisualElement outputLabel = otherNode.Q("output");

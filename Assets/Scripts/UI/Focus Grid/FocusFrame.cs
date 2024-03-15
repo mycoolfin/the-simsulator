@@ -38,6 +38,7 @@ public class FocusFrame
     public void SetActive(bool active)
     {
         frameElement.style.display = active ? DisplayStyle.Flex : DisplayStyle.None;
+        followCamera.cam.enabled = active;
     }
 
     public void SetTarget(Individual target, string layerName, string prefix)

@@ -21,18 +21,6 @@ public class WorldManager : MonoBehaviour
     private static WorldManager _instance;
     public static WorldManager Instance { get { return _instance; } }
 
-    private void Awake()
-    {
-        if (_instance != null && _instance != this)
-        {
-            Destroy(this.gameObject);
-        }
-        else
-        {
-            _instance = this;
-        }
-    }
-
     [Header("World Objects")]
     public Light directionalLight;
     public GameObject world;
@@ -45,26 +33,32 @@ public class WorldManager : MonoBehaviour
     [Header("Parameters")]
     public const float minTimeScale = 0f;
     public const float maxTimeScale = 5f;
-    [Range(minTimeScale, maxTimeScale)]
-    public float timeScale;
-    [Range(15, 60)]
     public int minimumFps = 30;
-    public float throttledTimeScale;
+    public float targetTimeScale = 1f;
+    public float throttledTimeScale = 1f;
     public bool simulateFluid;
     public float fluidDensity;
     private Vector3 defaultGravity = new(0f, -9.81f, 0f);
 
+    private void Awake()
+    {
+        if (_instance != null && _instance != this)
+            Destroy(gameObject);
+        else
+            _instance = this;
+
+        Screen.sleepTimeout = SleepTimeout.NeverSleep;
+        trashCan = new List<GameObject>();
+        ChangeEnvironment(WorldEnvironment.Surface);
+    }
+
     private void Start()
     {
-        trashCan = new List<GameObject>();
-        throttledTimeScale = timeScale;
-        ChangeEnvironment(WorldEnvironment.Surface);
         StartCoroutine(TheVoidConsumesAll());
     }
 
     private void Update()
     {
-        Screen.sleepTimeout = SleepTimeout.NeverSleep;
         ThrottleTimeScaling();
     }
 
@@ -73,7 +67,7 @@ public class WorldManager : MonoBehaviour
         if (1 / Time.deltaTime < minimumFps)
             throttledTimeScale = Mathf.Max(0.1f, throttledTimeScale - Time.unscaledDeltaTime);
         else
-            throttledTimeScale = Mathf.Min(timeScale, throttledTimeScale + Time.unscaledDeltaTime);
+            throttledTimeScale = Mathf.Min(targetTimeScale, throttledTimeScale + Time.unscaledDeltaTime);
         Time.timeScale = throttledTimeScale;
     }
 

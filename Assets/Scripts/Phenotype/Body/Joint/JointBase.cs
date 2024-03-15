@@ -10,18 +10,16 @@ public abstract class JointBase : MonoBehaviour
     protected float maximumJointStrength;
     protected List<float> dofAngleLimits;
     protected bool switchPrimaryAndSecondaryAxes;
-    public List<JointAngleSensor> sensors;
-    public List<JointAngleEffector> effectors;
+    public List<Sensor> sensors;
+    public List<Effector> effectors;
 
     private float maxForce;
     private JointDrive jointDrive;
 
     [SerializeField] private Vector3 angles;
-    private Vector3 previousAngles;
     private Vector3 angleTargets;
     private Vector3 smoothingVelocity;
     [SerializeField] private Vector3 smoothedAngleTargets;
-    [SerializeField] private Vector3 crampLevels;
     [SerializeField] private Vector3 limits;
     [SerializeField] private Vector3 excitations;
 
@@ -117,13 +115,13 @@ public abstract class JointBase : MonoBehaviour
 
         angles = GetCurrentAngles(relativeRotationFromOrigin);
 
-        Vector3 e = new Vector3(
+        Vector3 e = new(
             useDebugExcitations ? debugPrimaryExcitation : (float.IsNaN(excitations[0]) ? 0f : excitations[0]),
             useDebugExcitations ? debugSecondaryExcitation : (float.IsNaN(excitations[1]) ? 0f : excitations[1]),
             useDebugExcitations ? debugTertiaryExcitation : (float.IsNaN(excitations[2]) ? 0f : excitations[2])
         );
 
-        angleTargets = new Vector3(
+        angleTargets = new(
             ConvertExcitationToAngle(e[0], limits[0]),
             ConvertExcitationToAngle(e[1], limits[1]),
             ConvertExcitationToAngle(e[2], limits[2])
@@ -150,8 +148,6 @@ public abstract class JointBase : MonoBehaviour
             debugSecondaryExcitation = 0f;
             debugTertiaryExcitation = 0f;
         }
-
-        previousAngles = angles;
     }
 
     private void OnJointBreak(float breakForce)
@@ -184,20 +180,16 @@ public abstract class JointBase : MonoBehaviour
 
     protected void InitialiseSensors()
     {
-        sensors = new List<JointAngleSensor>();
+        sensors = new();
         for (int i = 0; i < dofAngleLimits.Count; i++)
-        {
-            sensors.Add(new JointAngleSensor());
-        }
+            sensors.Add(new Sensor(SensorType.JointAngle));
     }
 
     protected void InitialiseEffectors(ReadOnlyCollection<InputDefinition> inputDefinitions)
     {
-        effectors = new List<JointAngleEffector>();
+        effectors = new();
         for (int i = 0; i < dofAngleLimits.Count; i++)
-        {
-            effectors.Add(EffectorBase.CreateEffector(EffectorType.JointAngle, inputDefinitions) as JointAngleEffector);
-        }
+            effectors.Add(new(EffectorType.JointAngle, inputDefinitions));
     }
 
     protected void InitialiseJoint(Rigidbody connectedBody, float maximumJointStrength)
@@ -236,8 +228,8 @@ public abstract class JointBase : MonoBehaviour
     {
         for (int dofIndex = 0; dofIndex < sensors?.Count; dofIndex++)
         {
-            if (!sensors[dofIndex].Disabled)
-                sensors[dofIndex].OutputValue = dofAngleLimits[dofIndex] == 0 ? 0 : angles[dofIndex] / dofAngleLimits[dofIndex];
+            if (!sensors[dofIndex].Processor.Emitter.Disabled)
+                sensors[dofIndex].Excitation = dofAngleLimits[dofIndex] == 0 ? 0 : angles[dofIndex] / dofAngleLimits[dofIndex];
         }
     }
 
@@ -245,7 +237,7 @@ public abstract class JointBase : MonoBehaviour
     {
         for (int dofIndex = 0; dofIndex < effectors?.Count; dofIndex++)
         {
-            float excitation = effectors[dofIndex].GetExcitation();
+            float excitation = effectors[dofIndex].Excitation;
             excitations[dofIndex] = float.IsNaN(excitation) ? 0f : excitation;
         }
     }

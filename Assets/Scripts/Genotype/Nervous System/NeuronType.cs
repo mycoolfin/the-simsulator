@@ -1,3 +1,5 @@
+using System;
+
 public enum NeuronType
 {
     Abs,
@@ -29,32 +31,32 @@ public static class NeuronTypeExtensions
 {
     public static int NumberOfInputs(this NeuronType self)
     {
-        switch (self)
+        return self switch
         {
-            case NeuronType.Abs: return 1;
-            case NeuronType.Atan: return 1;
-            case NeuronType.Cos: return 1;
-            case NeuronType.Differentiate: return 2;
-            case NeuronType.Divide: return 2;
-            case NeuronType.Expt: return 1;
-            case NeuronType.GreaterThan: return 2;
-            case NeuronType.If: return 3;
-            case NeuronType.Integrate: return 2;
-            case NeuronType.Interpolate: return 3;
-            case NeuronType.Log: return 1;
-            case NeuronType.Max: return 3;
-            case NeuronType.Memory: return 2;
-            case NeuronType.Min: return 3;
-            case NeuronType.OscillateSaw: return 3;
-            case NeuronType.OscillateWave: return 3;
-            case NeuronType.Product: return 2;
-            case NeuronType.Sigmoid: return 1;
-            case NeuronType.SignOf: return 1;
-            case NeuronType.Sin: return 1;
-            case NeuronType.Smooth: return 2;
-            case NeuronType.Sum: return 2;
-            case NeuronType.SumThreshold: return 3;
-            default: throw new System.Exception("Unknown number of inputs for type " + self.ToString());
-        }
+            NeuronType.Abs => 1,
+            NeuronType.Atan => 1,
+            NeuronType.Cos => 1,
+            NeuronType.Differentiate => 2,
+            NeuronType.Divide => 2,
+            NeuronType.Expt => 1,
+            NeuronType.GreaterThan => 2,
+            NeuronType.If => 3,
+            NeuronType.Integrate => 2,
+            NeuronType.Interpolate => 3,
+            NeuronType.Log => 1,
+            NeuronType.Max => 3,
+            NeuronType.Memory => 2,
+            NeuronType.Min => 3,
+            NeuronType.OscillateSaw => 3,
+            NeuronType.OscillateWave => 3,
+            NeuronType.Product => 2,
+            NeuronType.Sigmoid => 1,
+            NeuronType.SignOf => 1,
+            NeuronType.Sin => 1,
+            NeuronType.Smooth => 2,
+            NeuronType.Sum => 2,
+            NeuronType.SumThreshold => 3,
+            _ => throw new System.Exception("Unknown number of inputs for type " + self.ToString()),
+        };
     }
 }
