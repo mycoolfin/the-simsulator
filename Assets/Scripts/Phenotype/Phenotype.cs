@@ -133,7 +133,7 @@ public class Phenotype : MonoBehaviour, ISelectable, IPlaceable
     public static Phenotype Construct(Genotype genotype)
     {
         // Create brain.
-        Brain brain = new Brain(genotype.BrainNeuronDefinitions);
+        Brain brain = new(genotype.BrainNeuronDefinitions);
 
         // Create limbs.
         GameObject limbContainer = new(genotype.Id);
@@ -144,27 +144,10 @@ public class Phenotype : MonoBehaviour, ISelectable, IPlaceable
         phenotype.brain = brain;
         phenotype.limbs = limbs;
 
-        phenotype.EnableSelfCollisions();
-
         // Wire up nervous system.
         NervousSystem.Configure(brain, limbs);
 
         return phenotype;
-    }
-
-    private void EnableSelfCollisions()
-    {
-        for (int i = 0; i < limbs.Count; i++)
-        {
-            Limb limb1 = limbs[i];
-            for (int j = i + 1; j < limbs.Count; j++)
-            {
-                Limb limb2 = limbs[j];
-                bool parentChildRelationship = limb2.parentLimb == limb1 || limb1.parentLimb == limb2;
-                if (!parentChildRelationship)
-                    Physics.IgnoreCollision(limb1.fullBodyCollider, limb2.fullBodyCollider, false);
-            }
-        }
     }
 
     public void SetLimbsSelectable(bool limbsSelectable)
@@ -197,7 +180,7 @@ public class Phenotype : MonoBehaviour, ISelectable, IPlaceable
         }
     }
 
-    public void SaveGenotypeToFile()
+    public bool SaveGenotypeToFile()
     {
         string savePath = FileBrowser.Instance.SaveFile(
             "Save Genotype",
@@ -216,5 +199,6 @@ public class Phenotype : MonoBehaviour, ISelectable, IPlaceable
             );
             saveSuccess = !string.IsNullOrEmpty(genotypeToSave.SaveToFile(savePath));
         }
+        return saveSuccess;
     }
 }

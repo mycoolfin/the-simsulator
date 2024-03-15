@@ -21,10 +21,10 @@ public abstract class Assessment
     public virtual void BeforePreparationStart() { }
     public virtual void BeforeAssessmentStart() { }
 
-    public virtual IEnumerator PreProcess(Individual individual, Population population)
+    public virtual IEnumerator PreProcess(Individual individual, List<Individual> individuals)
     {
-        if (individual.phenotype == null) { individual.Cull(); yield break; }
-        if (individual.phenotype == null) { individual.Cull(); yield break; }
+        if (individual.phenotype == null) { individual.Cull(); yield return null; yield break; }
+        yield return DisablePhenotypeCollisions(individual, individuals);
         PlacePhenotype(individual.phenotype, trialOrigin);
         individual.preProcessingComplete = true;
     }
@@ -36,8 +36,36 @@ public abstract class Assessment
 
     public abstract IEnumerator Assess(Individual individual);
 
+    // This function is costly, so I've designed it to spread out over multiple frames.
+    // There may be a better way to prevent phenotypes from colliding with each other
+    // while maintaining self collisions, but I haven't found it yet.
+    protected IEnumerator DisablePhenotypeCollisions(Individual self, List<Individual> individuals)
+    {
+        if (!self.phenotype) { self.Cull(); yield return null; yield break; }
+        int maxOpsPerFrame = 100000 / individuals.Count;
+        int opsCount = 0;
+        foreach (Collider col in self.phenotype.limbs.SelectMany(l => l.activeColliders))
+        {
+            foreach (Individual other in individuals)
+                if (other != self && !other.preProcessingComplete && other.phenotype != null)
+                    foreach (Collider otherCol in other.phenotype.limbs.SelectMany(l => l.activeColliders))
+                    {
+                        if (col != null && otherCol != null)
+                            Physics.IgnoreCollision(col, otherCol);
+
+                        opsCount += 1;
+                        if (opsCount >= maxOpsPerFrame)
+                        {
+                            yield return null;
+                            opsCount = 0;
+                        }
+                    }
+        }
+    }
+
     protected void PlacePhenotype(Phenotype phenotype, Transform trialOrigin)
     {
+        if (phenotype == null) return;
         Vector3 offset = Vector3.zero;
         if (trialOrigin.position == Vector3.zero) // Offset so we don't intersect the ground.
             offset = new Vector3(0, -phenotype.GetBounds().center.y + phenotype.GetBounds().extents.y * 2f, 0);

@@ -1,4 +1,3 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -22,18 +21,6 @@ public class WorldManager : MonoBehaviour
     private static WorldManager _instance;
     public static WorldManager Instance { get { return _instance; } }
 
-    private void Awake()
-    {
-        if (_instance != null && _instance != this)
-        {
-            Destroy(this.gameObject);
-        }
-        else
-        {
-            _instance = this;
-        }
-    }
-
     [Header("World Objects")]
     public Light directionalLight;
     public GameObject world;
@@ -53,11 +40,20 @@ public class WorldManager : MonoBehaviour
     public float fluidDensity;
     private Vector3 defaultGravity = new(0f, -9.81f, 0f);
 
-    private void Start()
+    private void Awake()
     {
+        if (_instance != null && _instance != this)
+            Destroy(gameObject);
+        else
+            _instance = this;
+
         Screen.sleepTimeout = SleepTimeout.NeverSleep;
         trashCan = new List<GameObject>();
         ChangeEnvironment(WorldEnvironment.Surface);
+    }
+
+    private void Start()
+    {
         StartCoroutine(TheVoidConsumesAll());
     }
 

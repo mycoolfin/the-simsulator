@@ -370,7 +370,7 @@ public class EvolutionSimulatorMenu : MonoBehaviour
             "Shows the best creatures from the previous iteration in their own separate boxes."
         );
         void updateFocusGrid() => focusGrid.SetFrameTargets(simulator.GetTopIndividuals(FocusGrid.maxFrames));
-        simulator.OnPreparationStart += updateFocusGrid;
+        simulator.OnAssessmentStart += updateFocusGrid;
         simulator.OnSimulationEnd += updateFocusGrid;
 
         VisualElement orbitCameraContainer = settingsTab.Q<VisualElement>("orbit-camera");

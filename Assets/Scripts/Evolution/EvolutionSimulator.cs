@@ -104,8 +104,6 @@ public class EvolutionSimulator : MonoBehaviour
         maxSurvivors = Mathf.CeilToInt(populationSize * survivalPercentage);
         assessment = PickAssessment(trial);
 
-        EnableInterPhenotypeCollisions(false);
-
         // Reset outputs.
         bestIndividual = null;
         bestFitnesses = new List<float>();
@@ -195,8 +193,6 @@ public class EvolutionSimulator : MonoBehaviour
 
         ResetWorld();
 
-        ConstructPhenotypes(batchIndividuals);
-
         StartPreparation(batchIndividuals);
     }
 
@@ -267,30 +263,6 @@ public class EvolutionSimulator : MonoBehaviour
             return SelectSurvivors(population, count, includeZeroFitness: true, includeNullPhenotype: true);
     }
 
-    private void EnableInterPhenotypeCollisions(bool enable)
-    {
-        string[] phenotypeLayers = new string[] {
-            "Phenotype",
-            "Best Individual 1",
-            "Best Individual 2",
-            "Best Individual 3",
-            "Best Individual 4",
-            "Best Individual 5",
-            "Best Individual 6",
-            "Best Individual 7",
-            "Best Individual 8",
-            "Best Individual 9",
-            "Best Individual 10",
-            "Best Individual 11",
-            "Best Individual 12"
-        };
-        foreach (string layerName in phenotypeLayers)
-        {
-            LayerMask layerMask = LayerMask.NameToLayer(layerName);
-            Physics.IgnoreLayerCollision(layerMask, layerMask, !enable);
-        }
-    }
-
     private Assessment PickAssessment(TrialType trialType)
     {
         Assessment assessment;
@@ -316,8 +288,6 @@ public class EvolutionSimulator : MonoBehaviour
 
     private void ConstructPhenotypes(List<Individual> individuals)
     {
-        Physics.simulationMode = SimulationMode.Script;
-
         foreach (Individual individual in individuals)
         {
             individual.phenotype = Phenotype.Construct(individual.genotype);
@@ -325,19 +295,20 @@ public class EvolutionSimulator : MonoBehaviour
             if (!individual.phenotype.IsValid())
                 individual.Cull();
         }
-
-        Physics.simulationMode = SimulationMode.FixedUpdate;
     }
 
     private IEnumerator PrepareIndividuals(List<Individual> individuals, Assessment assessment)
     {
-        yield return ProcessIndividualsAsync(individuals, (individual) => assessment.PreProcess(individual, population));
-        yield return ProcessIndividualsAsync(individuals, (individual) => assessment.WaitUntilSettled(individual));
+        Physics.simulationMode = SimulationMode.Script;
+        ConstructPhenotypes(individuals);
+        yield return ProcessIndividualsAsync(individuals, (individual) => assessment.PreProcess(individual, individuals));
+        Physics.simulationMode = SimulationMode.FixedUpdate;
         EndPreparation(individuals);
     }
 
     private IEnumerator AssessFitnesses(List<Individual> individuals, Assessment assessment)
     {
+        yield return ProcessIndividualsAsync(individuals, (individual) => assessment.WaitUntilSettled(individual));
         yield return ProcessIndividualsAsync(individuals, (individual) => assessment.Assess(individual));
         EndAssessment();
     }

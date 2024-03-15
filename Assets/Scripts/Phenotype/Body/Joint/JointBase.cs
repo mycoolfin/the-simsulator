@@ -17,11 +17,9 @@ public abstract class JointBase : MonoBehaviour
     private JointDrive jointDrive;
 
     [SerializeField] private Vector3 angles;
-    private Vector3 previousAngles;
     private Vector3 angleTargets;
     private Vector3 smoothingVelocity;
     [SerializeField] private Vector3 smoothedAngleTargets;
-    [SerializeField] private Vector3 crampLevels;
     [SerializeField] private Vector3 limits;
     [SerializeField] private Vector3 excitations;
 
@@ -117,13 +115,13 @@ public abstract class JointBase : MonoBehaviour
 
         angles = GetCurrentAngles(relativeRotationFromOrigin);
 
-        Vector3 e = new Vector3(
+        Vector3 e = new(
             useDebugExcitations ? debugPrimaryExcitation : (float.IsNaN(excitations[0]) ? 0f : excitations[0]),
             useDebugExcitations ? debugSecondaryExcitation : (float.IsNaN(excitations[1]) ? 0f : excitations[1]),
             useDebugExcitations ? debugTertiaryExcitation : (float.IsNaN(excitations[2]) ? 0f : excitations[2])
         );
 
-        angleTargets = new Vector3(
+        angleTargets = new(
             ConvertExcitationToAngle(e[0], limits[0]),
             ConvertExcitationToAngle(e[1], limits[1]),
             ConvertExcitationToAngle(e[2], limits[2])
@@ -150,8 +148,6 @@ public abstract class JointBase : MonoBehaviour
             debugSecondaryExcitation = 0f;
             debugTertiaryExcitation = 0f;
         }
-
-        previousAngles = angles;
     }
 
     private void OnJointBreak(float breakForce)
