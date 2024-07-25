@@ -1,6 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.Audio;
 
 public enum WorldEnvironment
 {
@@ -29,6 +31,8 @@ public class WorldManager : MonoBehaviour
     public GameObject pointLight;
     public List<GameObject> trashCan; // Objects we want destroyed later, on command.
     public Queue<GameObject> theVoid; // Objects we want destroyed as soon as possible, framerate willing.
+    public AudioMixerGroup audioMixerGroup;
+    public List<AudioClip> phenotypeSoundClips;
 
     [Header("Parameters")]
     public const float minTimeScale = 0f;

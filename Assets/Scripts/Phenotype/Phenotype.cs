@@ -15,6 +15,7 @@ public class Phenotype : MonoBehaviour, ISelectable, IPlaceable
     private List<MeshRenderer> meshRenderers;
     private List<Outline> outlines;
     public bool lostLimbs;
+    private AudioSource audioSource;
 
     [SerializeField]
     private bool saveGenotypeToFile; // Editor only.
@@ -24,6 +25,7 @@ public class Phenotype : MonoBehaviour, ISelectable, IPlaceable
         meshRenderers = GetComponentsInChildren<MeshRenderer>().ToList();
         originalLimbColor = meshRenderers.Count == 0 ? Color.white : meshRenderers[0].sharedMaterial.color;
         outlines = GetComponentsInChildren<Outline>().ToList();
+        InitialiseSound();
     }
 
     private void Update()
@@ -200,5 +202,20 @@ public class Phenotype : MonoBehaviour, ISelectable, IPlaceable
             saveSuccess = !string.IsNullOrEmpty(genotypeToSave.SaveToFile(savePath));
         }
         return saveSuccess;
+    }
+
+    private void InitialiseSound()
+    {
+        audioSource = gameObject.AddComponent<AudioSource>();
+        audioSource.outputAudioMixerGroup = WorldManager.Instance.audioMixerGroup;
+        audioSource.clip = WorldManager.Instance.phenotypeSoundClips[UnityEngine.Random.Range(0, WorldManager.Instance.phenotypeSoundClips.Count)];
+        audioSource.playOnAwake = false;
+        audioSource.loop = false;
+        // TODO: Modulate clip based on Phenotype/Limb configuration.
+    }
+
+    public void MakeSound()
+    {
+        audioSource.Play();
     }
 }

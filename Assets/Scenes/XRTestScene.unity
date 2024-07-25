@@ -3833,6 +3833,11 @@ MonoBehaviour:
   waterOrigin: {fileID: 0}
   pointLight: {fileID: 0}
   trashCan: []
+  audioMixerGroup: {fileID: 24300002, guid: 75b5ee38cc8cc40a8852aad9c59e513f, type: 2}
+  phenotypeSoundClips:
+  - {fileID: 8300000, guid: 2a21a6417bf9a476eadcef6afbfa17b7, type: 3}
+  - {fileID: 8300000, guid: 24437a6e6bc274180b767c54856e51f1, type: 3}
+  - {fileID: 8300000, guid: 71b80bb4d63e249de875e1ec82ed8cc2, type: 3}
   minimumFps: 30
   targetTimeScale: 1
   throttledTimeScale: 0
