@@ -17,6 +17,7 @@ public class Spawner : MonoBehaviour
     public List<Genotype> underwaterGenotypes;
     private Queue<Phenotype> queue;
     [SerializeField]
+    private bool useTimer;
     private float timer;
     public SpawnType spawnType = SpawnType.Surface;
     public float radius = 10f;
@@ -39,9 +40,7 @@ public class Spawner : MonoBehaviour
 
     private void FixedUpdate()
     {
-        List<Genotype> genotypes = spawnType == SpawnType.Surface ? surfaceGenotypes : underwaterGenotypes;
-        if (genotypes.Count == 0 || spawnLocations.Count == 0)
-            return;
+        if (!useTimer) return;
 
         timer -= Time.deltaTime;
         if (timer <= 0)
@@ -50,14 +49,23 @@ public class Spawner : MonoBehaviour
             if (queue.Count > 20)
                 Destroy(queue.Dequeue().gameObject);
 
-            Genotype g = genotypes[Random.Range(0, genotypes.Count)];
-            Phenotype p = Phenotype.Construct(g);
-            queue.Enqueue(p);
-            p.transform.position = spawnLocations[Random.Range(0, spawnLocations.Count)]
-                + Quaternion.Euler(0, Random.Range(0, 360), 0)
-                * Vector3.forward * Random.Range(0f, radius);
-            p.transform.rotation = Quaternion.Euler(Random.Range(0, 360), Random.Range(0, 360), Random.Range(0, 360));
+            Phenotype p = SpawnRandomCreature();
+            if (p != null) queue.Enqueue(p);
             timer = 10;
         }
+    }
+
+    public Phenotype SpawnRandomCreature()
+    {
+        List<Genotype> genotypes = spawnType == SpawnType.Surface ? surfaceGenotypes : underwaterGenotypes;
+        if (genotypes.Count == 0 || spawnLocations.Count == 0)
+            return null;
+        Genotype g = genotypes[Random.Range(0, genotypes.Count)];
+        Phenotype p = Phenotype.Construct(g);
+        p.transform.position = spawnLocations[Random.Range(0, spawnLocations.Count)]
+            + Quaternion.Euler(0, Random.Range(0, 360), 0)
+            * Vector3.forward * Random.Range(0f, radius);
+        p.transform.rotation = Quaternion.Euler(Random.Range(0, 360), Random.Range(0, 360), Random.Range(0, 360));
+        return p;
     }
 }

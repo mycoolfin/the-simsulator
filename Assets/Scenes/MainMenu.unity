@@ -2010,8 +2010,8 @@ MonoBehaviour:
   waterOrigin: {fileID: 0}
   pointLight: {fileID: 0}
   trashCan: []
-  timeScale: 1
   minimumFps: 30
+  targetTimeScale: 1
   throttledTimeScale: 0
   simulateFluid: 0
   fluidDensity: 1
@@ -4111,7 +4111,7 @@ MonoBehaviour:
   underwaterGenotypesFolder: Demo Genotypes/Underwater
   surfaceGenotypes: []
   underwaterGenotypes: []
-  timer: 0
+  useTimer: 1
   spawnType: 0
   radius: 10
   spawnLocations: []

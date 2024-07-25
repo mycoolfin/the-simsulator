@@ -17,4 +17,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/CreatureEditor.unity
     guid: 0e4f04c4dad3e402bb4e92e735e5a64e
-  m_configObjects: {}
+  m_configObjects:
+    com.unity.xr.management.loader_settings: {fileID: 11400000, guid: 1041afe4da1784ffca3732dbccdea5a5, type: 2}
+    com.unity.xr.openxr.settings4: {fileID: 11400000, guid: 6980fa01ac6aa477294eabf1156dbb44, type: 2}
+    xr.sdk.mock-hmd.settings: {fileID: 11400000, guid: 594746975b8cb472584e08cf1a8bb17b, type: 2}
