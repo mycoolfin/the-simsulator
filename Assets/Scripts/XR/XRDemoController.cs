@@ -1,11 +1,12 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-public class XRTestSceneController : MonoBehaviour
+public class XRDemoController : MonoBehaviour
 {
     public Spawner spawner;
     public float shrinkFactor = 0.1f;
     public float shrinkSpeed = 1f;
+    private bool shrunk = false;
 
     private void Start()
     {
@@ -17,14 +18,9 @@ public class XRTestSceneController : MonoBehaviour
         SceneManager.LoadScene("XRDemo");
     }
 
-    public void Shrink()
+    public void ToggleShrink()
     {
-        LerpToSize(Vector3.one * shrinkFactor);
-    }
-
-    public void ReturnToNormalSize()
-    {
-        LerpToSize(Vector3.one);
+        LerpToSize(Vector3.one * (shrunk ? 1f : shrinkFactor));
     }
 
     private void LerpToSize(Vector3 desiredSize)
