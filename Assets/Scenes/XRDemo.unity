@@ -1130,18 +1130,6 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 6694496370488184924, guid: 895f6f3c2d334633b5800312285058d2, type: 3}
-      propertyPath: m_LineType
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6694496370488184924, guid: 895f6f3c2d334633b5800312285058d2, type: 3}
-      propertyPath: m_HitClosestOnly
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 6694496370488184924, guid: 895f6f3c2d334633b5800312285058d2, type: 3}
-      propertyPath: m_MaxRaycastDistance
-      value: 300
-      objectReference: {fileID: 0}
     - target: {fileID: 7313654230448209575, guid: 895f6f3c2d334633b5800312285058d2, type: 3}
       propertyPath: m_Name
       value: Complete XR Origin Set Up
