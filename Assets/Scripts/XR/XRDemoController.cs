@@ -5,8 +5,8 @@ using UnityEngine.SceneManagement;
 public class XRDemoController : MonoBehaviour
 {
     public Spawner spawner;
-    public float shrinkFactor = 0.1f;
-    public float shrinkSpeed = 1f;
+    public float shrinkFactor = 100f;
+    public float shrinkSpeed = 5f;
     private bool shrunk = false;
 
     private void Start()
@@ -55,6 +55,7 @@ public class XRDemoController : MonoBehaviour
     public void ResetScene()
     {
         SceneManager.LoadScene("XRDemo");
+
     }
 
     public void ToggleShrink()
