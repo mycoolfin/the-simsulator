@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class XRTestSceneController : MonoBehaviour
 {
@@ -9,6 +10,11 @@ public class XRTestSceneController : MonoBehaviour
     private void Start()
     {
         WorldManager.Instance.ChangeEnvironment(WorldEnvironment.Underwater);
+    }
+
+    public void ResetScene()
+    {
+        SceneManager.LoadScene("XRDemo");
     }
 
     public void Shrink()
