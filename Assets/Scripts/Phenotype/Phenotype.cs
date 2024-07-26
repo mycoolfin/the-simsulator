@@ -29,7 +29,6 @@ public class Phenotype : MonoBehaviour, ISelectable, IPlaceable
         meshRenderers = GetComponentsInChildren<MeshRenderer>().ToList();
         originalLimbColor = meshRenderers.Count == 0 ? Color.white : meshRenderers[0].sharedMaterial.color;
         outlines = GetComponentsInChildren<Outline>().ToList();
-        gameObject.AddComponent<XRGrabInteractable>();
     }
 
     private void Start()

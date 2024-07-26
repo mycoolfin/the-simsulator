@@ -21,6 +21,7 @@ public class Spawner : MonoBehaviour
     public bool useTimer;
     private float timer;
     public SpawnType spawnType = SpawnType.Surface;
+    public bool enforceSpawnTypeEnvironment = false;
     public float radius = 10f;
     public List<Vector3> spawnLocations = new();
     public int remainingSpawnCount = 15;
@@ -38,6 +39,14 @@ public class Spawner : MonoBehaviour
             if (path.EndsWith(".genotype"))
                 underwaterGenotypes.Add(GenotypeSerializer.ReadGenotypeFromFile(Path.Combine(Application.streamingAssetsPath, path)));
         underwaterGenotypes = underwaterGenotypes.Where(g => g != null).ToList();
+
+        if (!useTimer)
+        {
+            while (remainingSpawnCount > 0)
+            {
+                SpawnRandomCreature();
+            }
+        }
     }
 
     private void FixedUpdate()
@@ -69,6 +78,13 @@ public class Spawner : MonoBehaviour
             + Quaternion.Euler(0, Random.Range(0, 360), 0)
             * Vector3.forward * Random.Range(0f, radius);
         p.transform.rotation = Quaternion.Euler(Random.Range(0, 360), Random.Range(0, 360), Random.Range(0, 360));
+
+        if (enforceSpawnTypeEnvironment)
+        {
+            foreach (Rigidbody rb in p.GetComponentsInChildren<Rigidbody>())
+                rb.useGravity = spawnType == SpawnType.Surface;
+        }
+
         remainingSpawnCount--;
         return p;
     }
