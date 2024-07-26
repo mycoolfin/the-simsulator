@@ -1,7 +1,6 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
-using UnityEngine.UI;
 
 public class XRDemoController : MonoBehaviour
 {
@@ -13,6 +12,7 @@ public class XRDemoController : MonoBehaviour
     private void Start()
     {
         WorldManager.Instance.ChangeEnvironment(WorldEnvironment.Underwater);
+        RenderSettings.fog = false;
     }
 
     public InputActionReference trigger;
@@ -39,13 +39,17 @@ public class XRDemoController : MonoBehaviour
     private void OnTriggerPressed(InputAction.CallbackContext context)
     {
         Debug.Log("Trigger Pressed");
-        ResetScene();
     }
 
     private void OnGripPressed(InputAction.CallbackContext context)
     {
         Debug.Log("Grip Pressed");
         ToggleShrink();
+    }
+
+    private void Update()
+    {
+        LerpToSize(Vector3.one * (shrunk ? 1f : shrinkFactor));
     }
 
     public void ResetScene()
@@ -55,7 +59,7 @@ public class XRDemoController : MonoBehaviour
 
     public void ToggleShrink()
     {
-        LerpToSize(Vector3.one * (shrunk ? 1f : shrinkFactor));
+        shrunk = !shrunk;
     }
 
     private void LerpToSize(Vector3 desiredSize)
