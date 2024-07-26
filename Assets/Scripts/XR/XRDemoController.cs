@@ -1,5 +1,7 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class XRDemoController : MonoBehaviour
 {
@@ -11,6 +13,39 @@ public class XRDemoController : MonoBehaviour
     private void Start()
     {
         WorldManager.Instance.ChangeEnvironment(WorldEnvironment.Underwater);
+    }
+
+    public InputActionReference trigger;
+    public InputActionReference grip;
+
+    private void OnEnable()
+    {
+        trigger.action.performed += OnTriggerPressed;
+        grip.action.performed += OnGripPressed;
+
+        trigger.action.Enable();
+        grip.action.Enable();
+    }
+
+    private void OnDisable()
+    {
+        trigger.action.performed -= OnTriggerPressed;
+        grip.action.performed -= OnGripPressed;
+
+        trigger.action.Disable();
+        grip.action.Disable();
+    }
+
+    private void OnTriggerPressed(InputAction.CallbackContext context)
+    {
+        Debug.Log("Trigger Pressed");
+        ResetScene();
+    }
+
+    private void OnGripPressed(InputAction.CallbackContext context)
+    {
+        Debug.Log("Grip Pressed");
+        ToggleShrink();
     }
 
     public void ResetScene()
