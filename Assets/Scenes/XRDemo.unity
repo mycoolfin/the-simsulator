@@ -2835,7 +2835,7 @@ MonoBehaviour:
   radius: 100
   spawnLocations:
   - {x: 0, y: 0, z: 0}
-  remainingSpawnCount: 200
+  remainingSpawnCount: 50
 --- !u!4 &1010154533
 Transform:
   m_ObjectHideFlags: 0
@@ -5850,7 +5850,7 @@ MonoBehaviour:
   radius: 100
   spawnLocations:
   - {x: 0, y: 0, z: 0}
-  remainingSpawnCount: 200
+  remainingSpawnCount: 50
 --- !u!1 &1995927084
 GameObject:
   m_ObjectHideFlags: 0
