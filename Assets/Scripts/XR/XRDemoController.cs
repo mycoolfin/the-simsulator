@@ -55,7 +55,7 @@ public class XRDemoController : MonoBehaviour
     public void ResetScene()
     {
         SceneManager.LoadScene("XRDemo");
-
+        // danodnawlnwladlan
     }
 
     public void ToggleShrink()
