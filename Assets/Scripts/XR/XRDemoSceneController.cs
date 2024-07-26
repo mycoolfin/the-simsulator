@@ -1,10 +1,15 @@
 using UnityEngine;
 
-public class XRTestActions : MonoBehaviour
+public class XRTestSceneController : MonoBehaviour
 {
     public Spawner spawner;
     public float shrinkFactor = 0.1f;
     public float shrinkSpeed = 1f;
+
+    private void Start()
+    {
+        WorldManager.Instance.ChangeEnvironment(WorldEnvironment.Underwater);
+    }
 
     public void Shrink()
     {
@@ -42,7 +47,7 @@ public class XRTestActions : MonoBehaviour
     {
         WorldManager.Instance.targetTimeScale = 1f;
     }
-    
+
     public void SpawnRandomCreature()
     {
         spawner.SpawnRandomCreature();

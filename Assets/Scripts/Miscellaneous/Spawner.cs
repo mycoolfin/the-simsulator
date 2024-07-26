@@ -17,8 +17,8 @@ public class Spawner : MonoBehaviour
     public List<Genotype> surfaceGenotypes;
     public List<Genotype> underwaterGenotypes;
     private Queue<Phenotype> queue;
-    [SerializeField]
-    private bool useTimer;
+    public float timerDuration = 10f;
+    public bool useTimer;
     private float timer;
     public SpawnType spawnType = SpawnType.Surface;
     public float radius = 10f;
@@ -53,7 +53,7 @@ public class Spawner : MonoBehaviour
 
             Phenotype p = SpawnRandomCreature();
             if (p != null) queue.Enqueue(p);
-            timer = 10;
+            timer = timerDuration;
         }
     }
 
@@ -65,7 +65,7 @@ public class Spawner : MonoBehaviour
             return null;
         Genotype g = genotypes[Random.Range(0, genotypes.Count)];
         Phenotype p = Phenotype.Construct(g);
-        p.transform.position = spawnLocations[Random.Range(0, spawnLocations.Count)]
+        p.transform.position = transform.position + spawnLocations[Random.Range(0, spawnLocations.Count)]
             + Quaternion.Euler(0, Random.Range(0, 360), 0)
             * Vector3.forward * Random.Range(0f, radius);
         p.transform.rotation = Quaternion.Euler(Random.Range(0, 360), Random.Range(0, 360), Random.Range(0, 360));

@@ -823,6 +823,7 @@ GameObject:
   - component: {fileID: 958854965}
   - component: {fileID: 958854966}
   - component: {fileID: 958854967}
+  - component: {fileID: 958854968}
   m_Layer: 0
   m_Name: Managers
   m_TagString: Untagged
@@ -877,6 +878,8 @@ MonoBehaviour:
   waterOrigin: {fileID: 279443275}
   pointLight: {fileID: 446693486}
   trashCan: []
+  audioMixerGroup: {fileID: 0}
+  phenotypeSoundClips: []
   minimumFps: 30
   targetTimeScale: 1
   throttledTimeScale: 1
@@ -919,6 +922,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ef061fd4c95434bc08551df7245bf58c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &958854968
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 958854961}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ed0da4555c42c4746ab1484b6c741563, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  enableXR: 0
 --- !u!1001 &1100477762
 PrefabInstance:
   m_ObjectHideFlags: 0

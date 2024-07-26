@@ -21,6 +21,7 @@ public class Phenotype : MonoBehaviour, ISelectable, IPlaceable
     [SerializeField]
     private bool saveGenotypeToFile; // Editor only.
     public bool debugSound;
+    private Color bodyColor;
 
     private void Awake()
     {
@@ -33,6 +34,8 @@ public class Phenotype : MonoBehaviour, ISelectable, IPlaceable
     {
         InitialiseSound();
         StartCoroutine(MakeSoundAtRandomIntervals());
+        bodyColor = new Color(UnityEngine.Random.value, UnityEngine.Random.value, UnityEngine.Random.value);
+        SetRGB(bodyColor.r, bodyColor.g, bodyColor.b);
     }
 
     private void Update()
@@ -221,13 +224,13 @@ public class Phenotype : MonoBehaviour, ISelectable, IPlaceable
     {
         audioSource = gameObject.AddComponent<AudioSource>();
         audioSource.outputAudioMixerGroup = WorldManager.Instance.audioMixerGroup;
-        audioSource.clip = WorldManager.Instance.phenotypeSoundClips[UnityEngine.Random.Range(0, WorldManager.Instance.phenotypeSoundClips.Count)];
+        audioSource.clip = WorldManager.Instance.phenotypeSoundClips.Count == 0 ? null : WorldManager.Instance.phenotypeSoundClips[UnityEngine.Random.Range(0, WorldManager.Instance.phenotypeSoundClips.Count)];
         audioSource.playOnAwake = false;
         audioSource.loop = false;
 
         // Modulate clip based on root limb volume.
         float rootLimbVolume = limbs[0].Dimensions.x * limbs[0].Dimensions.y * limbs[0].Dimensions.z;
-        float lerpValue = (Mathf.Pow(rootLimbVolume, 1f/3f) - ParameterManager.Instance.Limb.MinSize) / (ParameterManager.Instance.Limb.MaxSize - ParameterManager.Instance.Limb.MinSize);
+        float lerpValue = (Mathf.Pow(rootLimbVolume, 1f / 3f) - ParameterManager.Instance.Limb.MinSize) / (ParameterManager.Instance.Limb.MaxSize - ParameterManager.Instance.Limb.MinSize);
         float clipModulationFactor = Mathf.Lerp(0, 1, lerpValue);
         audioSource.pitch = 1f / clipModulationFactor * 2f;
     }
@@ -235,11 +238,32 @@ public class Phenotype : MonoBehaviour, ISelectable, IPlaceable
     public void MakeSound()
     {
         audioSource.Play();
+        StartCoroutine(Flash());
+    }
+
+    public IEnumerator Flash()
+    {
+        float r = 1f;
+        float g = 1f;
+        float b = 1f;
+        int steps = 100;
+        for (int i = 0; i < steps; i++)
+        {
+            SetRGB(
+                Mathf.Lerp(r, bodyColor.r, (float)i / steps),
+                Mathf.Lerp(g, bodyColor.g, (float)i / steps),
+                Mathf.Lerp(b, bodyColor.b, (float)i / steps)
+            );
+            yield return new WaitForSeconds(1f / steps);
+        }
     }
 
     public IEnumerator MakeSoundAtRandomIntervals()
     {
-        yield return new WaitForSeconds(UnityEngine.Random.value * 20f);
-        MakeSound();
+        while (true)
+        {
+            yield return new WaitForSeconds(UnityEngine.Random.value * 20f);
+            MakeSound();
+        }
     }
 }
