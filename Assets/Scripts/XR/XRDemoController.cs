@@ -35,13 +35,11 @@ public class XRTestSceneController : MonoBehaviour
     public void SwitchToSurfaceEnvironment()
     {
         WorldManager.Instance.ChangeEnvironment(WorldEnvironment.Surface);
-        spawner.spawnType = SpawnType.Surface;
     }
 
     public void SwitchToUnderwaterEnvironment()
     {
         WorldManager.Instance.ChangeEnvironment(WorldEnvironment.Underwater);
-        spawner.spawnType = SpawnType.Underwater;
     }
 
     public void FreezeTime()
