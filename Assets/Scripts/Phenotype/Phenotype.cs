@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Crosstales.FB;
 using cakeslice;
+using System.Collections;
 
 public class Phenotype : MonoBehaviour, ISelectable, IPlaceable
 {
@@ -19,13 +20,19 @@ public class Phenotype : MonoBehaviour, ISelectable, IPlaceable
 
     [SerializeField]
     private bool saveGenotypeToFile; // Editor only.
+    public bool debugSound;
 
     private void Awake()
     {
         meshRenderers = GetComponentsInChildren<MeshRenderer>().ToList();
         originalLimbColor = meshRenderers.Count == 0 ? Color.white : meshRenderers[0].sharedMaterial.color;
         outlines = GetComponentsInChildren<Outline>().ToList();
+    }
+
+    private void Start()
+    {
         InitialiseSound();
+        StartCoroutine(MakeSoundAtRandomIntervals());
     }
 
     private void Update()
@@ -34,6 +41,12 @@ public class Phenotype : MonoBehaviour, ISelectable, IPlaceable
         {
             saveGenotypeToFile = false;
             genotype.SaveToFile(genotype.Id + ".genotype");
+        }
+
+        if (debugSound)
+        {
+            MakeSound();
+            debugSound = false;
         }
     }
 
@@ -211,11 +224,22 @@ public class Phenotype : MonoBehaviour, ISelectable, IPlaceable
         audioSource.clip = WorldManager.Instance.phenotypeSoundClips[UnityEngine.Random.Range(0, WorldManager.Instance.phenotypeSoundClips.Count)];
         audioSource.playOnAwake = false;
         audioSource.loop = false;
-        // TODO: Modulate clip based on Phenotype/Limb configuration.
+
+        // Modulate clip based on root limb volume.
+        float rootLimbVolume = limbs[0].Dimensions.x * limbs[0].Dimensions.y * limbs[0].Dimensions.z;
+        float lerpValue = (Mathf.Pow(rootLimbVolume, 1f/3f) - ParameterManager.Instance.Limb.MinSize) / (ParameterManager.Instance.Limb.MaxSize - ParameterManager.Instance.Limb.MinSize);
+        float clipModulationFactor = Mathf.Lerp(0, 1, lerpValue);
+        audioSource.pitch = 1f / clipModulationFactor * 2f;
     }
 
     public void MakeSound()
     {
         audioSource.Play();
+    }
+
+    public IEnumerator MakeSoundAtRandomIntervals()
+    {
+        yield return new WaitForSeconds(UnityEngine.Random.value * 20f);
+        MakeSound();
     }
 }

@@ -6,7 +6,8 @@ using UnityEngine;
 public enum SpawnType
 {
     Surface,
-    Underwater
+    Underwater,
+    All
 }
 
 public class Spawner : MonoBehaviour
@@ -22,6 +23,7 @@ public class Spawner : MonoBehaviour
     public SpawnType spawnType = SpawnType.Surface;
     public float radius = 10f;
     public List<Vector3> spawnLocations = new();
+    public int remainingSpawnCount = 15;
 
     private void Start()
     {
@@ -57,7 +59,8 @@ public class Spawner : MonoBehaviour
 
     public Phenotype SpawnRandomCreature()
     {
-        List<Genotype> genotypes = spawnType == SpawnType.Surface ? surfaceGenotypes : underwaterGenotypes;
+        if (remainingSpawnCount <= 0) return null;
+        List<Genotype> genotypes = spawnType == SpawnType.Surface ? surfaceGenotypes : spawnType == SpawnType.Underwater ? underwaterGenotypes : surfaceGenotypes.Concat(underwaterGenotypes).ToList();
         if (genotypes.Count == 0 || spawnLocations.Count == 0)
             return null;
         Genotype g = genotypes[Random.Range(0, genotypes.Count)];
@@ -66,6 +69,7 @@ public class Spawner : MonoBehaviour
             + Quaternion.Euler(0, Random.Range(0, 360), 0)
             * Vector3.forward * Random.Range(0f, radius);
         p.transform.rotation = Quaternion.Euler(Random.Range(0, 360), Random.Range(0, 360), Random.Range(0, 360));
+        remainingSpawnCount--;
         return p;
     }
 }
