@@ -2844,10 +2844,10 @@ MonoBehaviour:
   useTimer: 0
   spawnType: 1
   enforceSpawnTypeEnvironment: 1
-  radius: 60
+  radius: 100
   spawnLocations:
   - {x: 0, y: 0, z: 0}
-  remainingSpawnCount: 50
+  remainingSpawnCount: 200
 --- !u!4 &1010154533
 Transform:
   m_ObjectHideFlags: 0
@@ -5859,10 +5859,10 @@ MonoBehaviour:
   useTimer: 0
   spawnType: 0
   enforceSpawnTypeEnvironment: 1
-  radius: 60
+  radius: 100
   spawnLocations:
   - {x: 0, y: 0, z: 0}
-  remainingSpawnCount: 50
+  remainingSpawnCount: 200
 --- !u!1 &1995927084
 GameObject:
   m_ObjectHideFlags: 0
