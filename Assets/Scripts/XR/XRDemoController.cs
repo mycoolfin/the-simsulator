@@ -15,37 +15,37 @@ public class XRDemoController : MonoBehaviour
         RenderSettings.fog = false;
     }
 
-    public InputActionReference trigger;
-    public InputActionReference grip;
+    // public InputActionReference trigger;
+    // public InputActionReference grip;
 
-    private void OnEnable()
-    {
-        trigger.action.performed += OnTriggerPressed;
-        grip.action.performed += OnGripPressed;
+    // private void OnEnable()
+    // {
+    //     trigger.action.performed += OnTriggerPressed;
+    //     grip.action.performed += OnGripPressed;
 
-        trigger.action.Enable();
-        grip.action.Enable();
-    }
+    //     trigger.action.Enable();
+    //     grip.action.Enable();
+    // }
 
-    private void OnDisable()
-    {
-        trigger.action.performed -= OnTriggerPressed;
-        grip.action.performed -= OnGripPressed;
+    // private void OnDisable()
+    // {
+    //     trigger.action.performed -= OnTriggerPressed;
+    //     grip.action.performed -= OnGripPressed;
 
-        trigger.action.Disable();
-        grip.action.Disable();
-    }
+    //     trigger.action.Disable();
+    //     grip.action.Disable();
+    // }
 
-    private void OnTriggerPressed(InputAction.CallbackContext context)
-    {
-        Debug.Log("Trigger Pressed");
-    }
+    // private void OnTriggerPressed(InputAction.CallbackContext context)
+    // {
+    //     Debug.Log("Trigger Pressed");
+    // }
 
-    private void OnGripPressed(InputAction.CallbackContext context)
-    {
-        Debug.Log("Grip Pressed");
-        ToggleShrink();
-    }
+    // private void OnGripPressed(InputAction.CallbackContext context)
+    // {
+    //     Debug.Log("Grip Pressed");
+    //     ToggleShrink();
+    // }
 
     private void Update()
     {
@@ -55,7 +55,6 @@ public class XRDemoController : MonoBehaviour
     public void ResetScene()
     {
         SceneManager.LoadScene("XRDemo");
-        // danodnawlnwladlan
     }
 
     public void ToggleShrink()
