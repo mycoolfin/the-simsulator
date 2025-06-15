@@ -92,7 +92,7 @@ public class FluidForces : MonoBehaviour
 
     private float GetMassNormalizedKE()
     {
-        float e = 0.5f * rb.mass * rb.velocity.sqrMagnitude; // Linear KE
+        float e = 0.5f * rb.mass * rb.linearVelocity.sqrMagnitude; // Linear KE
 
         // Angular KE
         Vector3 inertia = rb.inertiaTensor;

@@ -1,0 +1,140 @@
+using System;
+
+namespace mycoolfin.TheSimsulator.Sims
+{
+    public static class SimsGenotypeMutator
+    {
+        private static readonly WeightedChoiceList<Action<SimsGenotypeCreationContext>> GenotypeMutations = new()
+        {
+            { MutateNodes, 1f },
+            { MutateConnections, 1f },
+            { MutateNeuronDefinitions, 1f }
+        };
+
+        private static readonly WeightedChoiceList<Action<SimsGenotypeCreationContext>> NodeMutations = new()
+        {
+            { AddNode, 1f },
+            { RemoveNode, 1f },
+            { MutateRandomNode, 1f }
+        };
+
+        private static readonly WeightedChoiceList<Action<SimsGenotypeCreationContext>> ConnectionMutations = new()
+        {
+            { AddConnection, 1f },
+            { RemoveConnection, 1f },
+            { MutateRandomConnection, 1f }
+        };
+
+        private static readonly WeightedChoiceList<Action<SimsGenotypeCreationContext>> NeuronDefinitionMutations = new()
+        {
+            { AddNeuronDefinition, 1f },
+            { RemoveNeuronDefinition, 1f },
+            { MutateRandomNeuronDefinition, 1f }
+        };
+
+        public static void MutateGenotype(SimsGenotypeCreationContext context)
+        {
+            if (context == null) throw new ArgumentNullException(nameof(context));
+
+            GenotypeMutations.Choose().Invoke(context);
+        }
+
+        public static void MutateNodes(SimsGenotypeCreationContext context)
+        {
+            NodeMutations.Choose().Invoke(context);
+        }
+
+        public static void AddNode(SimsGenotypeCreationContext context)
+        {
+            if (context.Nodes.Count < SimsGenotype.MaxNodeCount)
+                context.Nodes.Add(Node.CreateRandom());
+        }
+
+        public static void RemoveNode(SimsGenotypeCreationContext context)
+        {
+            if (context.Nodes.Count > SimsGenotype.MinNodeCount)
+            {
+                int index = SharedRandom.Next(context.Nodes.Count);
+                context.Nodes.RemoveAt(index);
+            }
+        }
+
+        public static void MutateRandomNode(SimsGenotypeCreationContext context)
+        {
+            if (context.Nodes.Count > 0)
+            {
+                int index = SharedRandom.Next(context.Nodes.Count);
+                NodeMutator.MutateNode(context, index);
+            }
+        }
+
+        public static void MutateConnections(SimsGenotypeCreationContext context)
+        {
+            ConnectionMutations.Choose().Invoke(context);
+        }
+
+        public static void AddConnection(SimsGenotypeCreationContext context)
+        {
+            if (context.Connections.Count < SimsGenotype.MaxConnectionCount)
+            {
+                ulong parentNodeId = context.Nodes[SharedRandom.Next(context.Nodes.Count)].Gid;
+                ulong childNodeId = context.Nodes[SharedRandom.Next(context.Nodes.Count)].Gid;
+                context.Connections.Add(Connection.CreateRandom(parentNodeId, childNodeId));
+            }
+        }
+
+        public static void RemoveConnection(SimsGenotypeCreationContext context)
+        {
+            if (context.Connections.Count > SimsGenotype.MinConnectionCount)
+            {
+                int index = SharedRandom.Next(context.Connections.Count);
+                context.Connections.RemoveAt(index);
+            }
+        }
+
+        public static void MutateRandomConnection(SimsGenotypeCreationContext context)
+        {
+            if (context.Connections.Count > 0)
+            {
+                int index = SharedRandom.Next(context.Connections.Count);
+                ConnectionMutator.MutateConnection(context, index);
+            }
+        }
+
+        public static void MutateNeuronDefinitions(SimsGenotypeCreationContext context)
+        {
+            NeuronDefinitionMutations.Choose().Invoke(context);
+        }
+
+        public static void AddNeuronDefinition(SimsGenotypeCreationContext context)
+        {
+            if (context.NeuronDefinitions.Count < SimsGenotype.MaxNeuronDefinitionCount)
+            {
+                NeuronDefinition newNeuronDefinition = NeuronDefinition.CreateRandom(
+                    context.Nodes,
+                    context.Connections,
+                    context.NeuronDefinitions
+                );
+                context.NeuronDefinitions.Add(newNeuronDefinition);
+            }
+        }
+
+        public static void RemoveNeuronDefinition(SimsGenotypeCreationContext context)
+        {
+            if (context.NeuronDefinitions.Count > SimsGenotype.MinNeuronDefinitionCount)
+            {
+                int index = SharedRandom.Next(context.NeuronDefinitions.Count);
+                context.NeuronDefinitions.RemoveAt(index);
+            }
+        }
+
+        public static void MutateRandomNeuronDefinition(SimsGenotypeCreationContext context)
+        {
+            if (context.NeuronDefinitions.Count > 0)
+            {
+                int index = SharedRandom.Next(context.NeuronDefinitions.Count);
+                NeuronDefinitionMutator.MutateNeuronDefinition(context, index);
+            }
+        }
+    }
+}
