@@ -1,51 +1,94 @@
+using System;
+using System.Collections.Generic;
+
 namespace mycoolfin.TheSimsulator.Sims
 {
-    public abstract class JointBase
+    public abstract class JointBase : ISensorContainer, IActuatorContainer, IDisposable
     {
         public readonly Limb ParentLimb;
         public readonly Limb ChildLimb;
 
-        public Vector3 ParentAnchor { get; private set; }
-        public Vector3 ChildAnchor { get; private set; }
+        public readonly Vector3 LocalParentAnchor;
+        public readonly Vector3 LocalChildAnchor;
+
+        public readonly Vector3 AngleLimits;
 
         public Vector3 DesiredAngles { get; private set; }
         public Vector3 ActualAngles { get; private set; }
 
-        protected readonly bool XAxisEnabled;
-        protected readonly bool YAxisEnabled;
-        protected readonly bool ZAxisEnabled;
+        public readonly JointAxis XAxis;
+        public readonly JointAxis YAxis;
+        public readonly JointAxis ZAxis;
 
-        public JointBase(Limb parentLimb, Limb childLimb, Vector3 parentAnchor, Vector3 childAnchor, bool xAxisEnabled, bool yAxisEnabled, bool zAxisEnabled)
+        private readonly List<SensorBase> sensors = new();
+        private readonly List<ActuatorBase> actuators = new();
+
+        public IEnumerable<SensorBase> Sensors => sensors;
+        public IEnumerable<ActuatorBase> Actuators => actuators;
+
+        public event Action OnDispose;
+
+        public JointBase(
+            Limb parentLimb,
+            Limb childLimb,
+            Vector3 localParentAnchor,
+            Vector3 localChildAnchor,
+            Vector3 angleLimits,
+            JointAxis xAxis,
+            JointAxis yAxis,
+            JointAxis zAxis
+        )
         {
-            ParentLimb = parentLimb ?? throw new System.ArgumentNullException(nameof(parentLimb), "Parent limb cannot be null.");
-            ChildLimb = childLimb ?? throw new System.ArgumentNullException(nameof(childLimb), "Child limb cannot be null.");
+            ParentLimb = parentLimb ?? throw new ArgumentNullException(nameof(parentLimb), "Parent limb cannot be null.");
+            ChildLimb = childLimb ?? throw new ArgumentNullException(nameof(childLimb), "Child limb cannot be null.");
 
-            ParentAnchor = parentAnchor;
-            ChildAnchor = childAnchor;
+            LocalParentAnchor = localParentAnchor;
+            LocalChildAnchor = localChildAnchor;
+
+            AngleLimits = angleLimits;
 
             DesiredAngles = Vector3.Zero;
             ActualAngles = Vector3.Zero;
 
-            XAxisEnabled = xAxisEnabled;
-            YAxisEnabled = yAxisEnabled;
-            ZAxisEnabled = zAxisEnabled;
-        }
+            XAxis = xAxis;
+            YAxis = yAxis;
+            ZAxis = zAxis;
 
-        public void SetDesiredAngles(Vector3 desiredAngles)
-        {
-            if (!XAxisEnabled && desiredAngles.X != 0)
-                throw new System.InvalidOperationException("X-axis is not enabled for this joint.");
-            if (!YAxisEnabled && desiredAngles.Y != 0)
-                throw new System.InvalidOperationException("Y-axis is not enabled for this joint.");
-            if (!ZAxisEnabled && desiredAngles.Z != 0)
-                throw new System.InvalidOperationException("Z-axis is not enabled for this joint.");
+            if (xAxis.Sensor != null) sensors.Add(xAxis.Sensor);
+            if (yAxis.Sensor != null) sensors.Add(yAxis.Sensor);
+            if (zAxis.Sensor != null) sensors.Add(zAxis.Sensor);
 
-            DesiredAngles = desiredAngles;
+            if (xAxis.Actuator != null) actuators.Add(xAxis.Actuator);
+            if (yAxis.Actuator != null) actuators.Add(yAxis.Actuator);
+            if (zAxis.Actuator != null) actuators.Add(zAxis.Actuator);
         }
 
         public void SetActualAngles(Vector3 actualAngles)
         {
             ActualAngles = actualAngles;
+
+            XAxis?.Sensor.UpdateJointAngle(ActualAngles.X, AngleLimits.X);
+            YAxis?.Sensor.UpdateJointAngle(ActualAngles.Y, AngleLimits.Y);
+            ZAxis?.Sensor.UpdateJointAngle(ActualAngles.Z, AngleLimits.Z);
+        }
+
+        public void UpdateDesiredAngles()
+        {
+            DesiredAngles = new Vector3(
+                ConvertActuatorValueToEulerAngle(XAxis?.Actuator.Value ?? 0f, AngleLimits.X),
+                ConvertActuatorValueToEulerAngle(YAxis?.Actuator.Value ?? 0f, AngleLimits.Y),
+                ConvertActuatorValueToEulerAngle(ZAxis?.Actuator.Value ?? 0f, AngleLimits.Z)
+            );
+        }
+
+        private float ConvertActuatorValueToEulerAngle(float actuatorValue, float angleLimit)
+        {
+            return actuatorValue * angleLimit;
+        }
+
+        public void Dispose()
+        {
+            OnDispose?.Invoke();
         }
     }
 }

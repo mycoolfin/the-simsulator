@@ -52,7 +52,7 @@ namespace mycoolfin.TheSimsulator.Sims
 
         public static void MutateOrientation(SimsGenotypeCreationContext context, int connectionIndex)
         {
-            float sigma = 5f;
+            float sigma = 10f;
             Connection connection = context.Connections[connectionIndex];
             Vector3 newOrientation = new(
                 Math.Clamp(connection.Orientation.X + SharedRandom.DrawGaussian(sigma), Connection.MinOrientation.X, Connection.MaxOrientation.X),

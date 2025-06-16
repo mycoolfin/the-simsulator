@@ -19,7 +19,7 @@ namespace mycoolfin.TheSimsulator.Sims
         [FieldOffset(8)] public readonly ulong ParentNodeGid;
         [FieldOffset(16)] public readonly ulong ChildNodeGid;
         [FieldOffset(24)] public readonly int ParentFace;
-        [FieldOffset(28)] public readonly Vector2 Position;
+        [FieldOffset(28)] public readonly Vector2 Position; // Position on the parent limb's face in [-1, 1]x[-1, 1].
         [FieldOffset(36)] public readonly Vector3 Orientation; // Euler angles in degrees.
         [FieldOffset(48)] public readonly Vector3 Scale;
         [FieldOffset(60)] public readonly bool ReflectionX;

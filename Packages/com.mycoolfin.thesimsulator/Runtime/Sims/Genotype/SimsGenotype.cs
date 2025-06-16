@@ -9,8 +9,8 @@ namespace mycoolfin.TheSimsulator.Sims
         public static readonly int MaxNodeCount = 10;
         public static readonly int MinConnectionCount = 1;
         public static readonly int MaxConnectionCount = 10;
-        public static readonly int MinNeuronDefinitionCount = 1;
-        public static readonly int MaxNeuronDefinitionCount = 10;
+        public static readonly int MinNeuronDefinitionCount = 0;
+        public static readonly int MaxNeuronDefinitionCount = 100;
 
         public const ulong BRAIN_GID = 0UL;
 

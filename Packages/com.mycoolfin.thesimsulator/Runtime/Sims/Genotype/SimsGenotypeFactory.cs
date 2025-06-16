@@ -42,6 +42,20 @@ namespace mycoolfin.TheSimsulator.Sims
             for (int i = 0; i < neuronDefinitionCount; i++)
                 SimsGenotypeMutator.AddNeuronDefinition(context);
 
+            // Re-randomise neural components now that we have a full structure.
+            for (int i = 0; i < context.Nodes.Count; i++)
+            {
+                Node oldNode = context.Nodes[i];
+                JointDefinition randomisedJointDefinition = JointDefinition.RandomiseSignalInputs(oldNode.Gid, oldNode.JointDefinition, context.Nodes, context.Connections, context.NeuronDefinitions);
+                context.Nodes[i] = oldNode.CopyWithSameGid(randomisedJointDefinition);
+            }
+            for (int i = 0; i < context.NeuronDefinitions.Count; i++)
+            {
+                NeuronDefinition oldNeuronDefinition = context.NeuronDefinitions[i];
+                NeuronDefinition randomisedNeuronDefinition = NeuronDefinition.RandomiseSignalInputs(oldNeuronDefinition.Gid, oldNeuronDefinition, context.Nodes, context.Connections, context.NeuronDefinitions);
+                context.NeuronDefinitions[i] = randomisedNeuronDefinition;
+            }
+
             return context.CreateGenotypeFromContext(false); // No need to prune if 'add' mutations worked correctly.
         }
 
@@ -86,7 +100,7 @@ namespace mycoolfin.TheSimsulator.Sims
                 if (source.Nodes.Count > i)
                 {
                     Node chosenNode = source.Nodes[i];
-                    Node copiedNode = chosenNode.Copy();
+                    Node copiedNode = chosenNode.CopyWithNewGid();
                     offspringContext.Nodes.Add(copiedNode);
                     nodeGidMap[chosenNode.Gid] = copiedNode.Gid;
                 }
@@ -120,7 +134,7 @@ namespace mycoolfin.TheSimsulator.Sims
             for (int i = 0; i <= recipientNodeIndex; i++)
             {
                 Node chosenNode = recipient.Nodes[i];
-                Node copiedNode = recipient.Nodes[i].Copy();
+                Node copiedNode = recipient.Nodes[i].CopyWithNewGid();
                 offspringContext.Nodes.Add(copiedNode);
                 nodeGidMap[chosenNode.Gid] = copiedNode.Gid;
             }
@@ -129,7 +143,7 @@ namespace mycoolfin.TheSimsulator.Sims
             for (int i = donorNodeIndex; i < donor.Nodes.Count; i++)
             {
                 Node chosenNode = donor.Nodes[i];
-                Node copiedNode = donor.Nodes[i].Copy();
+                Node copiedNode = donor.Nodes[i].CopyWithNewGid();
                 offspringContext.Nodes.Add(copiedNode);
                 nodeGidMap[chosenNode.Gid] = copiedNode.Gid;
             }
@@ -201,9 +215,7 @@ namespace mycoolfin.TheSimsulator.Sims
                 NeuronDefinition copiedNeuronDefinition = new(
                     newContainerGid,
                     sourceNeuron.ActivationFunction,
-                    sourceNeuron.InputA,
-                    sourceNeuron.InputB,
-                    sourceNeuron.InputC
+                    sourceNeuron.Inputs
                 );
                 offspringContext.NeuronDefinitions.Add(copiedNeuronDefinition);
 

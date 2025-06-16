@@ -38,56 +38,42 @@ namespace mycoolfin.TheSimsulator.Sims
         [FieldOffset(0)] public readonly ulong Gid;
         [FieldOffset(8)] public readonly ulong ContainerGid;
         [FieldOffset(16)] public readonly ActivationFunction ActivationFunction;
-        [FieldOffset(20)] public readonly SignalInputDefinition InputA;
-        [FieldOffset(28)] public readonly SignalInputDefinition InputB;
-        [FieldOffset(36)] public readonly SignalInputDefinition InputC;
+        [FieldOffset(20)] public readonly InputSetDefinition Inputs;
         [FieldOffset(44)] public readonly double _pad0;
         [FieldOffset(52)] public readonly double _pad1;
         [FieldOffset(60)] public readonly int _pad2;
 
-        public NeuronDefinition(ulong containerId, ActivationFunction activationFunction, SignalInputDefinition inputA, SignalInputDefinition inputB, SignalInputDefinition inputC)
+        public NeuronDefinition(ulong containerId, ActivationFunction activationFunction, InputSetDefinition inputs)
         {
             byte[] buffer = new byte[sizeof(ulong)];
             SharedRandom.NextBytes(buffer);
             Gid = BitConverter.ToUInt64(buffer, 0);
             ContainerGid = containerId;
             ActivationFunction = activationFunction;
-            InputA = inputA;
-            InputB = inputB;
-            InputC = inputC;
+            Inputs = inputs;
             _pad0 = 0.0;
             _pad1 = 0.0;
             _pad2 = 0;
         }
 
-        public static NeuronDefinition CreateRandom(IReadOnlyList<Node> nodes, IReadOnlyList<Connection> connections, IReadOnlyList<NeuronDefinition> neuronDefinitions)
+        public static NeuronDefinition CreateRandom(ulong containerId, IReadOnlyList<Node> nodes, IReadOnlyList<Connection> connections, IReadOnlyList<NeuronDefinition> neuronDefinitions)
         {
-            ulong randomContainerId = GetRandomContainerId(nodes, neuronDefinitions);
+            ActivationFunction randomActivationFunction = (ActivationFunction)SharedRandom.Next(0, Enum.GetValues(typeof(ActivationFunction)).Length);
 
-            ActivationFunction randomActivationFunction = (ActivationFunction)SharedRandom.Next(0, System.Enum.GetValues(typeof(ActivationFunction)).Length);
+            InputSetDefinition randomInputs = InputSetDefinition.CreateRandom(containerId, nodes, connections, neuronDefinitions);
 
-            SignalInputDefinition randomInputA = SignalInputDefinition.CreateRandom(SignalEmitterAddress.CreateRandom(randomContainerId, nodes, connections, neuronDefinitions));
-            SignalInputDefinition randomInputB = SignalInputDefinition.CreateRandom(SignalEmitterAddress.CreateRandom(randomContainerId, nodes, connections, neuronDefinitions));
-            SignalInputDefinition randomInputC = SignalInputDefinition.CreateRandom(SignalEmitterAddress.CreateRandom(randomContainerId, nodes, connections, neuronDefinitions));
-
-            return new NeuronDefinition(randomContainerId, randomActivationFunction, randomInputA, randomInputB, randomInputC);
+            return new NeuronDefinition(containerId, randomActivationFunction, randomInputs);
         }
 
-        private static ulong GetRandomContainerId(IReadOnlyList<Node> nodes, IReadOnlyList<NeuronDefinition> neuronDefinitions)
+        public static NeuronDefinition RandomiseSignalInputs(ulong containerId, NeuronDefinition neuronDefinition, IReadOnlyList<Node> nodes, IReadOnlyList<Connection> connections, IReadOnlyList<NeuronDefinition> neuronDefinitions)
         {
-            Dictionary<ulong, int> containerCounts = neuronDefinitions
-                .GroupBy(n => n.ContainerGid)
-                .ToDictionary(g => g.Key, g => g.Count());
+            InputSetDefinition randomInputs = InputSetDefinition.CreateRandom(containerId, nodes, connections, neuronDefinitions);
 
-            foreach (ulong id in nodes.Select(n => n.Gid).Append(SimsGenotype.BRAIN_GID))
-                containerCounts.TryAdd(id, 0);
-
-            ulong[] eligible = containerCounts
-                .Where(kvp => kvp.Value < SimsGenotype.MaxNeuronDefinitionCount)
-                .Select(kvp => kvp.Key)
-                .ToArray();
-
-            return eligible[SharedRandom.Next(eligible.Length)];
+            return new NeuronDefinition(
+                neuronDefinition.ContainerGid,
+                neuronDefinition.ActivationFunction,
+                randomInputs
+            );
         }
     }
 }

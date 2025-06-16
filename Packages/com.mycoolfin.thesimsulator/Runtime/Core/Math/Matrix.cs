@@ -41,5 +41,23 @@ namespace mycoolfin.TheSimsulator
             M31 = m31; M32 = m32; M33 = m33; M34 = m34;
             M41 = m41; M42 = m42; M43 = m43; M44 = m44;
         }
+
+        public static Matrix4x4 CreateRotation(Vector3 forward, Vector3 up)
+        {
+            forward = forward.Normalized;
+            up = up.Normalized;
+            var right = Vector3.Cross(up, forward).Normalized;
+            up = Vector3.Cross(forward, right);
+            return new Matrix4x4(
+                right.X, right.Y, right.Z, 0f,
+                up.X, up.Y, up.Z, 0f,
+                forward.X, forward.Y, forward.Z, 0f,
+                0f, 0f, 0f, 1f
+            );
+        }
+
+        public Vector3 GetForward() => new(M31, M32, M33);
+        public Vector3 GetUp() => new(M21, M22, M23);
+        public Vector3 GetRight() => new(M11, M12, M13);
     }
 }

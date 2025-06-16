@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
 namespace mycoolfin.TheSimsulator.Sims
@@ -13,20 +14,24 @@ namespace mycoolfin.TheSimsulator.Sims
         Spherical
     }
 
-    [StructLayout(LayoutKind.Explicit, Size = 32)]
+    [StructLayout(LayoutKind.Explicit, Size = 96)]
     public readonly struct JointDefinition
     {
         [FieldOffset(0)] public readonly JointType JointType;
         [FieldOffset(4)] public readonly Vector2 AnchorOnParentFace;
         [FieldOffset(12)] public readonly Vector3 AngleLimits;
-        [FieldOffset(24)] private readonly double _pad;
+        [FieldOffset(24)] public readonly InputSetDefinition XAxisInputs;
+        [FieldOffset(48)] public readonly InputSetDefinition YAxisInputs;
+        [FieldOffset(72)] public readonly InputSetDefinition ZAxisInputs;
 
-        public JointDefinition(JointType jointType, Vector2 anchorOnParentFace, Vector3 angleLimits)
+        public JointDefinition(JointType jointType, Vector2 anchorOnParentFace, Vector3 angleLimits, InputSetDefinition xAxisInputs, InputSetDefinition yAxisInputs, InputSetDefinition zAxisInputs)
         {
             JointType = jointType;
             AnchorOnParentFace = anchorOnParentFace;
             AngleLimits = angleLimits;
-            _pad = 0;
+            XAxisInputs = xAxisInputs;
+            YAxisInputs = yAxisInputs;
+            ZAxisInputs = zAxisInputs;
         }
 
         public static readonly JointType[] AllJointTypes = (JointType[])System.Enum.GetValues(typeof(JointType));
@@ -35,7 +40,7 @@ namespace mycoolfin.TheSimsulator.Sims
         public static readonly Vector3 MinAngleLimit = new(-90.0f, -90.0f, -90.0f);
         public static readonly Vector3 MaxAngleLimit = new(90.0f, 90.0f, 90.0f);
 
-        public static JointDefinition CreateRandom()
+        public static JointDefinition CreateRandom(ulong containerId, IReadOnlyList<Node> nodes, IReadOnlyList<Connection> connections, IReadOnlyList<NeuronDefinition> neuronDefinitions)
         {
             JointType randomJointType = AllJointTypes[SharedRandom.Next(AllJointTypes.Length)];
             Vector2 randomAnchor = new(
@@ -48,7 +53,27 @@ namespace mycoolfin.TheSimsulator.Sims
                 (float)SharedRandom.NextDouble() * (MaxAngleLimit.Z - MinAngleLimit.Z) + MinAngleLimit.Z
             );
 
-            return new JointDefinition(randomJointType, randomAnchor, randomAngleLimits);
+            InputSetDefinition randomInputsX = InputSetDefinition.CreateRandom(containerId, nodes, connections, neuronDefinitions);
+            InputSetDefinition randomInputsY = InputSetDefinition.CreateRandom(containerId, nodes, connections, neuronDefinitions);
+            InputSetDefinition randomInputsZ = InputSetDefinition.CreateRandom(containerId, nodes, connections, neuronDefinitions);
+
+            return new JointDefinition(randomJointType, randomAnchor, randomAngleLimits, randomInputsX, randomInputsY, randomInputsZ);
+        }
+
+        public static JointDefinition RandomiseSignalInputs(ulong containerId, JointDefinition jointDefinition, IReadOnlyList<Node> nodes, IReadOnlyList<Connection> connections, IReadOnlyList<NeuronDefinition> neuronDefinitions)
+        {
+            InputSetDefinition randomInputsX = InputSetDefinition.CreateRandom(containerId, nodes, connections, neuronDefinitions);
+            InputSetDefinition randomInputsY = InputSetDefinition.CreateRandom(containerId, nodes, connections, neuronDefinitions);
+            InputSetDefinition randomInputsZ = InputSetDefinition.CreateRandom(containerId, nodes, connections, neuronDefinitions);
+
+            return new JointDefinition(
+                jointDefinition.JointType,
+                jointDefinition.AnchorOnParentFace,
+                jointDefinition.AngleLimits,
+                randomInputsX,
+                randomInputsY,
+                randomInputsZ
+            );
         }
     }
 }

@@ -6,7 +6,7 @@ namespace mycoolfin.TheSimsulator.Sims
 {
     public enum SignalPort : byte
     {
-        Internal,
+        ThisLimb,
         ParentLimb,
         ChildLimb,
         Brain
@@ -28,7 +28,7 @@ namespace mycoolfin.TheSimsulator.Sims
             _pad = 0;
         }
 
-        public static SignalEmitterAddress CreateRandom(ulong containerId, IReadOnlyList<Node> nodes, IReadOnlyList<Connection> connections, IReadOnlyList<NeuronDefinition> neuronDefinitions)
+        public static SignalEmitterAddress CreateRandom(ulong thisContainerId, IReadOnlyList<Node> nodes, IReadOnlyList<Connection> connections, IReadOnlyList<NeuronDefinition> neuronDefinitions)
         {
             SignalPort randomPort = (SignalPort)SharedRandom.Next(0, System.Enum.GetValues(typeof(SignalPort)).Length);
 
@@ -37,23 +37,23 @@ namespace mycoolfin.TheSimsulator.Sims
             byte childIndex = 0b0;
             switch (randomPort)
             {
-                case SignalPort.Internal:
-                    existingSlotsCount = GetExistingSlotsCount(containerId, nodes, neuronDefinitions);
+                case SignalPort.ThisLimb:
+                    existingSlotsCount = GetExistingSlotsCount(thisContainerId, nodes, neuronDefinitions);
                     slot = existingSlotsCount > 0 ? (byte)SharedRandom.Next(0, existingSlotsCount) : (byte)SharedRandom.Next(0, 256);
                     childIndex = (byte)SharedRandom.Next(0, 256);
                     break;
                 case SignalPort.ParentLimb:
                     ulong parentContainerId = connections
-                        .Where(c => c.ChildNodeGid == containerId)
+                        .Where(c => c.ChildNodeGid == thisContainerId)
                         .Select(c => c.ParentNodeGid)
                         .FirstOrDefault();
-                    existingSlotsCount = GetExistingSlotsCount(containerId, nodes, neuronDefinitions);
+                    existingSlotsCount = GetExistingSlotsCount(parentContainerId, nodes, neuronDefinitions);
                     slot = existingSlotsCount > 0 ? (byte)SharedRandom.Next(0, existingSlotsCount) : (byte)SharedRandom.Next(0, 256);
                     childIndex = (byte)SharedRandom.Next(0, 256);
                     break;
                 case SignalPort.ChildLimb:
                     List<ulong> childLimbs = connections
-                        .Where(c => c.ParentNodeGid == containerId)
+                        .Where(c => c.ParentNodeGid == thisContainerId)
                         .Select(c => c.ChildNodeGid)
                         .ToList();
                     if (childLimbs.Count > 0)
@@ -78,6 +78,23 @@ namespace mycoolfin.TheSimsulator.Sims
             return new SignalEmitterAddress(randomPort, slot, childIndex);
         }
 
+        private static ulong GetRandomContainerId(IReadOnlyList<Node> nodes, IReadOnlyList<NeuronDefinition> neuronDefinitions)
+        {
+            Dictionary<ulong, int> containerCounts = neuronDefinitions
+                .GroupBy(n => n.ContainerGid)
+                .ToDictionary(g => g.Key, g => g.Count());
+
+            foreach (ulong id in nodes.Select(n => n.Gid).Append(SimsGenotype.BRAIN_GID))
+                containerCounts.TryAdd(id, 0);
+
+            ulong[] eligible = containerCounts
+                .Where(kvp => kvp.Value < SimsGenotype.MaxNeuronDefinitionCount)
+                .Select(kvp => kvp.Key)
+                .ToArray();
+
+            return eligible[SharedRandom.Next(eligible.Length)];
+        }
+
         private static int GetExistingSlotsCount(ulong sourceContainerId, IReadOnlyList<Node> nodes, IReadOnlyList<NeuronDefinition> neuronDefinitions)
         {
             if (sourceContainerId == SimsGenotype.BRAIN_GID)
@@ -91,7 +108,7 @@ namespace mycoolfin.TheSimsulator.Sims
             if (hit is not null)
             {
                 int neuronCount = neuronDefinitions.Count(n => n.ContainerGid == sourceContainerId);
-                return Node.SENSOR_COUNT + neuronCount;
+                return Node.SENSOR_COUNT + neuronCount; // TODO: BIAS handling.
             }
 
             throw new System.ArgumentOutOfRangeException(nameof(sourceContainerId), "Source container ID did not match any existing container.");

@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace mycoolfin.TheSimsulator.Sims
 {
@@ -47,7 +49,7 @@ namespace mycoolfin.TheSimsulator.Sims
         public static void AddNode(SimsGenotypeCreationContext context)
         {
             if (context.Nodes.Count < SimsGenotype.MaxNodeCount)
-                context.Nodes.Add(Node.CreateRandom());
+                context.Nodes.Add(Node.CreateRandom(context.Nodes, context.Connections, context.NeuronDefinitions));
         }
 
         public static void RemoveNode(SimsGenotypeCreationContext context)
@@ -110,7 +112,10 @@ namespace mycoolfin.TheSimsulator.Sims
         {
             if (context.NeuronDefinitions.Count < SimsGenotype.MaxNeuronDefinitionCount)
             {
+                List<ulong> existingContainerIds = new(context.Nodes.Select(n => n.Gid)) { SimsGenotype.BRAIN_GID };
+                ulong randomContainerId = existingContainerIds[SharedRandom.Next(existingContainerIds.Count)];
                 NeuronDefinition newNeuronDefinition = NeuronDefinition.CreateRandom(
+                    randomContainerId,
                     context.Nodes,
                     context.Connections,
                     context.NeuronDefinitions

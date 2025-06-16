@@ -1,22 +1,26 @@
+using System;
 using System.Collections.Generic;
 
 namespace mycoolfin.TheSimsulator.Sims
 {
     public class SimsPhenotype : IPhenotype<SimsPhenotype>
     {
-        public List<Limb> Limbs { get; private set; }
-        public List<JointBase> Joints { get; private set; }
+        public static int MaxLimbCount = 20;
 
-        public SimsPhenotype(List<Limb> limbs, List<JointBase> joints)
+        public Brain Brain { get; private set; }
+        public List<Limb> Limbs { get; private set; }
+
+        public event Action OnDispose;
+
+        public SimsPhenotype(Brain brain, List<Limb> limbs)
         {
-            Limbs = limbs ?? throw new System.ArgumentNullException(nameof(limbs), "Limbs cannot be null.");
-            Joints = joints ?? throw new System.ArgumentNullException(nameof(joints), "Joints cannot be null.");
+            Brain = brain ?? throw new ArgumentNullException(nameof(brain), "Brain cannot be null.");
+            Limbs = limbs ?? throw new ArgumentNullException(nameof(limbs), "Limbs cannot be null.");
         }
 
         public void Dispose()
         {
-            Limbs.Clear();
-            Joints.Clear();
+            OnDispose?.Invoke();
         }
     }
 }

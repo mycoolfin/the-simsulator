@@ -1,9 +1,10 @@
 using System;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
 namespace mycoolfin.TheSimsulator.Sims
 {
-    [StructLayout(LayoutKind.Explicit, Size = 64)]
+    [StructLayout(LayoutKind.Explicit, Size = 128)]
     public readonly struct Node
     {
         public static readonly Vector3 MinDimensions = new(0.01f, 0.01f, 0.01f);
@@ -17,8 +18,8 @@ namespace mycoolfin.TheSimsulator.Sims
         [FieldOffset(0)] public readonly ulong Gid;
         [FieldOffset(8)] public readonly Vector3 Dimensions;
         [FieldOffset(20)] public readonly JointDefinition JointDefinition;
-        [FieldOffset(52)] public readonly int RecursiveLimit;
-        [FieldOffset(56)] public readonly double _pad;
+        [FieldOffset(116)] public readonly int RecursiveLimit;
+        [FieldOffset(120)] public readonly double _pad;
 
         public Node(Vector3 dimensions, JointDefinition jointDefinition, int recursiveLimit)
         {
@@ -31,25 +32,28 @@ namespace mycoolfin.TheSimsulator.Sims
             _pad = 0.0;
         }
 
-        /// <summary>
-        /// Creates a copy of this Node with a new Gid.
-        /// </summary>
-        public Node Copy()
+        public Node CopyWithNewGid()
         {
             return new Node(Dimensions, JointDefinition, RecursiveLimit);
         }
 
-        public static Node CreateRandom()
+        public Node CopyWithSameGid(JointDefinition newJointDefinition)
+        {
+            return new Node(Dimensions, newJointDefinition, RecursiveLimit);
+        }
+
+        public static Node CreateRandom(IReadOnlyList<Node> nodes, IReadOnlyList<Connection> connections, IReadOnlyList<NeuronDefinition> neuronDefinitions)
         {
             Vector3 randomDimensions = new(
                 (float)SharedRandom.NextDouble() * (MaxDimensions.X - MinDimensions.X) + MinDimensions.X,
                 (float)SharedRandom.NextDouble() * (MaxDimensions.Y - MinDimensions.Y) + MinDimensions.Y,
                 (float)SharedRandom.NextDouble() * (MaxDimensions.Z - MinDimensions.Z) + MinDimensions.Z
             );
-            JointDefinition randomJointDefinition = JointDefinition.CreateRandom();
             int randomRecursiveLimit = SharedRandom.Next(MinRecursiveLimit, MaxRecursiveLimit + 1);
 
-            return new Node(randomDimensions, randomJointDefinition, randomRecursiveLimit);
+            Node randomNode = new(randomDimensions, new(), randomRecursiveLimit);
+            JointDefinition randomJointDefinition = JointDefinition.CreateRandom(randomNode.Gid, nodes, connections, neuronDefinitions);
+            return randomNode.CopyWithSameGid(randomJointDefinition);
         }
     }
 }
