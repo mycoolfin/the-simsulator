@@ -10,7 +10,7 @@ namespace mycoolfin.TheSimsulator.Sims
 
         public SignalInput(ISignalEmitter emitter, float weight)
         {
-            Emitter = emitter;
+            Emitter = emitter; // Null == use constant bias 1.
             Weight = System.Math.Clamp(weight, MinWeight, MaxWeight);
         }
     }

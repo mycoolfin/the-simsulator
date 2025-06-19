@@ -188,5 +188,13 @@ namespace mycoolfin.TheSimsulator
                 (num8 - num11) * point.X + (num9 + num10) * point.Y + (1f - (num4 + num5)) * point.Z
             );
         }
+
+        public static Quaternion Inverse(Quaternion q)
+        {
+            // For unit quaternions, inverse is just the conjugate
+            return new Quaternion(-q.X, -q.Y, -q.Z, q.W);
+        }
+
+        public override string ToString() => $"({X}, {Y}, {Z}, {W})";
     }
 }

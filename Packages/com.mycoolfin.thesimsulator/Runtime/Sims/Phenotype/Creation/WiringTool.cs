@@ -17,6 +17,7 @@ namespace mycoolfin.TheSimsulator.Sims
             Limb childLimb = childLimbs?.ElementAtOrDefault(inputDefinition.SignalEmitterAddress.ChildIndex) ?? null;
             IEnumerable<ISignalEmitter> emitterSet = inputDefinition.SignalEmitterAddress.Port switch
             {
+                SignalPort.Bias => null,
                 SignalPort.ThisLimb => thisLimb?.Sensors.Concat<ISignalEmitter>(thisLimb?.Neurons) ?? null,
                 SignalPort.ParentLimb => parentLimb?.Sensors.Concat<ISignalEmitter>(parentLimb?.Neurons) ?? null,
                 SignalPort.ChildLimb => childLimb?.Sensors.Concat<ISignalEmitter>(childLimb?.Neurons) ?? null,
@@ -24,7 +25,7 @@ namespace mycoolfin.TheSimsulator.Sims
                 _ => throw new System.NotSupportedException($"Unsupported signal port: {inputDefinition.SignalEmitterAddress.Port}")
             };
 
-            ISignalEmitter emitter = null; // TODO: Default to BIAS port on emitter null or slot missing?
+            ISignalEmitter emitter = null;
             if (emitterSet != null)
             {
                 emitter = emitterSet.ElementAtOrDefault(inputDefinition.SignalEmitterAddress.Slot);

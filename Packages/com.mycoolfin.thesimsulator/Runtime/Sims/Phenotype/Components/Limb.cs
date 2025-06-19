@@ -1,19 +1,26 @@
+using System;
 using System.Collections.Generic;
 
 namespace mycoolfin.TheSimsulator.Sims
 {
     public class Limb : ISensorContainer, IActuatorContainer, INeuronContainer
     {
-        public Vector3 Dimensions { get; private set; }
-        public float Mass => Dimensions.X * Dimensions.Y * Dimensions.Z; // Mass is proportional to volume.
-        public Vector3 Position { get; private set; }
-        public Quaternion Rotation { get; private set; }
+        public bool debugMirroredX;
+        public bool debugMirroredY;
+        public bool debugMirroredZ; // TODO: Remove these.
+        public Vector3 Dimensions { get; private set; } // World space.
+        public Vector3 Position { get; private set; } // World space.
+        public Quaternion Rotation { get; private set; } // World space.
         public JointBase Joint { get; private set; }
         private readonly List<Neuron> neurons = new();
 
-        public IEnumerable<SensorBase> Sensors => Joint.Sensors;
-        public IEnumerable<ActuatorBase> Actuators => Joint.Actuators;
+        public float Mass => Dimensions.X * Dimensions.Y * Dimensions.Z; // Mass is proportional to volume.
+
+        public IEnumerable<SensorBase> Sensors => Joint?.Sensors ?? Array.Empty<SensorBase>();
+        public IEnumerable<ActuatorBase> Actuators => Joint?.Actuators ?? Array.Empty<ActuatorBase>();
         public IEnumerable<Neuron> Neurons => neurons;
+
+        public event Action OnTransformChanged;
 
         public Limb(Vector3 dimensions)
         {
@@ -37,6 +44,7 @@ namespace mycoolfin.TheSimsulator.Sims
         {
             Position = position;
             Rotation = rotation;
+            OnTransformChanged?.Invoke();
         }
     }
 }

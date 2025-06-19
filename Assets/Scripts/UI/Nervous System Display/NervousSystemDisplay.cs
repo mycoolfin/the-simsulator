@@ -22,7 +22,7 @@ public class NervousSystemDisplay : MonoBehaviour
     {
         if (phenotype == null)
         {
-            Phenotype[] phenotypes = FindObjectsOfType<Phenotype>();
+            Phenotype[] phenotypes = FindObjectsByType<Phenotype>(FindObjectsSortMode.None);
             if (phenotypes.Length != 0)
             {
                 Initialise(phenotypes[^1]);

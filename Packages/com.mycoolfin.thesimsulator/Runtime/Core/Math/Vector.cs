@@ -33,6 +33,25 @@ namespace mycoolfin.TheSimsulator
         public static Vector2 operator /(Vector2 a, float d) => new(a.X / d, a.Y / d);
         public static Vector2 operator -(Vector2 a) => new(-a.X, -a.Y);
         public static Vector2 Scale(Vector2 a, Vector2 b) => new(a.X * b.X, a.Y * b.Y);
+        public static bool operator ==(Vector2 a, Vector2 b) => a.X == b.X && a.Y == b.Y;
+        public static bool operator !=(Vector2 a, Vector2 b) => !(a == b);
+        public override bool Equals(object obj)
+        {
+            if (obj is Vector2 v)
+                return this == v;
+            return false;
+        }
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 17;
+                hash = hash * 31 + X.GetHashCode();
+                hash = hash * 31 + Y.GetHashCode();
+                return hash;
+            }
+        }
+        public override string ToString() => $"({X}, {Y})";
     }
 
     [StructLayout(LayoutKind.Explicit, Size = 12)]
@@ -57,9 +76,9 @@ namespace mycoolfin.TheSimsulator
         public Vector3 Normalized => this / Magnitude;
 
         public static Vector3 Cross(Vector3 a, Vector3 b) => new(
-            a.Y * b.Z - a.Z * b.Y,
-            a.Z * b.X - a.X * b.Z,
-            a.X * b.Y - a.Y * b.X
+            -(a.Y * b.Z - a.Z * b.Y),
+            -(a.Z * b.X - a.X * b.Z),
+            -(a.X * b.Y - a.Y * b.X)
         );
         public static float Dot(Vector3 a, Vector3 b) => a.X * b.X + a.Y * b.Y + a.Z * b.Z;
         public static float Distance(Vector3 a, Vector3 b) => (a - b).Magnitude;
@@ -71,6 +90,28 @@ namespace mycoolfin.TheSimsulator
         public static Vector3 operator /(Vector3 a, float d) => new(a.X / d, a.Y / d, a.Z / d);
         public static Vector3 operator -(Vector3 a) => new(-a.X, -a.Y, -a.Z);
         public static Vector3 Scale(Vector3 a, Vector3 b) => new(a.X * b.X, a.Y * b.Y, a.Z * b.Z);
+        public static bool operator ==(Vector3 a, Vector3 b) => a.X == b.X && a.Y == b.Y && a.Z == b.Z;
+        public static bool operator !=(Vector3 a, Vector3 b) => !(a == b);
+
+        public override bool Equals(object obj)
+        {
+            if (obj is Vector3 v)
+                return this == v;
+            return false;
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 17;
+                hash = hash * 31 + X.GetHashCode();
+                hash = hash * 31 + Y.GetHashCode();
+                hash = hash * 31 + Z.GetHashCode();
+                return hash;
+            }
+        }
+        public override string ToString() => $"({X}, {Y}, {Z})";
     }
 
     [StructLayout(LayoutKind.Explicit, Size = 16)]
@@ -106,5 +147,26 @@ namespace mycoolfin.TheSimsulator
         public static Vector4 operator /(Vector4 a, float d) => new(a.X / d, a.Y / d, a.Z / d, a.W / d);
         public static Vector4 operator -(Vector4 a) => new(-a.X, -a.Y, -a.Z, -a.W);
         public static Vector4 Scale(Vector4 a, Vector4 b) => new(a.X * b.X, a.Y * b.Y, a.Z * b.Z, a.W * b.W);
+        public static bool operator ==(Vector4 a, Vector4 b) => a.X == b.X && a.Y == b.Y && a.Z == b.Z && a.W == b.W;
+        public static bool operator !=(Vector4 a, Vector4 b) => !(a == b);
+        public override bool Equals(object obj)
+        {
+            if (obj is Vector4 v)
+                return this == v;
+            return false;
+        }
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                int hash = 17;
+                hash = hash * 31 + X.GetHashCode();
+                hash = hash * 31 + Y.GetHashCode();
+                hash = hash * 31 + Z.GetHashCode();
+                hash = hash * 31 + W.GetHashCode();
+                return hash;
+            }
+        }
+        public override string ToString() => $"({X}, {Y}, {Z}, {W})";
     }
 }

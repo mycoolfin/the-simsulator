@@ -27,13 +27,13 @@ namespace mycoolfin.TheSimsulator.Sims
         [FieldOffset(62)] public readonly bool ReflectionZ;
         [FieldOffset(63)] public readonly bool TerminalOnly;
 
-        public Connection(ulong parentNodeId, ulong childNodeId, int parentFace, Vector2 position, Vector3 orientation, Vector3 scale, bool reflectionX, bool reflectionY, bool reflectionZ, bool terminalOnly)
+        public Connection(ulong parentNodeGid, ulong childNodeGid, int parentFace, Vector2 position, Vector3 orientation, Vector3 scale, bool reflectionX, bool reflectionY, bool reflectionZ, bool terminalOnly)
         {
             byte[] buffer = new byte[sizeof(ulong)];
             SharedRandom.NextBytes(buffer);
             Gid = BitConverter.ToUInt64(buffer, 0);
-            ParentNodeGid = parentNodeId;
-            ChildNodeGid = childNodeId;
+            ParentNodeGid = parentNodeGid;
+            ChildNodeGid = childNodeGid;
             ParentFace = parentFace;
             Position = position;
             Orientation = orientation;

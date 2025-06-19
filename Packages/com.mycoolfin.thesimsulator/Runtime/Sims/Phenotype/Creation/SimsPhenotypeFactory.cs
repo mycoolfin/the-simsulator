@@ -1,6 +1,6 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
+using System.Collections.Generic;
 
 namespace mycoolfin.TheSimsulator.Sims
 {
@@ -22,13 +22,13 @@ namespace mycoolfin.TheSimsulator.Sims
             Dictionary<ISignalReceiver, InputSetDefinition> receiverToInputDefinitionSetGidMap = new();
 
             // Create the brain.
-            if (!neuronDefinitionMap.TryGetValue(SimsGenotype.BRAIN_GID, out List<NeuronDefinition> brainNeuronDefs)) brainNeuronDefs = new();
-            Brain brain = new(brainNeuronDefs.Select(nd => new Neuron(nd.ActivationFunction)).ToList());
+            Brain brain = BrainCreator.CreateBrain(genotype.NeuronDefinitions, receiverToInputDefinitionSetGidMap);
 
             // Create the limbs.
+            Queue<Action> buildQueue = new(); // For breadth-first limb creation.
             List<Limb> limbs = new();
             Vector3 initialScale = Vector3.One;
-            RecursivelyBuildLimbTree(
+            BuildLimbTree(
                 nodeMap,
                 connectionMap,
                 neuronDefinitionMap,
@@ -36,14 +36,17 @@ namespace mycoolfin.TheSimsulator.Sims
                 null, // No parent limb for the root.
                 null, // No parent connection for the root.
                 initialScale,
+                buildQueue,
                 limbs,
                 limbToNodeGidMap,
                 parentToChildLimbsMap,
                 childToParentLimbMap,
                 receiverToInputDefinitionSetGidMap
             );
+            while (buildQueue.Count > 0)
+                buildQueue.Dequeue().Invoke();
 
-            // Wire up nervous system. (sensors and neurons to neurons and actuators)
+            // Wire up nervous system.
             foreach (Neuron neuron in brain.Neurons)
             {
                 InputSetDefinition inputsDef = receiverToInputDefinitionSetGidMap[neuron];
@@ -52,7 +55,7 @@ namespace mycoolfin.TheSimsulator.Sims
             foreach (Limb thisLimb in limbs)
             {
                 childToParentLimbMap.TryGetValue(thisLimb, out Limb parentLimb);
-                parentToChildLimbsMap.TryGetValue(parentLimb, out List<Limb> childLimbs);
+                parentToChildLimbsMap.TryGetValue(thisLimb, out List<Limb> childLimbs);
                 foreach (Neuron neuron in thisLimb.Neurons)
                 {
                     InputSetDefinition inputsDef = receiverToInputDefinitionSetGidMap[neuron];
@@ -68,7 +71,7 @@ namespace mycoolfin.TheSimsulator.Sims
             return new SimsPhenotype(brain, limbs);
         }
 
-        private void RecursivelyBuildLimbTree(
+        private void BuildLimbTree(
             Dictionary<ulong, Node> nodeMap, // Node Gid -> Node.
             Dictionary<ulong, List<Connection>> connectionMap, // Parent Node Gid -> List<Connection>.
             Dictionary<ulong, List<NeuronDefinition>> neuronDefinitionMap, // Node Gid -> List<NeuronDefinition>.
@@ -76,29 +79,31 @@ namespace mycoolfin.TheSimsulator.Sims
             Connection? connectionToParent,
             Limb parentLimb,
             Vector3 parentScale,
+            Queue<Action> buildQueue,
             List<Limb> limbs,
             Dictionary<Limb, ulong> limbToNodeGidMap,
             Dictionary<Limb, List<Limb>> parentToChildLimbsMap,
             Dictionary<Limb, Limb> childToParentLimbMap,
             Dictionary<ISignalReceiver, InputSetDefinition> receiverToInputDefinitionSetGidMap,
             int nodeRecursionDepth = 0,
-            bool mirrorX = false,
-            bool mirrorY = false,
-            bool mirrorZ = false
+            bool isParentLimbFaceRightMirrored = false,
+            bool isParentLimbFaceUpMirrored = false,
+            bool isParentLimbFaceForwardMirrored = false,
+            bool isFaceRightMirrored = false,
+            bool isFaceUpMirrored = false,
+            bool isFaceForwardMirrored = false
         )
         {
-            // Skip this node if we have exceeded its recursion limit.
-            if (nodeRecursionDepth > node.RecursiveLimit)
-                return;
-
-            Limb newLimb = LimbCreator.CreateChildLimb(parentLimb, ref parentScale, node, connectionToParent, neuronDefinitionMap[node.Gid], mirrorX, mirrorY, mirrorZ, receiverToInputDefinitionSetGidMap);
+            neuronDefinitionMap.TryGetValue(node.Gid, out List<NeuronDefinition> neuronDefinitions);
+            CreatedLimb createdLimb = LimbCreator.CreateChildLimb(parentLimb, parentScale, node, connectionToParent, neuronDefinitions, isParentLimbFaceRightMirrored, isParentLimbFaceUpMirrored, isParentLimbFaceForwardMirrored, isFaceRightMirrored, isFaceUpMirrored, isFaceForwardMirrored, receiverToInputDefinitionSetGidMap);
 
             // Skip this limb if it would overlap with an existing, non-parent limb.
-            List<Limb> limbCollisions = SpawnCollisionHandler.GetLimbCollisions(newLimb, limbs);
-            if (limbCollisions.Any(l => l != parentLimb))
-                return; 
+            // List<Limb> limbCollisions = SpawnCollisionHandler.GetLimbCollisions(newLimb, limbs);
+            // if (limbCollisions.Any(l => l != parentLimb))
+            //     return; // TODO: uncomment
 
             // Add the new limb to the lists and maps.
+            Limb newLimb = createdLimb.Limb;
             limbs.Add(newLimb);
             limbToNodeGidMap[newLimb] = node.Gid;
             if (parentLimb != null)
@@ -115,46 +120,61 @@ namespace mycoolfin.TheSimsulator.Sims
 
             // Iterate over the connections for this node and recursively build child limbs.
             bool nodeRecursionLimitReached = nodeRecursionDepth == node.RecursiveLimit;
-            foreach (Connection c in connectionMap[node.Gid])
+            if (connectionMap.TryGetValue(node.Gid, out List<Connection> connections))
             {
-                if (c.TerminalOnly && !nodeRecursionLimitReached)
-                    continue;
-
-                Node childNode = nodeMap[c.ChildNodeGid];
-                int newRecursionDepth = childNode.Gid == node.Gid ? nodeRecursionDepth + 1 : 0;
-
-                List<Action> limbCreationActions = new()
+                foreach (Connection c in connections)
                 {
-                    // The non-mirrored child.
-                    () => RecursivelyBuildLimbTree(
-                        nodeMap, connectionMap, neuronDefinitionMap, childNode, c, newLimb, parentScale,
-                        limbs, limbToNodeGidMap, parentToChildLimbsMap, childToParentLimbMap, receiverToInputDefinitionSetGidMap,
-                        newRecursionDepth
-                    )
-                };
+                    if (c.TerminalOnly && !nodeRecursionLimitReached)
+                        continue;
 
-                // Loop over all non-zero combinations of reflection flags.
-                for (int i = 1; i < 8; i++)
-                {
-                    bool isXMirrored = (i & 1) != 0 && c.ReflectionX;
-                    bool isYMirrored = (i & 2) != 0 && c.ReflectionY;
-                    bool isZMirrored = (i & 4) != 0 && c.ReflectionZ;
-                    if (isXMirrored || isYMirrored || isZMirrored)
+                    Node childNode = nodeMap[c.ChildNodeGid];
+                    int newRecursionDepth = childNode.Gid == node.Gid ? nodeRecursionDepth + 1 : 0;
+                    // Skip this connection if we have exceeded the node recursion limit.
+                    if (newRecursionDepth > childNode.RecursiveLimit)
+                        return;
+
+                    // Calculate all child limb variants.
+                    List<(bool mirrorX, bool mirrorY, bool mirrorZ)> childLimbVariants = new()
                     {
-                        limbCreationActions.Add(() => RecursivelyBuildLimbTree(
-                            nodeMap, connectionMap, neuronDefinitionMap, childNode, c, newLimb, parentScale,
-                            limbs, limbToNodeGidMap, parentToChildLimbsMap, childToParentLimbMap, receiverToInputDefinitionSetGidMap,
-                            newRecursionDepth, isXMirrored, isYMirrored, isZMirrored
+                        (false, false, false) // Start with no additional mirroring for this connection.
+                    };
+                    if (c.ReflectionX)
+                    {
+                        int count = childLimbVariants.Count;
+                        for (int i = 0; i < count; i++)
+                            childLimbVariants.Add((!childLimbVariants[i].mirrorX, childLimbVariants[i].mirrorY, childLimbVariants[i].mirrorZ));
+                    }
+                    if (c.ReflectionY)
+                    {
+                        int count = childLimbVariants.Count;
+                        for (int i = 0; i < count; i++)
+                            childLimbVariants.Add((childLimbVariants[i].mirrorX, !childLimbVariants[i].mirrorY, childLimbVariants[i].mirrorZ));
+                    }
+                    if (c.ReflectionZ)
+                    {
+                        int count = childLimbVariants.Count;
+                        for (int i = 0; i < count; i++)
+                            childLimbVariants.Add((childLimbVariants[i].mirrorX, childLimbVariants[i].mirrorY, !childLimbVariants[i].mirrorZ));
+                    }
+
+                    // If adding these limbs would exceed the max limb count, skip the entire connection.
+                    // This way, we avoid partially created connections that might lead to inconsistent states.
+                    // if (childLimbVariants.Count + limbs.Count > SimsPhenotype.MaxLimbCount)
+                    //     continue; // TODO: uncomment
+
+                    foreach (var v in childLimbVariants)
+                    {
+                        buildQueue.Enqueue(() => BuildLimbTree(
+                            nodeMap, connectionMap, neuronDefinitionMap, childNode, c, newLimb, createdLimb.CurrentScale,
+                            buildQueue, limbs, limbToNodeGidMap, parentToChildLimbsMap, childToParentLimbMap, receiverToInputDefinitionSetGidMap,
+                            newRecursionDepth, 
+                            // Pass the current limb's mirroring state as the accumulated parent context
+                            isFaceRightMirrored, isFaceUpMirrored, isFaceForwardMirrored, 
+                            // The variant flags determine the new mirroring to apply to this specific child
+                            v.mirrorX, v.mirrorY, v.mirrorZ
                         ));
                     }
                 }
-
-                // If adding these limbs would exceed the max limb count, skip the entire connection.
-                // This way, we avoid partially created connections that might lead to inconsistent states.
-                if (limbCreationActions.Count + limbs.Count > SimsPhenotype.MaxLimbCount)
-                    continue;
-
-                limbCreationActions.ForEach(action => action.Invoke());
             }
         }
     }

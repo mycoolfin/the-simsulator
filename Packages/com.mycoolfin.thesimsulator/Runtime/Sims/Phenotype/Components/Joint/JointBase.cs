@@ -54,13 +54,13 @@ namespace mycoolfin.TheSimsulator.Sims
             YAxis = yAxis;
             ZAxis = zAxis;
 
-            if (xAxis.Sensor != null) sensors.Add(xAxis.Sensor);
-            if (yAxis.Sensor != null) sensors.Add(yAxis.Sensor);
-            if (zAxis.Sensor != null) sensors.Add(zAxis.Sensor);
+            if (xAxis?.Sensor != null) sensors.Add(xAxis.Sensor);
+            if (yAxis?.Sensor != null) sensors.Add(yAxis.Sensor);
+            if (zAxis?.Sensor != null) sensors.Add(zAxis.Sensor);
 
-            if (xAxis.Actuator != null) actuators.Add(xAxis.Actuator);
-            if (yAxis.Actuator != null) actuators.Add(yAxis.Actuator);
-            if (zAxis.Actuator != null) actuators.Add(zAxis.Actuator);
+            if (xAxis?.Actuator != null) actuators.Add(xAxis.Actuator);
+            if (yAxis?.Actuator != null) actuators.Add(yAxis.Actuator);
+            if (zAxis?.Actuator != null) actuators.Add(zAxis.Actuator);
         }
 
         public void SetActualAngles(Vector3 actualAngles)

@@ -1,11 +1,13 @@
 using System.Linq;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using System.Diagnostics;
 
 namespace mycoolfin.TheSimsulator.Sims
 {
     public enum SignalPort : byte
     {
+        Bias,
         ThisLimb,
         ParentLimb,
         ChildLimb,
@@ -37,6 +39,10 @@ namespace mycoolfin.TheSimsulator.Sims
             byte childIndex = 0b0;
             switch (randomPort)
             {
+                case SignalPort.Bias:
+                    slot = (byte)SharedRandom.Next(0, 256);
+                    childIndex = (byte)SharedRandom.Next(0, 256);
+                    break;
                 case SignalPort.ThisLimb:
                     existingSlotsCount = GetExistingSlotsCount(thisContainerId, nodes, neuronDefinitions);
                     slot = existingSlotsCount > 0 ? (byte)SharedRandom.Next(0, existingSlotsCount) : (byte)SharedRandom.Next(0, 256);
@@ -80,39 +86,27 @@ namespace mycoolfin.TheSimsulator.Sims
 
         private static ulong GetRandomContainerId(IReadOnlyList<Node> nodes, IReadOnlyList<NeuronDefinition> neuronDefinitions)
         {
-            Dictionary<ulong, int> containerCounts = neuronDefinitions
-                .GroupBy(n => n.ContainerGid)
-                .ToDictionary(g => g.Key, g => g.Count());
-
-            foreach (ulong id in nodes.Select(n => n.Gid).Append(SimsGenotype.BRAIN_GID))
-                containerCounts.TryAdd(id, 0);
-
-            ulong[] eligible = containerCounts
-                .Where(kvp => kvp.Value < SimsGenotype.MaxNeuronDefinitionCount)
-                .Select(kvp => kvp.Key)
-                .ToArray();
-
-            return eligible[SharedRandom.Next(eligible.Length)];
+            IEnumerable<ulong> validContainerGids = nodes.Select(n => n.Gid).Append(SimsGenotype.BRAIN_GID);
+            return validContainerGids.ElementAt(SharedRandom.Next(validContainerGids.Count()));
         }
 
-        private static int GetExistingSlotsCount(ulong sourceContainerId, IReadOnlyList<Node> nodes, IReadOnlyList<NeuronDefinition> neuronDefinitions)
+        private static int GetExistingSlotsCount(ulong sourceContainerGid, IReadOnlyList<Node> nodes, IReadOnlyList<NeuronDefinition> neuronDefinitions)
         {
-            if (sourceContainerId == SimsGenotype.BRAIN_GID)
+            if (sourceContainerGid == SimsGenotype.BRAIN_GID)
                 return neuronDefinitions.Count(n => n.ContainerGid == SimsGenotype.BRAIN_GID);
 
             Node? hit = nodes
-                .Where(n => n.Gid == sourceContainerId)
+                .Where(n => n.Gid == sourceContainerGid)
                 .Select(n => (Node?)n)
                 .FirstOrDefault();
 
             if (hit is not null)
             {
-                int neuronCount = neuronDefinitions.Count(n => n.ContainerGid == sourceContainerId);
-                return Node.SENSOR_COUNT + neuronCount; // TODO: BIAS handling.
+                int neuronCount = neuronDefinitions.Count(n => n.ContainerGid == sourceContainerGid);
+                return Node.SENSOR_COUNT + neuronCount;
             }
 
-            throw new System.ArgumentOutOfRangeException(nameof(sourceContainerId), "Source container ID did not match any existing container.");
-
+            return -1; // Invalid container GID, no slots available.
         }
     }
 }

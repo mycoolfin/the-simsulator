@@ -2,52 +2,132 @@ using System.Collections.Generic;
 
 namespace mycoolfin.TheSimsulator.Sims
 {
+    public struct CreatedLimb
+    {
+        public Limb Limb { get; }
+        public Vector3 CurrentScale { get; }
+
+        public CreatedLimb(Limb limb, Vector3 currentScale)
+        {
+            Limb = limb;
+            CurrentScale = currentScale;
+        }
+    }
+
     public static class LimbCreator
     {
-        public static Limb CreateChildLimb(Limb parentLimb, ref Vector3 parentScale, Node node, Connection? connection, List<NeuronDefinition> neuronDefinitions,
-            bool mirrorX, bool mirrorY, bool mirrorZ,
+        public static CreatedLimb CreateChildLimb(Limb parentLimb, Vector3 parentScale, Node node, Connection? connection, List<NeuronDefinition> neuronDefinitions,
+            bool isParentLimbFaceRightMirrored, bool isParentLimbFaceUpMirrored, bool isParentLimbFaceForwardMirrored, bool mirrorByFaceRight, bool mirrorByFaceUp, bool mirrorByFaceForward,
             Dictionary<ISignalReceiver, InputSetDefinition> receiverToInputDefinitionSetGidMap
         )
         {
-            // 1. Compute mirroring scale.
-            Vector3 mirrorScale = new(
-                mirrorX ? -1f : 1f,
-                mirrorY ? -1f : 1f,
-                mirrorZ ? -1f : 1f
+            // Compute new scale and dimensions (dimensions always positive).
+            Vector3 currentScale = connection == null ? parentScale : Vector3.Scale(parentScale, connection.Value.Scale);
+            Vector3 dimensions = new(
+                node.Dimensions.X * currentScale.X,
+                node.Dimensions.Y * currentScale.Y,
+                node.Dimensions.Z * currentScale.Z
             );
-
-            // 2. Compute new scale and dimensions (dimensions always positive).
-            parentScale = connection == null ? parentScale : Vector3.Scale(parentScale, connection.Value.Scale);
-            Vector3 dimensions = CalculateChildDimensions(parentScale, node);
             Limb newLimb = new(dimensions);
+            newLimb.debugMirroredX = mirrorByFaceRight; // TODO: remove these.
+            newLimb.debugMirroredY = mirrorByFaceUp;
+            newLimb.debugMirroredZ = mirrorByFaceForward;
 
-            // 3. If no connection, return root limb.
+            // If no connection, return root limb here.
             if (connection == null)
-                return newLimb;
+                return new CreatedLimb(newLimb, currentScale);
 
-            // 4. Compute effective parent face.
-            int effectiveParentFace = mirrorZ ? (connection.Value.ParentFace + 3) % 6 : connection.Value.ParentFace;
+            // Compute face axes and normal.
+            // Left-handed coordinate system (Unity compatible).
+            GetFaceAxes(connection.Value.ParentFace, parentLimb.Rotation, out Vector3 faceRight, out Vector3 faceUp);
+            Vector3 faceForward = Vector3.Cross(faceUp, faceRight);
 
-            // 5. Compute face axes and normal.
-            GetFaceAxes(effectiveParentFace, parentLimb.Rotation, out var parentFaceNormal, out _, out _);
+            // Apply existing mirroring transformation based on parent limb's face axes.
+            if (isParentLimbFaceRightMirrored)
+            {
+                faceRight = -faceRight;
+                faceForward = Vector3.Cross(faceUp, faceRight);
+            }
+            if (isParentLimbFaceUpMirrored)
+            {
+                faceUp = -faceUp;
+                faceForward = Vector3.Cross(faceUp, faceRight);
+            }
+            if (isParentLimbFaceForwardMirrored)
+            {
+                faceForward = -faceForward;
+                faceRight = Vector3.Cross(faceForward, faceUp);
+            }
 
-            // 6. Compute mirrored orientation.
-            Vector3 mirroredEuler = Vector3.Scale(connection.Value.Orientation, mirrorScale);
+            // Compute local anchors.
+            Vector2 connectionPosition = new(
+                connection.Value.Position.X,
+                connection.Value.Position.Y
+            );
+            Quaternion connectionOrientation = Quaternion.Euler(
+                connection.Value.Orientation.X,
+                connection.Value.Orientation.Y,
+                connection.Value.Orientation.Z
+            );
+            Vector3 parentHalfExtents = parentLimb.Dimensions * 0.5f;
+            Vector3 localParentAnchor = Vector3.Scale(parentHalfExtents, -faceForward)
+                                      + Vector3.Scale(parentHalfExtents, faceRight) * connectionPosition.X
+                                      + Vector3.Scale(parentHalfExtents, faceUp) * connectionPosition.Y;
 
-            // 7. Compute child rotation.
-            Quaternion rotation = CalculateChildRotation(parentLimb, parentFaceNormal, effectiveParentFace, mirroredEuler);
+            // Apply mirroring transformations to orientation only.
+            if (mirrorByFaceRight)
+            {
+                connectionOrientation = ReflectRotationAcrossPlane(connectionOrientation, faceRight);
+                faceRight = -faceRight;
+                faceForward = Vector3.Cross(faceUp, faceRight);
+            }
+            if (mirrorByFaceUp)
+            {
+                connectionOrientation = ReflectRotationAcrossPlane(connectionOrientation, faceUp);
+                faceUp = -faceUp;
+                faceForward = Vector3.Cross(faceUp, faceRight);
+            }
+            if (mirrorByFaceForward)
+            {
+                connectionOrientation = ReflectRotationAcrossPlane(connectionOrientation, faceForward);
+                faceRight = -faceRight;
+                faceForward = Vector3.Cross(faceUp, faceRight);
+            }
 
-            // 8. Compute local anchors.
-            Vector3 localChildAnchor = Vector3.Scale(new Vector3(0, 0, -0.5f * dimensions.Z), mirrorScale);
-            Vector3 localParentAnchor = GetLocalParentAnchor(parentLimb.Dimensions, effectiveParentFace, mirrorScale);
+            // Compute world position.
+            Vector3 worldParentAnchor = parentLimb.Position + parentLimb.Rotation * localParentAnchor;
 
-            // 9. Compute world position.
-            Vector3 position = CalculateChildPosition(parentLimb, parentFaceNormal, connection.Value, rotation, localChildAnchor, effectiveParentFace);
+            // Compute child rotation first 
+            Quaternion worldChildRotation = parentLimb.Rotation * connectionOrientation;
 
-            // 10. Set transform.
-            newLimb.SetPositionAndRotation(position, rotation);
+            // Compute child anchor in child local space.
+            // Always at the center of the -Z face, regardless of mirroring.
+            Vector3 localChildAnchor = new(0f, 0f, -0.5f * dimensions.Z);
 
-            // 11. Create and assign joint.
+            Vector3 childFaceWorldOffset = worldChildRotation * localChildAnchor;
+            Vector3 worldChildPosition = worldParentAnchor - childFaceWorldOffset;
+
+            // Apply mirroring transformations to final position.
+            if (mirrorByFaceRight)
+            {
+                Vector3 parentRight = parentLimb.Rotation * new Vector3(1, 0, 0);
+                worldChildPosition = ReflectPointAcrossPlane(worldChildPosition, parentLimb.Position, parentRight);
+            }
+            if (mirrorByFaceUp)
+            {
+                Vector3 parentUp = parentLimb.Rotation * new Vector3(0, 1, 0);
+                worldChildPosition = ReflectPointAcrossPlane(worldChildPosition, parentLimb.Position, parentUp);
+            }
+            if (mirrorByFaceForward)
+            {
+                Vector3 parentForward = parentLimb.Rotation * new Vector3(0, 0, 1);
+                worldChildPosition = ReflectPointAcrossPlane(worldChildPosition, parentLimb.Position, parentForward);
+            }
+
+            // Set transform.
+            newLimb.SetPositionAndRotation(worldChildPosition, worldChildRotation);
+
+            // Create and assign joint.
             JointBase joint = JointFactory.CreateJoint(
                 node.JointDefinition.JointType,
                 parentLimb,
@@ -57,129 +137,87 @@ namespace mycoolfin.TheSimsulator.Sims
                 node.JointDefinition.AngleLimits
             );
             newLimb.SetJoint(joint);
-            receiverToInputDefinitionSetGidMap[joint.XAxis.Actuator] = node.JointDefinition.XAxisInputs;
-            receiverToInputDefinitionSetGidMap[joint.YAxis.Actuator] = node.JointDefinition.YAxisInputs;
-            receiverToInputDefinitionSetGidMap[joint.ZAxis.Actuator] = node.JointDefinition.ZAxisInputs;
+            if (joint.XAxis != null)
+                receiverToInputDefinitionSetGidMap[joint.XAxis.Actuator] = node.JointDefinition.XAxisInputs;
+            if (joint.YAxis != null)
+                receiverToInputDefinitionSetGidMap[joint.YAxis.Actuator] = node.JointDefinition.YAxisInputs;
+            if (joint.ZAxis != null)
+                receiverToInputDefinitionSetGidMap[joint.ZAxis.Actuator] = node.JointDefinition.ZAxisInputs;
 
-            // 12. Create and assign unwired neurons.
+            // Create and assign unwired neurons.
             List<Neuron> neurons = new();
-            foreach (NeuronDefinition nd in neuronDefinitions)
+            if (neuronDefinitions != null)
             {
-                Neuron neuron = new(nd.ActivationFunction);
-                neurons.Add(neuron);
-                receiverToInputDefinitionSetGidMap[neuron] = nd.Inputs;
+                foreach (NeuronDefinition nd in neuronDefinitions)
+                {
+                    Neuron neuron = new(nd.ActivationFunction);
+                    neurons.Add(neuron);
+                    receiverToInputDefinitionSetGidMap[neuron] = nd.Inputs;
+                }
             }
             newLimb.SetNeurons(neurons);
 
-            return newLimb;
+            return new CreatedLimb(newLimb, currentScale);
         }
 
-        // Compute local anchor on parent limb for a given face and mirroring.
-        private static Vector3 GetLocalParentAnchor(Vector3 parentDimensions, int face, Vector3 mirrorScale)
+        private static void GetFaceAxes(int face, Quaternion parentRotation, out Vector3 faceRight, out Vector3 faceUp)
         {
-            float x = (face == 0 ? +0.5f : face == 3 ? -0.5f : 0f) * parentDimensions.X;
-            float y = (face == 1 ? +0.5f : face == 4 ? -0.5f : 0f) * parentDimensions.Y;
-            float z = (face == 2 ? +0.5f : face == 5 ? -0.5f : 0f) * parentDimensions.Z;
-            return Vector3.Scale(new Vector3(x, y, z), mirrorScale);
-        }
-
-        // The child's Z axis is aligned with the chosen parent face normal.
-        private static Quaternion CalculateChildRotation(Limb parentLimb, Vector3 parentFaceNormal, int effectiveParentFace, Vector3 eulerAngles)
-        {
-            Vector3 parentUp = (effectiveParentFace == 1 || effectiveParentFace == 4)
-                ? parentLimb.Rotation * new Vector3(0, 0, 1)
-                : parentLimb.Rotation * new Vector3(0, 1, 0);
-            Quaternion alignToFace = Quaternion.LookRotation(parentFaceNormal, parentUp);
-            return alignToFace * Quaternion.Euler(eulerAngles.X, eulerAngles.Y, eulerAngles.Z);
-        }
-
-        private static Vector3 CalculateChildDimensions(Vector3 currentScale, Node node)
-        {
-            return new(
-                node.Dimensions.X * currentScale.X,
-                node.Dimensions.Y * currentScale.Y,
-                node.Dimensions.Z * currentScale.Z
-            );
-        }
-
-        // Returns the face normal, right, and up axes for a given face index, ensuring consistent orientation.
-        private static void GetFaceAxes(int face, Quaternion parentRotation, out Vector3 faceNormal, out Vector3 faceRight, out Vector3 faceUp)
-        {
-            // Convention: when looking at the face from outside, right is +X, up is +Y in face-local space.
             switch (face)
             {
-                case 0: // +X
-                    faceNormal = parentRotation * new Vector3(1, 0, 0);
-                    faceRight = parentRotation * new Vector3(0, 0, 1); // +Z
-                    faceUp = parentRotation * new Vector3(0, 1, 0); // +Y
+                case 0: // -X (left face)
+                    faceRight = parentRotation * new Vector3(0, 0, -1);
+                    faceUp = parentRotation * new Vector3(0, 1, 0);
                     break;
-                case 1: // +Y
-                    faceNormal = parentRotation * new Vector3(0, 1, 0);
-                    faceRight = parentRotation * new Vector3(1, 0, 0); // +X
-                    faceUp = parentRotation * new Vector3(0, 0, -1); // -Z
+                case 1: // -Y (bottom face)
+                    faceRight = parentRotation * new Vector3(1, 0, 0);
+                    faceUp = parentRotation * new Vector3(0, 0, 1);
                     break;
-                case 2: // +Z
-                    faceNormal = parentRotation * new Vector3(0, 0, 1);
-                    faceRight = parentRotation * new Vector3(1, 0, 0); // +X
-                    faceUp = parentRotation * new Vector3(0, 1, 0); // +Y
+                case 2: // -Z (back face)
+                    faceRight = parentRotation * new Vector3(-1, 0, 0);
+                    faceUp = parentRotation * new Vector3(0, 1, 0);
                     break;
-                case 3: // -X
-                    faceNormal = parentRotation * new Vector3(-1, 0, 0);
-                    faceRight = parentRotation * new Vector3(0, 0, -1); // -Z
-                    faceUp = parentRotation * new Vector3(0, 1, 0); // +Y
+                case 3: // +X (right face)
+                    faceRight = parentRotation * new Vector3(0, 0, 1);
+                    faceUp = parentRotation * new Vector3(0, 1, 0);
                     break;
-                case 4: // -Y
-                    faceNormal = parentRotation * new Vector3(0, -1, 0);
-                    faceRight = parentRotation * new Vector3(1, 0, 0); // +X
-                    faceUp = parentRotation * new Vector3(0, 0, 1); // +Z
+                case 4: // +Y (top face)
+                    faceRight = parentRotation * new Vector3(-1, 0, 0);
+                    faceUp = parentRotation * new Vector3(0, 0, 1);
                     break;
-                case 5: // -Z
-                    faceNormal = parentRotation * new Vector3(0, 0, -1);
-                    faceRight = parentRotation * new Vector3(-1, 0, 0); // -X
-                    faceUp = parentRotation * new Vector3(0, 1, 0); // +Y
+                case 5: // +Z (front face)
+                    faceRight = parentRotation * new Vector3(1, 0, 0);
+                    faceUp = parentRotation * new Vector3(0, 1, 0);
                     break;
                 default:
-                    faceNormal = faceRight = faceUp = Vector3.Zero;
-                    break;
+                    throw new System.ArgumentOutOfRangeException(nameof(face), $"Invalid face index {face}. Must be 0-5.");
             }
         }
 
-        // The center of the Z- face of the child limb equals the specified position on the parent limb's face.
-        private static Vector3 CalculateChildPosition(Limb parentLimb, Vector3 parentFaceNormal, Connection connection, Quaternion childLimbRotation, Vector3 localChildAnchor, int effectiveParentFace)
+        private static Vector3 ReflectPointAcrossPlane(Vector3 point, Vector3 planePoint, Vector3 planeNormal)
         {
-            // Use new helper for axes
-            GetFaceAxes(effectiveParentFace, parentLimb.Rotation, out var faceNormal, out var faceRight, out var faceUp);
+            Vector3 n = planeNormal.Normalized;
+            Vector3 toPoint = point - planePoint;
+            float distance = Vector3.Dot(toPoint, n);
+            return point - 2 * distance * n;
+        }
 
-            Vector3 parentFaceCenter = parentLimb.Position + faceNormal * 0.5f * (effectiveParentFace switch
-            {
-                0 or 3 => parentLimb.Dimensions.X,
-                1 or 4 => parentLimb.Dimensions.Y,
-                2 or 5 => parentLimb.Dimensions.Z,
-                _ => 0f
-            });
+        private static Quaternion ReflectRotationAcrossPlane(Quaternion rotation, Vector3 planeNormal)
+        {
+            // Normalize plane normal.
+            Vector3 n = planeNormal.Normalized;
 
-            // Calculate the offset on the parent face (connection.Position is in [-1, 1]x[-1, 1] on the face).
-            Vector3 offset = faceRight * connection.Position.X * 0.5f * (effectiveParentFace switch
-            {
-                0 or 3 => parentLimb.Dimensions.Z,
-                1 or 4 => parentLimb.Dimensions.X,
-                2 or 5 => parentLimb.Dimensions.X,
-                _ => 0f
-            }) + faceUp * connection.Position.Y * 0.5f * (effectiveParentFace switch
-            {
-                0 or 3 => parentLimb.Dimensions.Y,
-                1 or 4 => parentLimb.Dimensions.Z,
-                2 or 5 => parentLimb.Dimensions.Y,
-                _ => 0f
-            });
+            // Rotate local basis vectors.
+            Vector3 right = rotation * new Vector3(1, 0, 0);
+            Vector3 up = rotation * new Vector3(0, 1, 0);
+            Vector3 forward = rotation * new Vector3(0, 0, 1);
 
-            Vector3 anchorWorld = parentFaceCenter + offset;
+            // Reflect each basis vector across the plane.
+            right -= 2 * Vector3.Dot(right, n) * n;
+            up -= 2 * Vector3.Dot(up, n) * n;
+            forward -= 2 * Vector3.Dot(forward, n) * n;
 
-            // Transform this offset into world space using the child's rotation.
-            Vector3 childFaceWorldOffset = childLimbRotation * localChildAnchor;
-
-            // The child position is the anchor minus the offset.
-            return anchorWorld - childFaceWorldOffset;
+            // Reconstruct the quaternion from the reflected basis.
+            return Quaternion.LookRotation(forward, up);
         }
     }
 }

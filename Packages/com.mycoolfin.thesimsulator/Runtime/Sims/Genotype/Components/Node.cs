@@ -32,6 +32,15 @@ namespace mycoolfin.TheSimsulator.Sims
             _pad = 0.0;
         }
 
+        private Node(ulong gid, Vector3 dimensions, JointDefinition jointDefinition, int recursiveLimit)
+        {
+            Gid = gid;
+            Dimensions = dimensions;
+            JointDefinition = jointDefinition;
+            RecursiveLimit = recursiveLimit;
+            _pad = 0.0;
+        }
+
         public Node CopyWithNewGid()
         {
             return new Node(Dimensions, JointDefinition, RecursiveLimit);
@@ -39,7 +48,7 @@ namespace mycoolfin.TheSimsulator.Sims
 
         public Node CopyWithSameGid(JointDefinition newJointDefinition)
         {
-            return new Node(Dimensions, newJointDefinition, RecursiveLimit);
+            return new Node(Gid, Dimensions, newJointDefinition, RecursiveLimit);
         }
 
         public static Node CreateRandom(IReadOnlyList<Node> nodes, IReadOnlyList<Connection> connections, IReadOnlyList<NeuronDefinition> neuronDefinitions)

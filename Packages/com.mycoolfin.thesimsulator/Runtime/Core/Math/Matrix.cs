@@ -49,9 +49,9 @@ namespace mycoolfin.TheSimsulator
             var right = Vector3.Cross(up, forward).Normalized;
             up = Vector3.Cross(forward, right);
             return new Matrix4x4(
-                right.X, right.Y, right.Z, 0f,
-                up.X, up.Y, up.Z, 0f,
-                forward.X, forward.Y, forward.Z, 0f,
+                right.X, up.X, forward.X, 0f,
+                right.Y, up.Y, forward.Y, 0f,
+                right.Z, up.Z, forward.Z, 0f,
                 0f, 0f, 0f, 1f
             );
         }
@@ -59,5 +59,8 @@ namespace mycoolfin.TheSimsulator
         public Vector3 GetForward() => new(M31, M32, M33);
         public Vector3 GetUp() => new(M21, M22, M23);
         public Vector3 GetRight() => new(M11, M12, M13);
+
+        public override string ToString() =>
+            $"[{M11}, {M12}, {M13}, {M14}; {M21}, {M22}, {M23}, {M24}; {M31}, {M32}, {M33}, {M34}; {M41}, {M42}, {M43}, {M44}]";
     }
 }
