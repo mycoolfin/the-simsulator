@@ -6,6 +6,7 @@ public class PhenotypeRenderingTest : MonoBehaviour
 {
     public GameObject PhenotypeRendererPrefab;
     public GameObject LimbRendererPrefab;
+    public GameObject JointRendererPrefab;
 
     private void Start()
     {
@@ -24,7 +25,11 @@ public class PhenotypeRenderingTest : MonoBehaviour
             {
                 new Node(
                     new mycoolfin.TheSimsulator.Vector3(1f, 1f, 1f),
-                    new(),
+                    new(mycoolfin.TheSimsulator.Sims.JointType.Revolute, new mycoolfin.TheSimsulator.Vector3(90f, 30f, 30f),
+                        new InputSetDefinition(new SignalInputDefinition(), new SignalInputDefinition(), new SignalInputDefinition()),
+                        new InputSetDefinition(new SignalInputDefinition(), new SignalInputDefinition(), new SignalInputDefinition()),
+                        new InputSetDefinition(new SignalInputDefinition(), new SignalInputDefinition(), new SignalInputDefinition())
+                    ),
                     2
                 )
             };
@@ -34,12 +39,12 @@ public class PhenotypeRenderingTest : MonoBehaviour
                     nodes[0].Gid,
                     nodes[0].Gid,
                     i,
-                    new mycoolfin.TheSimsulator.Vector2(1f, 1f),
-                    new mycoolfin.TheSimsulator.Vector3(0, 0, 0),
-                    // new mycoolfin.TheSimsulator.Vector3(30f, 30f, 30f),
-                    new mycoolfin.TheSimsulator.Vector3(0.5f, 0.5f, 0.5f),
-                    false,
-                    false,
+                    new mycoolfin.TheSimsulator.Vector2(0.8f, 0.8f),
+                    // new mycoolfin.TheSimsulator.Vector3(0, 0, 0),
+                    new mycoolfin.TheSimsulator.Vector3(30f, 30f, 30f),
+                    new mycoolfin.TheSimsulator.Vector3(0.5f, 0.5f, 1f),
+                    true,
+                    true,
                     true,
                     false
                 )
@@ -50,7 +55,7 @@ public class PhenotypeRenderingTest : MonoBehaviour
             SimsPhenotype phenotype = phenotypeFactory.ConstructPhenotype(genotype);
 
             PhenotypeRenderer phenotypeRenderer = Instantiate(PhenotypeRendererPrefab).GetComponent<PhenotypeRenderer>();
-            phenotypeRenderer.Initialise(phenotype, LimbRendererPrefab);
+            phenotypeRenderer.Initialise(phenotype, LimbRendererPrefab, JointRendererPrefab);
             phenotypeRenderer.transform.position = new Vector3(i * 4, 0, 0);
         }
     }

@@ -2,12 +2,14 @@ namespace mycoolfin.TheSimsulator.Sims
 {
     public class RigidJoint : JointBase
     {
-        public RigidJoint(Limb parentLimb, Limb childLimb, Vector3 localParentAnchor, Vector3 localChildAnchor, Vector3 angleLimits)
+        public RigidJoint(Limb parentLimb, Limb childLimb, Vector3 parentSpaceAnchor, Vector3 parentSpaceXAxis, Vector3 parentSpaceYAxis, Vector3 parentSpaceZAxis, Vector3 angleLimits)
             : base(
                 parentLimb,
                 childLimb,
-                localParentAnchor,
-                localChildAnchor,
+                parentSpaceAnchor,
+parentSpaceXAxis,
+parentSpaceYAxis,
+parentSpaceZAxis,
                 angleLimits,
                 null,
                 null,

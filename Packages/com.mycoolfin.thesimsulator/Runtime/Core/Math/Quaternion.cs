@@ -78,12 +78,6 @@ namespace mycoolfin.TheSimsulator
         public static Quaternion operator /(Quaternion q, float d) => new(q.X / d, q.Y / d, q.Z / d, q.W / d);
         public static Quaternion operator -(Quaternion q) => new(-q.X, -q.Y, -q.Z, -q.W);
 
-        public static Quaternion LookRotation(Vector3 forward, Vector3 up)
-        {
-            var rotMatrix = Matrix4x4.CreateRotation(forward, up);
-            return FromMatrix(rotMatrix);
-        }
-
         public static Quaternion FromMatrix(Matrix4x4 m)
         {
             float trace = m.M11 + m.M22 + m.M33;
@@ -135,11 +129,46 @@ namespace mycoolfin.TheSimsulator
             float sy = (float)System.Math.Sin(y * 0.5f);
             float cz = (float)System.Math.Cos(z * 0.5f);
             float sz = (float)System.Math.Sin(z * 0.5f);
+            
+            // Left-hand coordinate system quaternion from Euler angles (ZYX order)
             return new Quaternion(
-                sx * cy * cz - cx * sy * sz,
-                cx * sy * cz + sx * cy * sz,
-                cx * cy * sz - sx * sy * cz,
-                cx * cy * cz + sx * sy * sz
+                sx * cy * cz + cx * sy * sz,
+                cx * sy * cz - sx * cy * sz,
+                cx * cy * sz + sx * sy * cz,
+                cx * cy * cz - sx * sy * sz
+            );
+        }
+
+        public Vector3 ToEuler()
+        {
+            // Convert quaternion to Euler angles (ZYX order) for left-hand coordinate system
+            // This is the inverse of the Euler method above
+            
+            // Normalize the quaternion first
+            Quaternion q = this.Normalized;
+            float x = q.X, y = q.Y, z = q.Z, w = q.W;
+            
+            // Convert to Euler angles in degrees
+            float sinr_cosp = 2f * (w * x + y * z);
+            float cosr_cosp = 1f - 2f * (x * x + y * y);
+            float roll = (float)System.Math.Atan2(sinr_cosp, cosr_cosp);
+            
+            float sinp = 2f * (w * y - z * x);
+            float pitch;
+            if (System.Math.Abs(sinp) >= 1f)
+                pitch = sinp >= 0f ? (float)System.Math.PI / 2f : -(float)System.Math.PI / 2f; // Use 90 degrees if out of range
+            else
+                pitch = (float)System.Math.Asin(sinp);
+            
+            float siny_cosp = 2f * (w * z + x * y);
+            float cosy_cosp = 1f - 2f * (y * y + z * z);
+            float yaw = (float)System.Math.Atan2(siny_cosp, cosy_cosp);
+            
+            // Convert from radians to degrees
+            return new Vector3(
+                roll * (180f / (float)System.Math.PI),
+                pitch * (180f / (float)System.Math.PI),
+                yaw * (180f / (float)System.Math.PI)
             );
         }
 
@@ -193,6 +222,71 @@ namespace mycoolfin.TheSimsulator
         {
             // For unit quaternions, inverse is just the conjugate
             return new Quaternion(-q.X, -q.Y, -q.Z, q.W);
+        }
+
+        public void ToAngleAxis(out float angleDegrees, out Vector3 axis)
+        {
+            // make sure the quaternion is normalized
+            Quaternion q = this.Normalized;
+
+            // angle (radians) = 2 * acos(w)
+            float rad = 2f * (float)System.Math.Acos(q.W);
+
+            // axis = (x,y,z) / sin(angle/2)
+            float s = (float)System.Math.Sqrt(1f - q.W * q.W);
+            if (s < 1e-6f)
+            {
+                // If s is zero, direction of axis is arbitrary
+                axis = new Vector3(1f, 0f, 0f);
+            }
+            else
+            {
+                axis = new Vector3(q.X / s, q.Y / s, q.Z / s);
+            }
+
+            angleDegrees = rad * (180f / (float)System.Math.PI);
+        }
+
+        public static Quaternion AngleAxis(float angleDegrees, Vector3 axis)
+        {
+            Vector3 n = axis.Normalized;
+
+            float halfRad = angleDegrees * ((float)System.Math.PI / 180f) * 0.5f;
+
+            float s = (float)System.Math.Sin(halfRad);
+            float c = (float)System.Math.Cos(halfRad);
+
+            return new Quaternion(
+                n.X * s,
+                n.Y * s,
+                n.Z * s,
+                c
+            );
+        }
+
+        public static Quaternion LookRotation(Vector3 forward)
+        {
+            return LookRotation(forward, new Vector3(0f, 1f, 0f));
+        }
+
+        public static Quaternion LookRotation(Vector3 forward, Vector3 upwards)
+        {
+            Vector3 f = forward.Normalized;
+            Vector3 u = upwards.Normalized;
+
+            // Create orthonormal basis for left-hand coordinate system
+            Vector3 right = Vector3.Cross(f, u).Normalized;
+            Vector3 up = Vector3.Cross(right, f);
+
+            // Create rotation matrix
+            Matrix4x4 rotMatrix = new(
+                right.X, up.X, f.X, 0f,
+                right.Y, up.Y, f.Y, 0f,
+                right.Z, up.Z, f.Z, 0f,
+                0f, 0f, 0f, 1f
+            );
+
+            return FromMatrix(rotMatrix);
         }
 
         public override string ToString() => $"({X}, {Y}, {Z}, {W})";

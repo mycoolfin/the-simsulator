@@ -63,6 +63,12 @@ namespace mycoolfin.TheSimsulator
 
         public static readonly Vector3 Zero = new(0f, 0f, 0f);
         public static readonly Vector3 One = new(1f, 1f, 1f);
+        public static readonly Vector3 Up = new(0f, 1f, 0f);
+        public static readonly Vector3 Down = new(0f, -1f, 0f);
+        public static readonly Vector3 Right = new(1f, 0f, 0f);
+        public static readonly Vector3 Left = new(-1f, 0f, 0f);
+        public static readonly Vector3 Forward = new(0f, 0f, 1f);
+        public static readonly Vector3 Back = new(0f, 0f, -1f);
 
         public Vector3(float x, float y, float z)
         {
@@ -83,6 +89,12 @@ namespace mycoolfin.TheSimsulator
         public static float Dot(Vector3 a, Vector3 b) => a.X * b.X + a.Y * b.Y + a.Z * b.Z;
         public static float Distance(Vector3 a, Vector3 b) => (a - b).Magnitude;
         public static Vector3 Lerp(Vector3 a, Vector3 b, float t) => a + (b - a) * t;
+        public static Vector3 Reflect(Vector3 inDirection, Vector3 inNormal)
+        {
+            // Formula: R = D - 2 * (D · N) * N
+            // where D is the incident direction and N is the surface normal
+            return inDirection - 2.0f * Dot(inDirection, inNormal) * inNormal;
+        }
         public static Vector3 operator +(Vector3 a, Vector3 b) => new(a.X + b.X, a.Y + b.Y, a.Z + b.Z);
         public static Vector3 operator -(Vector3 a, Vector3 b) => new(a.X - b.X, a.Y - b.Y, a.Z - b.Z);
         public static Vector3 operator *(Vector3 a, float d) => new(a.X * d, a.Y * d, a.Z * d);

@@ -1,11 +1,11 @@
 namespace mycoolfin.TheSimsulator.Sims
 {
-    public class JointAxis
+    public class JointAxisController
     {
         public JointAngleSensor Sensor { get; }
         public JointAngleActuator Actuator { get; }
 
-        public JointAxis(JointAngleSensor sensor, JointAngleActuator actuator)
+        public JointAxisController(JointAngleSensor sensor, JointAngleActuator actuator)
         {
             Sensor = sensor;
             Actuator = actuator;

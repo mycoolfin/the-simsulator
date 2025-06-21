@@ -5,12 +5,10 @@ namespace mycoolfin.TheSimsulator.Sims
 {
     public class Limb : ISensorContainer, IActuatorContainer, INeuronContainer
     {
-        public bool debugMirroredX;
-        public bool debugMirroredY;
-        public bool debugMirroredZ; // TODO: Remove these.
-        public Vector3 Dimensions { get; private set; } // World space.
-        public Vector3 Position { get; private set; } // World space.
-        public Quaternion Rotation { get; private set; } // World space.
+        public Matrix4x4 TransformMatrix { get; private set; } // World space.
+        public Vector3 Dimensions => TransformMatrix.GetScale();
+        public Vector3 Position => TransformMatrix.GetTranslation();
+        public Quaternion Rotation => TransformMatrix.GetRotation();
         public JointBase Joint { get; private set; }
         private readonly List<Neuron> neurons = new();
 
@@ -22,9 +20,15 @@ namespace mycoolfin.TheSimsulator.Sims
 
         public event Action OnTransformChanged;
 
+        // DEBUG.
+        public bool debugMirroredX;
+        public bool debugMirroredY;
+        public bool debugMirroredZ;
+        public bool debugSwappedX;
+
         public Limb(Vector3 dimensions)
         {
-            Dimensions = dimensions;
+            TransformMatrix = Matrix4x4.TRS(Vector3.Zero, Quaternion.Identity, dimensions);
         }
 
         public void SetJoint(JointBase joint)
@@ -42,8 +46,7 @@ namespace mycoolfin.TheSimsulator.Sims
 
         public void SetPositionAndRotation(Vector3 position, Quaternion rotation)
         {
-            Position = position;
-            Rotation = rotation;
+            TransformMatrix = Matrix4x4.TRS(position, rotation, TransformMatrix.GetScale());
             OnTransformChanged?.Invoke();
         }
     }

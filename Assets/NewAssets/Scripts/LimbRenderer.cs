@@ -4,9 +4,10 @@ public class LimbRenderer : MonoBehaviour
 {
     private mycoolfin.TheSimsulator.Sims.Limb Limb;
 
+    // DEBUG.
     public bool DebugMirroredX = false;
     public bool DebugMirroredY = false;
-    public bool DebugMirroredZ = false; // TODO: Remove these.
+    public bool DebugMirroredZ = false;
 
     private void Start()
     {
@@ -17,11 +18,19 @@ public class LimbRenderer : MonoBehaviour
         }
     }
 
-    public void Initialise(mycoolfin.TheSimsulator.Sims.Limb limb)
+    public void Initialise(mycoolfin.TheSimsulator.Sims.Limb limb, GameObject jointRendererPrefab)
     {
         Limb = limb;
         Limb.OnTransformChanged += UpdateFromLimb; // Note: Must only be invoked from the main thread.
         UpdateFromLimb();
+
+        // Create joint renderer.
+        if (Limb.Joint != null)
+        {
+            JointRenderer jointRenderer = Instantiate(jointRendererPrefab, transform).GetComponent<JointRenderer>();
+            if (jointRenderer != null)
+                jointRenderer.Initialise(Limb.Joint);
+        }
     }
 
     private void UpdateFromLimb()
@@ -39,10 +48,11 @@ public class LimbRenderer : MonoBehaviour
             DebugMirroredY = Limb.debugMirroredY;
             DebugMirroredZ = Limb.debugMirroredZ;
 
-            GetComponent<Renderer>().material.color = new Color(DebugMirroredX ? 1f : 0f,
+            Renderer renderer = GetComponent<Renderer>();
+            renderer.material.color = new Color(DebugMirroredX ? 1f : 0f,
                                                                DebugMirroredY ? 1f : 0f,
                                                                DebugMirroredZ ? 1f : 0f,
-                                                               1f); // Set color based on mirroring flags.
+                                                               renderer.material.color.a); // Set color based on mirroring flags.
         }
     }
 
