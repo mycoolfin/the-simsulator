@@ -1,6 +1,7 @@
-// Homemade structs for predictable memory layout across runtimes.
-
 using System.Runtime.InteropServices;
+
+// TODO: Switch to standard C# structs and extend as needed?
+// Explicit layout may not be necessary at this level.
 
 namespace mycoolfin.TheSimsulator
 {
@@ -125,7 +126,7 @@ namespace mycoolfin.TheSimsulator
             Vector3 forward = (target - eye).Normalized;
             Vector3 right = Vector3.Cross(forward, up).Normalized;
             up = Vector3.Cross(right, forward);
-            
+
             return new Matrix4x4(
                 right.X, up.X, forward.X, -Vector3.Dot(right, eye),
                 right.Y, up.Y, forward.Y, -Vector3.Dot(up, eye),

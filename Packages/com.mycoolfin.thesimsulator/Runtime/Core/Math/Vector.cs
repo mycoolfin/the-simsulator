@@ -1,5 +1,3 @@
-// Homemade structs for predictable memory layout across runtimes.
-
 using System.Runtime.InteropServices;
 
 namespace mycoolfin.TheSimsulator
@@ -43,13 +41,7 @@ namespace mycoolfin.TheSimsulator
         }
         public override int GetHashCode()
         {
-            unchecked
-            {
-                int hash = 17;
-                hash = hash * 31 + X.GetHashCode();
-                hash = hash * 31 + Y.GetHashCode();
-                return hash;
-            }
+            return System.HashCode.Combine(X, Y);
         }
         public override string ToString() => $"({X}, {Y})";
     }
@@ -114,14 +106,7 @@ namespace mycoolfin.TheSimsulator
 
         public override int GetHashCode()
         {
-            unchecked
-            {
-                int hash = 17;
-                hash = hash * 31 + X.GetHashCode();
-                hash = hash * 31 + Y.GetHashCode();
-                hash = hash * 31 + Z.GetHashCode();
-                return hash;
-            }
+            return System.HashCode.Combine(X, Y, Z);
         }
         public override string ToString() => $"({X}, {Y}, {Z})";
     }
@@ -169,15 +154,7 @@ namespace mycoolfin.TheSimsulator
         }
         public override int GetHashCode()
         {
-            unchecked
-            {
-                int hash = 17;
-                hash = hash * 31 + X.GetHashCode();
-                hash = hash * 31 + Y.GetHashCode();
-                hash = hash * 31 + Z.GetHashCode();
-                hash = hash * 31 + W.GetHashCode();
-                return hash;
-            }
+            return System.HashCode.Combine(X, Y, Z, W);
         }
         public override string ToString() => $"({X}, {Y}, {Z}, {W})";
     }

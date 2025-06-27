@@ -151,7 +151,7 @@ namespace mycoolfin.TheSimsulator.Sims
 
                     // If adding these limbs would exceed the max limb count, skip the entire connection.
                     // This way, we avoid partially created connections that might lead to inconsistent states.
-                    if (childLimbVariants.Count + limbs.Count > SimsPhenotype.MaxLimbCount)
+                    if (childLimbVariants.Count + limbs.Count > SimsPhenotype.MAX_LIMBS)
                         continue;
 
                     foreach (var (reflectX, reflectY, reflectZ) in childLimbVariants)

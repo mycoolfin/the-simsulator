@@ -4,7 +4,7 @@ namespace mycoolfin.TheSimsulator.Sims
 {
     public static class BrainCreator
     {
-        public static Brain CreateBrain(List<NeuronDefinition> neuronDefinitions, Dictionary<ISignalReceiver, InputSetDefinition> receiverToInputDefinitionSetGidMap)
+        public static Brain CreateBrain(IEnumerable<NeuronDefinition> neuronDefinitions, Dictionary<ISignalReceiver, InputSetDefinition> receiverToInputDefinitionSetGidMap)
         {
             List<Neuron> neurons = new();
             if (neuronDefinitions != null)

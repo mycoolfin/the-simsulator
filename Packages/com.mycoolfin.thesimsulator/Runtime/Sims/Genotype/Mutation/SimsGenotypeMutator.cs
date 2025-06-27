@@ -48,13 +48,13 @@ namespace mycoolfin.TheSimsulator.Sims
 
         public static void AddNode(SimsGenotypeCreationContext context)
         {
-            if (context.Nodes.Count < SimsGenotype.MaxNodeCount)
+            if (context.Nodes.Count < SimsGenotype.MAX_NODES)
                 context.Nodes.Add(Node.CreateRandom(context.Nodes, context.Connections, context.NeuronDefinitions));
         }
 
         public static void RemoveNode(SimsGenotypeCreationContext context)
         {
-            if (context.Nodes.Count > SimsGenotype.MinNodeCount)
+            if (context.Nodes.Count > SimsGenotype.MIN_NODES)
             {
                 int index = SharedRandom.Next(context.Nodes.Count);
                 context.Nodes.RemoveAt(index);
@@ -77,7 +77,7 @@ namespace mycoolfin.TheSimsulator.Sims
 
         public static void AddConnection(SimsGenotypeCreationContext context)
         {
-            if (context.Connections.Count < SimsGenotype.MaxConnectionCount)
+            if (context.Connections.Count < SimsGenotype.MAX_CONNECTIONS)
             {
                 ulong parentNodeId = context.Nodes[SharedRandom.Next(context.Nodes.Count)].Gid;
                 ulong childNodeId = context.Nodes[SharedRandom.Next(context.Nodes.Count)].Gid;
@@ -87,7 +87,7 @@ namespace mycoolfin.TheSimsulator.Sims
 
         public static void RemoveConnection(SimsGenotypeCreationContext context)
         {
-            if (context.Connections.Count > SimsGenotype.MinConnectionCount)
+            if (context.Connections.Count > SimsGenotype.MIN_CONNECTIONS)
             {
                 int index = SharedRandom.Next(context.Connections.Count);
                 context.Connections.RemoveAt(index);
@@ -110,7 +110,7 @@ namespace mycoolfin.TheSimsulator.Sims
 
         public static void AddNeuronDefinition(SimsGenotypeCreationContext context)
         {
-            if (context.NeuronDefinitions.Count < SimsGenotype.MaxNeuronDefinitionCount)
+            if (context.NeuronDefinitions.Count < SimsGenotype.MAX_NEURON_DEFINITIONS)
             {
                 List<ulong> existingContainerIds = new(context.Nodes.Select(n => n.Gid)) { SimsGenotype.BRAIN_GID };
                 ulong randomContainerId = existingContainerIds[SharedRandom.Next(existingContainerIds.Count)];
@@ -126,7 +126,7 @@ namespace mycoolfin.TheSimsulator.Sims
 
         public static void RemoveNeuronDefinition(SimsGenotypeCreationContext context)
         {
-            if (context.NeuronDefinitions.Count > SimsGenotype.MinNeuronDefinitionCount)
+            if (context.NeuronDefinitions.Count > SimsGenotype.MIN_NEURON_DEFINITIONS)
             {
                 int index = SharedRandom.Next(context.NeuronDefinitions.Count);
                 context.NeuronDefinitions.RemoveAt(index);

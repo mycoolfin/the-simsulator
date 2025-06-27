@@ -30,15 +30,15 @@ namespace mycoolfin.TheSimsulator.Sims
             // Sims creatures initialise with a random genotype.
             SimsGenotypeCreationContext context = new(new List<Node>(), new List<Connection>(), new List<NeuronDefinition>());
 
-            int nodeCount = SharedRandom.Next(SimsGenotype.MinNodeCount, SimsGenotype.MaxNodeCount + 1);
+            int nodeCount = SharedRandom.Next(SimsGenotype.MIN_NODES, SimsGenotype.MAX_NODES + 1);
             for (int i = 0; i < nodeCount; i++)
                 SimsGenotypeMutator.AddNode(context);
 
-            int connectionCount = SharedRandom.Next(SimsGenotype.MinConnectionCount, SimsGenotype.MaxConnectionCount + 1);
+            int connectionCount = SharedRandom.Next(SimsGenotype.MIN_CONNECTIONS, SimsGenotype.MAX_CONNECTIONS + 1);
             for (int i = 0; i < connectionCount; i++)
                 SimsGenotypeMutator.AddConnection(context);
 
-            int neuronDefinitionCount = SharedRandom.Next(SimsGenotype.MinNeuronDefinitionCount, SimsGenotype.MaxNeuronDefinitionCount + 1);
+            int neuronDefinitionCount = SharedRandom.Next(SimsGenotype.MIN_NEURON_DEFINITIONS, SimsGenotype.MAX_NEURON_DEFINITIONS + 1);
             for (int i = 0; i < neuronDefinitionCount; i++)
                 SimsGenotypeMutator.AddNeuronDefinition(context);
 

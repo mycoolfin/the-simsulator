@@ -13,7 +13,7 @@ namespace mycoolfin.TheSimsulator.Sims
             Dictionary<ISignalReceiver, InputSetDefinition> receiverToInputDefinitionSetMap = new();
 
             // Create the brain.
-            Brain brain = BrainCreator.CreateBrain(genotype.NeuronDefinitions, receiverToInputDefinitionSetMap);
+            Brain brain = BrainCreator.CreateBrain(genotype.NeuronDefinitions.Where(nd => nd.ContainerGid == SimsGenotype.BRAIN_GID), receiverToInputDefinitionSetMap);
 
             // Create the limbs.
             List<Limb> limbs = LimbCreator.CreateLimbs(genotype, parentToChildLimbsMap, childToParentLimbMap, receiverToInputDefinitionSetMap);

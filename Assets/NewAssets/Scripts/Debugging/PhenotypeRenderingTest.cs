@@ -19,6 +19,7 @@ public class PhenotypeRenderingTest : MonoBehaviour
         SimsGenotypeFactory genotypeFactory = new(0.4f, 0.3f, 0.3f, 2);
         SimsPhenotypeFactory phenotypeFactory = new();
 
+        List<SimsPhenotype> phenotypes = new();
         for (int i = 0; i < 6; i++)
         {
             List<Node> nodes = new()
@@ -54,9 +55,28 @@ public class PhenotypeRenderingTest : MonoBehaviour
 
             SimsPhenotype phenotype = phenotypeFactory.ConstructPhenotype(genotype);
 
+            float offset = i * 2f;
+            for (int j = 0; j < phenotype.Limbs.Count; j++)
+            {
+                mycoolfin.TheSimsulator.Sims.Limb limb = phenotype.Limbs[j];
+                limb.SetPositionAndRotation(limb.Position + new mycoolfin.TheSimsulator.Vector3(0, offset, 0), limb.Rotation);
+                limb.Color = new mycoolfin.TheSimsulator.Vector4(limb.debugMirroredX ? 1f : 0f,
+                                                   limb.debugMirroredY ? 1f : 0f,
+                                                   limb.debugMirroredZ ? 1f : 0f,
+                                                   1f);
+            }
+
+            phenotypes.Add(phenotype);
+        }
+
+        for (int i = 0; i < phenotypes.Count; i++)
+        {
+            SimsPhenotype phenotype = phenotypes[i];
             PhenotypeRenderer phenotypeRenderer = Instantiate(PhenotypeRendererPrefab).GetComponent<PhenotypeRenderer>();
             phenotypeRenderer.Initialise(phenotype, LimbRendererPrefab, JointRendererPrefab);
-            phenotypeRenderer.transform.position = new Vector3(i * 4, 0, 0);
+            phenotypeRenderer.transform.position = new Vector3(0, 0, 5);
         }
+
+        EntityCreationAPI.CreateEntitiesFromPhenotypes(phenotypes);
     }
 }

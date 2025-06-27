@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace mycoolfin.TheSimsulator.Sims
 {
     public class Neuron : ISignalReceiver, ISignalEmitter

@@ -1,5 +1,3 @@
-// Homemade structs for predictable memory layout across runtimes.
-
 using System.Runtime.InteropServices;
 
 namespace mycoolfin.TheSimsulator
