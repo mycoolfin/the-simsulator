@@ -8,7 +8,7 @@ namespace mycoolfin.TheSimsulator.Sims
         public Vector3 Dimensions { get; private set; }
         public Vector3 Position { get; private set; }
         public Quaternion Rotation { get; private set; }
-        public JointBase Joint { get; private set; }
+        public Joint Joint { get; private set; }
         private readonly List<Neuron> neurons = new();
 
         public float Mass => Dimensions.X * Dimensions.Y * Dimensions.Z; // Mass is proportional to volume.
@@ -34,7 +34,7 @@ namespace mycoolfin.TheSimsulator.Sims
             Joint = null;
         }
 
-        public void SetJoint(JointBase joint)
+        public void SetJoint(Joint joint)
         {
             Joint = joint;
             Joint.OnDispose += () => Joint = null; // Limb joints can break.

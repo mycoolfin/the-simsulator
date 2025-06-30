@@ -9,23 +9,36 @@ using Unity.Physics.Systems;
 [UpdateBefore(typeof(PhysicsCreateContactsGroup))]
 public partial struct DisableInterPhenotypePairsSystem : ISystem
 {
+    private ComponentLookup<PhenotypeGid> PhenotypeGidLookup;
+
+    public void OnCreate(ref SystemState state)
+    {
+        state.RequireForUpdate<PhenotypeGid>();
+        PhenotypeGidLookup = state.GetComponentLookup<PhenotypeGid>(isReadOnly: true);
+    }
+
     [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {        
         PhysicsWorldSingleton worldSingleton = SystemAPI.GetSingletonRW<PhysicsWorldSingleton>().ValueRW;
-        SimulationSingleton simulationSingleton = SystemAPI.GetSingletonRW<SimulationSingleton>().ValueRW;
+        SimulationSingleton simulation = SystemAPI.GetSingleton<SimulationSingleton>();
+
+        if (simulation.Type == SimulationType.NoPhysics)
+            return;
+
+        PhenotypeGidLookup.Update(ref state);
 
         state.Dependency = new DisableInterPhenotypePairsJob
         {
-            PhenotypeLookup = state.GetComponentLookup<PhenotypeId>(isReadOnly: true),
+            PhenotypeGidLookup = PhenotypeGidLookup,
             NumDynamicBodies = worldSingleton.PhysicsWorld.NumDynamicBodies
-        }.Schedule(simulationSingleton, ref worldSingleton.PhysicsWorld, state.Dependency);
+        }.Schedule(simulation, ref worldSingleton.PhysicsWorld, state.Dependency);
     }
 
     [BurstCompile]
     struct DisableInterPhenotypePairsJob : IBodyPairsJob
     {
-        [ReadOnly] public ComponentLookup<PhenotypeId> PhenotypeLookup;
+        [ReadOnly] public ComponentLookup<PhenotypeGid> PhenotypeGidLookup;
         public int NumDynamicBodies;
 
         public void Execute(ref ModifiableBodyPair pair)
@@ -37,11 +50,11 @@ public partial struct DisableInterPhenotypePairsSystem : ISystem
             Entity entityA = pair.EntityA;
             Entity entityB = pair.EntityB;
 
-            if (!PhenotypeLookup.HasComponent(entityA) || !PhenotypeLookup.HasComponent(entityB))
+            if (!PhenotypeGidLookup.HasComponent(entityA) || !PhenotypeGidLookup.HasComponent(entityB))
                 return;
 
-            int idA = PhenotypeLookup[entityA].Value;
-            int idB = PhenotypeLookup[entityB].Value;
+            ulong idA = PhenotypeGidLookup[entityA].Value;
+            ulong idB = PhenotypeGidLookup[entityB].Value;
 
             if (idA != idB)
                 pair.Disable();

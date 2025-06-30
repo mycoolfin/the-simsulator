@@ -3,8 +3,10 @@ using System.Collections.Generic;
 
 namespace mycoolfin.TheSimsulator.Sims
 {
-    public abstract class JointBase : ISensorContainer, IActuatorContainer, IDisposable
+    public class Joint : ISensorContainer, IActuatorContainer, IDisposable
     {
+        public readonly JointType Type;
+
         public readonly Limb ParentLimb;
         public readonly Limb ChildLimb;
 
@@ -30,19 +32,19 @@ namespace mycoolfin.TheSimsulator.Sims
 
         public event Action OnDispose;
 
-        public JointBase(
+        public Joint(
+            JointType type,
             Limb parentLimb,
             Limb childLimb,
             Vector3 parentSpaceAnchor,
             Vector3 parentSpaceXAxis,
             Vector3 parentSpaceYAxis,
             Vector3 parentSpaceZAxis,
-            Vector3 angleLimits,
-            JointAxisController xAxisController,
-            JointAxisController yAxisController,
-            JointAxisController zAxisController
+            Vector3 angleLimits
         )
         {
+            Type = type;
+
             ParentLimb = parentLimb ?? throw new ArgumentNullException(nameof(parentLimb), "Parent limb cannot be null.");
             ChildLimb = childLimb ?? throw new ArgumentNullException(nameof(childLimb), "Child limb cannot be null.");
 
@@ -56,17 +58,17 @@ namespace mycoolfin.TheSimsulator.Sims
             DesiredAngles = Vector3.Zero;
             ActualAngles = Vector3.Zero;
 
-            XAxisController = xAxisController;
-            YAxisController = yAxisController;
-            ZAxisController = zAxisController;
+            XAxisController = (type != JointType.Rigid) ? new(new(), new()) : null;
+            YAxisController = (type != JointType.Rigid && type != JointType.Revolute && type != JointType.Twist) ? new(new(), new()) : null;
+            ZAxisController = (type == JointType.Spherical) ? new(new(), new()) : null;
 
-            if (xAxisController?.Sensor != null) sensors.Add(xAxisController.Sensor);
-            if (yAxisController?.Sensor != null) sensors.Add(yAxisController.Sensor);
-            if (zAxisController?.Sensor != null) sensors.Add(zAxisController.Sensor);
+            if (XAxisController?.Sensor != null) sensors.Add(XAxisController.Sensor);
+            if (YAxisController?.Sensor != null) sensors.Add(YAxisController.Sensor);
+            if (ZAxisController?.Sensor != null) sensors.Add(ZAxisController.Sensor);
 
-            if (xAxisController?.Actuator != null) actuators.Add(xAxisController.Actuator);
-            if (yAxisController?.Actuator != null) actuators.Add(yAxisController.Actuator);
-            if (zAxisController?.Actuator != null) actuators.Add(zAxisController.Actuator);
+            if (XAxisController?.Actuator != null) actuators.Add(XAxisController.Actuator);
+            if (YAxisController?.Actuator != null) actuators.Add(YAxisController.Actuator);
+            if (ZAxisController?.Actuator != null) actuators.Add(ZAxisController.Actuator);
         }
 
         public void SetActualAngles(Vector3 actualAngles)

@@ -8,7 +8,7 @@ namespace mycoolfin.TheSimsulator.Sims
         public const int MAX_LIMBS = 20;
         public const int MAX_NEURONS = SimsGenotype.MAX_NEURON_DEFINITIONS;
 
-        public int Gid { get; private set; }
+        public ulong Gid { get; private set; }
 
         public Brain Brain { get; private set; }
         public List<Limb> Limbs { get; private set; }
@@ -17,9 +17,9 @@ namespace mycoolfin.TheSimsulator.Sims
 
         public SimsPhenotype(Brain brain, List<Limb> limbs)
         {
-            byte[] buffer = new byte[sizeof(int)];
+            byte[] buffer = new byte[sizeof(ulong)];
             SharedRandom.NextBytes(buffer);
-            Gid = Math.Abs(BitConverter.ToInt32(buffer, 0));
+            Gid = BitConverter.ToUInt64(buffer, 0);
             Brain = brain ?? throw new ArgumentNullException(nameof(brain), "Brain cannot be null.");
             Limbs = limbs ?? throw new ArgumentNullException(nameof(limbs), "Limbs cannot be null.");
         }

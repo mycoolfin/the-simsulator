@@ -238,11 +238,11 @@ namespace mycoolfin.TheSimsulator.Sims
                 newLimb.SetPositionAndRotation(worldChildPosition, worldChildRotation);
 
                 // Check if there was a handedness swap.
-                swapX = Vector3.Dot(Vector3.Cross(faceNormal, faceUp), faceRight) < 0f;
+                swapX = Vector3.Dot(Vector3.Cross(faceNormal, faceUp), faceRight) > 0f;
                 newLimb.debugSwappedX = swapX;
 
                 // Create and assign joint.
-                JointBase joint = JointFactory.CreateJoint(
+                Joint joint = new(
                     node.JointDefinition.JointType,
                     parentData.Limb,
                     newLimb,

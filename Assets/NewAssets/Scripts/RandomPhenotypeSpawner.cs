@@ -21,7 +21,12 @@ public class RandomPhenotypeSpawner : MonoBehaviour
                 SimsPhenotype phenotype = phenotypeFactory.ConstructPhenotype(genotype);
                 phenotypes.Add(phenotype);
             }
-            EntityCreationAPI.CreateEntitiesFromPhenotypes(phenotypes);
+            EntityCreationAPI.CreateEntitiesFromPhenotypes(phenotypes.ConvertAll(p => new PhenotypeEntityCreationInfo
+            {
+                Phenotype = p,
+                PhysicsPositionOffset = new mycoolfin.TheSimsulator.Vector3(0, 0, 0),
+                PhysicsWorldIndex = 0
+            }));
             Spawn = false;
         }
     }

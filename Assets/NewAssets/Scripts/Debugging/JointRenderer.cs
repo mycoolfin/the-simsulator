@@ -5,7 +5,7 @@ using UnityEditor; // For Handles.
 
 public class JointRenderer : MonoBehaviour
 {
-    private mycoolfin.TheSimsulator.Sims.JointBase Joint;
+    private mycoolfin.TheSimsulator.Sims.Joint Joint;
 
     private void Start()
     {
@@ -16,7 +16,7 @@ public class JointRenderer : MonoBehaviour
         }
     }
 
-    public void Initialise(mycoolfin.TheSimsulator.Sims.JointBase joint)
+    public void Initialise(mycoolfin.TheSimsulator.Sims.Joint joint)
     {
         Joint = joint;
         Joint.ParentLimb.OnTransformChanged += UpdateFromLimb; // Note: Must only be invoked from the main thread.

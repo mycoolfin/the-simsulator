@@ -1,3 +1,6 @@
 using Unity.Entities;
 
-public struct LimbTag : IComponentData { }
+public struct LimbIndex : IComponentData
+{
+    public int Value;
+}

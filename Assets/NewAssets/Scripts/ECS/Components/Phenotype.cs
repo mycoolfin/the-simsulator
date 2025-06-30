@@ -1,6 +1,6 @@
 using Unity.Entities;
 
-public struct PhenotypeId : IComponentData
+public struct PhenotypeGid : IComponentData
 {
-    public int Value;
+    public ulong Value;
 }
