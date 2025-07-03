@@ -92,12 +92,13 @@ public static class EntityCreationAPI
                 JointType = attachedLimb.Joint.Type,
                 ReferenceLimbIndex = referenceLimbIndex,
                 AttachedLimbIndex = i,
+                PhysicsWorldIndex = info.PhysicsWorldIndex,
                 ReferenceLimbSpaceAnchor = attachedLimb.Joint.ParentSpaceAnchor.ToFloat3(),
                 ReferenceLimbSpaceXAxis = attachedLimb.Joint.ParentSpaceXAxis.ToFloat3(),
                 ReferenceLimbSpaceYAxis = attachedLimb.Joint.ParentSpaceYAxis.ToFloat3(),
                 ReferenceLimbSpaceZAxis = attachedLimb.Joint.ParentSpaceZAxis.ToFloat3(),
                 AngleLimits = attachedLimb.Joint.AngleLimits.ToFloat3(),
-                PhysicsWorldIndex = info.PhysicsWorldIndex
+                MaxMotorImpulseScaleFactor = attachedLimb.Joint.MinCrossSectionalArea
             };
             requests.Add(request);
         }

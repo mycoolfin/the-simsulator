@@ -44,13 +44,18 @@ public partial struct UpdateHingeMotorsJob : IJobEntity
         FixedList512Bytes<Constraint> constraints = joint.GetConstraints();
 
         // TODO: Joint-aware constraint indexing.
-        ref Constraint constraint = ref constraints.ElementAt(0);
-
-        if (constraint.Type == ConstraintType.RotationMotor)
+        bool changed = false;
+        for (int i = 0; i < constraints.Length; i++)
         {
-            constraint.Target = new float3(math.sin(CurrentTime), 0f, 0f);
+            ref Constraint constraint = ref constraints.ElementAt(i);
+            if (constraint.Type == ConstraintType.RotationMotor)
+            {
+                // Set the target angle for the motor.
+                constraint.Target = new float3(math.sin(CurrentTime), math.sin(2 * CurrentTime), math.sin(4 * CurrentTime));
+                changed = true;
+            }
         }
-
-        joint.SetConstraints(constraints);
+        if (changed)
+            joint.SetConstraints(constraints);
     }
 }

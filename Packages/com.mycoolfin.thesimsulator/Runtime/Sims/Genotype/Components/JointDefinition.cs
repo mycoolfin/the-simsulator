@@ -8,9 +8,9 @@ namespace mycoolfin.TheSimsulator.Sims
         Rigid,
         Revolute,
         Twist,
-        Universal,
         BendTwist,
         TwistBend,
+        Universal,
         Spherical
     }
 

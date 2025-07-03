@@ -7,6 +7,8 @@ namespace mycoolfin.TheSimsulator.Sims
     {
         public const int MAX_LIMBS = 20;
         public const int MAX_NEURONS = SimsGenotype.MAX_NEURON_DEFINITIONS;
+        public const float MIN_LIMB_DIMENSION = 0.05f;
+        public const float MAX_LIMB_DIMENSION = 10f;
 
         public ulong Gid { get; private set; }
 

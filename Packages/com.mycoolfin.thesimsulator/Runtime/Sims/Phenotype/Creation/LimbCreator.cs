@@ -89,6 +89,15 @@ namespace mycoolfin.TheSimsulator.Sims
                 receiverToInputDefinitionSetGidMap
             );
 
+            // Skip this limb if any of its dimensions are out of bounds.
+            if (newLimbData.Limb.Dimensions.X < SimsPhenotype.MIN_LIMB_DIMENSION ||
+                newLimbData.Limb.Dimensions.Y < SimsPhenotype.MIN_LIMB_DIMENSION ||
+                newLimbData.Limb.Dimensions.Z < SimsPhenotype.MIN_LIMB_DIMENSION ||
+                newLimbData.Limb.Dimensions.X > SimsPhenotype.MAX_LIMB_DIMENSION ||
+                newLimbData.Limb.Dimensions.Y > SimsPhenotype.MAX_LIMB_DIMENSION ||
+                newLimbData.Limb.Dimensions.Z > SimsPhenotype.MAX_LIMB_DIMENSION)
+                return;
+
             // Skip this limb if it would overlap with an existing, non-parent limb.
             List<Limb> limbCollisions = SpawnCollisionHandler.GetLimbCollisions(newLimbData.Limb, limbs);
             if (limbCollisions.Any(l => l != parentData.Limb))
@@ -237,9 +246,12 @@ namespace mycoolfin.TheSimsulator.Sims
                 // Set transform.
                 newLimb.SetPositionAndRotation(worldChildPosition, worldChildRotation);
 
-                // Check if there was a handedness swap.
-                swapX = Vector3.Dot(Vector3.Cross(faceNormal, faceUp), faceRight) > 0f;
-                newLimb.debugSwappedX = swapX;
+                // Calculate minimum cross-sectional area between the parent and child faces.
+                float parentFaceWidth = 2 * Math.Abs(Vector3.Dot(faceRight, parentHalfExtents));
+                float parentFaceHeight = 2 * Math.Abs(Vector3.Dot(faceUp, parentHalfExtents));
+                float parentCrossSectionalArea = parentFaceWidth * parentFaceHeight;
+                float childCrossSectionalArea = newLimb.Dimensions.X * newLimb.Dimensions.Y; // Child face is always the -Z face.
+                float minCrossSectionalArea = Math.Min(parentCrossSectionalArea, childCrossSectionalArea);
 
                 // Create and assign joint.
                 Joint joint = new(
@@ -250,7 +262,8 @@ namespace mycoolfin.TheSimsulator.Sims
                     parentSpaceXAxis,
                     parentSpaceYAxis,
                     parentSpaceZAxis,
-                    node.JointDefinition.AngleLimits
+                    node.JointDefinition.AngleLimits,
+                    minCrossSectionalArea
                 );
                 newLimb.SetJoint(joint);
                 if (joint.XAxisController != null)
@@ -259,6 +272,10 @@ namespace mycoolfin.TheSimsulator.Sims
                     receiverToInputDefinitionSetGidMap[joint.YAxisController.Actuator] = node.JointDefinition.YAxisInputs;
                 if (joint.ZAxisController != null)
                     receiverToInputDefinitionSetGidMap[joint.ZAxisController.Actuator] = node.JointDefinition.ZAxisInputs;
+
+                // Check if there was a handedness swap.
+                swapX = Vector3.Dot(Vector3.Cross(faceNormal, faceUp), faceRight) > 0f;
+                newLimb.debugSwappedX = swapX;
             }
 
             // Create and assign unwired neurons.

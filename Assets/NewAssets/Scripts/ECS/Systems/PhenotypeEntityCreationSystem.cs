@@ -28,13 +28,14 @@ public struct JointEntityCreationRequest : IComponentData
     public mycoolfin.TheSimsulator.Sims.JointType JointType;
     public int ReferenceLimbIndex;
     public int AttachedLimbIndex;
+    public uint PhysicsWorldIndex;
     public float3 ReferenceLimbSpaceAnchor;
     public float3 ReferenceLimbSpaceXAxis;
     public float3 ReferenceLimbSpaceYAxis;
     public float3 ReferenceLimbSpaceZAxis;
     public bool FlippedHandedness;
     public float3 AngleLimits;
-    public uint PhysicsWorldIndex;
+    public float MaxMotorImpulseScaleFactor;
 }
 
 [BurstCompile]
@@ -129,7 +130,7 @@ public partial struct PhenotypeEntityCreationSystem : ISystem
 
     private void InstantiateLimbEntities(ref SystemState state, EntityQuery limbCreationRequestQuery)
     {
-        Entity limbPrototype = CreateLimbPrototype(state.EntityManager);
+        Entity limbPrototype = CreateLimbPrototype(ref state);
         EntityCommandBuffer ecb = new(Allocator.TempJob);
         new CreateLimbEntityJob
         {
@@ -142,24 +143,24 @@ public partial struct PhenotypeEntityCreationSystem : ISystem
         state.EntityManager.DestroyEntity(limbPrototype);
     }
 
-    private readonly Entity CreateLimbPrototype(EntityManager entityManager)
+    private readonly Entity CreateLimbPrototype(ref SystemState state)
     {
-        Entity limbPrototype = entityManager.CreateEntity();
+        Entity limbPrototype = state.EntityManager.CreateEntity();
 
         // IDs.
-        entityManager.AddComponentData(limbPrototype, new LimbIndex());
-        entityManager.AddComponentData(limbPrototype, new PhenotypeGid());
+        state.EntityManager.AddComponentData(limbPrototype, new LimbIndex());
+        state.EntityManager.AddComponentData(limbPrototype, new PhenotypeGid());
 
         // Transform.
-        entityManager.AddComponentData(limbPrototype, new LocalTransform());
-        entityManager.AddComponentData(limbPrototype, new PostTransformMatrix());
+        state.EntityManager.AddComponentData(limbPrototype, new LocalTransform());
+        state.EntityManager.AddComponentData(limbPrototype, new PostTransformMatrix());
 
         // Rendering.
-        entityManager.AddComponentData(limbPrototype, new URPMaterialPropertyBaseColor());
-        entityManager.AddComponentData(limbPrototype, new RenderBounds());
+        state.EntityManager.AddComponentData(limbPrototype, new URPMaterialPropertyBaseColor());
+        state.EntityManager.AddComponentData(limbPrototype, new RenderBounds());
         RenderMeshUtility.AddComponents(
             limbPrototype,
-            entityManager,
+            state.EntityManager,
             new(
                 shadowCastingMode: ShadowCastingMode.Off,
                 receiveShadows: false
@@ -167,14 +168,14 @@ public partial struct PhenotypeEntityCreationSystem : ISystem
             RenderMeshArray,
             MaterialMeshInfo.FromRenderMeshArrayIndices(0, 0)
         );
-        entityManager.AddComponentData(limbPrototype, new VisualOffset());
+        state.EntityManager.AddComponentData(limbPrototype, new VisualOffset());
 
         // Physics.
-        entityManager.AddSharedComponent(limbPrototype, new PhysicsWorldIndex());
-        entityManager.AddComponentData(limbPrototype, new PhysicsCollider());
-        entityManager.AddComponentData(limbPrototype, new PhysicsMass());
-        entityManager.AddComponentData(limbPrototype, new PhysicsVelocity());
-        entityManager.AddComponentData(limbPrototype, DefaultDamping);
+        state.EntityManager.AddSharedComponent(limbPrototype, new PhysicsWorldIndex());
+        state.EntityManager.AddComponentData(limbPrototype, new PhysicsCollider());
+        state.EntityManager.AddComponentData(limbPrototype, new PhysicsMass());
+        state.EntityManager.AddComponentData(limbPrototype, new PhysicsVelocity());
+        state.EntityManager.AddComponentData(limbPrototype, DefaultDamping);
 
         return limbPrototype;
     }
@@ -267,11 +268,13 @@ public partial struct PhenotypeEntityCreationSystem : ISystem
 
     private void InstantiateJointEntities(ref SystemState state, EntityQuery jointCreationRequestQuery, NativeParallelHashMap<PhenotypeLimbKey, Entity> limbEntityLookup, NativeParallelHashMap<PhenotypeLimbKey, LocalTransform> limbLocalTransformLookup)
     {
+        EntityArchetype jointArchetype = JointEntityBuilder.CreateJointArchetype(ref state);
         EntityCommandBuffer ecb = new(Allocator.TempJob);
 
         new CreateJointEntityJob
         {
             Ecb = ecb.AsParallelWriter(),
+            JointArchetype = jointArchetype,
             LimbEntityLookup = limbEntityLookup.AsReadOnly(),
             LimbLocalTransformLookup = limbLocalTransformLookup.AsReadOnly()
         }.ScheduleParallel(jointCreationRequestQuery, state.Dependency).Complete();
@@ -284,6 +287,7 @@ public partial struct PhenotypeEntityCreationSystem : ISystem
     public partial struct CreateJointEntityJob : IJobEntity
     {
         public EntityCommandBuffer.ParallelWriter Ecb;
+        public EntityArchetype JointArchetype;
         [ReadOnly] public NativeParallelHashMap<PhenotypeLimbKey, Entity>.ReadOnly LimbEntityLookup;
         [ReadOnly] public NativeParallelHashMap<PhenotypeLimbKey, LocalTransform>.ReadOnly LimbLocalTransformLookup;
 
@@ -299,24 +303,23 @@ public partial struct PhenotypeEntityCreationSystem : ISystem
             if (!LimbEntityLookup.TryGetValue(refKey, out Entity referenceLimbEntity)) return;
             if (!LimbEntityLookup.TryGetValue(attKey, out Entity attachedLimbEntity)) return;
 
-            Entity jointEntity = Ecb.CreateEntity(INSTANTIATION_KEY);
-            Ecb.AddSharedComponent(INSTANTIATION_KEY, jointEntity, new PhysicsWorldIndex(requestData.PhysicsWorldIndex));
-            Ecb.AddComponent(INSTANTIATION_KEY, jointEntity, new PhysicsConstrainedBodyPair(
+            JointEntityBuilder.CreateJointEntities(
+                Ecb,
+                INSTANTIATION_KEY,
+                JointArchetype,
+                requestData.JointType,
                 referenceLimbEntity,
                 attachedLimbEntity,
-                false
-            ));
-            PhysicsJoint joint = JointFactory.CreateJoint(
-                requestData.JointType,
+                requestData.PhysicsWorldIndex,
                 LimbLocalTransformLookup[refKey].ToMatrix(),
                 LimbLocalTransformLookup[attKey].ToMatrix(),
                 requestData.ReferenceLimbSpaceAnchor,
                 requestData.ReferenceLimbSpaceXAxis,
                 requestData.ReferenceLimbSpaceYAxis,
                 requestData.ReferenceLimbSpaceZAxis,
-                requestData.AngleLimits
+                requestData.AngleLimits,
+                requestData.MaxMotorImpulseScaleFactor
             );
-            Ecb.AddComponent(INSTANTIATION_KEY, jointEntity, joint);
         }
     }
 }

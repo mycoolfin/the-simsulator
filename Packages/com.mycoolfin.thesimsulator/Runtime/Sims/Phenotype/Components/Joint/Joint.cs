@@ -17,6 +17,8 @@ namespace mycoolfin.TheSimsulator.Sims
 
         public readonly Vector3 AngleLimits;
 
+        public readonly float MinCrossSectionalArea;
+
         public Vector3 DesiredAngles { get; private set; }
         public Vector3 ActualAngles { get; private set; }
 
@@ -40,7 +42,8 @@ namespace mycoolfin.TheSimsulator.Sims
             Vector3 parentSpaceXAxis,
             Vector3 parentSpaceYAxis,
             Vector3 parentSpaceZAxis,
-            Vector3 angleLimits
+            Vector3 angleLimits,
+            float minCrossSectionalArea
         )
         {
             Type = type;
@@ -54,6 +57,8 @@ namespace mycoolfin.TheSimsulator.Sims
             ParentSpaceZAxis = parentSpaceZAxis;
 
             AngleLimits = angleLimits;
+
+            MinCrossSectionalArea = minCrossSectionalArea;
 
             DesiredAngles = Vector3.Zero;
             ActualAngles = Vector3.Zero;

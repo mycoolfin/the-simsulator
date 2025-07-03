@@ -20,13 +20,13 @@ public class PhenotypeRenderingTest : MonoBehaviour
         SimsPhenotypeFactory phenotypeFactory = new();
 
         List<SimsPhenotype> phenotypes = new();
-        for (int i = 0; i < 1; i++)
+        for (int i = 0; i < 200; i++)
         {
             List<Node> nodes = new()
             {
                 new Node(
                     new mycoolfin.TheSimsulator.Vector3(1f, 1f, 1f),
-                    new(mycoolfin.TheSimsulator.Sims.JointType.Revolute, new mycoolfin.TheSimsulator.Vector3(30f, 30f, 30f),
+                    new(mycoolfin.TheSimsulator.Sims.JointType.TwistBend, new mycoolfin.TheSimsulator.Vector3(30f, 30f, 30f),
                         new InputSetDefinition(new SignalInputDefinition(), new SignalInputDefinition(), new SignalInputDefinition()),
                         new InputSetDefinition(new SignalInputDefinition(), new SignalInputDefinition(), new SignalInputDefinition()),
                         new InputSetDefinition(new SignalInputDefinition(), new SignalInputDefinition(), new SignalInputDefinition())
@@ -39,7 +39,7 @@ public class PhenotypeRenderingTest : MonoBehaviour
                 new Connection(
                     nodes[0].Gid,
                     nodes[0].Gid,
-                    5,
+                    i % 6,
                     new mycoolfin.TheSimsulator.Vector2(0.8f, 0.8f),
                     new mycoolfin.TheSimsulator.Vector3(0, 0, 0),
                     // new mycoolfin.TheSimsulator.Vector3(30f, 30f, 30f),
@@ -50,8 +50,8 @@ public class PhenotypeRenderingTest : MonoBehaviour
                     false
                 )
             };
-            SimsGenotype genotype = new(nodes, connections, new());
-            // SimsGenotype genotype = genotypeFactory.CreateInitialisedGenotype();
+            // SimsGenotype genotype = new(nodes, connections, new());
+            SimsGenotype genotype = genotypeFactory.CreateInitialisedGenotype();
 
             SimsPhenotype phenotype = phenotypeFactory.ConstructPhenotype(genotype);
 
@@ -68,13 +68,13 @@ public class PhenotypeRenderingTest : MonoBehaviour
             phenotypes.Add(phenotype);
         }
 
-        for (int i = 0; i < phenotypes.Count; i++)
-        {
-            SimsPhenotype phenotype = phenotypes[i];
-            PhenotypeRenderer phenotypeRenderer = Instantiate(PhenotypeRendererPrefab).GetComponent<PhenotypeRenderer>();
-            phenotypeRenderer.Initialise(phenotype, LimbRendererPrefab, JointRendererPrefab);
-            phenotypeRenderer.transform.position = new Vector3(0, 0, 5);
-        }
+        // for (int i = 0; i < phenotypes.Count; i++)
+        // {
+        //     SimsPhenotype phenotype = phenotypes[i];
+        //     PhenotypeRenderer phenotypeRenderer = Instantiate(PhenotypeRendererPrefab).GetComponent<PhenotypeRenderer>();
+        //     phenotypeRenderer.Initialise(phenotype, LimbRendererPrefab, JointRendererPrefab);
+        //     phenotypeRenderer.transform.position = new Vector3(0, 0, 5);
+        // }
 
         List<PhenotypeEntityCreationInfo> phenotypeCreationInfoList = new();
         float spacing = 2f;
