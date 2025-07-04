@@ -1,14 +1,13 @@
+using System.Numerics;
 using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Entities;
-using Unity.Mathematics;
 using mycoolfin.TheSimsulator.Sims;
-using mycoolfin.TheSimsulator;
 
 public struct PhenotypeEntityCreationInfo
 {
     public SimsPhenotype Phenotype;
-    public mycoolfin.TheSimsulator.Vector3 PhysicsPositionOffset;
+    public Vector3 PhysicsPositionOffset;
     public uint PhysicsWorldIndex;
 }
 

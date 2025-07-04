@@ -19,9 +19,7 @@ namespace mycoolfin.TheSimsulator.Sims
 
         public SimsPhenotype(Brain brain, List<Limb> limbs)
         {
-            byte[] buffer = new byte[sizeof(ulong)];
-            SharedRandom.NextBytes(buffer);
-            Gid = BitConverter.ToUInt64(buffer, 0);
+            Gid = SharedRandom.NextUInt64();
             Brain = brain ?? throw new ArgumentNullException(nameof(brain), "Brain cannot be null.");
             Limbs = limbs ?? throw new ArgumentNullException(nameof(limbs), "Limbs cannot be null.");
         }

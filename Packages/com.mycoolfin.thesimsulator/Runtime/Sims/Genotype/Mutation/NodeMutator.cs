@@ -1,4 +1,5 @@
 using System;
+using System.Numerics;
 
 namespace mycoolfin.TheSimsulator.Sims
 {
@@ -19,13 +20,11 @@ namespace mycoolfin.TheSimsulator.Sims
         public static void MutateDimensions(SimsGenotypeCreationContext context, int nodeIndex)
         {
             float sigma = 0.1f;
-            Node node = context.Nodes[nodeIndex];
-            Vector3 newDimensions = new(
-                Math.Clamp(SharedRandom.DrawGaussian(sigma) + node.Dimensions.X, Node.MinDimensions.X, Node.MaxDimensions.X),
-                Math.Clamp(SharedRandom.DrawGaussian(sigma) + node.Dimensions.Y, Node.MinDimensions.Y, Node.MaxDimensions.Y),
-                Math.Clamp(SharedRandom.DrawGaussian(sigma) + node.Dimensions.Z, Node.MinDimensions.Z, Node.MaxDimensions.Z)
-            );
+            float RandomDimension(float currentDimension) =>
+                Math.Clamp(currentDimension + SharedRandom.DrawGaussian(sigma), Node.MIN_DIMENSION, Node.MAX_DIMENSION);
 
+            Node node = context.Nodes[nodeIndex];
+            Vector3 newDimensions = new(RandomDimension(node.Dimensions.X), RandomDimension(node.Dimensions.Y), RandomDimension(node.Dimensions.Z));
             Node newNode = new(newDimensions, node.JointDefinition, node.RecursiveLimit);
             context.Nodes[nodeIndex] = newNode;
         }
@@ -38,12 +37,11 @@ namespace mycoolfin.TheSimsulator.Sims
         public static void MutateRecursiveLimit(SimsGenotypeCreationContext context, int nodeIndex)
         {
             float sigma = 1f;
+            int RandomRecursiveLimit(float currentLimit) =>
+                (int)Math.Clamp(currentLimit + (int)Math.Floor(SharedRandom.DrawGaussian(sigma)), Node.MIN_RECURSIVE_LIMIT, Node.MAX_RECURSIVE_LIMIT);
+
             Node node = context.Nodes[nodeIndex];
-            int newRecursiveLimit = Math.Clamp(
-                node.RecursiveLimit + (int)Math.Floor(SharedRandom.DrawGaussian(sigma)),
-                Node.MinRecursiveLimit,
-                Node.MaxRecursiveLimit
-            );
+            int newRecursiveLimit = RandomRecursiveLimit(node.RecursiveLimit);
             Node newNode = new(node.Dimensions, node.JointDefinition, newRecursiveLimit);
             context.Nodes[nodeIndex] = newNode;
         }

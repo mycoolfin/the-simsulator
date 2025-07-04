@@ -1,4 +1,5 @@
 using System;
+using System.Numerics;
 using System.Collections.Generic;
 
 namespace mycoolfin.TheSimsulator.Sims
@@ -55,9 +56,9 @@ namespace mycoolfin.TheSimsulator.Sims
         {
             Vector3 center = limb.Position;
             Vector3[] axes = new Vector3[3];
-            axes[0] = limb.Rotation * new Vector3(1, 0, 0); // X axis.
-            axes[1] = limb.Rotation * new Vector3(0, 1, 0); // Y axis.
-            axes[2] = limb.Rotation * new Vector3(0, 0, 1); // Z axis.
+            axes[0] = Vector3.Transform(new Vector3(1, 0, 0), limb.Rotation); // X axis.
+            axes[1] = Vector3.Transform(new Vector3(0, 1, 0), limb.Rotation); // Y axis.
+            axes[2] = Vector3.Transform(new Vector3(0, 0, 1), limb.Rotation); // Z axis.
             Vector3 half = limb.Dimensions * 0.5f;
             return (center, axes, half);
         }

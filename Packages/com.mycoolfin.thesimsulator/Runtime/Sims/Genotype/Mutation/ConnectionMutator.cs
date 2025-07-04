@@ -1,4 +1,5 @@
 using System;
+using System.Numerics;
 
 namespace mycoolfin.TheSimsulator.Sims
 {
@@ -43,8 +44,8 @@ namespace mycoolfin.TheSimsulator.Sims
             float sigma = 0.1f;
             Connection connection = context.Connections[connectionIndex];
             Vector2 newPosition = new(
-                Math.Clamp(connection.Position.X + SharedRandom.DrawGaussian(sigma), Connection.MinPosition.X, Connection.MaxPosition.X),
-                Math.Clamp(connection.Position.Y + SharedRandom.DrawGaussian(sigma), Connection.MinPosition.Y, Connection.MaxPosition.Y)
+                Math.Clamp(connection.Position.X + SharedRandom.DrawGaussian(sigma), Connection.MIN_POSITION, Connection.MAX_POSITION),
+                Math.Clamp(connection.Position.Y + SharedRandom.DrawGaussian(sigma), Connection.MIN_POSITION, Connection.MAX_POSITION)
             );
             Connection newConnection = new(connection.ParentNodeGid, connection.ChildNodeGid, connection.ParentFace, newPosition, connection.Orientation, connection.Scale, connection.ReflectionX, connection.ReflectionY, connection.ReflectionZ, connection.TerminalOnly);
             context.Connections[connectionIndex] = newConnection;
@@ -55,9 +56,9 @@ namespace mycoolfin.TheSimsulator.Sims
             float sigma = 10f;
             Connection connection = context.Connections[connectionIndex];
             Vector3 newOrientation = new(
-                Math.Clamp(connection.Orientation.X + SharedRandom.DrawGaussian(sigma), Connection.MinOrientation.X, Connection.MaxOrientation.X),
-                Math.Clamp(connection.Orientation.Y + SharedRandom.DrawGaussian(sigma), Connection.MinOrientation.Y, Connection.MaxOrientation.Y),
-                Math.Clamp(connection.Orientation.Z + SharedRandom.DrawGaussian(sigma), Connection.MinOrientation.Z, Connection.MaxOrientation.Z)
+                Math.Clamp(connection.Orientation.X + SharedRandom.DrawGaussian(sigma), Connection.MIN_ORIENTATION, Connection.MAX_ORIENTATION),
+                Math.Clamp(connection.Orientation.Y + SharedRandom.DrawGaussian(sigma), Connection.MIN_ORIENTATION, Connection.MAX_ORIENTATION),
+                Math.Clamp(connection.Orientation.Z + SharedRandom.DrawGaussian(sigma), Connection.MIN_ORIENTATION, Connection.MAX_ORIENTATION)
             );
             Connection newConnection = new(connection.ParentNodeGid, connection.ChildNodeGid, connection.ParentFace, connection.Position, newOrientation, connection.Scale, connection.ReflectionX, connection.ReflectionY, connection.ReflectionZ, connection.TerminalOnly);
             context.Connections[connectionIndex] = newConnection;
@@ -68,9 +69,9 @@ namespace mycoolfin.TheSimsulator.Sims
             float sigma = 0.1f;
             Connection connection = context.Connections[connectionIndex];
             Vector3 newScale = new(
-                Math.Clamp(connection.Scale.X + SharedRandom.DrawGaussian(sigma), Connection.MinScale.X, Connection.MaxScale.X),
-                Math.Clamp(connection.Scale.Y + SharedRandom.DrawGaussian(sigma), Connection.MinScale.Y, Connection.MaxScale.Y),
-                Math.Clamp(connection.Scale.Z + SharedRandom.DrawGaussian(sigma), Connection.MinScale.Z, Connection.MaxScale.Z)
+                Math.Clamp(connection.Scale.X + SharedRandom.DrawGaussian(sigma), Connection.MIN_SCALE, Connection.MAX_SCALE),
+                Math.Clamp(connection.Scale.Y + SharedRandom.DrawGaussian(sigma), Connection.MIN_SCALE, Connection.MAX_SCALE),
+                Math.Clamp(connection.Scale.Z + SharedRandom.DrawGaussian(sigma), Connection.MIN_SCALE, Connection.MAX_SCALE)
             );
             Connection newConnection = new(connection.ParentNodeGid, connection.ChildNodeGid, connection.ParentFace, connection.Position, connection.Orientation, newScale, connection.ReflectionX, connection.ReflectionY, connection.ReflectionZ, connection.TerminalOnly);
             context.Connections[connectionIndex] = newConnection;

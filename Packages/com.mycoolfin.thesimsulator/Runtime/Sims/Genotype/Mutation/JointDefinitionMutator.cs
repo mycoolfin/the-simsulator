@@ -1,4 +1,5 @@
 using System;
+using System.Numerics;
 
 namespace mycoolfin.TheSimsulator.Sims
 {
@@ -33,9 +34,9 @@ namespace mycoolfin.TheSimsulator.Sims
             float sigma = 5f;
             Node node = context.Nodes[nodeIndex];
             Vector3 newAngleLimits = new(
-                Math.Clamp(node.JointDefinition.AngleLimits.X + SharedRandom.DrawGaussian(sigma), JointDefinition.MinAngleLimit.X, JointDefinition.MaxAngleLimit.X),
-                Math.Clamp(node.JointDefinition.AngleLimits.Y + SharedRandom.DrawGaussian(sigma), JointDefinition.MinAngleLimit.Y, JointDefinition.MaxAngleLimit.Y),
-                Math.Clamp(node.JointDefinition.AngleLimits.Z + SharedRandom.DrawGaussian(sigma), JointDefinition.MinAngleLimit.Z, JointDefinition.MaxAngleLimit.Z)
+                Math.Clamp(node.JointDefinition.AngleLimits.X + SharedRandom.DrawGaussian(sigma), JointDefinition.MIN_ANGLE_LIMIT, JointDefinition.MAX_ANGLE_LIMIT),
+                Math.Clamp(node.JointDefinition.AngleLimits.Y + SharedRandom.DrawGaussian(sigma), JointDefinition.MIN_ANGLE_LIMIT, JointDefinition.MAX_ANGLE_LIMIT),
+                Math.Clamp(node.JointDefinition.AngleLimits.Z + SharedRandom.DrawGaussian(sigma), JointDefinition.MIN_ANGLE_LIMIT, JointDefinition.MAX_ANGLE_LIMIT)
             );
             JointDefinition newJointDefinition = new(node.JointDefinition.JointType, newAngleLimits,
                 node.JointDefinition.XAxisInputs, node.JointDefinition.YAxisInputs, node.JointDefinition.ZAxisInputs);

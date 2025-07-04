@@ -2,14 +2,14 @@ using System.Runtime.InteropServices;
 
 namespace mycoolfin.TheSimsulator.Sims
 {
-    [StructLayout(LayoutKind.Explicit, Size = 8)]
+    [StructLayout(LayoutKind.Sequential, Pack = 1)]
     public readonly struct SignalInputDefinition
     {
-        public static readonly float MinWeight = -1.0f;
-        public static readonly float MaxWeight = 1.0f;
+        public const float MIN_WEIGHT = -1.0f;
+        public const float MAX_WEIGHT = 1.0f;
 
-        [FieldOffset(0)] public readonly SignalEmitterAddress SignalEmitterAddress;
-        [FieldOffset(4)] public readonly float Weight;
+        public readonly SignalEmitterAddress SignalEmitterAddress;
+        public readonly float Weight;
 
         public SignalInputDefinition(SignalEmitterAddress signalEmitterAddress, float weight)
         {
@@ -19,7 +19,7 @@ namespace mycoolfin.TheSimsulator.Sims
 
         public static SignalInputDefinition CreateRandom(SignalEmitterAddress signalEmitterAddress)
         {
-            float weight = (float)SharedRandom.NextDouble() * (MaxWeight - MinWeight) + MinWeight;
+            float weight = (float)SharedRandom.NextDouble() * (MAX_WEIGHT - MIN_WEIGHT) + MIN_WEIGHT;
             return new SignalInputDefinition(signalEmitterAddress, weight);
         }
     }

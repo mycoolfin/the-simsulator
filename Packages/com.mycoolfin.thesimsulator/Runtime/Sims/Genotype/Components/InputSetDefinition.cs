@@ -1,14 +1,16 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.InteropServices;
 
 namespace mycoolfin.TheSimsulator.Sims
 {
-    [StructLayout(LayoutKind.Explicit, Size = 24)]
+    [StructLayout(LayoutKind.Sequential, Pack = 1)]
     public readonly struct InputSetDefinition
     {
-        [FieldOffset(0)] public readonly SignalInputDefinition A;
-        [FieldOffset(8)] public readonly SignalInputDefinition B;
-        [FieldOffset(16)] public readonly SignalInputDefinition C;
+        public readonly SignalInputDefinition A;
+        public readonly SignalInputDefinition B;
+        public readonly SignalInputDefinition C;
 
         public InputSetDefinition(SignalInputDefinition a, SignalInputDefinition b, SignalInputDefinition c)
         {
@@ -19,11 +21,18 @@ namespace mycoolfin.TheSimsulator.Sims
 
         public static InputSetDefinition CreateRandom(ulong containerId, IReadOnlyList<Node> nodes, IReadOnlyList<Connection> connections, IReadOnlyList<NeuronDefinition> neuronDefinitions)
         {
-            SignalInputDefinition randomA = SignalInputDefinition.CreateRandom(SignalEmitterAddress.CreateRandom(containerId, nodes, connections, neuronDefinitions));
-            SignalInputDefinition randomB = SignalInputDefinition.CreateRandom(SignalEmitterAddress.CreateRandom(containerId, nodes, connections, neuronDefinitions));
-            SignalInputDefinition randomC = SignalInputDefinition.CreateRandom(SignalEmitterAddress.CreateRandom(containerId, nodes, connections, neuronDefinitions));
-
-            return new InputSetDefinition(randomA, randomB, randomC);
+            Span<ulong> childGidsScratch = stackalloc ulong[32];
+            Span<Node> nodeSpan = nodes.ToArray().AsSpan();
+            Span<Connection> connectionSpan = connections.ToArray().AsSpan();
+            Span<NeuronDefinition> neuronSpan = neuronDefinitions.ToArray().AsSpan();
+            return new InputSetDefinition(
+                SignalInputDefinition.CreateRandom(
+                    SignalEmitterAddress.CreateRandom(containerId, nodeSpan, connectionSpan, neuronSpan, childGidsScratch)),
+                SignalInputDefinition.CreateRandom(
+                    SignalEmitterAddress.CreateRandom(containerId, nodeSpan, connectionSpan, neuronSpan, childGidsScratch)),
+                SignalInputDefinition.CreateRandom(
+                    SignalEmitterAddress.CreateRandom(containerId, nodeSpan, connectionSpan, neuronSpan, childGidsScratch))
+            );
         }
     }
 }

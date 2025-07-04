@@ -60,6 +60,13 @@ public class JointDebug : MonoBehaviour
             Gizmos.DrawLine(aPosWorld, aPosWorld + aPerpendicularAxisWorld * 0.5f);
             Gizmos.color = Color.darkGreen;
             Gizmos.DrawLine(bPosWorld, bPosWorld + bPerpendicularAxisWorld * 0.5f);
+
+            float3 aForwardAxisWorld = math.rotate(aTransform.Rotation, math.cross(joint.BodyAFromJoint.Axis, joint.BodyAFromJoint.PerpendicularAxis));
+            float3 bForwardAxisWorld = math.rotate(bTransform.Rotation, math.cross(joint.BodyBFromJoint.Axis, joint.BodyBFromJoint.PerpendicularAxis));
+            Gizmos.color = Color.blue;
+            Gizmos.DrawLine(aPosWorld, aPosWorld + aForwardAxisWorld * 0.5f);
+            Gizmos.color = Color.darkBlue;
+            Gizmos.DrawLine(bPosWorld, bPosWorld + bForwardAxisWorld * 0.5f);
         }
     }
 }

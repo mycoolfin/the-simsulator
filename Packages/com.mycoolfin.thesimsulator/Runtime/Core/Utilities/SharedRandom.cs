@@ -89,8 +89,12 @@ namespace mycoolfin.TheSimsulator
         /// <inheritdoc cref="Random.NextDouble"/>
         public static double NextDouble() => Instance.NextDouble();
 
-        /// <inheritdoc cref="Random.NextBytes(byte[])"/>
-        public static void NextBytes(byte[] buffer) => Instance.NextBytes(buffer);
+        public static ulong NextUInt64()
+        {
+            Span<byte> buf = stackalloc byte[8];
+            Instance.NextBytes(buf);
+            return BitConverter.ToUInt64(buf);
+        }
 
         /// <summary>
         /// Produces a decorrelated per-thread seed based on the base seed and an

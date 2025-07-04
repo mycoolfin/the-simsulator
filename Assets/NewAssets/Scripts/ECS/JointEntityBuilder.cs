@@ -19,7 +19,6 @@ public static class JointEntityBuilder
     }
 
     // BUG: Some joint configurations cause the attached limb to do a 360deg flip when the simulation starts.
-    // This is likely due to handedness issues.
     // NOTE: DOTS Physics 1.3 only appears to support up to three constraints per joint.
     // Until this changes, we have to create two joint entities for more complex joints.
     public static void CreateJointEntities(
@@ -93,7 +92,7 @@ public static class JointEntityBuilder
                 ecb.SetComponent(sortKey, jointEntity1, physicsJoint1);
                 break;
             case mycoolfin.TheSimsulator.Sims.JointType.Twist:
-                physicsJoint1 = CreatePhysicsJoint(true);
+                physicsJoint1 = CreatePhysicsJoint();
                 physicsJoint1.SetConstraints(new()
                 {
                     CreateConstraint(ConstraintType.RotationMotor,  new bool3(false, false, true),  angleLimits.x),
@@ -179,7 +178,7 @@ public static class JointEntityBuilder
                 ecb.SetComponent(sortKey, jointEntity2, physicsJoint2);
                 break;
             default:
-                throw new System.NotSupportedException($"Joint type {jointType} is not supported.");
+                break;
         }
 
         ecb.SetSharedComponent(sortKey, jointEntity1, new PhysicsWorldIndex(physicsWorldIndex));
@@ -209,7 +208,7 @@ public static class JointEntityBuilder
         {
             Position = referenceLimbSpaceAnchor,
             Axis = referenceLimbSpaceXAxis * (flippedHandedness ? -1f : 1f),
-            PerpendicularAxis = referenceLimbSpaceYAxis,
+            PerpendicularAxis = referenceLimbSpaceYAxis * (flippedHandedness ? -1f : 1f),
         };
 
         float4x4 T_B_from_A = math.mul(math.inverse(attachedLimbLocalTransform), referenceLimbLocalTransform);

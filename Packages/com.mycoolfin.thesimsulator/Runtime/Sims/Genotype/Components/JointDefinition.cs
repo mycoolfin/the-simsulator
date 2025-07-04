@@ -1,9 +1,10 @@
+using System.Numerics;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
 namespace mycoolfin.TheSimsulator.Sims
 {
-    public enum JointType : int
+    public enum JointType : byte
     {
         Rigid,
         Revolute,
@@ -14,14 +15,39 @@ namespace mycoolfin.TheSimsulator.Sims
         Spherical
     }
 
-    [StructLayout(LayoutKind.Explicit, Size = 96)]
+    public static class JointTypeExtensions
+    {
+        public static byte DegreesOfFreedom(this JointType self)
+        {
+            return self switch
+            {
+                JointType.Rigid => 0,
+                JointType.Revolute => 1,
+                JointType.Twist => 1,
+                JointType.Universal => 2,
+                JointType.BendTwist => 2,
+                JointType.TwistBend => 2,
+                JointType.Spherical => 3,
+                _ => 0,
+            };
+        }
+    }
+
+    [StructLayout(LayoutKind.Sequential, Pack = 1)]
     public readonly struct JointDefinition
     {
-        [FieldOffset(0)] public readonly JointType JointType;
-        [FieldOffset(12)] public readonly Vector3 AngleLimits;
-        [FieldOffset(24)] public readonly InputSetDefinition XAxisInputs;
-        [FieldOffset(48)] public readonly InputSetDefinition YAxisInputs;
-        [FieldOffset(72)] public readonly InputSetDefinition ZAxisInputs;
+        public const float MIN_ANCHOR_ON_PARENT_FACE = -1.0f;
+        public const float MAX_ANCHOR_ON_PARENT_FACE = 1.0f;
+        public const float MIN_ANGLE_LIMIT = -90.0f;
+        public const float MAX_ANGLE_LIMIT = 90.0f;
+
+        public readonly JointType JointType;
+        public readonly Vector3 AngleLimits;
+        public readonly InputSetDefinition XAxisInputs;
+        public readonly InputSetDefinition YAxisInputs;
+        public readonly InputSetDefinition ZAxisInputs;
+
+        public static readonly JointType[] AllJointTypes = (JointType[])System.Enum.GetValues(typeof(JointType));
 
         public JointDefinition(JointType jointType, Vector3 angleLimits, InputSetDefinition xAxisInputs, InputSetDefinition yAxisInputs, InputSetDefinition zAxisInputs)
         {
@@ -32,41 +58,32 @@ namespace mycoolfin.TheSimsulator.Sims
             ZAxisInputs = zAxisInputs;
         }
 
-        public static readonly JointType[] AllJointTypes = (JointType[])System.Enum.GetValues(typeof(JointType));
-        public static readonly Vector2 MinAnchorOnParentFace = new(-1.0f, -1.0f);
-        public static readonly Vector2 MaxAnchorOnParentFace = new(1.0f, 1.0f);
-        public static readonly Vector3 MinAngleLimit = new(-90.0f, -90.0f, -90.0f);
-        public static readonly Vector3 MaxAngleLimit = new(90.0f, 90.0f, 90.0f);
-
         public static JointDefinition CreateRandom(ulong containerId, IReadOnlyList<Node> nodes, IReadOnlyList<Connection> connections, IReadOnlyList<NeuronDefinition> neuronDefinitions)
         {
             JointType randomJointType = AllJointTypes[SharedRandom.Next(AllJointTypes.Length)];
-            Vector3 randomAngleLimits = new(
-                (float)SharedRandom.NextDouble() * (MaxAngleLimit.X - MinAngleLimit.X) + MinAngleLimit.X,
-                (float)SharedRandom.NextDouble() * (MaxAngleLimit.Y - MinAngleLimit.Y) + MinAngleLimit.Y,
-                (float)SharedRandom.NextDouble() * (MaxAngleLimit.Z - MinAngleLimit.Z) + MinAngleLimit.Z
+
+            Vector3 randomAngleLimits = new(RandomAngleLimit(), RandomAngleLimit(), RandomAngleLimit());
+
+            return new JointDefinition(
+                randomJointType,
+                randomAngleLimits,
+                InputSetDefinition.CreateRandom(containerId, nodes, connections, neuronDefinitions),
+                InputSetDefinition.CreateRandom(containerId, nodes, connections, neuronDefinitions),
+                InputSetDefinition.CreateRandom(containerId, nodes, connections, neuronDefinitions)
             );
-
-            InputSetDefinition randomInputsX = InputSetDefinition.CreateRandom(containerId, nodes, connections, neuronDefinitions);
-            InputSetDefinition randomInputsY = InputSetDefinition.CreateRandom(containerId, nodes, connections, neuronDefinitions);
-            InputSetDefinition randomInputsZ = InputSetDefinition.CreateRandom(containerId, nodes, connections, neuronDefinitions);
-
-            return new JointDefinition(randomJointType, randomAngleLimits, randomInputsX, randomInputsY, randomInputsZ);
         }
 
         public static JointDefinition RandomiseSignalInputs(ulong containerId, JointDefinition jointDefinition, IReadOnlyList<Node> nodes, IReadOnlyList<Connection> connections, IReadOnlyList<NeuronDefinition> neuronDefinitions)
         {
-            InputSetDefinition randomInputsX = InputSetDefinition.CreateRandom(containerId, nodes, connections, neuronDefinitions);
-            InputSetDefinition randomInputsY = InputSetDefinition.CreateRandom(containerId, nodes, connections, neuronDefinitions);
-            InputSetDefinition randomInputsZ = InputSetDefinition.CreateRandom(containerId, nodes, connections, neuronDefinitions);
-
             return new JointDefinition(
                 jointDefinition.JointType,
                 jointDefinition.AngleLimits,
-                randomInputsX,
-                randomInputsY,
-                randomInputsZ
+                InputSetDefinition.CreateRandom(containerId, nodes, connections, neuronDefinitions),
+                InputSetDefinition.CreateRandom(containerId, nodes, connections, neuronDefinitions),
+                InputSetDefinition.CreateRandom(containerId, nodes, connections, neuronDefinitions)
             );
         }
+
+        private static float RandomAngleLimit() => (float)SharedRandom.NextDouble() * (MAX_ANGLE_LIMIT - MIN_ANGLE_LIMIT) + MIN_ANGLE_LIMIT;
     }
 }

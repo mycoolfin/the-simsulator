@@ -24,7 +24,7 @@ public class RandomPhenotypeSpawner : MonoBehaviour
             EntityCreationAPI.CreateEntitiesFromPhenotypes(phenotypes.ConvertAll(p => new PhenotypeEntityCreationInfo
             {
                 Phenotype = p,
-                PhysicsPositionOffset = new mycoolfin.TheSimsulator.Vector3(0, 0, 0),
+                PhysicsPositionOffset = new System.Numerics.Vector3(0, 0, 0),
                 PhysicsWorldIndex = 0
             }));
             Spawn = false;

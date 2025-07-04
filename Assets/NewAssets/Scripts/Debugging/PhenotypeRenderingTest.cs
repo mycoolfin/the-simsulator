@@ -1,18 +1,18 @@
+using System.Numerics;
 using System.Collections.Generic;
-using UnityEngine;
 using mycoolfin.TheSimsulator.Sims;
 
-public class PhenotypeRenderingTest : MonoBehaviour
+public class PhenotypeRenderingTest : UnityEngine.MonoBehaviour
 {
-    public GameObject PhenotypeRendererPrefab;
-    public GameObject LimbRendererPrefab;
-    public GameObject JointRendererPrefab;
+    public UnityEngine.GameObject PhenotypeRendererPrefab;
+    public UnityEngine.GameObject LimbRendererPrefab;
+    public UnityEngine.GameObject JointRendererPrefab;
 
     private void Start()
     {
         if (PhenotypeRendererPrefab == null)
         {
-            Debug.LogError("PhenotypeRendererPrefab is not assigned.");
+            UnityEngine.Debug.LogError("PhenotypeRendererPrefab is not assigned.");
             return;
         }
 
@@ -20,13 +20,13 @@ public class PhenotypeRenderingTest : MonoBehaviour
         SimsPhenotypeFactory phenotypeFactory = new();
 
         List<SimsPhenotype> phenotypes = new();
-        for (int i = 0; i < 200; i++)
+        for (int i = 0; i < 6; i++)
         {
             List<Node> nodes = new()
             {
                 new Node(
-                    new mycoolfin.TheSimsulator.Vector3(1f, 1f, 1f),
-                    new(mycoolfin.TheSimsulator.Sims.JointType.TwistBend, new mycoolfin.TheSimsulator.Vector3(30f, 30f, 30f),
+                    new Vector3(1f, 1f, 1f),
+                    new(mycoolfin.TheSimsulator.Sims.JointType.Spherical, new Vector3(30f, 30f, 30f),
                         new InputSetDefinition(new SignalInputDefinition(), new SignalInputDefinition(), new SignalInputDefinition()),
                         new InputSetDefinition(new SignalInputDefinition(), new SignalInputDefinition(), new SignalInputDefinition()),
                         new InputSetDefinition(new SignalInputDefinition(), new SignalInputDefinition(), new SignalInputDefinition())
@@ -40,18 +40,18 @@ public class PhenotypeRenderingTest : MonoBehaviour
                     nodes[0].Gid,
                     nodes[0].Gid,
                     i % 6,
-                    new mycoolfin.TheSimsulator.Vector2(0.8f, 0.8f),
-                    new mycoolfin.TheSimsulator.Vector3(0, 0, 0),
-                    // new mycoolfin.TheSimsulator.Vector3(30f, 30f, 30f),
-                    new mycoolfin.TheSimsulator.Vector3(0.5f, 0.5f, 1f),
+                    new Vector2(0.8f, 0.8f),
+                    // new Vector3(0, 0, 0),
+                    new Vector3(30f, 30f, 30f),
+                    new Vector3(0.5f, 0.5f, 1f),
                     true,
                     true,
                     true,
                     false
                 )
             };
-            // SimsGenotype genotype = new(nodes, connections, new());
-            SimsGenotype genotype = genotypeFactory.CreateInitialisedGenotype();
+            SimsGenotype genotype = new(nodes, connections, new());
+            // SimsGenotype genotype = genotypeFactory.CreateInitialisedGenotype();
 
             SimsPhenotype phenotype = phenotypeFactory.ConstructPhenotype(genotype);
 
@@ -59,7 +59,7 @@ public class PhenotypeRenderingTest : MonoBehaviour
             {
                 mycoolfin.TheSimsulator.Sims.Limb limb = phenotype.Limbs[j];
                 limb.SetPositionAndRotation(limb.Position, limb.Rotation);
-                limb.Color = new mycoolfin.TheSimsulator.Vector4(limb.debugMirroredX ? 1f : 0f,
+                limb.Color = new Vector4(limb.debugMirroredX ? 1f : 0f,
                                                    limb.debugMirroredY ? 1f : 0f,
                                                    limb.debugMirroredZ ? 1f : 0f,
                                                    1f);
@@ -68,16 +68,16 @@ public class PhenotypeRenderingTest : MonoBehaviour
             phenotypes.Add(phenotype);
         }
 
-        // for (int i = 0; i < phenotypes.Count; i++)
-        // {
-        //     SimsPhenotype phenotype = phenotypes[i];
-        //     PhenotypeRenderer phenotypeRenderer = Instantiate(PhenotypeRendererPrefab).GetComponent<PhenotypeRenderer>();
-        //     phenotypeRenderer.Initialise(phenotype, LimbRendererPrefab, JointRendererPrefab);
-        //     phenotypeRenderer.transform.position = new Vector3(0, 0, 5);
-        // }
+        for (int i = 0; i < phenotypes.Count; i++)
+        {
+            SimsPhenotype phenotype = phenotypes[i];
+            PhenotypeRenderer phenotypeRenderer = Instantiate(PhenotypeRendererPrefab).GetComponent<PhenotypeRenderer>();
+            phenotypeRenderer.Initialise(phenotype, LimbRendererPrefab, JointRendererPrefab);
+            phenotypeRenderer.transform.position = new UnityEngine.Vector3(0, 0, 10);
+        }
 
         List<PhenotypeEntityCreationInfo> phenotypeCreationInfoList = new();
-        float spacing = 2f;
+        float spacing = 20f;
         float spiralStep = 0.5f;
         float radiusStep = spacing * 0.5f;
         for (int i = 0; i < phenotypes.Count; i++)
@@ -87,8 +87,8 @@ public class PhenotypeRenderingTest : MonoBehaviour
             float angle = i * spiralStep;
             float radius = radiusStep * angle;
 
-            float x = Mathf.Cos(angle) * radius;
-            float z = Mathf.Sin(angle) * radius;
+            float x = UnityEngine.Mathf.Cos(angle) * radius;
+            float z = UnityEngine.Mathf.Sin(angle) * radius;
 
             PhenotypeEntityCreationInfo info = new()
             {

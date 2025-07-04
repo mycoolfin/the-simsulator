@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Numerics;
 using System.Collections.Generic;
 
 namespace mycoolfin.TheSimsulator.Sims
@@ -183,7 +184,7 @@ namespace mycoolfin.TheSimsulator.Sims
         )
         {
             // Compute new scale and dimensions.
-            Vector3 currentScale = connection == null ? parentData.CurrentScale : Vector3.Scale(parentData.CurrentScale, connection.Value.Scale);
+            Vector3 currentScale = connection == null ? parentData.CurrentScale : Vector3.Multiply(parentData.CurrentScale, connection.Value.Scale);
             Vector3 dimensions = new(
                 node.Dimensions.X * currentScale.X,
                 node.Dimensions.Y * currentScale.Y,
@@ -191,7 +192,7 @@ namespace mycoolfin.TheSimsulator.Sims
             );
 
             // Create new limb with absolute dimensions.
-            Limb newLimb = new(new Vector3(dimensions.X, dimensions.Y, dimensions.Z))
+            Limb newLimb = new(new(dimensions.X, dimensions.Y, dimensions.Z))
             {
                 debugMirroredX = mirrorRight,
                 debugMirroredY = mirrorUp,
@@ -219,28 +220,28 @@ namespace mycoolfin.TheSimsulator.Sims
 
                 // Compute anchor in parent space.
                 Vector3 parentHalfExtents = parentData.Limb.Dimensions * 0.5f;
-                Vector3 parentSpaceAnchor = Vector3.Scale(parentHalfExtents, faceNormal)
-                                            + Vector3.Scale(parentHalfExtents, faceRight) * connection.Value.Position.X
-                                            + Vector3.Scale(parentHalfExtents, faceUp) * connection.Value.Position.Y;
+                Vector3 parentSpaceAnchor = Vector3.Multiply(parentHalfExtents, faceNormal)
+                                            + Vector3.Multiply(parentHalfExtents, faceRight) * connection.Value.Position.X
+                                            + Vector3.Multiply(parentHalfExtents, faceUp) * connection.Value.Position.Y;
 
                 // Orient joint axes in parent space.
                 float parity = (mirrorRight ? -1 : 1) * (mirrorUp ? -1 : 1) * (mirrorForward ? -1 : 1) * (parentData.SwapX ? -1 : 1);
-                Quaternion jointRotation = Quaternion.AngleAxis(connection.Value.Orientation.Z * parity, faceNormal);
-                jointRotation *= Quaternion.AngleAxis(connection.Value.Orientation.Y * parity, faceUp);
-                jointRotation *= Quaternion.AngleAxis(connection.Value.Orientation.X * parity, faceRight);
+                Quaternion jointRotation = QuaternionHelper.AngleAxis(connection.Value.Orientation.Z * parity, faceNormal);
+                jointRotation *= QuaternionHelper.AngleAxis(connection.Value.Orientation.Y * parity, faceUp);
+                jointRotation *= QuaternionHelper.AngleAxis(connection.Value.Orientation.X * parity, faceRight);
 
-                Vector3 parentSpaceXAxis = jointRotation * faceRight;
-                Vector3 parentSpaceYAxis = jointRotation * faceUp;
-                Vector3 parentSpaceZAxis = jointRotation * faceNormal;
+                Vector3 parentSpaceXAxis = Vector3.Transform(faceRight, jointRotation);
+                Vector3 parentSpaceYAxis = Vector3.Transform(faceUp, jointRotation);
+                Vector3 parentSpaceZAxis = Vector3.Transform(faceNormal, jointRotation);
 
-                Quaternion parentSpaceRotation = jointRotation * Quaternion.LookRotation(faceNormal, faceUp);
+                Quaternion parentSpaceRotation = jointRotation * QuaternionHelper.LookRotation(faceNormal, faceUp);
 
                 // Place child -Z face at anchor in parent space.
                 float halfDepth = Math.Abs(dimensions.Z) * 0.5f;
-                Vector3 parentSpaceChildPosition = parentSpaceAnchor + parentSpaceRotation * new Vector3(0f, 0f, halfDepth);
+                Vector3 parentSpaceChildPosition = parentSpaceAnchor + Vector3.Transform(new Vector3(0f, 0f, halfDepth), parentSpaceRotation);
 
                 // Translate to world space.
-                Vector3 worldChildPosition = parentData.Limb.Position + parentData.Limb.Rotation * parentSpaceChildPosition;
+                Vector3 worldChildPosition = parentData.Limb.Position + Vector3.Transform(parentSpaceChildPosition, parentData.Limb.Rotation);
                 Quaternion worldChildRotation = parentData.Limb.Rotation * parentSpaceRotation;
 
                 // Set transform.
@@ -274,7 +275,7 @@ namespace mycoolfin.TheSimsulator.Sims
                     receiverToInputDefinitionSetGidMap[joint.ZAxisController.Actuator] = node.JointDefinition.ZAxisInputs;
 
                 // Check if there was a handedness swap.
-                swapX = Vector3.Dot(Vector3.Cross(faceNormal, faceUp), faceRight) > 0f;
+                swapX = Vector3.Dot(Vector3.Cross(faceRight, faceUp), faceNormal) > 0f;
                 newLimb.debugSwappedX = swapX;
             }
 
@@ -298,35 +299,35 @@ namespace mycoolfin.TheSimsulator.Sims
         {
             switch (face)
             {
-                case 0: // -X (left face)
-                    faceRight = -Vector3.Forward;
-                    faceUp = Vector3.Up;
-                    faceNormal = -Vector3.Right;
+                case 0: // -X
+                    faceRight = new Vector3(0f, 0f, -1f);
+                    faceUp = new Vector3(0f, 1f, 0f);
+                    faceNormal = new Vector3(-1f, 0f, 0f);
                     break;
-                case 1: // -Y (bottom face)
-                    faceRight = -Vector3.Right;
-                    faceUp = Vector3.Forward;
-                    faceNormal = -Vector3.Up;
+                case 1: // -Y
+                    faceRight = new Vector3(-1f, 0f, 0f);
+                    faceUp = new Vector3(0f, 0f, 1f);
+                    faceNormal = new Vector3(0f, -1f, 0f);
                     break;
-                case 2: // -Z (back face)
-                    faceRight = Vector3.Right;
-                    faceUp = Vector3.Up;
-                    faceNormal = -Vector3.Forward;
+                case 2: // -Z
+                    faceRight = new Vector3(1f, 0f, 0f);
+                    faceUp = new Vector3(0f, 1f, 0f);
+                    faceNormal = new Vector3(0f, 0f, -1f);
                     break;
-                case 3: // +X (right face)
-                    faceRight = Vector3.Forward;
-                    faceUp = Vector3.Up;
-                    faceNormal = Vector3.Right;
+                case 3: // +X
+                    faceRight = new Vector3(0f, 0f, 1f);
+                    faceUp = new Vector3(0f, 1f, 0f);
+                    faceNormal = new Vector3(1f, 0f, 0f);
                     break;
-                case 4: // +Y (top face)
-                    faceRight = Vector3.Right;
-                    faceUp = Vector3.Forward;
-                    faceNormal = Vector3.Up;
+                case 4: // +Y
+                    faceRight = new Vector3(1f, 0f, 0f);
+                    faceUp = new Vector3(0f, 0f, 1f);
+                    faceNormal = new Vector3(0f, 1f, 0f);
                     break;
-                case 5: // +Z (front face)
-                    faceRight = -Vector3.Right;
-                    faceUp = Vector3.Up;
-                    faceNormal = Vector3.Forward;
+                case 5: // +Z
+                    faceRight = new Vector3(-1f, 0f, 0f);
+                    faceUp = new Vector3(0f, 1f, 0f);
+                    faceNormal = new Vector3(0f, 0f, 1f);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(face), $"Invalid face index {face}. Must be 0-5.");

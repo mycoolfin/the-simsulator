@@ -17,7 +17,11 @@ namespace mycoolfin.TheSimsulator.Sims
 
         public static void MutateSignalEmitterAddress(SimsGenotypeCreationContext context, ulong containerId, SignalInputDefinition oldInput, Action<SignalInputDefinition> setNewInputCallback)
         {
-            SignalEmitterAddress newSignalEmitterAddress = SignalEmitterAddress.CreateRandom(containerId, context.Nodes, context.Connections, context.NeuronDefinitions);
+            Span<ulong> childGidsScratch = stackalloc ulong[32];
+            Span<Node> nodeSpan = context.Nodes.ToArray().AsSpan();
+            Span<Connection> connectionSpan = context.Connections.ToArray().AsSpan();
+            Span<NeuronDefinition> neuronSpan = context.NeuronDefinitions.ToArray().AsSpan();
+            SignalEmitterAddress newSignalEmitterAddress = SignalEmitterAddress.CreateRandom(containerId, nodeSpan, connectionSpan, neuronSpan, childGidsScratch);
             SignalInputDefinition newInput = new(newSignalEmitterAddress, oldInput.Weight);
             setNewInputCallback(newInput);
         }
@@ -25,7 +29,7 @@ namespace mycoolfin.TheSimsulator.Sims
         public static void MutateWeight(SimsGenotypeCreationContext context, ulong containerId, SignalInputDefinition oldInput, Action<SignalInputDefinition> setNewInputCallback)
         {
             float sigma = 0.1f;
-            float newWeight = Math.Clamp(oldInput.Weight + SharedRandom.DrawGaussian(sigma), SignalInputDefinition.MinWeight, SignalInputDefinition.MaxWeight);
+            float newWeight = Math.Clamp(oldInput.Weight + SharedRandom.DrawGaussian(sigma), SignalInputDefinition.MIN_WEIGHT, SignalInputDefinition.MAX_WEIGHT);
             SignalInputDefinition newInput = new(oldInput.SignalEmitterAddress, newWeight);
             setNewInputCallback(newInput);
         }

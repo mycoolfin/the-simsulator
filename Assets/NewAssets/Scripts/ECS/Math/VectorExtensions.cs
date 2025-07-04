@@ -1,5 +1,5 @@
+using System.Numerics;
 using Unity.Mathematics;
-using mycoolfin.TheSimsulator;
 
 public static class VectorExtensions
 {

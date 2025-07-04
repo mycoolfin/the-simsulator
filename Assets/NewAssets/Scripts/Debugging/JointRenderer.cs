@@ -27,7 +27,7 @@ public class JointRenderer : MonoBehaviour
     {
         if (Joint != null)
         {
-            var pos = Joint.ParentLimb.Position + Joint.ParentLimb.Rotation * Joint.ParentSpaceAnchor;
+            var pos = Joint.ParentLimb.Position + System.Numerics.Vector3.Transform(Joint.ParentSpaceAnchor, Joint.ParentLimb.Rotation);
             Vector3 position = new(pos.X, pos.Y, pos.Z);
             transform.position = position;
             transform.localScale = new Vector3(Joint.ParentLimb.Dimensions.X, Joint.ParentLimb.Dimensions.Y, Joint.ParentLimb.Dimensions.Z) / 10f;
@@ -41,9 +41,9 @@ public class JointRenderer : MonoBehaviour
         {
             var pos = transform.position;
 
-            var xAxis = Joint.ParentLimb.Rotation * Joint.ParentSpaceXAxis;
-            var yAxis = Joint.ParentLimb.Rotation * Joint.ParentSpaceYAxis;
-            var zAxis = Joint.ParentLimb.Rotation * Joint.ParentSpaceZAxis;
+            var xAxis = System.Numerics.Vector3.Transform(Joint.ParentSpaceXAxis, Joint.ParentLimb.Rotation);
+            var yAxis = System.Numerics.Vector3.Transform(Joint.ParentSpaceYAxis, Joint.ParentLimb.Rotation);
+            var zAxis = System.Numerics.Vector3.Transform(Joint.ParentSpaceZAxis, Joint.ParentLimb.Rotation);
 
             Vector3 worldX = new(xAxis.X, xAxis.Y, xAxis.Z);
             Vector3 worldY = new(yAxis.X, yAxis.Y, yAxis.Z);
