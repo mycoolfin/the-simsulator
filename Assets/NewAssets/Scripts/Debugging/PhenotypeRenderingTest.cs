@@ -1,6 +1,9 @@
 using System.Numerics;
 using System.Collections.Generic;
-using mycoolfin.TheSimsulator.Sims;
+using mycoolfin.TheSimsulator.Sims.Genotype;
+using mycoolfin.TheSimsulator.Sims.Phenotype;
+using Unity.Mathematics;
+using System;
 
 public class PhenotypeRenderingTest : UnityEngine.MonoBehaviour
 {
@@ -20,13 +23,13 @@ public class PhenotypeRenderingTest : UnityEngine.MonoBehaviour
         SimsPhenotypeFactory phenotypeFactory = new();
 
         List<SimsPhenotype> phenotypes = new();
-        for (int i = 0; i < 6; i++)
+        for (int i = 0; i < 100; i++)
         {
             List<Node> nodes = new()
             {
                 new Node(
                     new Vector3(1f, 1f, 1f),
-                    new(mycoolfin.TheSimsulator.Sims.JointType.Spherical, new Vector3(30f, 30f, 30f),
+                    new(mycoolfin.TheSimsulator.Sims.Genotype.JointType.Spherical, new Vector3((float)Math.PI / 15f, (float)Math.PI / 15f, (float)Math.PI / 15f),
                         new InputSetDefinition(new SignalInputDefinition(), new SignalInputDefinition(), new SignalInputDefinition()),
                         new InputSetDefinition(new SignalInputDefinition(), new SignalInputDefinition(), new SignalInputDefinition()),
                         new InputSetDefinition(new SignalInputDefinition(), new SignalInputDefinition(), new SignalInputDefinition())
@@ -42,7 +45,7 @@ public class PhenotypeRenderingTest : UnityEngine.MonoBehaviour
                     i % 6,
                     new Vector2(0.8f, 0.8f),
                     // new Vector3(0, 0, 0),
-                    new Vector3(30f, 30f, 30f),
+                    new Vector3((float)Math.PI / 15f, (float)Math.PI / 15f, (float)Math.PI / 15f),
                     new Vector3(0.5f, 0.5f, 1f),
                     true,
                     true,
@@ -57,12 +60,8 @@ public class PhenotypeRenderingTest : UnityEngine.MonoBehaviour
 
             for (int j = 0; j < phenotype.Limbs.Count; j++)
             {
-                mycoolfin.TheSimsulator.Sims.Limb limb = phenotype.Limbs[j];
+                mycoolfin.TheSimsulator.Sims.Phenotype.Limb limb = phenotype.Limbs[j];
                 limb.SetPositionAndRotation(limb.Position, limb.Rotation);
-                limb.Color = new Vector4(limb.debugMirroredX ? 1f : 0f,
-                                                   limb.debugMirroredY ? 1f : 0f,
-                                                   limb.debugMirroredZ ? 1f : 0f,
-                                                   1f);
             }
 
             phenotypes.Add(phenotype);
@@ -93,8 +92,8 @@ public class PhenotypeRenderingTest : UnityEngine.MonoBehaviour
             PhenotypeEntityCreationInfo info = new()
             {
                 Phenotype = phenotype,
-                PhysicsPositionOffset = new(x, 0, z),
-                PhysicsWorldIndex = 0
+                VisualOffset = new(x, 0, z),
+                AllowInterPhenotypeCollisions = false
             };
             phenotypeCreationInfoList.Add(info);
         }

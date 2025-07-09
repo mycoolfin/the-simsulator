@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 
-namespace mycoolfin.TheSimsulator.Sims
+namespace mycoolfin.TheSimsulator.Sims.Genotype
 {
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
     public readonly struct InputSetDefinition
@@ -21,17 +21,16 @@ namespace mycoolfin.TheSimsulator.Sims
 
         public static InputSetDefinition CreateRandom(ulong containerId, IReadOnlyList<Node> nodes, IReadOnlyList<Connection> connections, IReadOnlyList<NeuronDefinition> neuronDefinitions)
         {
-            Span<ulong> childGidsScratch = stackalloc ulong[32];
             Span<Node> nodeSpan = nodes.ToArray().AsSpan();
             Span<Connection> connectionSpan = connections.ToArray().AsSpan();
             Span<NeuronDefinition> neuronSpan = neuronDefinitions.ToArray().AsSpan();
             return new InputSetDefinition(
                 SignalInputDefinition.CreateRandom(
-                    SignalEmitterAddress.CreateRandom(containerId, nodeSpan, connectionSpan, neuronSpan, childGidsScratch)),
+                    SignalEmitterAddress.CreateRandom(containerId, nodeSpan, connectionSpan, neuronSpan)),
                 SignalInputDefinition.CreateRandom(
-                    SignalEmitterAddress.CreateRandom(containerId, nodeSpan, connectionSpan, neuronSpan, childGidsScratch)),
+                    SignalEmitterAddress.CreateRandom(containerId, nodeSpan, connectionSpan, neuronSpan)),
                 SignalInputDefinition.CreateRandom(
-                    SignalEmitterAddress.CreateRandom(containerId, nodeSpan, connectionSpan, neuronSpan, childGidsScratch))
+                    SignalEmitterAddress.CreateRandom(containerId, nodeSpan, connectionSpan, neuronSpan))
             );
         }
     }

@@ -1,7 +1,7 @@
 using System;
 using System.Numerics;
 
-namespace mycoolfin.TheSimsulator.Sims
+namespace mycoolfin.TheSimsulator.Sims.Genotype
 {
     public static class NodeMutator
     {

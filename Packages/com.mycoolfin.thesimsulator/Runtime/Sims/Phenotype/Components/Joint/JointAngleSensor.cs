@@ -1,10 +1,14 @@
-namespace mycoolfin.TheSimsulator.Sims
+using System.Numerics;
+
+namespace mycoolfin.TheSimsulator.Sims.Phenotype
 {
-    public class JointAngleSensor : SensorBase
+    public class JointAngleSensor : Sensor
     {
-        public void UpdateJointAngle(float eulerAngle, float angleLimit)
+        public readonly Vector3 Axis;
+
+        public JointAngleSensor(Vector3 axis) : base(SensorType.JointAngle)
         {
-            Output = System.Math.Clamp(eulerAngle / angleLimit, MinOutput, MaxOutput);
+            Axis = axis;
         }
     }
 }

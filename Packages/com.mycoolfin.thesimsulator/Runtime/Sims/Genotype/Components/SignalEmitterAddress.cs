@@ -1,101 +1,103 @@
 using System;
 using System.Runtime.InteropServices;
 
-namespace mycoolfin.TheSimsulator.Sims
+namespace mycoolfin.TheSimsulator.Sims.Genotype
 {
-    public enum SignalPort : byte
+    public enum RelativeSignalPort : byte
     {
-        Bias, ThisLimb, ParentLimb, ChildLimb, Brain
+        Bias, ThisLimb, ParentLimb, ChildLimb, AnyLimb, Brain
     }
 
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
     public readonly struct SignalEmitterAddress
     {
-        public readonly SignalPort Port;
+        public readonly RelativeSignalPort Port;
         public readonly byte Slot;
-        public readonly byte ChildIndex; // Ignored unless Port == ChildLimb
+        public readonly byte LimbInstance;
 
-        public SignalEmitterAddress(SignalPort port, byte slot, byte childIndex = 0)
+        public SignalEmitterAddress(RelativeSignalPort port, byte slot, byte limbInstance = default)
         {
             Port = port;
             Slot = slot;
-            ChildIndex = childIndex;
+            LimbInstance = limbInstance;
         }
 
         public static SignalEmitterAddress CreateRandom(
             ulong containerGid,
             ReadOnlySpan<Node> nodes,
             ReadOnlySpan<Connection> connections,
-            ReadOnlySpan<NeuronDefinition> neuronDefinitions,
-            Span<ulong> childGidsScratch // Caller passes, e.g. stackalloc ulong[32].
+            ReadOnlySpan<NeuronDefinition> neuronDefinitions
         )
         {
             XorShift32 rng = new((uint)containerGid);
 
-            byte thisLimbSlots = CountEmitters(containerGid, nodes, neuronDefinitions);
-
-            ulong parentGid = 0;
+            bool inBrain = containerGid == SimsGenotype.BRAIN_GID;
+            ulong thisLimbNodeGid = containerGid;
+            byte thisLimbSlots = GetEmitterCount(thisLimbNodeGid, nodes, neuronDefinitions);
+            ulong parentLimbNodeGid = 0;
             byte parentLimbSlots = 0;
+            bool anyValidChildren = false;
+            byte brainSlots = GetEmitterCount(SimsGenotype.BRAIN_GID, nodes, neuronDefinitions);
             for (int i = 0; i < connections.Length; i++)
-                if (connections[i].ChildNodeGid == containerGid)
+            {
+                Connection c = connections[i];
+                if (c.ChildNodeGid == containerGid) // Container is child.
                 {
-                    parentGid = connections[i].ParentNodeGid;
-                    parentLimbSlots = CountEmitters(parentGid, nodes, neuronDefinitions);
-                    break;
+                    parentLimbNodeGid = c.ParentNodeGid;
+                    parentLimbSlots = GetEmitterCount(parentLimbNodeGid, nodes, neuronDefinitions);
                 }
-
-            int childCount = 0;
-            for (int i = 0; i < connections.Length; i++)
-                if (connections[i].ParentNodeGid == containerGid)
-                    childGidsScratch[childCount++] = connections[i].ChildNodeGid;
-            bool anyChildLimbSlots = false;
-            for (int i = 0; i < childCount && !anyChildLimbSlots; i++)
-                anyChildLimbSlots = CountEmitters(childGidsScratch[i], nodes, neuronDefinitions) > 0;
-
-            byte brainSlots = CountEmitters(SimsGenotype.BRAIN_GID, nodes, neuronDefinitions);
-
-            Span<SignalPort> validPorts = stackalloc SignalPort[5];
-            int p = 0; validPorts[p++] = SignalPort.Bias;
-            if (thisLimbSlots > 0) validPorts[p++] = SignalPort.ThisLimb;
-            if (parentLimbSlots > 0) validPorts[p++] = SignalPort.ParentLimb;
-            if (anyChildLimbSlots) validPorts[p++] = SignalPort.ChildLimb;
-            if (brainSlots > 0) validPorts[p++] = SignalPort.Brain;
-
-            SignalPort port = validPorts[rng.NextInt(p)];
-            switch (port)
-            {
-                case SignalPort.ThisLimb:
-                    return new(port, (byte)rng.NextInt(thisLimbSlots));
-                case SignalPort.ParentLimb:
-                    return new(port, (byte)rng.NextInt(parentLimbSlots));
-                case SignalPort.ChildLimb:
-                    int childIndex = rng.NextInt(childCount);
-                    byte childSlots = CountEmitters(childGidsScratch[childIndex], nodes, neuronDefinitions);
-                    return new(port, (byte)rng.NextInt(childSlots), (byte)childIndex);
-                case SignalPort.Brain:
-                    return new(port, (byte)rng.NextInt(brainSlots));
-                default: // Bias.
-                    return new(port, 0);
+                else if (c.ParentNodeGid == containerGid) // Container is parent.
+                {
+                    int childSlots = GetEmitterCount(c.ChildNodeGid, nodes, neuronDefinitions);
+                    if (childSlots > 0)
+                        anyValidChildren = true;
+                }
             }
-        }
 
-        static byte CountEmitters(ulong container, ReadOnlySpan<Node> nodes, ReadOnlySpan<NeuronDefinition> neuronDefinitions)
-        {
-            int count = 0;
-            if (container == SimsGenotype.BRAIN_GID)
+            Span<RelativeSignalPort> validPorts = stackalloc RelativeSignalPort[5];
+            int p = 0; validPorts[p++] = RelativeSignalPort.Bias;
+            if (inBrain)
             {
-                for (int i = 0; i < neuronDefinitions.Length; i++)
-                    if (neuronDefinitions[i].ContainerGid == container) ++count;
+                validPorts[p++] = RelativeSignalPort.AnyLimb;
             }
             else
             {
-                for (int i = 0; i < nodes.Length; i++)
-                    if (nodes[i].Gid == container) { count += Node.SENSOR_COUNT; break; }
-
-                for (int i = 0; i < neuronDefinitions.Length; i++)
-                    if (neuronDefinitions[i].ContainerGid == container) ++count;
+                if (thisLimbSlots > 0) validPorts[p++] = RelativeSignalPort.ThisLimb;
+                if (parentLimbSlots > 0) validPorts[p++] = RelativeSignalPort.ParentLimb;
+                if (anyValidChildren) validPorts[p++] = RelativeSignalPort.ChildLimb;
             }
-            return (byte)(count > byte.MaxValue ? byte.MaxValue : count);
+            if (brainSlots > 0) validPorts[p++] = RelativeSignalPort.Brain;
+
+            RelativeSignalPort port = validPorts[rng.NextInt(p)];
+            return port switch
+            {
+                RelativeSignalPort.ThisLimb => new(port, (byte)rng.NextInt(thisLimbSlots)),
+                RelativeSignalPort.ParentLimb => new(port, (byte)rng.NextInt(parentLimbSlots)),
+                RelativeSignalPort.ChildLimb => new(port, (byte)rng.NextInt(256), (byte)rng.NextInt(256)),
+                RelativeSignalPort.AnyLimb => new(port, (byte)rng.NextInt(256), (byte)rng.NextInt(256)),
+                RelativeSignalPort.Brain => new(port, (byte)rng.NextInt(brainSlots)),
+                _ => new(port, 0), // Bias.
+            };
+        }
+
+        static byte GetEmitterCount(ulong containerGid, ReadOnlySpan<Node> nodes, ReadOnlySpan<NeuronDefinition> neuronDefinitions)
+        {
+            byte count = 0;
+            if (containerGid != SimsGenotype.BRAIN_GID)
+            {
+                for (int i = 0; i < nodes.Length; i++)
+                {
+                    if (nodes[i].Gid == containerGid)
+                    {
+                        count += (byte)nodes[i].SensorCount;
+                        break;
+                    }
+                }
+            }
+            for (int i = 0; i < neuronDefinitions.Length; i++)
+                if (neuronDefinitions[i].ContainerGid == containerGid)
+                    count++;
+            return count;
         }
     }
 

@@ -1,6 +1,6 @@
 using System;
 
-namespace mycoolfin.TheSimsulator.Sims
+namespace mycoolfin.TheSimsulator.Sims.Genotype
 {
     public static class SignalInputDefinitionMutator
     {
@@ -17,11 +17,10 @@ namespace mycoolfin.TheSimsulator.Sims
 
         public static void MutateSignalEmitterAddress(SimsGenotypeCreationContext context, ulong containerId, SignalInputDefinition oldInput, Action<SignalInputDefinition> setNewInputCallback)
         {
-            Span<ulong> childGidsScratch = stackalloc ulong[32];
             Span<Node> nodeSpan = context.Nodes.ToArray().AsSpan();
             Span<Connection> connectionSpan = context.Connections.ToArray().AsSpan();
             Span<NeuronDefinition> neuronSpan = context.NeuronDefinitions.ToArray().AsSpan();
-            SignalEmitterAddress newSignalEmitterAddress = SignalEmitterAddress.CreateRandom(containerId, nodeSpan, connectionSpan, neuronSpan, childGidsScratch);
+            SignalEmitterAddress newSignalEmitterAddress = SignalEmitterAddress.CreateRandom(containerId, nodeSpan, connectionSpan, neuronSpan);
             SignalInputDefinition newInput = new(newSignalEmitterAddress, oldInput.Weight);
             setNewInputCallback(newInput);
         }

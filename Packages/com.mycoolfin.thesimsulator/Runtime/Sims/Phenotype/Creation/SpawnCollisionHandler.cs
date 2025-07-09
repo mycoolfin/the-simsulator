@@ -2,7 +2,7 @@ using System;
 using System.Numerics;
 using System.Collections.Generic;
 
-namespace mycoolfin.TheSimsulator.Sims
+namespace mycoolfin.TheSimsulator.Sims.Phenotype
 {
     public static class SpawnCollisionHandler
     {

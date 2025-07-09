@@ -1,7 +1,7 @@
 using System;
 using System.Numerics;
 
-namespace mycoolfin.TheSimsulator.Sims
+namespace mycoolfin.TheSimsulator.Sims.Genotype
 {
     public static class ConnectionMutator
     {
@@ -53,7 +53,7 @@ namespace mycoolfin.TheSimsulator.Sims
 
         public static void MutateOrientation(SimsGenotypeCreationContext context, int connectionIndex)
         {
-            float sigma = 10f;
+            float sigma = (Connection.MAX_ORIENTATION - Connection.MIN_ORIENTATION) / 20f;
             Connection connection = context.Connections[connectionIndex];
             Vector3 newOrientation = new(
                 Math.Clamp(connection.Orientation.X + SharedRandom.DrawGaussian(sigma), Connection.MIN_ORIENTATION, Connection.MAX_ORIENTATION),

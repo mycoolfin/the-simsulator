@@ -1,7 +1,8 @@
 using System;
 using System.Numerics;
+using mycoolfin.TheSimsulator.Sims.Phenotype;
 
-namespace mycoolfin.TheSimsulator.Sims
+namespace mycoolfin.TheSimsulator.Sims.Genotype
 {
     public static class JointDefinitionMutator
     {
@@ -31,7 +32,7 @@ namespace mycoolfin.TheSimsulator.Sims
 
         public static void MutateAngleLimits(SimsGenotypeCreationContext context, int nodeIndex)
         {
-            float sigma = 5f;
+            float sigma = (JointDefinition.MAX_ANGLE_LIMIT - JointDefinition.MIN_ANGLE_LIMIT) / 20f;
             Node node = context.Nodes[nodeIndex];
             Vector3 newAngleLimits = new(
                 Math.Clamp(node.JointDefinition.AngleLimits.X + SharedRandom.DrawGaussian(sigma), JointDefinition.MIN_ANGLE_LIMIT, JointDefinition.MAX_ANGLE_LIMIT),

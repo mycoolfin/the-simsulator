@@ -1,4 +1,4 @@
-namespace mycoolfin.TheSimsulator.Sims
+namespace mycoolfin.TheSimsulator.Sims.Phenotype
 {
     public interface ISignalReceiver
     {

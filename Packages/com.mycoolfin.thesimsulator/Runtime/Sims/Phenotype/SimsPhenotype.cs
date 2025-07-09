@@ -1,7 +1,8 @@
 using System;
 using System.Collections.Generic;
+using mycoolfin.TheSimsulator.Sims.Genotype;
 
-namespace mycoolfin.TheSimsulator.Sims
+namespace mycoolfin.TheSimsulator.Sims.Phenotype
 {
     public class SimsPhenotype : IPhenotype<SimsPhenotype>
     {

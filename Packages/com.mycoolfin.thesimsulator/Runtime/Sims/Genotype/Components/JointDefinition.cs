@@ -1,8 +1,9 @@
+using System;
 using System.Numerics;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
-namespace mycoolfin.TheSimsulator.Sims
+namespace mycoolfin.TheSimsulator.Sims.Genotype
 {
     public enum JointType : byte
     {
@@ -38,16 +39,16 @@ namespace mycoolfin.TheSimsulator.Sims
     {
         public const float MIN_ANCHOR_ON_PARENT_FACE = -1.0f;
         public const float MAX_ANCHOR_ON_PARENT_FACE = 1.0f;
-        public const float MIN_ANGLE_LIMIT = -90.0f;
-        public const float MAX_ANGLE_LIMIT = 90.0f;
+        public const float MIN_ANGLE_LIMIT = (float)-Math.PI / 2;
+        public const float MAX_ANGLE_LIMIT = (float)Math.PI / 2;
 
         public readonly JointType JointType;
-        public readonly Vector3 AngleLimits;
+        public readonly Vector3 AngleLimits; // Radians.
         public readonly InputSetDefinition XAxisInputs;
         public readonly InputSetDefinition YAxisInputs;
         public readonly InputSetDefinition ZAxisInputs;
 
-        public static readonly JointType[] AllJointTypes = (JointType[])System.Enum.GetValues(typeof(JointType));
+        public static readonly JointType[] AllJointTypes = (JointType[])Enum.GetValues(typeof(JointType));
 
         public JointDefinition(JointType jointType, Vector3 angleLimits, InputSetDefinition xAxisInputs, InputSetDefinition yAxisInputs, InputSetDefinition zAxisInputs)
         {

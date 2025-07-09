@@ -1,13 +1,13 @@
 using System;
 using System.Collections.Generic;
 
-namespace mycoolfin.TheSimsulator.Sims
+namespace mycoolfin.TheSimsulator.Sims.Phenotype
 {
-    public class Brain : INeuronContainer
+    public class Brain
     {
         public const int MAX_NEURONS = 10;
 
-        public IEnumerable<Neuron> Neurons { get; private set; }
+        public readonly List<Neuron> Neurons;
 
         public Brain(List<Neuron> neurons)
         {

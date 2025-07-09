@@ -1,51 +1,72 @@
 using System;
 using System.Numerics;
 using System.Collections.Generic;
+using System.Linq;
 
-namespace mycoolfin.TheSimsulator.Sims
+namespace mycoolfin.TheSimsulator.Sims.Phenotype
 {
-    public class Limb : ISensorContainer, IActuatorContainer, INeuronContainer
+    public class Limb
     {
         public Vector3 Dimensions { get; private set; }
         public Vector3 Position { get; private set; }
         public Quaternion Rotation { get; private set; }
         public Joint Joint { get; private set; }
-        private readonly List<Neuron> neurons = new();
+        public List<Neuron> Neurons { get; private set; }
 
         public float Mass => Dimensions.X * Dimensions.Y * Dimensions.Z; // Mass is proportional to volume.
 
-        public IEnumerable<SensorBase> Sensors => Joint?.Sensors ?? Array.Empty<SensorBase>();
-        public IEnumerable<ActuatorBase> Actuators => Joint?.Actuators ?? Array.Empty<ActuatorBase>();
-        public IEnumerable<Neuron> Neurons => neurons;
+        public List<Sensor> Sensors { get; private set; }
+        public List<Actuator> Actuators { get; private set; }
 
         public event Action OnTransformChanged;
 
         // DEBUG.
-        public bool debugMirroredX;
-        public bool debugMirroredY;
-        public bool debugMirroredZ;
-        public bool debugSwappedX;
-        public Vector4 Color;
+        public readonly bool DebugMirroredX;
+        public readonly bool DebugMirroredY;
+        public readonly bool DebugMirroredZ;
+        public readonly Vector4 Color;
 
-        public Limb(Vector3 dimensions)
+        public Limb(Vector3 dimensions, bool mirroredX, bool mirroredY, bool mirroredZ)
         {
             Dimensions = dimensions;
             Position = Vector3.Zero;
             Rotation = Quaternion.Identity;
             Joint = null;
+
+            Neurons = new();
+            Sensors = new();
+            Actuators = new();
+
+            DebugMirroredX = mirroredX;
+            DebugMirroredY = mirroredY;
+            DebugMirroredZ = mirroredZ;
+
+            Color = new Vector4(DebugMirroredX ? 1f : 0f,
+                                DebugMirroredY ? 1f : 0f,
+                                DebugMirroredZ ? 1f : 0f,
+                                1f);
         }
 
         public void SetJoint(Joint joint)
         {
             Joint = joint;
-            Joint.OnDispose += () => Joint = null; // Limb joints can break.
+            if (joint != null)
+            {
+                Sensors.AddRange(joint.Sensors);
+                Actuators.AddRange(joint.Actuators);
+            }
+            else
+            {
+                Sensors.Clear();
+                Actuators.Clear();
+            }
         }
 
         public void SetNeurons(List<Neuron> neurons)
         {
-            this.neurons.Clear();
+            Neurons.Clear();
             if (neurons != null)
-                this.neurons.AddRange(neurons);
+                Neurons.AddRange(neurons);
         }
 
         public void SetPositionAndRotation(Vector3 position, Quaternion rotation)

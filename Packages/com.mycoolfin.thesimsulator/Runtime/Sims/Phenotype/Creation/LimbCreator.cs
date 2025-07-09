@@ -2,8 +2,9 @@ using System;
 using System.Linq;
 using System.Numerics;
 using System.Collections.Generic;
+using mycoolfin.TheSimsulator.Sims.Genotype;
 
-namespace mycoolfin.TheSimsulator.Sims
+namespace mycoolfin.TheSimsulator.Sims.Phenotype
 {
     public static class LimbCreator
     {
@@ -192,12 +193,7 @@ namespace mycoolfin.TheSimsulator.Sims
             );
 
             // Create new limb with absolute dimensions.
-            Limb newLimb = new(new(dimensions.X, dimensions.Y, dimensions.Z))
-            {
-                debugMirroredX = mirrorRight,
-                debugMirroredY = mirrorUp,
-                debugMirroredZ = mirrorForward
-            };
+            Limb newLimb = new(new(dimensions.X, dimensions.Y, dimensions.Z), mirrorRight, mirrorUp, mirrorForward);
 
             bool swapX = false;
             if (connection != null)
@@ -267,16 +263,22 @@ namespace mycoolfin.TheSimsulator.Sims
                     minCrossSectionalArea
                 );
                 newLimb.SetJoint(joint);
-                if (joint.XAxisController != null)
-                    receiverToInputDefinitionSetGidMap[joint.XAxisController.Actuator] = node.JointDefinition.XAxisInputs;
-                if (joint.YAxisController != null)
-                    receiverToInputDefinitionSetGidMap[joint.YAxisController.Actuator] = node.JointDefinition.YAxisInputs;
-                if (joint.ZAxisController != null)
-                    receiverToInputDefinitionSetGidMap[joint.ZAxisController.Actuator] = node.JointDefinition.ZAxisInputs;
+                foreach (JointAngleActuator actuator in joint.Actuators)
+                {
+                    InputSetDefinition inputs;
+                    if (actuator.Axis == Vector3.UnitX)
+                        inputs = node.JointDefinition.XAxisInputs;
+                    else if (actuator.Axis == Vector3.UnitY)
+                        inputs = node.JointDefinition.YAxisInputs;
+                    else if (actuator.Axis == Vector3.UnitZ)
+                        inputs = node.JointDefinition.ZAxisInputs;
+                    else
+                        throw new ArgumentException($"Invalid actuator axis: {actuator.Axis}. Must be UnitX, UnitY, or UnitZ.");
+                    receiverToInputDefinitionSetGidMap[actuator] = inputs;
+                }
 
                 // Check if there was a handedness swap.
                 swapX = Vector3.Dot(Vector3.Cross(faceRight, faceUp), faceNormal) > 0f;
-                newLimb.debugSwappedX = swapX;
             }
 
             // Create and assign unwired neurons.

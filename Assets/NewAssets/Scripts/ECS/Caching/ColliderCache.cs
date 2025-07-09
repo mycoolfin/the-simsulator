@@ -34,24 +34,26 @@ public static class ColliderCacheManager
 public struct ColliderKey : IEquatable<ColliderKey>
 {
     public float3 Dimensions;
+    public CollisionFilter CollisionFilter;
 
-    public ColliderKey(float3 dimensions)
+    public ColliderKey(float3 dimensions, CollisionFilter collisionFilter)
     {
         Dimensions = Quantize(dimensions);
+        CollisionFilter = collisionFilter;
     }
 
     private static float3 Quantize(float3 v, float precision = 0.001f) => math.round(v / precision) * precision;
 
     public bool Equals(ColliderKey other)
     {
-        return Dimensions.Equals(other.Dimensions);
+        return Dimensions.Equals(other.Dimensions) && CollisionFilter.Equals(other.CollisionFilter);
     }
 
     public override bool Equals(object obj) => obj is ColliderKey other && Equals(other);
 
     public override readonly int GetHashCode()
     {
-        return Dimensions.GetHashCode();
+        return Dimensions.GetHashCode() ^ CollisionFilter.GetHashCode();
     }
 }
 
@@ -68,10 +70,10 @@ public class ColliderCache
     public void AddColliders(NativeHashSet<ColliderKey> keys)
     {
         foreach (ColliderKey key in keys)
-            map.TryAdd(key, CreateColliderBlob(key.Dimensions));
+            map.TryAdd(key, CreateColliderBlob(key.Dimensions, key.CollisionFilter));
     }
 
-    private static BlobAssetReference<Collider> CreateColliderBlob(float3 dimensions)
+    private static BlobAssetReference<Collider> CreateColliderBlob(float3 dimensions, CollisionFilter collisionFilter)
     {
         BoxGeometry boxGeometry = new()
         {
@@ -79,7 +81,7 @@ public class ColliderCache
             Size = dimensions,
             Orientation = quaternion.identity
         };
-        return BoxCollider.Create(boxGeometry, CollisionFilter.Default, Material.Default);
+        return BoxCollider.Create(boxGeometry, collisionFilter, Material.Default);
     }
 
     public void Dispose()

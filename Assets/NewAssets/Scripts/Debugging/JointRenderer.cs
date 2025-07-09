@@ -5,7 +5,7 @@ using UnityEditor; // For Handles.
 
 public class JointRenderer : MonoBehaviour
 {
-    private mycoolfin.TheSimsulator.Sims.Joint Joint;
+    private mycoolfin.TheSimsulator.Sims.Phenotype.Joint Joint;
 
     private void Start()
     {
@@ -16,7 +16,7 @@ public class JointRenderer : MonoBehaviour
         }
     }
 
-    public void Initialise(mycoolfin.TheSimsulator.Sims.Joint joint)
+    public void Initialise(mycoolfin.TheSimsulator.Sims.Phenotype.Joint joint)
     {
         Joint = joint;
         Joint.ParentLimb.OnTransformChanged += UpdateFromLimb; // Note: Must only be invoked from the main thread.
@@ -54,26 +54,15 @@ public class JointRenderer : MonoBehaviour
             Gizmos.color = Color.green; Gizmos.DrawLine(pos, pos + worldY * arrowLength);
             Gizmos.color = Color.blue; Gizmos.DrawLine(pos, pos + worldZ * arrowLength);
 
-            if (Joint.XAxisController != null)
-            {
-                // Draw arc for X-axis rotation limits in YZ plane
-                Handles.color = new Color(1, 0, 0, 0.2f);
-                Handles.DrawSolidArc(pos, worldX, worldZ, Joint.AngleLimits.X * 2f, arrowLength);
-            }
-
-            if (Joint.YAxisController != null)
-            {
-                // Draw arc for Y-axis rotation limits in XZ plane
-                Handles.color = new Color(0, 1, 0, 0.2f);
-                Handles.DrawSolidArc(pos, worldY, worldZ, Joint.AngleLimits.Y * 2f, arrowLength);
-            }
-
-            if (Joint.ZAxisController != null)
-            {
-                // Draw arc for Z-axis rotation limits in XY plane
-                Handles.color = new Color(0, 0, 1, 0.2f);
-                Handles.DrawSolidArc(pos, worldZ, worldX, Joint.AngleLimits.Z * 2f, arrowLength);
-            }
+            // Draw arc for X-axis rotation limits in YZ plane
+            Handles.color = new Color(1, 0, 0, 0.2f);
+            Handles.DrawSolidArc(pos, worldX, worldZ, Joint.AngleLimits.X * 2f, arrowLength);
+            // Draw arc for Y-axis rotation limits in XZ plane
+            Handles.color = new Color(0, 1, 0, 0.2f);
+            Handles.DrawSolidArc(pos, worldY, worldZ, Joint.AngleLimits.Y * 2f, arrowLength);
+            // Draw arc for Z-axis rotation limits in XY plane
+            Handles.color = new Color(0, 0, 1, 0.2f);
+            Handles.DrawSolidArc(pos, worldZ, worldX, Joint.AngleLimits.Z * 2f, arrowLength);
         }
     }
 #endif

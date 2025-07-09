@@ -6,13 +6,13 @@ namespace mycoolfin.TheSimsulator
     public static class QuaternionHelper
     {
         /// <summary>
-        /// Returns a quaternion that rotates <paramref name="degrees"/> around
+        /// Returns a quaternion that rotates <paramref name="radians"/> around
         /// <paramref name="axis"/> using the right-hand rule.
         /// </summary>
-        public static Quaternion AngleAxis(float degrees, Vector3 axis)
+        public static Quaternion AngleAxis(float radians, Vector3 axis)
         {
             Vector3 n = Vector3.Normalize(axis);
-            float halfRad = degrees * (MathF.PI / 180f) * 0.5f;
+            float halfRad = radians * 0.5f;
 
             float s = MathF.Sin(halfRad);
             float c = MathF.Cos(halfRad);

@@ -1,16 +1,14 @@
-namespace mycoolfin.TheSimsulator.Sims
+namespace mycoolfin.TheSimsulator.Sims.Phenotype
 {
     public class Neuron : ISignalReceiver, ISignalEmitter
     {
-        public readonly ActivationFunction ActivationFunction;
+        public readonly Genotype.ActivationFunction ActivationFunction;
 
         public SignalInput InputA { get; set; }
         public SignalInput InputB { get; set; }
         public SignalInput InputC { get; set; }
 
-        public float Output { get; set; }
-
-        public Neuron(ActivationFunction activationFunction)
+        public Neuron(Genotype.ActivationFunction activationFunction)
         {
             ActivationFunction = activationFunction;
         }

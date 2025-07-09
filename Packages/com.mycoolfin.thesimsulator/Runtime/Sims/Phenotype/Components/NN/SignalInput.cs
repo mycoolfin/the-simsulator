@@ -1,17 +1,29 @@
-namespace mycoolfin.TheSimsulator.Sims
+namespace mycoolfin.TheSimsulator.Sims.Phenotype
 {
-    public class SignalInput
+    public enum AbsoluteSignalPort : byte
     {
-        public static float MinWeight = -1f;
-        public static float MaxWeight = 1f;
+        Disconnected,
+        Bias,
+        Brain,
+        Limb
+    }
 
-        public ISignalEmitter Emitter { get; private set; }
+    public struct SignalInput
+    {
+        public const float MIN_WEIGHT = -1f;
+        public const float MAX_WEIGHT = 1f;
+
+        public AbsoluteSignalPort Port { get; private set; }
+        public int LimbIndex { get; private set; }
+        public int SlotIndex { get; private set; }
         public float Weight { get; private set; }
 
-        public SignalInput(ISignalEmitter emitter, float weight)
+        public SignalInput(AbsoluteSignalPort port, int limbIndex, int slotIndex, float weight)
         {
-            Emitter = emitter; // Null == use constant bias 1.
-            Weight = System.Math.Clamp(weight, MinWeight, MaxWeight);
+            Port = port;
+            LimbIndex = limbIndex;
+            SlotIndex = slotIndex;
+            Weight = System.Math.Clamp(weight, MIN_WEIGHT, MAX_WEIGHT);
         }
     }
 }

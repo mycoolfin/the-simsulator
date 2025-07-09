@@ -1,0 +1,176 @@
+using Unity.Burst;
+using Unity.Collections;
+using Unity.Entities;
+using Unity.Jobs;
+using Unity.Mathematics;
+using Unity.Physics;
+using Unity.Transforms;
+using Unity.Rendering;
+
+[BurstCompile]
+public static class LimbEntityBuilder
+{
+    private const uint PHENOTYPE_LAYER = 1u << 9;
+    private const uint ALL_LAYERS = ~0u;
+
+    private static readonly PhysicsDamping DefaultDamping = new() { Linear = 0.01f, Angular = 0.05f };
+
+    public static void CreateLimbEntities(ref SystemState state, EntityQuery limbCreationRequestQuery, NativeArray<LimbEntityCreationRequest> limbCreationRequests, NativeParallelHashMap<PhenotypeLimbKey, Entity> limbEntityLookup, NativeParallelHashMap<PhenotypeLimbKey, LocalTransform> limbLocalTransformLookup, RenderMeshArray renderMeshArray)
+    {
+        using NativeArray<Entity> limbEntities = new(limbCreationRequests.Length, Allocator.TempJob);
+        Entity limbPrototype = CreateLimbPrototype(ref state, renderMeshArray);
+        state.EntityManager.Instantiate(limbPrototype, limbEntities);
+
+        using NativeArray<Entity> limbCreationRequestEntities = limbCreationRequestQuery.ToEntityArray(Allocator.TempJob);
+        using EntityCommandBuffer ecb = new(Allocator.TempJob);
+        SetUpLimbEntityJob setUpLimbEntityJob = new()
+        {
+            Ecb = ecb.AsParallelWriter(),
+            RequestEntities = limbCreationRequestEntities,
+            Requests = limbCreationRequests,
+            LimbEntities = limbEntities,
+            ColliderMap = ColliderCacheManager.Cache.ReadOnlyMap,
+            LimbEntityLookup = limbEntityLookup.AsParallelWriter(),
+            LimbLocalTransformLookup = limbLocalTransformLookup.AsParallelWriter()
+        };
+        setUpLimbEntityJob.ScheduleParallelByRef(limbCreationRequestEntities.Length, 64, state.Dependency).Complete();
+        ecb.Playback(state.EntityManager);
+    }
+
+    private static Entity CreateLimbPrototype(ref SystemState state, RenderMeshArray renderMeshArray)
+    {
+        Entity limbPrototype = state.EntityManager.CreateEntity();
+
+        // IDs.
+        state.EntityManager.AddComponentData(limbPrototype, new LimbIndex());
+        state.EntityManager.AddComponentData(limbPrototype, new PhenotypeGid());
+
+        // Transform.
+        state.EntityManager.AddComponentData(limbPrototype, new LocalTransform());
+        state.EntityManager.AddComponentData(limbPrototype, new PostTransformMatrix());
+
+        // Rendering.
+        state.EntityManager.AddComponentData(limbPrototype, new URPMaterialPropertyBaseColor());
+        state.EntityManager.AddComponentData(limbPrototype, new RenderBounds());
+        RenderMeshUtility.AddComponents(
+            limbPrototype,
+            state.EntityManager,
+            new(
+                shadowCastingMode: UnityEngine.Rendering.ShadowCastingMode.Off,
+                receiveShadows: false
+            ),
+            renderMeshArray,
+            MaterialMeshInfo.FromRenderMeshArrayIndices(0, 0)
+        );
+        state.EntityManager.AddComponentData(limbPrototype, new VisualOffset());
+
+        // Physics.
+        state.EntityManager.AddSharedComponent(limbPrototype, new PhysicsWorldIndex(0));
+        state.EntityManager.AddComponentData(limbPrototype, new PhysicsCollider());
+        state.EntityManager.AddComponentData(limbPrototype, new PhysicsMass());
+        state.EntityManager.AddComponentData(limbPrototype, new PhysicsVelocity());
+        state.EntityManager.AddComponentData(limbPrototype, DefaultDamping);
+
+        return limbPrototype;
+    }
+
+    [BurstCompile]
+    public static void GetCollisionFilter(in LimbEntityCreationRequest request, out CollisionFilter filter)
+    {
+        filter = new CollisionFilter
+        {
+            BelongsTo = PHENOTYPE_LAYER,
+            CollidesWith = request.AllowInterPhenotypeCollisions
+                ? ALL_LAYERS
+                : ~PHENOTYPE_LAYER,
+            GroupIndex = GetNegativeGroupIndex(request.PhenotypeGid)
+        };
+    }
+
+    private static int GetNegativeGroupIndex(ulong gid)
+    {
+        // Split into two 32-bit uints.
+        uint low = (uint)(gid & 0xFFFFFFFF);
+        uint high = (uint)(gid >> 32);
+
+        // Hash the uint2 representation.
+        uint hash = math.hash(new uint2(low, high));
+
+        // Force high bit = 1 to make it negative when cast to int.
+        return (int)(hash | 0x80000000);
+    }
+
+    [BurstCompile]
+    private partial struct SetUpLimbEntityJob : IJobFor
+    {
+        public EntityCommandBuffer.ParallelWriter Ecb;
+        [ReadOnly] public NativeArray<Entity> RequestEntities;
+        [ReadOnly] public NativeArray<LimbEntityCreationRequest> Requests;
+        [ReadOnly] public NativeArray<Entity> LimbEntities;
+        [ReadOnly] public NativeParallelHashMap<ColliderKey, BlobAssetReference<Collider>>.ReadOnly ColliderMap;
+        public NativeParallelHashMap<PhenotypeLimbKey, Entity>.ParallelWriter LimbEntityLookup;
+        public NativeParallelHashMap<PhenotypeLimbKey, LocalTransform>.ParallelWriter LimbLocalTransformLookup;
+
+        private const int INSTANTIATION_KEY = 1;
+        private const int DISPOSAL_KEY = 2;
+
+        public void Execute(int index)
+        {
+            Ecb.DestroyEntity(DISPOSAL_KEY, RequestEntities[index]); // Destroy request entity in the Disposal stage.
+
+            LimbEntityCreationRequest requestData = Requests[index];
+            Entity limbEntity = LimbEntities[index];
+
+            // IDs.
+            Ecb.SetComponent(INSTANTIATION_KEY, limbEntity, new LimbIndex
+            {
+                Value = requestData.LimbIndex
+            });
+            Ecb.SetComponent(INSTANTIATION_KEY, limbEntity, new PhenotypeGid
+            {
+                Value = requestData.PhenotypeGid
+            });
+
+            // Transform.
+            LocalTransform localTransform = LocalTransform.FromPositionRotationScale(
+                requestData.Position,
+                requestData.Rotation,
+                1f
+            );
+            Ecb.SetComponent(INSTANTIATION_KEY, limbEntity, localTransform);
+            Ecb.SetComponent(INSTANTIATION_KEY, limbEntity, new PostTransformMatrix
+            {
+                Value = float4x4.Scale(requestData.Dimensions)
+            });
+
+            // Rendering.
+            Ecb.SetComponent(INSTANTIATION_KEY, limbEntity, new URPMaterialPropertyBaseColor
+            {
+                Value = requestData.Color
+            });
+            Ecb.SetComponent(INSTANTIATION_KEY, limbEntity, new RenderBounds
+            {
+                Value = new AABB
+                {
+                    Center = float3.zero,
+                    Extents = requestData.Dimensions * 0.5f
+                }
+            });
+            Ecb.SetComponent(INSTANTIATION_KEY, limbEntity, new VisualOffset
+            {
+                Offset = requestData.VisualOffset
+            });
+
+            // Physics.
+            GetCollisionFilter(requestData, out CollisionFilter collisionFilter);
+            ColliderMap.TryGetValue(new(requestData.Dimensions, collisionFilter), out BlobAssetReference<Collider> collider);
+            Ecb.SetComponent(INSTANTIATION_KEY, limbEntity, new PhysicsCollider { Value = collider });
+            Ecb.SetComponent(INSTANTIATION_KEY, limbEntity, PhysicsMass.CreateDynamic(collider.Value.MassProperties, requestData.Mass));
+
+            // Add to lookups.
+            PhenotypeLimbKey key = new(requestData.PhenotypeGid, requestData.LimbIndex);
+            LimbEntityLookup.TryAdd(key, limbEntity);
+            LimbLocalTransformLookup.TryAdd(key, localTransform);
+        }
+    }
+}

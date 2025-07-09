@@ -1,5 +1,5 @@
 using UnityEngine;
-using mycoolfin.TheSimsulator.Sims;
+using mycoolfin.TheSimsulator.Sims.Phenotype;
 
 public class PhenotypeRenderer : MonoBehaviour
 {
@@ -17,7 +17,7 @@ public class PhenotypeRenderer : MonoBehaviour
     public void Initialise(SimsPhenotype phenotype, GameObject limbRendererPrefab, GameObject jointRendererPrefab)
     {
         Phenotype = phenotype;
-        foreach (mycoolfin.TheSimsulator.Sims.Limb limb in Phenotype.Limbs)
+        foreach (mycoolfin.TheSimsulator.Sims.Phenotype.Limb limb in Phenotype.Limbs)
         {
             LimbRenderer limbRenderer = Instantiate(limbRendererPrefab, transform).GetComponent<LimbRenderer>();
             limbRenderer.Initialise(limb, jointRendererPrefab);

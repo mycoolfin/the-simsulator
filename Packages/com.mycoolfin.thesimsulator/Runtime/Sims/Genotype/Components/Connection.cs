@@ -1,7 +1,8 @@
+using System;
 using System.Numerics;
 using System.Runtime.InteropServices;
 
-namespace mycoolfin.TheSimsulator.Sims
+namespace mycoolfin.TheSimsulator.Sims.Genotype
 {
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
     public readonly struct Connection
@@ -10,8 +11,8 @@ namespace mycoolfin.TheSimsulator.Sims
         public const int MAX_PARENT_FACE = 5;
         public const float MIN_POSITION = -1.0f;
         public const float MAX_POSITION = 1.0f;
-        public const float MIN_ORIENTATION = -90.0f;
-        public const float MAX_ORIENTATION = 90.0f;
+        public const float MIN_ORIENTATION = (float)-Math.PI / 2;
+        public const float MAX_ORIENTATION = (float)Math.PI / 2;
         public const float MIN_SCALE = 0.1f;
         public const float MAX_SCALE = 2.0f;
 
@@ -20,7 +21,7 @@ namespace mycoolfin.TheSimsulator.Sims
         public readonly ulong ChildNodeGid;
         public readonly int ParentFace;
         public readonly Vector2 Position; // Position on the parent limb's face in [-1, 1]x[-1, 1].
-        public readonly Vector3 Orientation; // Euler angles in degrees.
+        public readonly Vector3 Orientation; // Euler angles in radians.
         public readonly Vector3 Scale;
         public readonly bool ReflectionX;
         public readonly bool ReflectionY;

@@ -2,7 +2,7 @@ using System.Numerics;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
-namespace mycoolfin.TheSimsulator.Sims
+namespace mycoolfin.TheSimsulator.Sims.Genotype
 {
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
     public readonly struct Node
@@ -12,13 +12,12 @@ namespace mycoolfin.TheSimsulator.Sims
         public const int MIN_RECURSIVE_LIMIT = 1;
         public const int MAX_RECURSIVE_LIMIT = 10;
 
-        public const int SENSOR_COUNT = 3;
-        public const int ACTUATOR_COUNT = 3;
-
         public readonly ulong Gid;
         public readonly Vector3 Dimensions;
         public readonly JointDefinition JointDefinition;
         public readonly int RecursiveLimit;
+
+        public int SensorCount => JointDefinition.JointType.DegreesOfFreedom();
 
         public Node(Vector3 dimensions, JointDefinition jointDefinition, int recursiveLimit)
         {

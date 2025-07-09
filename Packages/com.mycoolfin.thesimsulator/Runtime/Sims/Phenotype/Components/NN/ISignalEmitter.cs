@@ -1,7 +1,6 @@
-namespace mycoolfin.TheSimsulator.Sims
+namespace mycoolfin.TheSimsulator.Sims.Phenotype
 {
     public interface ISignalEmitter
     {
-        public float Output { get; set; }
     }
 }

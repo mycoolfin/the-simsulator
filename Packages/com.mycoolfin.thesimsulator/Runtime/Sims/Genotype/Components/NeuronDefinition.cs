@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
-namespace mycoolfin.TheSimsulator.Sims
+namespace mycoolfin.TheSimsulator.Sims.Genotype
 {
     public enum ActivationFunction : byte
     {
@@ -38,7 +38,7 @@ namespace mycoolfin.TheSimsulator.Sims
         public readonly ActivationFunction ActivationFunction;
         public readonly InputSetDefinition Inputs;
 
-        private const int ActFnCount = (int)ActivationFunction.SumThreshold + 1;
+        private const int ActivationFunctionCount = (int)ActivationFunction.SumThreshold + 1;
 
         public NeuronDefinition(ulong containerId, ActivationFunction activationFunction, InputSetDefinition inputs)
         {
@@ -50,7 +50,7 @@ namespace mycoolfin.TheSimsulator.Sims
 
         public static NeuronDefinition CreateRandom(ulong containerId, IReadOnlyList<Node> nodes, IReadOnlyList<Connection> connections, IReadOnlyList<NeuronDefinition> neuronDefinitions)
         {
-            ActivationFunction randomActivationFunction = (ActivationFunction)SharedRandom.Next(0, ActFnCount);
+            ActivationFunction randomActivationFunction = (ActivationFunction)SharedRandom.Next(0, ActivationFunctionCount);
 
             InputSetDefinition randomInputs = InputSetDefinition.CreateRandom(containerId, nodes, connections, neuronDefinitions);
 

@@ -1,12 +1,13 @@
 using System;
 using System.Numerics;
 using System.Collections.Generic;
+using mycoolfin.TheSimsulator.Sims.Genotype;
 
-namespace mycoolfin.TheSimsulator.Sims
+namespace mycoolfin.TheSimsulator.Sims.Phenotype
 {
-    public class Joint : ISensorContainer, IActuatorContainer, IDisposable
+    public class Joint
     {
-        public readonly JointType Type;
+        public readonly Genotype.JointType Type;
 
         public readonly Limb ParentLimb;
         public readonly Limb ChildLimb;
@@ -20,23 +21,11 @@ namespace mycoolfin.TheSimsulator.Sims
 
         public readonly float MinCrossSectionalArea;
 
-        public Vector3 DesiredAngles { get; private set; }
-        public Vector3 ActualAngles { get; private set; }
-
-        public readonly JointAxisController XAxisController;
-        public readonly JointAxisController YAxisController;
-        public readonly JointAxisController ZAxisController;
-
-        private readonly List<SensorBase> sensors = new();
-        private readonly List<ActuatorBase> actuators = new();
-
-        public IEnumerable<SensorBase> Sensors => sensors;
-        public IEnumerable<ActuatorBase> Actuators => actuators;
-
-        public event Action OnDispose;
+        public readonly List<JointAngleSensor> Sensors;
+        public readonly List<JointAngleActuator> Actuators;
 
         public Joint(
-            JointType type,
+            Genotype.JointType type,
             Limb parentLimb,
             Limb childLimb,
             Vector3 parentSpaceAnchor,
@@ -61,48 +50,49 @@ namespace mycoolfin.TheSimsulator.Sims
 
             MinCrossSectionalArea = minCrossSectionalArea;
 
-            DesiredAngles = Vector3.Zero;
-            ActualAngles = Vector3.Zero;
-
-            XAxisController = (type != JointType.Rigid) ? new(new(), new()) : null;
-            YAxisController = (type != JointType.Rigid && type != JointType.Revolute && type != JointType.Twist) ? new(new(), new()) : null;
-            ZAxisController = (type == JointType.Spherical) ? new(new(), new()) : null;
-
-            if (XAxisController?.Sensor != null) sensors.Add(XAxisController.Sensor);
-            if (YAxisController?.Sensor != null) sensors.Add(YAxisController.Sensor);
-            if (ZAxisController?.Sensor != null) sensors.Add(ZAxisController.Sensor);
-
-            if (XAxisController?.Actuator != null) actuators.Add(XAxisController.Actuator);
-            if (YAxisController?.Actuator != null) actuators.Add(YAxisController.Actuator);
-            if (ZAxisController?.Actuator != null) actuators.Add(ZAxisController.Actuator);
-        }
-
-        public void SetActualAngles(Vector3 actualAngles)
-        {
-            ActualAngles = actualAngles;
-
-            XAxisController?.Sensor.UpdateJointAngle(ActualAngles.X, AngleLimits.X);
-            YAxisController?.Sensor.UpdateJointAngle(ActualAngles.Y, AngleLimits.Y);
-            ZAxisController?.Sensor.UpdateJointAngle(ActualAngles.Z, AngleLimits.Z);
-        }
-
-        public void UpdateDesiredAngles()
-        {
-            DesiredAngles = new Vector3(
-                ConvertActuatorValueToEulerAngle(XAxisController?.Actuator.Value ?? 0f, AngleLimits.X),
-                ConvertActuatorValueToEulerAngle(YAxisController?.Actuator.Value ?? 0f, AngleLimits.Y),
-                ConvertActuatorValueToEulerAngle(ZAxisController?.Actuator.Value ?? 0f, AngleLimits.Z)
-            );
-        }
-
-        private float ConvertActuatorValueToEulerAngle(float actuatorValue, float angleLimit)
-        {
-            return actuatorValue * angleLimit;
-        }
-
-        public void Dispose()
-        {
-            OnDispose?.Invoke();
+            Sensors = new(type.DegreesOfFreedom());
+            Actuators = new(type.DegreesOfFreedom());
+            switch (type)
+            {
+                case JointType.Rigid:
+                    break; // No sensors or actuators for rigid joints.
+                case JointType.Revolute:
+                    Sensors.Add(new(Vector3.UnitX));
+                    Actuators.Add(new(Vector3.UnitX));
+                    break;
+                case JointType.Twist:
+                    Sensors.Add(new(Vector3.UnitZ));
+                    Actuators.Add(new(Vector3.UnitZ));
+                    break;
+                case JointType.BendTwist:
+                    Sensors.Add(new(Vector3.UnitX));
+                    Sensors.Add(new(Vector3.UnitZ));
+                    Actuators.Add(new(Vector3.UnitX));
+                    Actuators.Add(new(Vector3.UnitZ));
+                    break;
+                case JointType.TwistBend:
+                    Sensors.Add(new(Vector3.UnitZ));
+                    Sensors.Add(new(Vector3.UnitX));
+                    Actuators.Add(new(Vector3.UnitZ));
+                    Actuators.Add(new(Vector3.UnitX));
+                    break;
+                case JointType.Universal:
+                    Sensors.Add(new(Vector3.UnitX));
+                    Sensors.Add(new(Vector3.UnitY));
+                    Actuators.Add(new(Vector3.UnitX));
+                    Actuators.Add(new(Vector3.UnitY));
+                    break;
+                case JointType.Spherical:
+                    Sensors.Add(new(Vector3.UnitX));
+                    Sensors.Add(new(Vector3.UnitY));
+                    Sensors.Add(new(Vector3.UnitZ));
+                    Actuators.Add(new(Vector3.UnitX));
+                    Actuators.Add(new(Vector3.UnitY));
+                    Actuators.Add(new(Vector3.UnitZ));
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(type), type, "Unsupported joint type.");
+            }
         }
     }
 }

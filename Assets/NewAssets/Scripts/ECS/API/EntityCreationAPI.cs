@@ -2,13 +2,14 @@ using System.Numerics;
 using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Entities;
-using mycoolfin.TheSimsulator.Sims;
+using mycoolfin.TheSimsulator.Sims.Phenotype;
+using Unity.Mathematics;
 
 public struct PhenotypeEntityCreationInfo
 {
     public SimsPhenotype Phenotype;
-    public Vector3 PhysicsPositionOffset;
-    public uint PhysicsWorldIndex;
+    public Vector3 VisualOffset;
+    public bool AllowInterPhenotypeCollisions;
 }
 
 public static class EntityCreationAPI
@@ -24,24 +25,38 @@ public static class EntityCreationAPI
         EntityArchetype jointRequestArchetype = entityManager.CreateArchetype(
             typeof(JointEntityCreationRequest)
         );
+        EntityArchetype neuralNetworkRequestArchetype = entityManager.CreateArchetype(
+            typeof(NeuralNetworkEntityCreationRequest)
+        );
 
         List<LimbEntityCreationRequest> limbRequests = new();
         List<JointEntityCreationRequest> jointRequests = new();
+        List<NeuralNetworkEntityCreationRequest> neuralNetworkRequests = new();
+        using BlobBuilder builder = new(Allocator.Temp);
         foreach (PhenotypeEntityCreationInfo c in creationInfoList)
         {
             limbRequests.AddRange(ConvertToLimbCreationRequests(c));
             jointRequests.AddRange(ConvertToJointCreationRequests(c));
+            neuralNetworkRequests.Add(ConvertToNeuralNetworkCreationRequest(c, builder));
         }
 
+        // Add limb entity creation requests to ECS.
         using NativeArray<Entity> entities = new(limbRequests.Count, Allocator.Temp);
         entityManager.CreateEntity(limbRequestArchetype, entities);
         for (int i = 0; i < limbRequests.Count; i++)
             entityManager.SetComponentData(entities[i], limbRequests[i]);
 
+        // Add joint entity creation requests to ECS.
         using NativeArray<Entity> jointEntities = new(jointRequests.Count, Allocator.Temp);
         entityManager.CreateEntity(jointRequestArchetype, jointEntities);
         for (int i = 0; i < jointRequests.Count; i++)
             entityManager.SetComponentData(jointEntities[i], jointRequests[i]);
+
+        // Add neural network entity creation requests to ECS.
+        using NativeArray<Entity> neuralNetworkEntities = new(neuralNetworkRequests.Count, Allocator.Temp);
+        entityManager.CreateEntity(neuralNetworkRequestArchetype, neuralNetworkEntities);
+        for (int i = 0; i < neuralNetworkRequests.Count; i++)
+            entityManager.SetComponentData(neuralNetworkEntities[i], neuralNetworkRequests[i]);
     }
 
     private static List<LimbEntityCreationRequest> ConvertToLimbCreationRequests(PhenotypeEntityCreationInfo info)
@@ -49,19 +64,18 @@ public static class EntityCreationAPI
         List<LimbEntityCreationRequest> requests = new();
         for (int i = 0; i < info.Phenotype.Limbs.Count; i++)
         {
-            mycoolfin.TheSimsulator.Sims.Limb limb = info.Phenotype.Limbs[i];
+            mycoolfin.TheSimsulator.Sims.Phenotype.Limb limb = info.Phenotype.Limbs[i];
             LimbEntityCreationRequest request = new()
             {
-                LimbIndex = i,
                 PhenotypeGid = info.Phenotype.Gid,
+                LimbIndex = i,
                 Position = limb.Position.ToFloat3(),
                 Rotation = limb.Rotation.ToQuaternion(),
                 Dimensions = limb.Dimensions.ToFloat3(),
                 Mass = limb.Mass,
                 Color = limb.Color.ToFloat4(),
-                PhysicsPositionOffset = info.PhysicsPositionOffset.ToFloat3(),
-                PhysicsWorldIndex = info.PhysicsWorldIndex
-
+                VisualOffset = info.VisualOffset.ToFloat3(),
+                AllowInterPhenotypeCollisions = info.AllowInterPhenotypeCollisions
             };
             requests.Add(request);
         }
@@ -72,10 +86,10 @@ public static class EntityCreationAPI
     private static List<JointEntityCreationRequest> ConvertToJointCreationRequests(PhenotypeEntityCreationInfo info)
     {
         List<JointEntityCreationRequest> requests = new();
-        List<mycoolfin.TheSimsulator.Sims.Limb> limbs = info.Phenotype.Limbs;
+        List<mycoolfin.TheSimsulator.Sims.Phenotype.Limb> limbs = info.Phenotype.Limbs;
         for (int i = 0; i < limbs.Count; i++)
         {
-            mycoolfin.TheSimsulator.Sims.Limb attachedLimb = limbs[i];
+            mycoolfin.TheSimsulator.Sims.Phenotype.Limb attachedLimb = limbs[i];
             if (attachedLimb.Joint == null)
                 continue;
 
@@ -83,7 +97,7 @@ public static class EntityCreationAPI
             if (referenceLimbIndex < 0)
                 throw new System.Exception($"Invalid reference limb index: {referenceLimbIndex} for attached limb index: {i}");
 
-            mycoolfin.TheSimsulator.Sims.Limb referenceLimb = limbs[referenceLimbIndex];
+            mycoolfin.TheSimsulator.Sims.Phenotype.Limb referenceLimb = limbs[referenceLimbIndex];
 
             JointEntityCreationRequest request = new()
             {
@@ -91,7 +105,6 @@ public static class EntityCreationAPI
                 JointType = attachedLimb.Joint.Type,
                 ReferenceLimbIndex = referenceLimbIndex,
                 AttachedLimbIndex = i,
-                PhysicsWorldIndex = info.PhysicsWorldIndex,
                 ReferenceLimbSpaceAnchor = attachedLimb.Joint.ParentSpaceAnchor.ToFloat3(),
                 ReferenceLimbSpaceXAxis = attachedLimb.Joint.ParentSpaceXAxis.ToFloat3(),
                 ReferenceLimbSpaceYAxis = attachedLimb.Joint.ParentSpaceYAxis.ToFloat3(),
@@ -103,5 +116,17 @@ public static class EntityCreationAPI
         }
 
         return requests;
+    }
+
+    private static NeuralNetworkEntityCreationRequest ConvertToNeuralNetworkCreationRequest(PhenotypeEntityCreationInfo info, BlobBuilder builder)
+    {
+        BlobAssetReference<CompiledNeuralGraph> compiledNeuralGraph = NeuralCompiler.Compile(info.Phenotype, builder);
+
+        return new NeuralNetworkEntityCreationRequest
+        {
+            PhenotypeGid = info.Phenotype.Gid,
+            Graph = compiledNeuralGraph,
+            LimbCount = (uint)info.Phenotype.Limbs.Count
+        };
     }
 }

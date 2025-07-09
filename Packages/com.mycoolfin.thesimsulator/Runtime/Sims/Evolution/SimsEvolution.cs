@@ -1,4 +1,7 @@
-namespace mycoolfin.TheSimsulator.Sims
+using mycoolfin.TheSimsulator.Sims.Genotype;
+using mycoolfin.TheSimsulator.Sims.Phenotype;
+
+namespace mycoolfin.TheSimsulator.Sims.Evolution
 {
     public class SimsEvolutionConfig : EvolutionConfigBase
     {

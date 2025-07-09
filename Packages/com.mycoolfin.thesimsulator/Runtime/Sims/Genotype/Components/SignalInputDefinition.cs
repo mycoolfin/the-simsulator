@@ -1,6 +1,6 @@
 using System.Runtime.InteropServices;
 
-namespace mycoolfin.TheSimsulator.Sims
+namespace mycoolfin.TheSimsulator.Sims.Genotype
 {
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
     public readonly struct SignalInputDefinition
