@@ -53,6 +53,7 @@ public partial struct UpdateNeuronJob : IJobEntity
         ref BlobArray<CompiledNeuralGraph.ActuatorMeta> actuatorsMeta = ref graph.Value.Actuators;
         ref BlobArray<CompiledNeuralGraph.NeuronMeta> limbNeuronsMeta = ref graph.Value.LimbNeurons;
         ref BlobArray<CompiledNeuralGraph.NeuronMeta> brainNeuronsMeta = ref graph.Value.BrainNeurons;
+        ref BlobArray<CompiledNeuralGraph.InputMeta> inputMetas = ref graph.Value.Inputs;
         ushort actuatorNeuronEmitterStartIndex = graph.Value.ActuatorNeuronEmitterStartIndex;
         ushort limbNeuronEmitterStartIndex = graph.Value.LimbNeuronEmitterStartIndex;
         ushort brainNeuronEmitterStartIndex = graph.Value.BrainNeuronEmitterStartIndex;
@@ -70,70 +71,71 @@ public partial struct UpdateNeuronJob : IJobEntity
             ushort lnStartIndex = (ushort)(limbNeuronEmitterStartIndex + limbNeuronSlice.startIndex);
             
             for (int i = 0; i < actuatorSlice.count; i++)
-                UpdateNeuron(in graph, ref e, (ushort)(actStartIndex + i),
+                UpdateNeuron(ref inputMetas, ref e, (ushort)(actStartIndex + i),
                     in actuatorsMeta[actuatorSlice.startIndex + i].neuronMeta,
                     phenotypeElapsedTime, DeltaTime, InverseDeltaTime);
             for (int i = 0; i < limbNeuronSlice.count; i++)
-                UpdateNeuron(in graph, ref e, (ushort)(lnStartIndex + i),
+                UpdateNeuron(ref inputMetas, ref e, (ushort)(lnStartIndex + i),
                     in limbNeuronsMeta[limbNeuronSlice.startIndex + i],
                     phenotypeElapsedTime, DeltaTime, InverseDeltaTime);
         }
 
         // Update brain neurons.
         for (int i = 0; i < graph.Value.BrainNeuronCount; i++)
-            UpdateNeuron(in graph, ref e, (ushort)(brainNeuronEmitterStartIndex + i),
+            UpdateNeuron(ref inputMetas, ref e, (ushort)(brainNeuronEmitterStartIndex + i),
                 in brainNeuronsMeta[i],
                 phenotypeElapsedTime, DeltaTime, InverseDeltaTime);
     }
 
-    private static void UpdateNeuron(in BlobAssetReference<CompiledNeuralGraph> graph, ref NativeArray<float> e, ushort emitterIndex, in CompiledNeuralGraph.NeuronMeta neuronMeta, float phenotypeElapsedTime, float DeltaTime, float InverseDeltaTime)
+    private static void UpdateNeuron(ref BlobArray<CompiledNeuralGraph.InputMeta> inputMetas, ref NativeArray<float> e, ushort emitterIndex, in CompiledNeuralGraph.NeuronMeta neuronMeta, float phenotypeElapsedTime, float DeltaTime, float InverseDeltaTime)
     {
         float previousValue = e[emitterIndex];
-        float newValue = Activate(neuronMeta.activationFunction, in neuronMeta, in graph, e, previousValue, phenotypeElapsedTime, DeltaTime, InverseDeltaTime);
+        float newValue = Activate(neuronMeta.activationFunction, in neuronMeta, ref inputMetas, e, previousValue, phenotypeElapsedTime, DeltaTime, InverseDeltaTime);
         e[emitterIndex] = newValue;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static float Activate(ActivationFunction fn, in CompiledNeuralGraph.NeuronMeta neuronMeta, in BlobAssetReference<CompiledNeuralGraph> g, in NativeArray<float> e, float previousValue, float t, float dt, float invDt)
+    private static float Activate(ActivationFunction fn, in CompiledNeuralGraph.NeuronMeta neuronMeta, ref BlobArray<CompiledNeuralGraph.InputMeta> i, in NativeArray<float> e, float previousValue, float t, float dt, float invDt)
     {
         ushort start = neuronMeta.firstInput;
         byte count = neuronMeta.inputCount;
 
         return fn switch
         {
-            ActivationFunction.Abs => Abs(V(0, start, count, g, e)),
-            ActivationFunction.Atan => Atan(V(0, start, count, g, e)),
-            ActivationFunction.Cos => Cos(V(0, start, count, g, e), V(1, start, count, g, e), V(2, start, count, g, e), t),
-            ActivationFunction.Differentiate => Differentiate(V(0, start, count, g, e), V(1, start, count, g, e), previousValue, invDt),
-            ActivationFunction.Divide => Divide(V(0, start, count, g, e), V(1, start, count, g, e)),
-            ActivationFunction.Expt => Expt(V(0, start, count, g, e)),
-            ActivationFunction.GreaterThan => GreaterThan(V(0, start, count, g, e), V(1, start, count, g, e)),
-            ActivationFunction.If => If(V(0, start, count, g, e), V(1, start, count, g, e), V(2, start, count, g, e)),
-            ActivationFunction.Integrate => Integrate(V(0, start, count, g, e), V(1, start, count, g, e), previousValue, dt),
-            ActivationFunction.Interpolate => Interpolate(V(0, start, count, g, e), V(1, start, count, g, e), V(2, start, count, g, e)),
-            ActivationFunction.Log => Log(V(0, start, count, g, e), V(1, start, count, g, e), V(2, start, count, g, e)),
-            ActivationFunction.Max => Max(V(0, start, count, g, e), V(1, start, count, g, e), V(2, start, count, g, e)),
-            ActivationFunction.Memory => Memory(V(0, start, count, g, e), V(1, start, count, g, e), previousValue),
-            ActivationFunction.Min => Min(V(0, start, count, g, e), V(1, start, count, g, e), V(2, start, count, g, e)),
-            ActivationFunction.OscillateSaw => OscillateSaw(V(0, start, count, g, e), V(1, start, count, g, e), t),
-            ActivationFunction.OscillateWave => OscillateWave(V(0, start, count, g, e), V(1, start, count, g, e), V(2, start, count, g, e), t),
-            ActivationFunction.Product => Product(V(0, start, count, g, e), V(1, start, count, g, e), V(2, start, count, g, e)),
-            ActivationFunction.Sigmoid => Sigmoid(V(0, start, count, g, e), V(1, start, count, g, e), V(2, start, count, g, e)),
-            ActivationFunction.SignOf => SignOf(V(0, start, count, g, e), V(1, start, count, g, e), V(2, start, count, g, e)),
-            ActivationFunction.Sin => Sin(V(0, start, count, g, e), V(1, start, count, g, e), V(2, start, count, g, e), t),
-            ActivationFunction.Smooth => Smooth(V(0, start, count, g, e), V(1, start, count, g, e), previousValue, dt),
-            ActivationFunction.Sum => Sum(V(0, start, count, g, e), V(1, start, count, g, e), V(2, start, count, g, e)),
-            ActivationFunction.SumThreshold => SumThreshold(V(0, start, count, g, e), V(1, start, count, g, e), V(2, start, count, g, e)),
-            _ => V(0, start, count, g, e)
+            ActivationFunction.Abs => Abs(V(0, start, count, ref i, e)),
+            ActivationFunction.Atan => Atan(V(0, start, count, ref i, e)),
+            ActivationFunction.Cos => Cos(V(0, start, count, ref i, e), V(1, start, count, ref i, e), V(2, start, count, ref i, e), t),
+            ActivationFunction.Differentiate => Differentiate(V(0, start, count, ref i, e), V(1, start, count, ref i, e), previousValue, invDt),
+            ActivationFunction.Divide => Divide(V(0, start, count, ref i, e), V(1, start, count, ref i, e)),
+            ActivationFunction.Expt => Expt(V(0, start, count, ref i, e)),
+            ActivationFunction.GreaterThan => GreaterThan(V(0, start, count, ref i, e), V(1, start, count, ref i, e)),
+            ActivationFunction.If => If(V(0, start, count, ref i, e), V(1, start, count, ref i, e), V(2, start, count, ref i, e)),
+            ActivationFunction.Integrate => Integrate(V(0, start, count, ref i, e), V(1, start, count, ref i, e), previousValue, dt),
+            ActivationFunction.Interpolate => Interpolate(V(0, start, count, ref i, e), V(1, start, count, ref i, e), V(2, start, count, ref i, e)),
+            ActivationFunction.Log => Log(V(0, start, count, ref i, e), V(1, start, count, ref i, e), V(2, start, count, ref i, e)),
+            ActivationFunction.Max => Max(V(0, start, count, ref i, e), V(1, start, count, ref i, e), V(2, start, count, ref i, e)),
+            ActivationFunction.Memory => Memory(V(0, start, count, ref i, e), V(1, start, count, ref i, e), previousValue),
+            ActivationFunction.Min => Min(V(0, start, count, ref i, e), V(1, start, count, ref i, e), V(2, start, count, ref i, e)),
+            ActivationFunction.OscillateSaw => OscillateSaw(V(0, start, count, ref i, e), V(1, start, count, ref i, e), t),
+            ActivationFunction.OscillateWave => OscillateWave(V(0, start, count, ref i, e), V(1, start, count, ref i, e), V(2, start, count, ref i, e), t),
+            ActivationFunction.Product => Product(V(0, start, count, ref i, e), V(1, start, count, ref i, e), V(2, start, count, ref i, e)),
+            ActivationFunction.Sigmoid => Sigmoid(V(0, start, count, ref i, e), V(1, start, count, ref i, e), V(2, start, count, ref i, e)),
+            ActivationFunction.SignOf => SignOf(V(0, start, count, ref i, e), V(1, start, count, ref i, e), V(2, start, count, ref i, e)),
+            ActivationFunction.Sin => Sin(V(0, start, count, ref i, e), V(1, start, count, ref i, e), V(2, start, count, ref i, e), t),
+            ActivationFunction.Smooth => Smooth(V(0, start, count, ref i, e), V(1, start, count, ref i, e), previousValue, dt),
+            ActivationFunction.Sum => Sum(V(0, start, count, ref i, e), V(1, start, count, ref i, e), V(2, start, count, ref i, e)),
+            ActivationFunction.SumThreshold => SumThreshold(V(0, start, count, ref i, e), V(1, start, count, ref i, e), V(2, start, count, ref i, e)),
+            _ => V(0, start, count, ref i, e)
         };
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static float V(int inputIndex, ushort inputStartIndex, byte inputCount, in BlobAssetReference<CompiledNeuralGraph> graph, in NativeArray<float> emitterStates)
+    private static float V(int inputIndex, ushort inputStartIndex, byte inputCount, ref BlobArray<CompiledNeuralGraph.InputMeta> inputMetas, in NativeArray<float> emitterStates)
     {
         if (inputIndex >= inputCount) return 0f;
-        ushort emitterIndex = graph.Value.Inputs[inputStartIndex + inputIndex].sourceEmitterGlobalIndex;
-        return emitterIndex == CompiledNeuralGraph.BIAS_INDEX ? 1f : emitterStates[emitterIndex];
+        ushort emitterIndex = inputMetas[inputStartIndex + inputIndex].sourceEmitterGlobalIndex;
+        float weight = inputMetas[inputStartIndex + inputIndex].weight;
+        return (emitterIndex == CompiledNeuralGraph.BIAS_INDEX ? 1f : emitterStates[emitterIndex]) * weight;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -199,19 +201,19 @@ public partial struct UpdateNeuronJob : IJobEntity
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static float Interpolate(float a, float b, float c)
     {
-        return math.lerp(a, b, c);
+        return math.clamp(math.lerp(a, b, c), -1f, 1f);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static float Log(float a, float b, float c)
     {
-        return math.log(math.max(1e-5f, a + b + c));
+        return math.clamp(math.log(math.max(1e-5f, 5f * (a + b + c) + 5f)), -1f, 1f);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static float Max(float a, float b, float c)
     {
-        return math.max(a + b + c, 0f);
+        return math.clamp(a + b + c, 0f, 1f);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -223,7 +225,7 @@ public partial struct UpdateNeuronJob : IJobEntity
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static float Min(float a, float b, float c)
     {
-        return math.min(a + b + c, 0f);
+        return math.clamp(a + b + c, -1f, 0f);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -235,7 +237,7 @@ public partial struct UpdateNeuronJob : IJobEntity
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static float Product(float a, float b, float c)
     {
-        return a * b * c;
+        return math.clamp(a * b * c, -1f, 1f);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -265,12 +267,12 @@ public partial struct UpdateNeuronJob : IJobEntity
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static float Sum(float a, float b, float c)
     {
-        return a + b + c;
+        return math.clamp(a + b + c, -1f, 1f);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static float SumThreshold(float a, float b, float c)
     {
-        return math.min(a + b, c);
+        return math.clamp(math.min(a + b, c), -1f, 1f);
     }
 }

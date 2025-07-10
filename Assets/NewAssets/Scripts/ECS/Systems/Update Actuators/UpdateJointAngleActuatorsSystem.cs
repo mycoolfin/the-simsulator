@@ -1,6 +1,7 @@
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
+using Unity.Mathematics;
 using Unity.Physics;
 
 [BurstCompile]
@@ -108,8 +109,9 @@ public partial struct UpdateJointAxisXActuatorJob : IJobEntity
 {
     [ReadOnly] public BufferLookup<EmitterState> EmitterStateBuffers;
 
-    public void Execute(in PhysicsJoint joint, in RootPhenotypeEntity rootPhenotypeEntity, in JointAxisX jointAxisX)
+    public void Execute(ref PhysicsJoint joint, in RootPhenotypeEntity rootPhenotypeEntity, in JointAxisX jointAxisX)
     {
+        UnityEngine.Debug.Log("HERE2");
         if (!EmitterStateBuffers.HasBuffer(rootPhenotypeEntity.Value))
             return;
 
@@ -128,7 +130,7 @@ public partial struct UpdateJointAxisZActuatorJob : IJobEntity
 {
     [ReadOnly] public BufferLookup<EmitterState> EmitterStateBuffers;
 
-    public void Execute(in PhysicsJoint joint, in RootPhenotypeEntity rootPhenotypeEntity, in JointAxisZ jointAxisZ)
+    public void Execute(ref PhysicsJoint joint, in RootPhenotypeEntity rootPhenotypeEntity, in JointAxisZ jointAxisZ)
     {
         if (!EmitterStateBuffers.HasBuffer(rootPhenotypeEntity.Value))
             return;
@@ -149,7 +151,7 @@ public partial struct UpdateJointAxisXZActuatorsJob : IJobEntity
 {
     [ReadOnly] public BufferLookup<EmitterState> EmitterStateBuffers;
 
-    public void Execute(in PhysicsJoint joint, in RootPhenotypeEntity rootPhenotypeEntity, in JointAxisX jointAxisX, in JointAxisZ jointAxisZ)
+    public void Execute(ref PhysicsJoint joint, in RootPhenotypeEntity rootPhenotypeEntity, in JointAxisX jointAxisX, in JointAxisZ jointAxisZ)
     {
         if (!EmitterStateBuffers.HasBuffer(rootPhenotypeEntity.Value))
             return;
@@ -171,7 +173,7 @@ public partial struct UpdateJointAxisXYActuatorsJob : IJobEntity
 {
     [ReadOnly] public BufferLookup<EmitterState> EmitterStateBuffers;
 
-    public void Execute(in PhysicsJoint joint, in RootPhenotypeEntity rootPhenotypeEntity, in JointAxisX jointAxisX, in JointAxisY jointAxisY)
+    public void Execute(ref PhysicsJoint joint, in RootPhenotypeEntity rootPhenotypeEntity, in JointAxisX jointAxisX, in JointAxisY jointAxisY)
     {
         if (!EmitterStateBuffers.HasBuffer(rootPhenotypeEntity.Value))
             return;
@@ -192,7 +194,7 @@ public partial struct UpdateJointAxisXYZActuatorsJob : IJobEntity
 {
     [ReadOnly] public BufferLookup<EmitterState> EmitterStateBuffers;
 
-    public void Execute(in PhysicsJoint joint, in RootPhenotypeEntity rootPhenotypeEntity, in JointAxisX jointAxisX, in JointAxisY jointAxisY, in JointAxisZ jointAxisZ)
+    public void Execute(ref PhysicsJoint joint, in RootPhenotypeEntity rootPhenotypeEntity, in JointAxisX jointAxisX, in JointAxisY jointAxisY, in JointAxisZ jointAxisZ)
     {
         if (!EmitterStateBuffers.HasBuffer(rootPhenotypeEntity.Value))
             return;
@@ -217,6 +219,6 @@ public static class JointActuatorUpdateHelper
         if (emitterIndex >= (ushort)buffer.Length)
             return;
         ref Constraint constraint = ref constraints.ElementAt(constraintIndex);
-        constraint.Target = buffer[emitterIndex].Value * angleLimit; // [-1, 1] to [-angleLimit, angleLimit].
+        constraint.Target = math.clamp(buffer[emitterIndex].Value, -1f, 1f) * angleLimit; // [-1, 1] to [-angleLimit, angleLimit].
     }
 }

@@ -1,9 +1,8 @@
+using System;
 using System.Numerics;
 using System.Collections.Generic;
 using mycoolfin.TheSimsulator.Sims.Genotype;
 using mycoolfin.TheSimsulator.Sims.Phenotype;
-using Unity.Mathematics;
-using System;
 
 public class PhenotypeRenderingTest : UnityEngine.MonoBehaviour
 {
@@ -25,18 +24,23 @@ public class PhenotypeRenderingTest : UnityEngine.MonoBehaviour
         SimsPhenotypeFactory phenotypeFactory = new();
 
         List<SimsPhenotype> phenotypes = new();
+        SignalEmitterAddress biasAddy = new(RelativeSignalPort.Bias, 0);
+        SignalEmitterAddress addyA = new(RelativeSignalPort.Brain, 0);
+        SignalEmitterAddress addyB = new(); // new(RelativeSignalPort.ThisLimb, 1);
+        SignalEmitterAddress addyC = new(); // new(RelativeSignalPort.ThisLimb, 2);
+
         for (int i = 0; i < count; i++)
         {
             List<Node> nodes = new()
             {
                 new Node(
                     new Vector3(1f, 1f, 1f),
-                    new(mycoolfin.TheSimsulator.Sims.Genotype.JointType.Spherical, new Vector3((float)Math.PI / 15f, (float)Math.PI / 15f, (float)Math.PI / 15f),
-                        new InputSetDefinition(new SignalInputDefinition(), new SignalInputDefinition(), new SignalInputDefinition()),
-                        new InputSetDefinition(new SignalInputDefinition(), new SignalInputDefinition(), new SignalInputDefinition()),
-                        new InputSetDefinition(new SignalInputDefinition(), new SignalInputDefinition(), new SignalInputDefinition())
+                    new(mycoolfin.TheSimsulator.Sims.Genotype.JointType.Spherical, new Vector3((float)Math.PI / 4f, (float)Math.PI / 4f, (float)Math.PI / 4f),
+                        new InputSetDefinition(new(addyA, 1f), new(addyB, 0f), new(addyC, 0f)),
+                        new InputSetDefinition(new(addyA, 1f), new(addyB, 0f), new(addyC, 0f)),
+                        new InputSetDefinition(new(addyA, 1f), new(addyB, 0f), new(addyC, 0f))
                     ),
-                    1
+                    2
                 )
             };
             List<Connection> connections = new()
@@ -49,14 +53,19 @@ public class PhenotypeRenderingTest : UnityEngine.MonoBehaviour
                     new Vector3(0, 0, 0),
                     // new Vector3((float)Math.PI / 15f, (float)Math.PI / 15f, (float)Math.PI / 15f),
                     new Vector3(0.5f, 0.5f, 1f),
-                    false,
-                    false,
-                    false,
+                    true,
+                    true,
+                    true,
                     false
                 )
             };
-            SimsGenotype genotype = new(nodes, connections, new());
-            // SimsGenotype genotype = genotypeFactory.CreateInitialisedGenotype();
+            mycoolfin.TheSimsulator.Sims.Genotype.NeuronDefinition nd = new(
+                mycoolfin.TheSimsulator.Sims.Genotype.SimsGenotype.BRAIN_GID,
+                ActivationFunction.Sin,
+                new(new(biasAddy, 1f), new(biasAddy, 1f), new(biasAddy, 1f))
+            );
+            // SimsGenotype genotype = new(nodes, connections, new() { nd });
+            SimsGenotype genotype = genotypeFactory.CreateInitialisedGenotype();
 
             SimsPhenotype phenotype = phenotypeFactory.ConstructPhenotype(genotype);
 

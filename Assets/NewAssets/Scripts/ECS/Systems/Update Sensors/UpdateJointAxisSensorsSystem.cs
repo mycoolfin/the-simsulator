@@ -1,4 +1,3 @@
-using System.Runtime.CompilerServices;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
@@ -10,12 +9,12 @@ using Unity.Transforms;
 [UpdateInGroup(typeof(UpdateSensorsSystemGroup))]
 public partial struct UpdateJointAxisSensorsSystem : ISystem
 {
-    private ComponentLookup<LocalTransform> localTransformLookup;
+    private ComponentLookup<LocalToWorld> localToWorldLookup;
     private BufferLookup<EmitterState> emitterStatesLookup;
 
     public void OnCreate(ref SystemState state)
     {
-        localTransformLookup = state.GetComponentLookup<LocalTransform>(isReadOnly: true);
+        localToWorldLookup = state.GetComponentLookup<LocalToWorld>(isReadOnly: true);
         emitterStatesLookup = state.GetBufferLookup<EmitterState>(isReadOnly: false);
 
         EntityQuery entityQuery = state.GetEntityQuery(new EntityQueryDesc
@@ -38,26 +37,26 @@ public partial struct UpdateJointAxisSensorsSystem : ISystem
 
     public void OnUpdate(ref SystemState state)
     {
-        localTransformLookup.Update(ref state);
+        localToWorldLookup.Update(ref state);
         emitterStatesLookup.Update(ref state);
 
         UpdateJointAxisXSensorJob xJob = new()
         {
-            TransformLookup = localTransformLookup,
+            LocalToWorldLookup = localToWorldLookup,
             EmitterStateBuffers = emitterStatesLookup
         };
         state.Dependency = xJob.ScheduleParallel(state.Dependency);
 
         UpdateJointAxisYSensorJob yJob = new()
         {
-            TransformLookup = localTransformLookup,
+            LocalToWorldLookup = localToWorldLookup,
             EmitterStateBuffers = emitterStatesLookup
         };
         state.Dependency = yJob.ScheduleParallel(state.Dependency);
 
         UpdateJointAxisZSensorJob zJob = new()
         {
-            TransformLookup = localTransformLookup,
+            LocalToWorldLookup = localToWorldLookup,
             EmitterStateBuffers = emitterStatesLookup
         };
         state.Dependency = zJob.ScheduleParallel(state.Dependency);
@@ -67,38 +66,38 @@ public partial struct UpdateJointAxisSensorsSystem : ISystem
 [BurstCompile]
 public partial struct UpdateJointAxisXSensorJob : IJobEntity
 {
-    [ReadOnly] public ComponentLookup<LocalTransform> TransformLookup;
+    [ReadOnly] public ComponentLookup<LocalToWorld> LocalToWorldLookup;
     [NativeDisableParallelForRestriction] public BufferLookup<EmitterState> EmitterStateBuffers;
 
     public void Execute(in PhysicsConstrainedBodyPair pair, in PhysicsJoint joint, in JointAxisX jointAxis, in RootPhenotypeEntity rootPhenotypeEntity)
     {
         JointAxisSensorJobCore.Axis axis = jointAxis.SwapXZ ? JointAxisSensorJobCore.Axis.Z : JointAxisSensorJobCore.Axis.X;
-        JointAxisSensorJobCore.ExecuteAxis(pair, joint, rootPhenotypeEntity, axis, jointAxis.SensorEmitterIndex, jointAxis.AngleLimit, ref TransformLookup, ref EmitterStateBuffers);
+        JointAxisSensorJobCore.ExecuteAxis(pair, joint, rootPhenotypeEntity, axis, jointAxis.SensorEmitterIndex, jointAxis.AngleLimit, ref LocalToWorldLookup, ref EmitterStateBuffers);
     }
 }
 
 [BurstCompile]
 public partial struct UpdateJointAxisYSensorJob : IJobEntity
 {
-    [ReadOnly] public ComponentLookup<LocalTransform> TransformLookup;
+    [ReadOnly] public ComponentLookup<LocalToWorld> LocalToWorldLookup;
     [NativeDisableParallelForRestriction] public BufferLookup<EmitterState> EmitterStateBuffers;
 
     public void Execute(in PhysicsConstrainedBodyPair pair, in PhysicsJoint joint, in JointAxisY jointAxis, in RootPhenotypeEntity rootPhenotypeEntity)
     {
-        JointAxisSensorJobCore.ExecuteAxis(pair, joint, rootPhenotypeEntity, JointAxisSensorJobCore.Axis.Y, jointAxis.SensorEmitterIndex, jointAxis.AngleLimit, ref TransformLookup, ref EmitterStateBuffers);
+        JointAxisSensorJobCore.ExecuteAxis(pair, joint, rootPhenotypeEntity, JointAxisSensorJobCore.Axis.Y, jointAxis.SensorEmitterIndex, jointAxis.AngleLimit, ref LocalToWorldLookup, ref EmitterStateBuffers);
     }
 }
 
 [BurstCompile]
 public partial struct UpdateJointAxisZSensorJob : IJobEntity
 {
-    [ReadOnly] public ComponentLookup<LocalTransform> TransformLookup;
+    [ReadOnly] public ComponentLookup<LocalToWorld> LocalToWorldLookup;
     [NativeDisableParallelForRestriction] public BufferLookup<EmitterState> EmitterStateBuffers;
 
     public void Execute(in PhysicsConstrainedBodyPair pair, in PhysicsJoint joint, in JointAxisZ jointAxis, in RootPhenotypeEntity rootPhenotypeEntity)
     {
         JointAxisSensorJobCore.Axis axis = jointAxis.SwapXZ ? JointAxisSensorJobCore.Axis.X : JointAxisSensorJobCore.Axis.Z;
-        JointAxisSensorJobCore.ExecuteAxis(pair, joint, rootPhenotypeEntity, axis, jointAxis.SensorEmitterIndex, jointAxis.AngleLimit, ref TransformLookup, ref EmitterStateBuffers);
+        JointAxisSensorJobCore.ExecuteAxis(pair, joint, rootPhenotypeEntity, axis, jointAxis.SensorEmitterIndex, jointAxis.AngleLimit, ref LocalToWorldLookup, ref EmitterStateBuffers);
     }
 }
 
@@ -115,11 +114,11 @@ public static class JointAxisSensorJobCore
         in Axis axis,
         ushort emitterIndex,
         float angleLimit,
-        ref ComponentLookup<LocalTransform> transformLookup,
+        ref ComponentLookup<LocalToWorld> localToWorldLookup,
         ref BufferLookup<EmitterState> emitterStateBuffers
     )
     {
-        if (!transformLookup.HasComponent(pair.EntityA) || !transformLookup.HasComponent(pair.EntityB))
+        if (!localToWorldLookup.HasComponent(pair.EntityA) || !localToWorldLookup.HasComponent(pair.EntityB))
             return;
 
         if (!emitterStateBuffers.HasBuffer(rootPhenotypeEntity.Value))
@@ -129,7 +128,13 @@ public static class JointAxisSensorJobCore
         if (emitterIndex >= (ushort)buffer.Length)
             return;
 
-        float angle = GetJointAngle(transformLookup[pair.EntityA].Rotation, transformLookup[pair.EntityB].Rotation, joint.BodyAFromJoint, axis);
+        float angle = GetJointAngle(
+            localToWorldLookup[pair.EntityA].Rotation,
+            localToWorldLookup[pair.EntityB].Rotation,
+            joint.BodyAFromJoint,
+            joint.BodyBFromJoint,
+            axis
+        );
         float emitterValue = math.abs(angleLimit) < 1e-3f ? 0f : math.clamp(angle / angleLimit, -1f, 1f);
         buffer[emitterIndex] = new EmitterState { Value = emitterValue };
     }
@@ -139,55 +144,46 @@ public static class JointAxisSensorJobCore
     /// </summary>
     /// <param name="worldRotA">Parent (entity A) world rotation</param>
     /// <param name="worldRotB">Child (entity B) world rotation</param>
-    /// <param name="jointFrameA">The BodyAFromJoint frame</param>
+    /// <param name="bodyAFromJoint">The BodyAFromJoint frame</param>
+    /// <param name="bodyBFromJoint">The BodyBFromJoint frame</param>
     /// <param name="axis">Axis around which to compute the angle</param>
     /// <returns>float: angle around the specified axis of the joint frame, in radians</returns>
     [BurstCompile]
-    public static float GetJointAngle(in quaternion worldRotA, in quaternion worldRotB, in BodyFrame jointFrameA, in Axis axis)
+    public static float GetJointAngle(
+        in quaternion worldRotA,
+        in quaternion worldRotB,
+        in BodyFrame bodyAFromJoint,
+        in BodyFrame bodyBFromJoint,
+        Axis axis
+    )
     {
-        float3 worldPrimaryAxis = math.rotate(worldRotA, jointFrameA.Axis);
-        float3 worldSecondaryAxis = math.rotate(worldRotA, jointFrameA.PerpendicularAxis);
-        float3 worldTertiaryAxis = math.normalize(math.cross(worldSecondaryAxis, worldPrimaryAxis));
-
-        float3 axisDir = axis switch
+        float3 axisLocal, refLocalA, refLocalB;
+        switch (axis)
         {
-            Axis.X => worldPrimaryAxis,
-            Axis.Y => worldSecondaryAxis,
-            _ => worldTertiaryAxis
-        };
+            case Axis.X:
+                axisLocal = -bodyAFromJoint.Axis;
+                refLocalA = bodyAFromJoint.PerpendicularAxis;
+                refLocalB = bodyBFromJoint.PerpendicularAxis;
+                break;
+            case Axis.Y:
+                axisLocal = -bodyAFromJoint.PerpendicularAxis;
+                // the “tertiary” axis = cross(perp, primary)
+                refLocalA = math.cross(bodyAFromJoint.PerpendicularAxis, bodyAFromJoint.Axis);
+                refLocalB = math.cross(bodyBFromJoint.PerpendicularAxis, bodyBFromJoint.Axis);
+                break;
+            default: // Z
+                axisLocal = math.normalize(math.cross(bodyAFromJoint.PerpendicularAxis, bodyAFromJoint.Axis));
+                refLocalA = bodyAFromJoint.Axis;
+                refLocalB = bodyBFromJoint.Axis;
+                break;
+        }
 
-        float3 secondaryAxisDir = axis switch
-        {
-            Axis.X => worldSecondaryAxis,
-            Axis.Y => worldTertiaryAxis,
-            _ => worldPrimaryAxis
-        };
+        float3 worldAxis = math.rotate(worldRotA, axisLocal);
+        float3 worldRefA = math.rotate(worldRotA, refLocalA);
+        float3 worldRefB = math.rotate(worldRotB, refLocalB);
 
-        float3x3 worldJointBasis = new(worldPrimaryAxis, worldSecondaryAxis, worldTertiaryAxis);
-        quaternion jointFrameWorld = new(worldJointBasis);
-
-        quaternion relativeRotation = math.mul(math.inverse(worldRotA), worldRotB);
-        quaternion relativeToJoint = math.mul(math.inverse(jointFrameWorld), relativeRotation);
-
-        return GetAngleAroundAxis(relativeToJoint, axisDir, secondaryAxisDir);
-    }
-
-    /// <summary>
-    /// Computes the signed angle (in radians) around a world-space axis from a rotation.
-    /// </summary>
-    /// <param name="axis">World-space axis (normalized)</param>
-    /// <param name="reference">World-space perpendicular reference vector (normalized)</param>
-    /// <returns>Signed angle in radians (-π to π)</returns>
-    [BurstCompile]
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static float GetAngleAroundAxis(in quaternion relativeRotation, in float3 axis, in float3 reference)
-    {
-        float3 rotated = math.rotate(relativeRotation, reference);
-        float3 tangent = math.normalize(math.cross(axis, reference));
-
-        float x = math.dot(rotated, reference);
-        float y = math.dot(rotated, tangent);
-
-        return math.atan2(y, x);
+        float cos = math.dot(worldRefA, worldRefB);
+        float sin = math.dot(math.cross(worldRefA, worldRefB), worldAxis);
+        return math.atan2(sin, cos);
     }
 }
