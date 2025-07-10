@@ -12,6 +12,7 @@ public static class JointEntityBuilder
     public static EntityArchetype CreateJointArchetype(ref SystemState state)
     {
         return state.EntityManager.CreateArchetype(
+            typeof(RootPhenotypeEntity),
             typeof(PhysicsWorldIndex),
             typeof(PhysicsConstrainedBodyPair),
             typeof(PhysicsJoint),
@@ -33,6 +34,7 @@ public partial struct CreateJointEntityJob : IJobEntity
     public EntityArchetype JointArchetype;
     [ReadOnly] public NativeParallelHashMap<PhenotypeLimbKey, Entity>.ReadOnly LimbEntityLookup;
     [ReadOnly] public NativeParallelHashMap<PhenotypeLimbKey, LocalTransform>.ReadOnly LimbLocalTransformLookup;
+    [ReadOnly] public NativeParallelHashMap<ulong, Entity>.ReadOnly RootPhenotypeEntityLookup;
     [ReadOnly] public NativeParallelHashMap<ulong, NeuralGraphRef>.ReadOnly NeuralGraphLookup;
 
     private const int INSTANTIATION_KEY = 1;
@@ -46,6 +48,7 @@ public partial struct CreateJointEntityJob : IJobEntity
         PhenotypeLimbKey attKey = new(requestData.PhenotypeGid, requestData.AttachedLimbIndex);
         if (!LimbEntityLookup.TryGetValue(refKey, out Entity referenceLimbEntity)) return;
         if (!LimbEntityLookup.TryGetValue(attKey, out Entity attachedLimbEntity)) return;
+        if (!RootPhenotypeEntityLookup.TryGetValue(requestData.PhenotypeGid, out Entity rootPhenotypeEntity)) return;
         if (!NeuralGraphLookup.TryGetValue(requestData.PhenotypeGid, out NeuralGraphRef neuralGraphRef)) return;
 
         CreateJointEntity(
@@ -57,6 +60,7 @@ public partial struct CreateJointEntityJob : IJobEntity
             attachedLimbEntity,
             LimbLocalTransformLookup[refKey].ToMatrix(),
             LimbLocalTransformLookup[attKey].ToMatrix(),
+            rootPhenotypeEntity,
             neuralGraphRef,
             requestData.AttachedLimbIndex
         );
@@ -75,6 +79,7 @@ public partial struct CreateJointEntityJob : IJobEntity
         in Entity attachedLimbEntity,
         in float4x4 referenceLimbLocalTransform,
         in float4x4 attachedLimbLocalTransform,
+        in Entity rootPhenotypeEntity,
         in NeuralGraphRef neuralGraphRef,
         int limbIndex
     )
@@ -90,16 +95,16 @@ public partial struct CreateJointEntityJob : IJobEntity
         {
             case mycoolfin.TheSimsulator.Sims.Genotype.JointType.Rigid:
                 CreatePhysicsJoint(request, referenceLimbLocalTransform, attachedLimbLocalTransform, out physicsJoint1);
-                CreateConstraint(request, ConstraintType.Angular,        new bool3(true, true, true),    0f,                    out var rigidAngularConstraint);
-                CreateConstraint(request, ConstraintType.Linear,         new bool3(true, true, true),    0f,                    out var rigidLinearConstraint);
+                CreateConstraint(request, ConstraintType.Angular, new bool3(true, true, true), 0f, out var rigidAngularConstraint);
+                CreateConstraint(request, ConstraintType.Linear, new bool3(true, true, true), 0f, out var rigidLinearConstraint);
                 physicsJoint1.SetConstraints(new() { rigidAngularConstraint, rigidLinearConstraint });
                 ecb.SetComponent(sortKey, jointEntity1, physicsJoint1);
                 break;
             case mycoolfin.TheSimsulator.Sims.Genotype.JointType.Revolute:
                 CreatePhysicsJoint(request, referenceLimbLocalTransform, attachedLimbLocalTransform, out physicsJoint1);
-                CreateConstraint(request, ConstraintType.RotationMotor,  new bool3(true, false, false),  request.AngleLimits.x, out var revoluteXConstraint);
-                CreateConstraint(request, ConstraintType.Angular,        new bool3(false, true, true),   0f,                    out var revoluteAngularConstraint);
-                CreateConstraint(request, ConstraintType.Linear,         new bool3(true, true, true),    0f,                    out var revoluteLinearConstraint);
+                CreateConstraint(request, ConstraintType.RotationMotor, new bool3(true, false, false), request.AngleLimits.x, out var revoluteXConstraint);
+                CreateConstraint(request, ConstraintType.Angular, new bool3(false, true, true), 0f, out var revoluteAngularConstraint);
+                CreateConstraint(request, ConstraintType.Linear, new bool3(true, true, true), 0f, out var revoluteLinearConstraint);
                 physicsJoint1.SetConstraints(new() { revoluteXConstraint, revoluteAngularConstraint, revoluteLinearConstraint });
                 ecb.SetComponent(sortKey, jointEntity1, physicsJoint1);
                 ecb.AddComponent(sortKey, jointEntity1, new JointAxisX
@@ -112,10 +117,10 @@ public partial struct CreateJointEntityJob : IJobEntity
                 break;
             case mycoolfin.TheSimsulator.Sims.Genotype.JointType.Twist:
                 CreatePhysicsJoint(request, referenceLimbLocalTransform, attachedLimbLocalTransform, out physicsJoint1);
-                CreateConstraint(request, ConstraintType.RotationMotor, new bool3(false, false, true),  request.AngleLimits.z,  out var twistZConstraint);
-                CreateConstraint(request, ConstraintType.Angular,       new bool3(true, true, false),   0f,                     out var twistAngularConstraint);
-                CreateConstraint(request, ConstraintType.Linear,        new bool3(true, true, true),    0f,                     out var twistLinearConstraint);
-                physicsJoint1.SetConstraints(new(){ twistZConstraint,twistAngularConstraint,twistLinearConstraint});
+                CreateConstraint(request, ConstraintType.RotationMotor, new bool3(false, false, true), request.AngleLimits.z, out var twistZConstraint);
+                CreateConstraint(request, ConstraintType.Angular, new bool3(true, true, false), 0f, out var twistAngularConstraint);
+                CreateConstraint(request, ConstraintType.Linear, new bool3(true, true, true), 0f, out var twistLinearConstraint);
+                physicsJoint1.SetConstraints(new() { twistZConstraint, twistAngularConstraint, twistLinearConstraint });
                 ecb.SetComponent(sortKey, jointEntity1, physicsJoint1);
                 ecb.AddComponent(sortKey, jointEntity1, new JointAxisZ
                 {
@@ -127,15 +132,15 @@ public partial struct CreateJointEntityJob : IJobEntity
                 break;
             case mycoolfin.TheSimsulator.Sims.Genotype.JointType.BendTwist:
                 CreatePhysicsJoint(request, referenceLimbLocalTransform, attachedLimbLocalTransform, out physicsJoint1);
-                CreateConstraint(request, ConstraintType.Angular,       new bool3(false, true, false),  0f,                     out var bendTwistAngularConstraint);
-                CreateConstraint(request, ConstraintType.Linear,        new bool3(true, true, true),    0f,                     out var bendTwistLinearConstraint);
+                CreateConstraint(request, ConstraintType.Angular, new bool3(false, true, false), 0f, out var bendTwistAngularConstraint);
+                CreateConstraint(request, ConstraintType.Linear, new bool3(true, true, true), 0f, out var bendTwistLinearConstraint);
                 physicsJoint1.SetConstraints(new() { bendTwistAngularConstraint, bendTwistLinearConstraint });
                 ecb.SetComponent(sortKey, jointEntity1, physicsJoint1);
 
                 jointEntity2 = ecb.CreateEntity(sortKey, jointArchetype);
                 CreatePhysicsJoint(request, referenceLimbLocalTransform, attachedLimbLocalTransform, out physicsJoint2);
-                CreateConstraint(request, ConstraintType.RotationMotor, new bool3(true, false, false),  request.AngleLimits.x,  out var bendTwistXConstraint);
-                CreateConstraint(request, ConstraintType.RotationMotor, new bool3(false, false, true),  request.AngleLimits.z,  out var bendTwistZConstraint);
+                CreateConstraint(request, ConstraintType.RotationMotor, new bool3(true, false, false), request.AngleLimits.x, out var bendTwistXConstraint);
+                CreateConstraint(request, ConstraintType.RotationMotor, new bool3(false, false, true), request.AngleLimits.z, out var bendTwistZConstraint);
                 physicsJoint2.SetConstraints(new() { bendTwistXConstraint, bendTwistZConstraint });
                 ecb.SetComponent(sortKey, jointEntity2, physicsJoint2);
                 ecb.AddComponent(sortKey, jointEntity2, new JointAxisX
@@ -155,15 +160,15 @@ public partial struct CreateJointEntityJob : IJobEntity
                 break;
             case mycoolfin.TheSimsulator.Sims.Genotype.JointType.TwistBend:
                 CreatePhysicsJoint(request, referenceLimbLocalTransform, attachedLimbLocalTransform, out physicsJoint1, swapXZ: true);
-                CreateConstraint(request, ConstraintType.Angular,       new bool3(false, true, false),  0f,                     out var twistBendAngularConstraint);
-                CreateConstraint(request, ConstraintType.Linear,        new bool3(true, true, true),    0f,                     out var twistBendLinearConstraint);
+                CreateConstraint(request, ConstraintType.Angular, new bool3(false, true, false), 0f, out var twistBendAngularConstraint);
+                CreateConstraint(request, ConstraintType.Linear, new bool3(true, true, true), 0f, out var twistBendLinearConstraint);
                 physicsJoint1.SetConstraints(new() { twistBendAngularConstraint, twistBendLinearConstraint });
                 ecb.SetComponent(sortKey, jointEntity1, physicsJoint1);
 
                 jointEntity2 = ecb.CreateEntity(sortKey, jointArchetype);
                 CreatePhysicsJoint(request, referenceLimbLocalTransform, attachedLimbLocalTransform, out physicsJoint2, swapXZ: true);
-                CreateConstraint(request, ConstraintType.RotationMotor, new bool3(true, false, false),  request.AngleLimits.z,  out var twistBendZConstraint);
-                CreateConstraint(request, ConstraintType.RotationMotor, new bool3(false, false, true),  request.AngleLimits.x,  out var twistBendXConstraint);
+                CreateConstraint(request, ConstraintType.RotationMotor, new bool3(true, false, false), request.AngleLimits.z, out var twistBendZConstraint);
+                CreateConstraint(request, ConstraintType.RotationMotor, new bool3(false, false, true), request.AngleLimits.x, out var twistBendXConstraint);
                 physicsJoint2.SetConstraints(new() { twistBendZConstraint, twistBendXConstraint });
                 ecb.SetComponent(sortKey, jointEntity2, physicsJoint2);
                 ecb.AddComponent(sortKey, jointEntity2, new JointAxisX
@@ -183,15 +188,15 @@ public partial struct CreateJointEntityJob : IJobEntity
                 break;
             case mycoolfin.TheSimsulator.Sims.Genotype.JointType.Universal:
                 CreatePhysicsJoint(request, referenceLimbLocalTransform, attachedLimbLocalTransform, out physicsJoint1);
-                CreateConstraint(request, ConstraintType.Angular,       new bool3(false, false, true),  0f,                     out var universalAngularConstraint);
-                CreateConstraint(request, ConstraintType.Linear,        new bool3(true, true, true),    0f,                     out var universalLinearConstraint);
+                CreateConstraint(request, ConstraintType.Angular, new bool3(false, false, true), 0f, out var universalAngularConstraint);
+                CreateConstraint(request, ConstraintType.Linear, new bool3(true, true, true), 0f, out var universalLinearConstraint);
                 physicsJoint1.SetConstraints(new() { universalAngularConstraint, universalLinearConstraint });
                 ecb.SetComponent(sortKey, jointEntity1, physicsJoint1);
 
                 jointEntity2 = ecb.CreateEntity(sortKey, jointArchetype);
                 CreatePhysicsJoint(request, referenceLimbLocalTransform, attachedLimbLocalTransform, out physicsJoint2);
-                CreateConstraint(request, ConstraintType.RotationMotor, new bool3(true, false, false),  request.AngleLimits.x,  out var universalXConstraint);
-                CreateConstraint(request, ConstraintType.RotationMotor, new bool3(false, true, false),  request.AngleLimits.y,  out var universalYConstraint);
+                CreateConstraint(request, ConstraintType.RotationMotor, new bool3(true, false, false), request.AngleLimits.x, out var universalXConstraint);
+                CreateConstraint(request, ConstraintType.RotationMotor, new bool3(false, true, false), request.AngleLimits.y, out var universalYConstraint);
                 physicsJoint2.SetConstraints(new() { universalXConstraint, universalYConstraint });
                 ecb.SetComponent(sortKey, jointEntity2, physicsJoint2);
                 ecb.AddComponent(sortKey, jointEntity2, new JointAxisX
@@ -210,15 +215,15 @@ public partial struct CreateJointEntityJob : IJobEntity
                 break;
             case mycoolfin.TheSimsulator.Sims.Genotype.JointType.Spherical:
                 CreatePhysicsJoint(request, referenceLimbLocalTransform, attachedLimbLocalTransform, out physicsJoint1);
-                CreateConstraint(request, ConstraintType.Linear,        new bool3(true, true, true),    0f,                     out var sphericalLinearConstraint);
+                CreateConstraint(request, ConstraintType.Linear, new bool3(true, true, true), 0f, out var sphericalLinearConstraint);
                 physicsJoint1.SetConstraints(new() { sphericalLinearConstraint });
                 ecb.SetComponent(sortKey, jointEntity1, physicsJoint1);
 
                 jointEntity2 = ecb.CreateEntity(sortKey, jointArchetype);
                 CreatePhysicsJoint(request, referenceLimbLocalTransform, attachedLimbLocalTransform, out physicsJoint2);
-                CreateConstraint(request, ConstraintType.RotationMotor, new bool3(true, false, false),  request.AngleLimits.x,  out var sphericalXConstraint);
-                CreateConstraint(request, ConstraintType.RotationMotor, new bool3(false, true, false),  request.AngleLimits.y,  out var sphericalYConstraint);
-                CreateConstraint(request, ConstraintType.RotationMotor, new bool3(false, false, true),  request.AngleLimits.z,  out var sphericalZConstraint);
+                CreateConstraint(request, ConstraintType.RotationMotor, new bool3(true, false, false), request.AngleLimits.x, out var sphericalXConstraint);
+                CreateConstraint(request, ConstraintType.RotationMotor, new bool3(false, true, false), request.AngleLimits.y, out var sphericalYConstraint);
+                CreateConstraint(request, ConstraintType.RotationMotor, new bool3(false, false, true), request.AngleLimits.z, out var sphericalZConstraint);
                 physicsJoint2.SetConstraints(new() { sphericalXConstraint, sphericalYConstraint, sphericalZConstraint });
                 ecb.SetComponent(sortKey, jointEntity2, physicsJoint2);
                 ecb.AddComponent(sortKey, jointEntity2, new JointAxisX
@@ -246,10 +251,12 @@ public partial struct CreateJointEntityJob : IJobEntity
                 break;
         }
 
+        ecb.SetComponent(sortKey, jointEntity1, new RootPhenotypeEntity { Value = rootPhenotypeEntity });
         ecb.SetSharedComponent(sortKey, jointEntity1, new PhysicsWorldIndex(0));
         ecb.SetComponent(sortKey, jointEntity1, new PhysicsConstrainedBodyPair(referenceLimbEntity, attachedLimbEntity, false));
         if (jointEntity2 != Entity.Null)
         {
+            ecb.SetComponent(sortKey, jointEntity2, new RootPhenotypeEntity { Value = rootPhenotypeEntity });
             ecb.SetSharedComponent(sortKey, jointEntity2, new PhysicsWorldIndex(0));
             ecb.SetComponent(sortKey, jointEntity2, new PhysicsConstrainedBodyPair(referenceLimbEntity, attachedLimbEntity, false));
 

@@ -11,6 +11,8 @@ public class PhenotypeRenderingTest : UnityEngine.MonoBehaviour
     public UnityEngine.GameObject LimbRendererPrefab;
     public UnityEngine.GameObject JointRendererPrefab;
 
+    public int count;
+
     private void Start()
     {
         if (PhenotypeRendererPrefab == null)
@@ -23,7 +25,7 @@ public class PhenotypeRenderingTest : UnityEngine.MonoBehaviour
         SimsPhenotypeFactory phenotypeFactory = new();
 
         List<SimsPhenotype> phenotypes = new();
-        for (int i = 0; i < 100; i++)
+        for (int i = 0; i < count; i++)
         {
             List<Node> nodes = new()
             {
@@ -34,7 +36,7 @@ public class PhenotypeRenderingTest : UnityEngine.MonoBehaviour
                         new InputSetDefinition(new SignalInputDefinition(), new SignalInputDefinition(), new SignalInputDefinition()),
                         new InputSetDefinition(new SignalInputDefinition(), new SignalInputDefinition(), new SignalInputDefinition())
                     ),
-                    2
+                    1
                 )
             };
             List<Connection> connections = new()
@@ -44,12 +46,12 @@ public class PhenotypeRenderingTest : UnityEngine.MonoBehaviour
                     nodes[0].Gid,
                     i % 6,
                     new Vector2(0.8f, 0.8f),
-                    // new Vector3(0, 0, 0),
-                    new Vector3((float)Math.PI / 15f, (float)Math.PI / 15f, (float)Math.PI / 15f),
+                    new Vector3(0, 0, 0),
+                    // new Vector3((float)Math.PI / 15f, (float)Math.PI / 15f, (float)Math.PI / 15f),
                     new Vector3(0.5f, 0.5f, 1f),
-                    true,
-                    true,
-                    true,
+                    false,
+                    false,
+                    false,
                     false
                 )
             };
@@ -76,18 +78,17 @@ public class PhenotypeRenderingTest : UnityEngine.MonoBehaviour
         }
 
         List<PhenotypeEntityCreationInfo> phenotypeCreationInfoList = new();
-        float spacing = 20f;
-        float spiralStep = 0.5f;
-        float radiusStep = spacing * 0.5f;
+        float spacing = 5f;
+        int gridSize = UnityEngine.Mathf.CeilToInt(UnityEngine.Mathf.Sqrt(phenotypes.Count));
         for (int i = 0; i < phenotypes.Count; i++)
         {
             SimsPhenotype phenotype = phenotypes[i];
 
-            float angle = i * spiralStep;
-            float radius = radiusStep * angle;
+            int row = i / gridSize;
+            int col = i % gridSize;
 
-            float x = UnityEngine.Mathf.Cos(angle) * radius;
-            float z = UnityEngine.Mathf.Sin(angle) * radius;
+            float x = col * spacing;
+            float z = row * spacing;
 
             PhenotypeEntityCreationInfo info = new()
             {

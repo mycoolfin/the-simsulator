@@ -4,8 +4,8 @@ using Unity.Entities;
 using Unity.Physics;
 
 [BurstCompile]
-[UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
-public partial struct UpdateJointAngleActuatorsSystem : ISystem
+[UpdateInGroup(typeof(UpdateActuatorsSystemGroup))]
+public partial struct UpdateJointAxisActuatorsSystem : ISystem
 {
     private BufferLookup<EmitterState> emitterStatesLookup;
     private EntityQuery xQuery;
@@ -16,14 +16,14 @@ public partial struct UpdateJointAngleActuatorsSystem : ISystem
 
     public void OnCreate(ref SystemState state)
     {
-        emitterStatesLookup = state.GetBufferLookup<EmitterState>(isReadOnly: false);
+        emitterStatesLookup = state.GetBufferLookup<EmitterState>(isReadOnly: true);
 
         EntityQuery commonEntityQuery = state.GetEntityQuery(new EntityQueryDesc
         {
             All = new[]
             {
                 ComponentType.ReadWrite<PhysicsJoint>(),
-                ComponentType.ReadOnly<NeuralNetworkEntity>()
+                ComponentType.ReadOnly<RootPhenotypeEntity>()
             }
         });
 
@@ -106,18 +106,17 @@ public partial struct UpdateJointAngleActuatorsSystem : ISystem
 [WithNone(typeof(JointAxisY), typeof(JointAxisZ))]
 public partial struct UpdateJointAxisXActuatorJob : IJobEntity
 {
-    public BufferLookup<EmitterState> EmitterStateBuffers;
+    [ReadOnly] public BufferLookup<EmitterState> EmitterStateBuffers;
 
-    public void Execute(in PhysicsJoint joint, in NeuralNetworkEntity neuralNetworkEntity, in JointAxisX jointAxisX)
+    public void Execute(in PhysicsJoint joint, in RootPhenotypeEntity rootPhenotypeEntity, in JointAxisX jointAxisX)
     {
-        if (!EmitterStateBuffers.HasBuffer(neuralNetworkEntity.Value))
+        if (!EmitterStateBuffers.HasBuffer(rootPhenotypeEntity.Value))
             return;
 
-        DynamicBuffer<EmitterState> buffer = EmitterStateBuffers[neuralNetworkEntity.Value];
+        DynamicBuffer<EmitterState> buffer = EmitterStateBuffers[rootPhenotypeEntity.Value];
         FixedList512Bytes<Constraint> constraints = joint.GetConstraints();
 
         JointActuatorUpdateHelper.SetConstraint(ref constraints, 0, ref buffer, jointAxisX.ActuatorNeuronEmitterIndex, jointAxisX.AngleLimit);
-
         joint.SetConstraints(constraints);
     }
 }
@@ -127,14 +126,14 @@ public partial struct UpdateJointAxisXActuatorJob : IJobEntity
 [WithNone(typeof(JointAxisX), typeof(JointAxisY))]
 public partial struct UpdateJointAxisZActuatorJob : IJobEntity
 {
-    public BufferLookup<EmitterState> EmitterStateBuffers;
+    [ReadOnly] public BufferLookup<EmitterState> EmitterStateBuffers;
 
-    public void Execute(in PhysicsJoint joint, in NeuralNetworkEntity neuralNetworkEntity, in JointAxisZ jointAxisZ)
+    public void Execute(in PhysicsJoint joint, in RootPhenotypeEntity rootPhenotypeEntity, in JointAxisZ jointAxisZ)
     {
-        if (!EmitterStateBuffers.HasBuffer(neuralNetworkEntity.Value))
+        if (!EmitterStateBuffers.HasBuffer(rootPhenotypeEntity.Value))
             return;
 
-        DynamicBuffer<EmitterState> buffer = EmitterStateBuffers[neuralNetworkEntity.Value];
+        DynamicBuffer<EmitterState> buffer = EmitterStateBuffers[rootPhenotypeEntity.Value];
         FixedList512Bytes<Constraint> constraints = joint.GetConstraints();
 
         JointActuatorUpdateHelper.SetConstraint(ref constraints, 0, ref buffer, jointAxisZ.ActuatorNeuronEmitterIndex, jointAxisZ.AngleLimit);
@@ -148,14 +147,14 @@ public partial struct UpdateJointAxisZActuatorJob : IJobEntity
 [WithNone(typeof(JointAxisY))]
 public partial struct UpdateJointAxisXZActuatorsJob : IJobEntity
 {
-    public BufferLookup<EmitterState> EmitterStateBuffers;
+    [ReadOnly] public BufferLookup<EmitterState> EmitterStateBuffers;
 
-    public void Execute(in PhysicsJoint joint, in NeuralNetworkEntity neuralNetworkEntity, in JointAxisX jointAxisX, in JointAxisZ jointAxisZ)
+    public void Execute(in PhysicsJoint joint, in RootPhenotypeEntity rootPhenotypeEntity, in JointAxisX jointAxisX, in JointAxisZ jointAxisZ)
     {
-        if (!EmitterStateBuffers.HasBuffer(neuralNetworkEntity.Value))
+        if (!EmitterStateBuffers.HasBuffer(rootPhenotypeEntity.Value))
             return;
 
-        DynamicBuffer<EmitterState> buffer = EmitterStateBuffers[neuralNetworkEntity.Value];
+        DynamicBuffer<EmitterState> buffer = EmitterStateBuffers[rootPhenotypeEntity.Value];
         FixedList512Bytes<Constraint> constraints = joint.GetConstraints();
 
         JointActuatorUpdateHelper.SetConstraint(ref constraints, jointAxisX.SwapXZ ? 1 : 0, ref buffer, jointAxisX.ActuatorNeuronEmitterIndex, jointAxisX.AngleLimit);
@@ -170,14 +169,14 @@ public partial struct UpdateJointAxisXZActuatorsJob : IJobEntity
 [WithNone(typeof(JointAxisZ))]
 public partial struct UpdateJointAxisXYActuatorsJob : IJobEntity
 {
-    public BufferLookup<EmitterState> EmitterStateBuffers;
+    [ReadOnly] public BufferLookup<EmitterState> EmitterStateBuffers;
 
-    public void Execute(in PhysicsJoint joint, in NeuralNetworkEntity neuralNetworkEntity, in JointAxisX jointAxisX, in JointAxisY jointAxisY)
+    public void Execute(in PhysicsJoint joint, in RootPhenotypeEntity rootPhenotypeEntity, in JointAxisX jointAxisX, in JointAxisY jointAxisY)
     {
-        if (!EmitterStateBuffers.HasBuffer(neuralNetworkEntity.Value))
+        if (!EmitterStateBuffers.HasBuffer(rootPhenotypeEntity.Value))
             return;
 
-        DynamicBuffer<EmitterState> buffer = EmitterStateBuffers[neuralNetworkEntity.Value];
+        DynamicBuffer<EmitterState> buffer = EmitterStateBuffers[rootPhenotypeEntity.Value];
         FixedList512Bytes<Constraint> constraints = joint.GetConstraints();
 
         JointActuatorUpdateHelper.SetConstraint(ref constraints, 0, ref buffer, jointAxisX.ActuatorNeuronEmitterIndex, jointAxisX.AngleLimit);
@@ -191,14 +190,14 @@ public partial struct UpdateJointAxisXYActuatorsJob : IJobEntity
 [WithAll(typeof(JointAxisX), typeof(JointAxisY), typeof(JointAxisZ))]
 public partial struct UpdateJointAxisXYZActuatorsJob : IJobEntity
 {
-    public BufferLookup<EmitterState> EmitterStateBuffers;
+    [ReadOnly] public BufferLookup<EmitterState> EmitterStateBuffers;
 
-    public void Execute(in PhysicsJoint joint, in NeuralNetworkEntity neuralNetworkEntity, in JointAxisX jointAxisX, in JointAxisY jointAxisY, in JointAxisZ jointAxisZ)
+    public void Execute(in PhysicsJoint joint, in RootPhenotypeEntity rootPhenotypeEntity, in JointAxisX jointAxisX, in JointAxisY jointAxisY, in JointAxisZ jointAxisZ)
     {
-        if (!EmitterStateBuffers.HasBuffer(neuralNetworkEntity.Value))
+        if (!EmitterStateBuffers.HasBuffer(rootPhenotypeEntity.Value))
             return;
 
-        DynamicBuffer<EmitterState> buffer = EmitterStateBuffers[neuralNetworkEntity.Value];
+        DynamicBuffer<EmitterState> buffer = EmitterStateBuffers[rootPhenotypeEntity.Value];
         FixedList512Bytes<Constraint> constraints = joint.GetConstraints();
 
         JointActuatorUpdateHelper.SetConstraint(ref constraints, 0, ref buffer, jointAxisX.ActuatorNeuronEmitterIndex, jointAxisX.AngleLimit);

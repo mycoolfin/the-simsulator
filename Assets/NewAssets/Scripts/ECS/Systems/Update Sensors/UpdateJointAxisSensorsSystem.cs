@@ -1,12 +1,13 @@
 using System.Runtime.CompilerServices;
 using Unity.Burst;
+using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Physics;
 using Unity.Transforms;
 
 [BurstCompile]
-[UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
+[UpdateInGroup(typeof(UpdateSensorsSystemGroup))]
 public partial struct UpdateJointAxisSensorsSystem : ISystem
 {
     private ComponentLookup<LocalTransform> localTransformLookup;
@@ -23,7 +24,7 @@ public partial struct UpdateJointAxisSensorsSystem : ISystem
             {
                 ComponentType.ReadOnly<PhysicsConstrainedBodyPair>(),
                 ComponentType.ReadOnly<PhysicsJoint>(),
-                ComponentType.ReadOnly<NeuralNetworkEntity>()
+                ComponentType.ReadOnly<RootPhenotypeEntity>()
             },
             Any = new[]
             {
@@ -66,38 +67,38 @@ public partial struct UpdateJointAxisSensorsSystem : ISystem
 [BurstCompile]
 public partial struct UpdateJointAxisXSensorJob : IJobEntity
 {
-    public ComponentLookup<LocalTransform> TransformLookup;
-    public BufferLookup<EmitterState> EmitterStateBuffers;
+    [ReadOnly] public ComponentLookup<LocalTransform> TransformLookup;
+    [NativeDisableParallelForRestriction] public BufferLookup<EmitterState> EmitterStateBuffers;
 
-    public void Execute(in PhysicsConstrainedBodyPair pair, in PhysicsJoint joint, in JointAxisX jointAxis, in NeuralNetworkEntity neuralNetworkEntity)
+    public void Execute(in PhysicsConstrainedBodyPair pair, in PhysicsJoint joint, in JointAxisX jointAxis, in RootPhenotypeEntity rootPhenotypeEntity)
     {
         JointAxisSensorJobCore.Axis axis = jointAxis.SwapXZ ? JointAxisSensorJobCore.Axis.Z : JointAxisSensorJobCore.Axis.X;
-        JointAxisSensorJobCore.ExecuteAxis(pair, joint, neuralNetworkEntity, axis, jointAxis.SensorEmitterIndex, jointAxis.AngleLimit, ref TransformLookup, ref EmitterStateBuffers);
+        JointAxisSensorJobCore.ExecuteAxis(pair, joint, rootPhenotypeEntity, axis, jointAxis.SensorEmitterIndex, jointAxis.AngleLimit, ref TransformLookup, ref EmitterStateBuffers);
     }
 }
 
 [BurstCompile]
 public partial struct UpdateJointAxisYSensorJob : IJobEntity
 {
-    public ComponentLookup<LocalTransform> TransformLookup;
-    public BufferLookup<EmitterState> EmitterStateBuffers;
+    [ReadOnly] public ComponentLookup<LocalTransform> TransformLookup;
+    [NativeDisableParallelForRestriction] public BufferLookup<EmitterState> EmitterStateBuffers;
 
-    public void Execute(in PhysicsConstrainedBodyPair pair, in PhysicsJoint joint, in JointAxisY jointAxis, in NeuralNetworkEntity neuralNetworkEntity)
+    public void Execute(in PhysicsConstrainedBodyPair pair, in PhysicsJoint joint, in JointAxisY jointAxis, in RootPhenotypeEntity rootPhenotypeEntity)
     {
-        JointAxisSensorJobCore.ExecuteAxis(pair, joint, neuralNetworkEntity, JointAxisSensorJobCore.Axis.Y, jointAxis.SensorEmitterIndex, jointAxis.AngleLimit, ref TransformLookup, ref EmitterStateBuffers);
+        JointAxisSensorJobCore.ExecuteAxis(pair, joint, rootPhenotypeEntity, JointAxisSensorJobCore.Axis.Y, jointAxis.SensorEmitterIndex, jointAxis.AngleLimit, ref TransformLookup, ref EmitterStateBuffers);
     }
 }
 
 [BurstCompile]
 public partial struct UpdateJointAxisZSensorJob : IJobEntity
 {
-    public ComponentLookup<LocalTransform> TransformLookup;
-    public BufferLookup<EmitterState> EmitterStateBuffers;
+    [ReadOnly] public ComponentLookup<LocalTransform> TransformLookup;
+    [NativeDisableParallelForRestriction] public BufferLookup<EmitterState> EmitterStateBuffers;
 
-    public void Execute(in PhysicsConstrainedBodyPair pair, in PhysicsJoint joint, in JointAxisZ jointAxis, in NeuralNetworkEntity neuralNetworkEntity)
+    public void Execute(in PhysicsConstrainedBodyPair pair, in PhysicsJoint joint, in JointAxisZ jointAxis, in RootPhenotypeEntity rootPhenotypeEntity)
     {
         JointAxisSensorJobCore.Axis axis = jointAxis.SwapXZ ? JointAxisSensorJobCore.Axis.X : JointAxisSensorJobCore.Axis.Z;
-        JointAxisSensorJobCore.ExecuteAxis(pair, joint, neuralNetworkEntity, axis, jointAxis.SensorEmitterIndex, jointAxis.AngleLimit, ref TransformLookup, ref EmitterStateBuffers);
+        JointAxisSensorJobCore.ExecuteAxis(pair, joint, rootPhenotypeEntity, axis, jointAxis.SensorEmitterIndex, jointAxis.AngleLimit, ref TransformLookup, ref EmitterStateBuffers);
     }
 }
 
@@ -110,7 +111,7 @@ public static class JointAxisSensorJobCore
     public static void ExecuteAxis(
         in PhysicsConstrainedBodyPair pair,
         in PhysicsJoint joint,
-        in NeuralNetworkEntity neuralNetworkEntity,
+        in RootPhenotypeEntity rootPhenotypeEntity,
         in Axis axis,
         ushort emitterIndex,
         float angleLimit,
@@ -121,15 +122,15 @@ public static class JointAxisSensorJobCore
         if (!transformLookup.HasComponent(pair.EntityA) || !transformLookup.HasComponent(pair.EntityB))
             return;
 
-        if (!emitterStateBuffers.HasBuffer(neuralNetworkEntity.Value))
+        if (!emitterStateBuffers.HasBuffer(rootPhenotypeEntity.Value))
             return;
 
-        DynamicBuffer<EmitterState> buffer = emitterStateBuffers[neuralNetworkEntity.Value];
+        DynamicBuffer<EmitterState> buffer = emitterStateBuffers[rootPhenotypeEntity.Value];
         if (emitterIndex >= (ushort)buffer.Length)
             return;
 
         float angle = GetJointAngle(transformLookup[pair.EntityA].Rotation, transformLookup[pair.EntityB].Rotation, joint.BodyAFromJoint, axis);
-        float emitterValue = math.abs(angleLimit) < 1e-6f ? 0f : math.clamp(angle / angleLimit, -1f, 1f);
+        float emitterValue = math.abs(angleLimit) < 1e-3f ? 0f : math.clamp(angle / angleLimit, -1f, 1f);
         buffer[emitterIndex] = new EmitterState { Value = emitterValue };
     }
 
@@ -140,7 +141,7 @@ public static class JointAxisSensorJobCore
     /// <param name="worldRotB">Child (entity B) world rotation</param>
     /// <param name="jointFrameA">The BodyAFromJoint frame</param>
     /// <param name="axis">Axis around which to compute the angle</param>
-    /// <returns>float3: angles around X, Y, and Z of the joint frame, in radians</returns>
+    /// <returns>float: angle around the specified axis of the joint frame, in radians</returns>
     [BurstCompile]
     public static float GetJointAngle(in quaternion worldRotA, in quaternion worldRotB, in BodyFrame jointFrameA, in Axis axis)
     {

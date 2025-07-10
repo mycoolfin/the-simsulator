@@ -51,8 +51,8 @@ public partial struct PhenotypeEntityCreationSystem : ISystem
     {
         ColliderCacheManager.Acquire();
         jointArchetype = JointEntityBuilder.CreateJointArchetype(ref state);
-        neuralNetworkArchetype = NeuralNetworkEntityBuilder.CreateNeuralNetworkArchetype(ref state);
-        state.RequireForUpdate<NeuralNetworkEntityCreationRequest>();
+        neuralNetworkArchetype = RootPhenotypeEntityBuilder.CreateRootPhenotypeArchetype(ref state);
+        state.RequireForUpdate<RootPhenotypeEntityCreationRequest>();
         state.RequireForUpdate<LimbEntityCreationRequest>();
     }
 
@@ -62,17 +62,34 @@ public partial struct PhenotypeEntityCreationSystem : ISystem
             RenderMeshArray.MeshReferences == null || RenderMeshArray.MeshReferences.Length == 0)
             return;
 
-        EntityQuery neuralNetworkCreationRequestQuery = SystemAPI.QueryBuilder().WithAll<NeuralNetworkEntityCreationRequest>().Build();
-        using NativeArray<NeuralNetworkEntityCreationRequest> neuralNetworkCreationRequests = neuralNetworkCreationRequestQuery.ToComponentDataArray<NeuralNetworkEntityCreationRequest>(Allocator.TempJob);
+        EntityQuery neuralNetworkCreationRequestQuery = SystemAPI.QueryBuilder().WithAll<RootPhenotypeEntityCreationRequest>().Build();
+        using NativeArray<RootPhenotypeEntityCreationRequest> neuralNetworkCreationRequests = neuralNetworkCreationRequestQuery.ToComponentDataArray<RootPhenotypeEntityCreationRequest>(Allocator.TempJob);
         using NativeParallelHashMap<ulong, NeuralGraphRef> neuralGraphLookup = new(neuralNetworkCreationRequestQuery.CalculateEntityCount(), Allocator.TempJob);
-        NeuralNetworkEntityBuilder.CreateNeuralNetworkEntities(ref state, neuralNetworkArchetype, neuralNetworkCreationRequestQuery, neuralNetworkCreationRequests, neuralGraphLookup);
+        using NativeParallelHashMap<ulong, Entity> rootPhenotypeEntityLookup = new(neuralNetworkCreationRequestQuery.CalculateEntityCount(), Allocator.TempJob);
+        RootPhenotypeEntityBuilder.CreateRootPhenotypeEntities(
+            ref state,
+            neuralNetworkArchetype,
+            neuralNetworkCreationRequestQuery,
+            neuralNetworkCreationRequests,
+            rootPhenotypeEntityLookup,
+            neuralGraphLookup,
+            (float)SystemAPI.Time.ElapsedTime
+        );
 
         EntityQuery limbCreationRequestQuery = SystemAPI.QueryBuilder().WithAll<LimbEntityCreationRequest>().Build();
         using NativeArray<LimbEntityCreationRequest> limbCreationRequests = limbCreationRequestQuery.ToComponentDataArray<LimbEntityCreationRequest>(Allocator.TempJob);
         AddCollidersToCache(limbCreationRequests);
         using NativeParallelHashMap<PhenotypeLimbKey, Entity> limbEntityLookup = new(limbCreationRequestQuery.CalculateEntityCount(), Allocator.TempJob);
         using NativeParallelHashMap<PhenotypeLimbKey, LocalTransform> limbLocalTransformLookup = new(limbCreationRequestQuery.CalculateEntityCount(), Allocator.TempJob);
-        LimbEntityBuilder.CreateLimbEntities(ref state, limbCreationRequestQuery, limbCreationRequests, limbEntityLookup, limbLocalTransformLookup, RenderMeshArray);
+        LimbEntityBuilder.CreateLimbEntities(
+            ref state,
+            limbCreationRequestQuery,
+            limbCreationRequests,
+            rootPhenotypeEntityLookup.AsReadOnly(),
+            limbEntityLookup,
+            limbLocalTransformLookup,
+            RenderMeshArray
+        );
 
         EntityQuery jointCreationRequestQuery = SystemAPI.QueryBuilder().WithAll<JointEntityCreationRequest>().Build();
         using EntityCommandBuffer ecb = new(Allocator.TempJob);
@@ -82,6 +99,7 @@ public partial struct PhenotypeEntityCreationSystem : ISystem
             JointArchetype = jointArchetype,
             LimbEntityLookup = limbEntityLookup.AsReadOnly(),
             LimbLocalTransformLookup = limbLocalTransformLookup.AsReadOnly(),
+            RootPhenotypeEntityLookup = rootPhenotypeEntityLookup.AsReadOnly(),
             NeuralGraphLookup = neuralGraphLookup.AsReadOnly()
         }.ScheduleParallel(jointCreationRequestQuery, state.Dependency).Complete();
         ecb.Playback(state.EntityManager);

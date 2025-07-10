@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Entities;
 using mycoolfin.TheSimsulator.Sims.Phenotype;
-using Unity.Mathematics;
 
 public struct PhenotypeEntityCreationInfo
 {
@@ -26,17 +25,17 @@ public static class EntityCreationAPI
             typeof(JointEntityCreationRequest)
         );
         EntityArchetype neuralNetworkRequestArchetype = entityManager.CreateArchetype(
-            typeof(NeuralNetworkEntityCreationRequest)
+            typeof(RootPhenotypeEntityCreationRequest)
         );
 
         List<LimbEntityCreationRequest> limbRequests = new();
         List<JointEntityCreationRequest> jointRequests = new();
-        List<NeuralNetworkEntityCreationRequest> neuralNetworkRequests = new();
-        using BlobBuilder builder = new(Allocator.Temp);
+        List<RootPhenotypeEntityCreationRequest> neuralNetworkRequests = new();
         foreach (PhenotypeEntityCreationInfo c in creationInfoList)
         {
             limbRequests.AddRange(ConvertToLimbCreationRequests(c));
             jointRequests.AddRange(ConvertToJointCreationRequests(c));
+            using BlobBuilder builder = new(Allocator.Temp);
             neuralNetworkRequests.Add(ConvertToNeuralNetworkCreationRequest(c, builder));
         }
 
@@ -62,6 +61,7 @@ public static class EntityCreationAPI
     private static List<LimbEntityCreationRequest> ConvertToLimbCreationRequests(PhenotypeEntityCreationInfo info)
     {
         List<LimbEntityCreationRequest> requests = new();
+
         for (int i = 0; i < info.Phenotype.Limbs.Count; i++)
         {
             mycoolfin.TheSimsulator.Sims.Phenotype.Limb limb = info.Phenotype.Limbs[i];
@@ -118,15 +118,15 @@ public static class EntityCreationAPI
         return requests;
     }
 
-    private static NeuralNetworkEntityCreationRequest ConvertToNeuralNetworkCreationRequest(PhenotypeEntityCreationInfo info, BlobBuilder builder)
+    private static RootPhenotypeEntityCreationRequest ConvertToNeuralNetworkCreationRequest(PhenotypeEntityCreationInfo info, BlobBuilder builder)
     {
         BlobAssetReference<CompiledNeuralGraph> compiledNeuralGraph = NeuralCompiler.Compile(info.Phenotype, builder);
 
-        return new NeuralNetworkEntityCreationRequest
+        return new RootPhenotypeEntityCreationRequest
         {
             PhenotypeGid = info.Phenotype.Gid,
             Graph = compiledNeuralGraph,
-            LimbCount = (uint)info.Phenotype.Limbs.Count
+            LimbCount = (byte)info.Phenotype.Limbs.Count
         };
     }
 }

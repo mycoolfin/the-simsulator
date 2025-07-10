@@ -15,7 +15,15 @@ public static class LimbEntityBuilder
 
     private static readonly PhysicsDamping DefaultDamping = new() { Linear = 0.01f, Angular = 0.05f };
 
-    public static void CreateLimbEntities(ref SystemState state, EntityQuery limbCreationRequestQuery, NativeArray<LimbEntityCreationRequest> limbCreationRequests, NativeParallelHashMap<PhenotypeLimbKey, Entity> limbEntityLookup, NativeParallelHashMap<PhenotypeLimbKey, LocalTransform> limbLocalTransformLookup, RenderMeshArray renderMeshArray)
+    public static void CreateLimbEntities(
+        ref SystemState state,
+        EntityQuery limbCreationRequestQuery,
+        NativeArray<LimbEntityCreationRequest> limbCreationRequests,
+        NativeParallelHashMap<ulong, Entity>.ReadOnly rootPhenotypeEntityLookup,
+        NativeParallelHashMap<PhenotypeLimbKey, Entity> limbEntityLookup,
+        NativeParallelHashMap<PhenotypeLimbKey, LocalTransform> limbLocalTransformLookup,
+        RenderMeshArray renderMeshArray
+    )
     {
         using NativeArray<Entity> limbEntities = new(limbCreationRequests.Length, Allocator.TempJob);
         Entity limbPrototype = CreateLimbPrototype(ref state, renderMeshArray);
@@ -30,6 +38,7 @@ public static class LimbEntityBuilder
             Requests = limbCreationRequests,
             LimbEntities = limbEntities,
             ColliderMap = ColliderCacheManager.Cache.ReadOnlyMap,
+            RootPhenotypeEntityLookup = rootPhenotypeEntityLookup,
             LimbEntityLookup = limbEntityLookup.AsParallelWriter(),
             LimbLocalTransformLookup = limbLocalTransformLookup.AsParallelWriter()
         };
@@ -42,8 +51,8 @@ public static class LimbEntityBuilder
         Entity limbPrototype = state.EntityManager.CreateEntity();
 
         // IDs.
+        state.EntityManager.AddComponentData(limbPrototype, new RootPhenotypeEntity());
         state.EntityManager.AddComponentData(limbPrototype, new LimbIndex());
-        state.EntityManager.AddComponentData(limbPrototype, new PhenotypeGid());
 
         // Transform.
         state.EntityManager.AddComponentData(limbPrototype, new LocalTransform());
@@ -108,6 +117,7 @@ public static class LimbEntityBuilder
         [ReadOnly] public NativeArray<LimbEntityCreationRequest> Requests;
         [ReadOnly] public NativeArray<Entity> LimbEntities;
         [ReadOnly] public NativeParallelHashMap<ColliderKey, BlobAssetReference<Collider>>.ReadOnly ColliderMap;
+        [ReadOnly] public NativeParallelHashMap<ulong, Entity>.ReadOnly RootPhenotypeEntityLookup;
         public NativeParallelHashMap<PhenotypeLimbKey, Entity>.ParallelWriter LimbEntityLookup;
         public NativeParallelHashMap<PhenotypeLimbKey, LocalTransform>.ParallelWriter LimbLocalTransformLookup;
 
@@ -121,14 +131,16 @@ public static class LimbEntityBuilder
             LimbEntityCreationRequest requestData = Requests[index];
             Entity limbEntity = LimbEntities[index];
 
-            // IDs.
+            // Root phenotype entity reference.
+            Ecb.SetComponent(INSTANTIATION_KEY, limbEntity, new RootPhenotypeEntity
+            {
+                Value = RootPhenotypeEntityLookup[requestData.PhenotypeGid]
+            });
+
+            // Limb index.
             Ecb.SetComponent(INSTANTIATION_KEY, limbEntity, new LimbIndex
             {
                 Value = requestData.LimbIndex
-            });
-            Ecb.SetComponent(INSTANTIATION_KEY, limbEntity, new PhenotypeGid
-            {
-                Value = requestData.PhenotypeGid
             });
 
             // Transform.
