@@ -111,7 +111,6 @@ public partial struct UpdateJointAxisXActuatorJob : IJobEntity
 
     public void Execute(ref PhysicsJoint joint, in RootPhenotypeEntity rootPhenotypeEntity, in JointAxisX jointAxisX)
     {
-        UnityEngine.Debug.Log("HERE2");
         if (!EmitterStateBuffers.HasBuffer(rootPhenotypeEntity.Value))
             return;
 

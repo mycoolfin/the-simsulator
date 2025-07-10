@@ -3,6 +3,7 @@ using System.Numerics;
 using System.Collections.Generic;
 using mycoolfin.TheSimsulator.Sims.Genotype;
 using mycoolfin.TheSimsulator.Sims.Phenotype;
+using Unity.Entities;
 
 public class PhenotypeRenderingTest : UnityEngine.MonoBehaviour
 {
@@ -35,7 +36,7 @@ public class PhenotypeRenderingTest : UnityEngine.MonoBehaviour
             {
                 new Node(
                     new Vector3(1f, 1f, 1f),
-                    new(mycoolfin.TheSimsulator.Sims.Genotype.JointType.Spherical, new Vector3((float)Math.PI / 4f, (float)Math.PI / 4f, (float)Math.PI / 4f),
+                    new(mycoolfin.TheSimsulator.Sims.Genotype.JointType.Revolute, new Vector3((float)Math.PI / 4f, (float)Math.PI / 4f, (float)Math.PI / 4f),
                         new InputSetDefinition(new(addyA, 1f), new(addyB, 0f), new(addyC, 0f)),
                         new InputSetDefinition(new(addyA, 1f), new(addyB, 0f), new(addyC, 0f)),
                         new InputSetDefinition(new(addyA, 1f), new(addyB, 0f), new(addyC, 0f))
@@ -50,8 +51,8 @@ public class PhenotypeRenderingTest : UnityEngine.MonoBehaviour
                     nodes[0].Gid,
                     i % 6,
                     new Vector2(0.8f, 0.8f),
-                    new Vector3(0, 0, 0),
-                    // new Vector3((float)Math.PI / 15f, (float)Math.PI / 15f, (float)Math.PI / 15f),
+                    // new Vector3(0, 0, 0),
+                    new Vector3((float)Math.PI / 15f, (float)Math.PI / 15f, (float)Math.PI / 15f),
                     new Vector3(0.5f, 0.5f, 1f),
                     true,
                     true,
@@ -78,13 +79,13 @@ public class PhenotypeRenderingTest : UnityEngine.MonoBehaviour
             phenotypes.Add(phenotype);
         }
 
-        for (int i = 0; i < phenotypes.Count; i++)
-        {
-            SimsPhenotype phenotype = phenotypes[i];
-            PhenotypeRenderer phenotypeRenderer = Instantiate(PhenotypeRendererPrefab).GetComponent<PhenotypeRenderer>();
-            phenotypeRenderer.Initialise(phenotype, LimbRendererPrefab, JointRendererPrefab);
-            phenotypeRenderer.transform.position = new UnityEngine.Vector3(0, 0, 10);
-        }
+        // for (int i = 0; i < phenotypes.Count; i++)
+        // {
+        //     SimsPhenotype phenotype = phenotypes[i];
+        //     PhenotypeRenderer phenotypeRenderer = Instantiate(PhenotypeRendererPrefab).GetComponent<PhenotypeRenderer>();
+        //     phenotypeRenderer.Initialise(phenotype, LimbRendererPrefab, JointRendererPrefab);
+        //     phenotypeRenderer.transform.position = new UnityEngine.Vector3(0, 0, 10);
+        // }
 
         List<PhenotypeEntityCreationInfo> phenotypeCreationInfoList = new();
         float spacing = 5f;
@@ -108,6 +109,6 @@ public class PhenotypeRenderingTest : UnityEngine.MonoBehaviour
             phenotypeCreationInfoList.Add(info);
         }
 
-        EntityCreationAPI.CreateEntitiesFromPhenotypes(phenotypeCreationInfoList);
+        EntityCreationAPI.CreateEntitiesFromPhenotypes(World.DefaultGameObjectInjectionWorld, phenotypeCreationInfoList);
     }
 }

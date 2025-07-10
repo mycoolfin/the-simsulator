@@ -5,7 +5,7 @@ using Unity.Mathematics;
 public struct LimbEntityCreationRequest : IComponentData
 {
     public ulong PhenotypeGid;
-    public int LimbIndex;
+    public byte LimbIndex;
     public float3 Position;
     public quaternion Rotation;
     public float3 Dimensions;
@@ -17,5 +17,7 @@ public struct LimbEntityCreationRequest : IComponentData
 
 public struct LimbIndex : IComponentData
 {
-    public int Value;
+    public byte Value;
 }
+
+public struct DetachedLimbTag : IComponentData { }

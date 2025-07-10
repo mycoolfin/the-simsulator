@@ -13,10 +13,8 @@ public struct PhenotypeEntityCreationInfo
 
 public static class EntityCreationAPI
 {
-    public static void CreateEntitiesFromPhenotypes(List<PhenotypeEntityCreationInfo> creationInfoList)
+    public static void CreateEntitiesFromPhenotypes(World world, List<PhenotypeEntityCreationInfo> creationInfoList)
     {
-        World world = World.DefaultGameObjectInjectionWorld;
-
         EntityManager entityManager = world.EntityManager;
         EntityArchetype limbRequestArchetype = entityManager.CreateArchetype(
             typeof(LimbEntityCreationRequest)
@@ -68,7 +66,7 @@ public static class EntityCreationAPI
             LimbEntityCreationRequest request = new()
             {
                 PhenotypeGid = info.Phenotype.Gid,
-                LimbIndex = i,
+                LimbIndex = (byte)i,
                 Position = limb.Position.ToFloat3(),
                 Rotation = limb.Rotation.ToQuaternion(),
                 Dimensions = limb.Dimensions.ToFloat3(),

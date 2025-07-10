@@ -42,3 +42,9 @@ public struct EmitterState : IBufferElementData
 {
     public float Value;
 }
+
+public struct JointBrokenEvent : IBufferElementData
+{
+    public Entity DetachedLimbEntity;
+    public byte LimbIndex;
+}

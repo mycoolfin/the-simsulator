@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using mycoolfin.TheSimsulator.Sims.Genotype;
 using mycoolfin.TheSimsulator.Sims.Phenotype;
+using Unity.Entities;
 
 public class RandomPhenotypeSpawner : MonoBehaviour
 {
@@ -22,7 +23,7 @@ public class RandomPhenotypeSpawner : MonoBehaviour
                 SimsPhenotype phenotype = phenotypeFactory.ConstructPhenotype(genotype);
                 phenotypes.Add(phenotype);
             }
-            EntityCreationAPI.CreateEntitiesFromPhenotypes(phenotypes.ConvertAll(p => new PhenotypeEntityCreationInfo
+            EntityCreationAPI.CreateEntitiesFromPhenotypes(World.DefaultGameObjectInjectionWorld, phenotypes.ConvertAll(p => new PhenotypeEntityCreationInfo
             {
                 Phenotype = p,
                 VisualOffset = new System.Numerics.Vector3(0, 0, 0)
