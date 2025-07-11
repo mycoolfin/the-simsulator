@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Entities;
 using mycoolfin.TheSimsulator.Sims.Phenotype;
+using Unity.Burst;
 
 public struct PhenotypeEntityCreationInfo
 {
@@ -16,6 +17,7 @@ public static class EntityCreationAPI
     public static void CreateEntitiesFromPhenotypes(World world, List<PhenotypeEntityCreationInfo> creationInfoList)
     {
         EntityManager entityManager = world.EntityManager;
+        
         EntityArchetype limbRequestArchetype = entityManager.CreateArchetype(
             typeof(LimbEntityCreationRequest)
         );
@@ -41,7 +43,7 @@ public static class EntityCreationAPI
         using NativeArray<LimbEntityCreationRequest> limbRequestsArray = new(limbRequests.ToArray(), Allocator.Temp);
         using NativeArray<JointEntityCreationRequest> jointRequestsArray = new(jointRequests.ToArray(), Allocator.Temp);
         using NativeArray<RootPhenotypeEntityCreationRequest> neuralRequestsArray = new(neuralNetworkRequests.ToArray(), Allocator.Temp);
-        
+
         // Batch create all entities at once.
         using NativeArray<Entity> limbEntities = new(limbRequests.Count, Allocator.Temp);
         using NativeArray<Entity> jointEntities = new(jointRequests.Count, Allocator.Temp);
@@ -49,7 +51,7 @@ public static class EntityCreationAPI
         entityManager.CreateEntity(limbRequestArchetype, limbEntities);
         entityManager.CreateEntity(jointRequestArchetype, jointEntities);
         entityManager.CreateEntity(neuralNetworkRequestArchetype, neuralNetworkEntities);
-        
+
         // Set component data.
         for (int i = 0; i < limbRequestsArray.Length; i++)
             entityManager.SetComponentData(limbEntities[i], limbRequestsArray[i]);
@@ -57,6 +59,12 @@ public static class EntityCreationAPI
             entityManager.SetComponentData(jointEntities[i], jointRequestsArray[i]);
         for (int i = 0; i < neuralRequestsArray.Length; i++)
             entityManager.SetComponentData(neuralNetworkEntities[i], neuralRequestsArray[i]);
+    }
+
+    public static void DestroyAllPhenotypeEntities(World world)
+    {
+        EntityManager entityManager = world.EntityManager;
+        entityManager.CreateSingleton<DestroyAllPhenotypeEntitiesRequest>();
     }
 
     private static List<LimbEntityCreationRequest> ConvertToLimbCreationRequests(PhenotypeEntityCreationInfo info)

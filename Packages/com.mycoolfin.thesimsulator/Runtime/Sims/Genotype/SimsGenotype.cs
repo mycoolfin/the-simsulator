@@ -26,11 +26,11 @@ namespace mycoolfin.TheSimsulator.Sims.Genotype
             NeuronDefinitions = neuronDefinitions ?? throw new ArgumentNullException(nameof(neuronDefinitions), "NeuronDefinitions cannot be null.");
 
             if (Nodes.Count < MIN_NODES || Nodes.Count > MAX_NODES)
-                throw new ArgumentOutOfRangeException(nameof(nodes), $"Node count must be between {MIN_NODES} and {MAX_NODES}.");
+                throw new ArgumentOutOfRangeException(nameof(nodes), $"Node count must be between {MIN_NODES} and {MAX_NODES} (Got {Nodes.Count}).");
             if (Connections.Count < MIN_CONNECTIONS || Connections.Count > MAX_CONNECTIONS)
-                throw new ArgumentOutOfRangeException(nameof(connections), $"Connection count must be between {MIN_CONNECTIONS} and {MAX_CONNECTIONS}.");
+                throw new ArgumentOutOfRangeException(nameof(connections), $"Connection count must be between {MIN_CONNECTIONS} and {MAX_CONNECTIONS} (Got {Connections.Count}).");
             if (NeuronDefinitions.Count < MIN_NEURON_DEFINITIONS || NeuronDefinitions.Count > MAX_NEURON_DEFINITIONS)
-                throw new ArgumentOutOfRangeException(nameof(neuronDefinitions), $"NeuronDefinition count must be between {MIN_NEURON_DEFINITIONS} and {MAX_NEURON_DEFINITIONS}.");
+                throw new ArgumentOutOfRangeException(nameof(neuronDefinitions), $"NeuronDefinition count must be between {MIN_NEURON_DEFINITIONS} and {MAX_NEURON_DEFINITIONS} (Got {NeuronDefinitions.Count}).");
         }
     }
 }

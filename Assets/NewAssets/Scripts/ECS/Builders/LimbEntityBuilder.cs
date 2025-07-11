@@ -10,10 +10,18 @@ using Unity.Rendering;
 [BurstCompile]
 public static class LimbEntityBuilder
 {
+    public static RenderMeshArray RenderMeshArray;
+
     private const uint PHENOTYPE_LAYER = 1u << 9;
     private const uint ALL_LAYERS = ~0u;
 
     private static readonly PhysicsDamping DefaultDamping = new() { Linear = 0.01f, Angular = 0.05f };
+
+    public static bool IsReady()
+    {
+        return RenderMeshArray.MaterialReferences != null && RenderMeshArray.MaterialReferences.Length != 0
+            && RenderMeshArray.MeshReferences != null && RenderMeshArray.MeshReferences.Length != 0;
+    }
 
     public static void CreateLimbEntities(
         ref SystemState state,
@@ -21,12 +29,11 @@ public static class LimbEntityBuilder
         NativeArray<LimbEntityCreationRequest> limbCreationRequests,
         NativeParallelHashMap<ulong, Entity>.ReadOnly rootPhenotypeEntityLookup,
         NativeParallelHashMap<PhenotypeLimbKey, Entity> limbEntityLookup,
-        NativeParallelHashMap<PhenotypeLimbKey, LocalTransform> limbLocalTransformLookup,
-        RenderMeshArray renderMeshArray
+        NativeParallelHashMap<PhenotypeLimbKey, LocalTransform> limbLocalTransformLookup
     )
     {
         using NativeArray<Entity> limbEntities = new(limbCreationRequests.Length, Allocator.TempJob);
-        Entity limbPrototype = CreateLimbPrototype(ref state, renderMeshArray);
+        Entity limbPrototype = CreateLimbPrototype(ref state, RenderMeshArray);
         state.EntityManager.Instantiate(limbPrototype, limbEntities);
 
         using NativeArray<Entity> limbCreationRequestEntities = limbCreationRequestQuery.ToEntityArray(Allocator.TempJob);

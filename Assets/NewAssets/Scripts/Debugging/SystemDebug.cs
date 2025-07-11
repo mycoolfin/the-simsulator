@@ -11,7 +11,7 @@ public class SystemDebug : MonoBehaviour
 
     private void Start()
     {
-        SystemSettingsAPI.SetSimulationSpeedMode(World.DefaultGameObjectInjectionWorld, SimulationSpeedMode);
+        SystemSettingsAPI.SetSimulationRateControllerSettings(World.DefaultGameObjectInjectionWorld, SimulationSpeedMode);
 
         SystemSettingsAPI.SetJointBreakSystemEnabled(World.DefaultGameObjectInjectionWorld, EnableJointBreakSystem);
         previousEnableJointBreakSystem = EnableJointBreakSystem;
@@ -21,7 +21,7 @@ public class SystemDebug : MonoBehaviour
     {
         if (SimulationSpeedMode != previousSimulationSpeedMode)
         {
-            SystemSettingsAPI.SetSimulationSpeedMode(World.DefaultGameObjectInjectionWorld, SimulationSpeedMode);
+            SystemSettingsAPI.SetSimulationRateControllerSettings(World.DefaultGameObjectInjectionWorld, SimulationSpeedMode);
             previousSimulationSpeedMode = SimulationSpeedMode;
         }
 

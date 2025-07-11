@@ -77,6 +77,9 @@ public partial struct JointBrokenEventHandlerJob : IJobEntity
             limbStatus.AttachmentState = AttachmentState.Detached;
             limbStatuses[jointBrokenEvent.LimbIndex] = limbStatus;
 
+            // TODO: Mark all children of the detached limb as detached too.
+            // Maybe move the limb lookup here instead.
+
             // Zero out the emitter states for the detached limb.
             CompiledNeuralGraph.ArraySlice sensorsSlice = sensorSlices[jointBrokenEvent.LimbIndex];
             CompiledNeuralGraph.ArraySlice actuatorSlice = actuatorSlices[jointBrokenEvent.LimbIndex];

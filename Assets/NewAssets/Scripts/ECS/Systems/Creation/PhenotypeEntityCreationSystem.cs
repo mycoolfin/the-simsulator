@@ -4,8 +4,43 @@ using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
-using Unity.Rendering;
 using Unity.Physics;
+using System.Runtime.InteropServices;
+
+public struct RootPhenotypeEntityCreationRequest : IComponentData
+{
+    public ulong PhenotypeGid;
+    public BlobAssetReference<CompiledNeuralGraph> Graph;
+    public byte LimbCount;
+}
+
+public struct LimbEntityCreationRequest : IComponentData
+{
+    public ulong PhenotypeGid;
+    public byte LimbIndex;
+    public float3 Position;
+    public quaternion Rotation;
+    public float3 Dimensions;
+    public float Mass;
+    public float4 Color;
+    public float3 VisualOffset;
+    [MarshalAs(UnmanagedType.U1)] public bool AllowInterPhenotypeCollisions;
+}
+
+public struct JointEntityCreationRequest : IComponentData
+{
+    public ulong PhenotypeGid;
+    public mycoolfin.TheSimsulator.Sims.Genotype.JointType JointType;
+    public int ReferenceLimbIndex;
+    public int AttachedLimbIndex;
+    public float3 ReferenceLimbSpaceAnchor;
+    public float3 ReferenceLimbSpaceXAxis;
+    public float3 ReferenceLimbSpaceYAxis;
+    public float3 ReferenceLimbSpaceZAxis;
+    [MarshalAs(UnmanagedType.U1)] public bool FlippedHandedness;
+    public float3 AngleLimits;
+    public float MaxMotorImpulseScaleFactor;
+}
 
 [BurstCompile]
 public struct PhenotypeLimbKey : IEquatable<PhenotypeLimbKey>
@@ -42,8 +77,6 @@ public struct PhenotypeLimbKey : IEquatable<PhenotypeLimbKey>
 [UpdateAfter(typeof(BeginSimulationEntityCommandBufferSystem))]
 public partial struct PhenotypeEntityCreationSystem : ISystem
 {
-    public static RenderMeshArray RenderMeshArray; // TODO: This won't work across worlds. Use a singleton baker instead.
-
     private EntityArchetype jointArchetype;
     private EntityArchetype neuralNetworkArchetype;
 
@@ -58,8 +91,7 @@ public partial struct PhenotypeEntityCreationSystem : ISystem
 
     public void OnUpdate(ref SystemState state)
     {
-        if (RenderMeshArray.MaterialReferences == null || RenderMeshArray.MaterialReferences.Length == 0 ||
-            RenderMeshArray.MeshReferences == null || RenderMeshArray.MeshReferences.Length == 0)
+        if (!LimbEntityBuilder.IsReady())
             return;
 
         EntityQuery neuralNetworkCreationRequestQuery = SystemAPI.QueryBuilder().WithAll<RootPhenotypeEntityCreationRequest>().Build();
@@ -88,8 +120,7 @@ public partial struct PhenotypeEntityCreationSystem : ISystem
             limbCreationRequests,
             rootPhenotypeEntityLookup.AsReadOnly(),
             limbEntityLookup,
-            limbLocalTransformLookup,
-            RenderMeshArray
+            limbLocalTransformLookup
         );
 
         EntityQuery jointCreationRequestQuery = SystemAPI.QueryBuilder().WithAll<JointEntityCreationRequest>().Build();
@@ -104,6 +135,17 @@ public partial struct PhenotypeEntityCreationSystem : ISystem
             NeuralGraphLookup = neuralGraphLookup.AsReadOnly()
         }.ScheduleParallel(jointCreationRequestQuery, state.Dependency).Complete();
         ecb.Playback(state.EntityManager);
+
+        // Update metadata with new counts.
+        PhenotypeEntitiesMetadata metadata = new()
+        {
+            TotalRootPhenotypeCount = neuralNetworkCreationRequests.Length,
+            TotalLimbCount = limbCreationRequests.Length
+        };
+        Entity metadataSingleton = SystemAPI.HasSingleton<PhenotypeEntitiesMetadata>()
+            ? SystemAPI.GetSingletonEntity<PhenotypeEntitiesMetadata>()
+            : state.EntityManager.CreateSingleton<PhenotypeEntitiesMetadata>();
+        state.EntityManager.SetComponentData(metadataSingleton, metadata);
     }
 
     public readonly void OnDestroy(ref SystemState state)

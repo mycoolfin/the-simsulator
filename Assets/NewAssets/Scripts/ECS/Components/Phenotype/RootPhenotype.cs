@@ -1,11 +1,5 @@
 using Unity.Entities;
-
-public struct RootPhenotypeEntityCreationRequest : IComponentData
-{
-    public ulong PhenotypeGid;
-    public BlobAssetReference<CompiledNeuralGraph> Graph;
-    public byte LimbCount;
-}
+using Unity.Mathematics;
 
 public struct PhenotypeGid : IComponentData
 {
@@ -47,4 +41,9 @@ public struct JointBrokenEvent : IBufferElementData
 {
     public Entity DetachedLimbEntity;
     public byte LimbIndex;
+}
+
+public struct PhenotypeCentroid : IComponentData
+{
+    public float3 Value;
 }

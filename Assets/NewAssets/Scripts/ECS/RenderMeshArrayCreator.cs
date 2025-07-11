@@ -10,6 +10,6 @@ public class RenderMeshArrayCreator : MonoBehaviour
     {
         RenderMeshArray renderMeshArray = new(Materials, Meshes);
 
-        PhenotypeEntityCreationSystem.RenderMeshArray = renderMeshArray;
+        LimbEntityBuilder.RenderMeshArray = renderMeshArray;
     }
 }

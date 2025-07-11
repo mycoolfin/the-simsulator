@@ -14,7 +14,8 @@ public static class RootPhenotypeEntityBuilder
             typeof(PhenotypeCreatedAt),
             typeof(NeuralGraphRef),
             typeof(EmitterState),
-            typeof(JointBrokenEvent)
+            typeof(JointBrokenEvent),
+            typeof(PhenotypeCentroid)
         );
     }
 

@@ -11,6 +11,7 @@ public enum SimulationRateMode : byte
 public struct SimulationRateControllerSettings : IComponentData
 {
     public SimulationRateMode Mode;
+    public float StopAfterSeconds;
 }
 
 [UpdateInGroup(typeof(InitializationSystemGroup))]
@@ -21,6 +22,7 @@ public partial struct SimulationRateControllerSystem : ISystem
     private const float FIXED_SIMULATION_STEP = 1f / 60f; // 60 Hz fixed timestep for full-speed mode.
 
     private SimulationRateMode currentMode;
+    private double lastElapsedFixedTime;
 
     public void OnCreate(ref SystemState state)
     {
@@ -33,16 +35,34 @@ public partial struct SimulationRateControllerSystem : ISystem
 
     public void OnUpdate(ref SystemState state)
     {
+        FixedStepSimulationSystemGroup fixedStepGroup = state.World.GetExistingSystemManaged<FixedStepSimulationSystemGroup>();
         SimulationRateControllerSettings settings = SystemAPI.GetSingleton<SimulationRateControllerSettings>();
-        if (settings.Mode == currentMode)
-            return;
 
-        currentMode = settings.Mode;
-        ChangeSimulationRate(currentMode, state.World.GetExistingSystemManaged<FixedStepSimulationSystemGroup>());
+        if (settings.Mode != currentMode)
+            ChangeSimulationRate(settings.Mode, fixedStepGroup);
+
+        if (settings.Mode != SimulationRateMode.Paused && settings.StopAfterSeconds > 0f)
+        {
+            double elapsedFixedTime = fixedStepGroup.World.Time.ElapsedTime;
+            float diff = (float)(elapsedFixedTime - lastElapsedFixedTime);
+            lastElapsedFixedTime = elapsedFixedTime;
+
+            settings.StopAfterSeconds -= diff;
+            if (settings.StopAfterSeconds <= 0f)
+            {
+                settings.Mode = SimulationRateMode.Paused;
+                ChangeSimulationRate(settings.Mode, fixedStepGroup);
+                settings.StopAfterSeconds = 0f;
+            }
+
+            SystemAPI.SetSingleton(settings);
+        }
     }
 
-    private static void ChangeSimulationRate(SimulationRateMode mode, FixedStepSimulationSystemGroup fixedStepGroup)
+    private void ChangeSimulationRate(SimulationRateMode mode, FixedStepSimulationSystemGroup fixedStepGroup)
     {
+        currentMode = mode;
+
         switch (mode)
         {
             case SimulationRateMode.Paused:
