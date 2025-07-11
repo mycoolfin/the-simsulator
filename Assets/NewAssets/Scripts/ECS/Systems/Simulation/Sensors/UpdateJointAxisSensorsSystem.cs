@@ -9,12 +9,12 @@ using Unity.Transforms;
 [UpdateInGroup(typeof(UpdateSensorsSystemGroup))]
 public partial struct UpdateJointAxisSensorsSystem : ISystem
 {
-    private ComponentLookup<LocalToWorld> localToWorldLookup;
+    private ComponentLookup<LocalTransform> localTransformLookup;
     private BufferLookup<EmitterState> emitterStatesLookup;
 
     public void OnCreate(ref SystemState state)
     {
-        localToWorldLookup = state.GetComponentLookup<LocalToWorld>(isReadOnly: true);
+        localTransformLookup = state.GetComponentLookup<LocalTransform>(isReadOnly: true);
         emitterStatesLookup = state.GetBufferLookup<EmitterState>(isReadOnly: false);
 
         EntityQuery entityQuery = state.GetEntityQuery(new EntityQueryDesc
@@ -37,26 +37,26 @@ public partial struct UpdateJointAxisSensorsSystem : ISystem
 
     public void OnUpdate(ref SystemState state)
     {
-        localToWorldLookup.Update(ref state);
+        localTransformLookup.Update(ref state);
         emitterStatesLookup.Update(ref state);
 
         UpdateJointAxisXSensorJob xJob = new()
         {
-            LocalToWorldLookup = localToWorldLookup,
+            LocalTransformLookup = localTransformLookup,
             EmitterStateBuffers = emitterStatesLookup
         };
         state.Dependency = xJob.ScheduleParallel(state.Dependency);
 
         UpdateJointAxisYSensorJob yJob = new()
         {
-            LocalToWorldLookup = localToWorldLookup,
+            LocalTransformLookup = localTransformLookup,
             EmitterStateBuffers = emitterStatesLookup
         };
         state.Dependency = yJob.ScheduleParallel(state.Dependency);
 
         UpdateJointAxisZSensorJob zJob = new()
         {
-            LocalToWorldLookup = localToWorldLookup,
+            LocalTransformLookup = localTransformLookup,
             EmitterStateBuffers = emitterStatesLookup
         };
         state.Dependency = zJob.ScheduleParallel(state.Dependency);
@@ -66,38 +66,38 @@ public partial struct UpdateJointAxisSensorsSystem : ISystem
 [BurstCompile]
 public partial struct UpdateJointAxisXSensorJob : IJobEntity
 {
-    [ReadOnly] public ComponentLookup<LocalToWorld> LocalToWorldLookup;
+    [ReadOnly] public ComponentLookup<LocalTransform> LocalTransformLookup;
     [NativeDisableParallelForRestriction] public BufferLookup<EmitterState> EmitterStateBuffers;
 
     public void Execute(in PhysicsConstrainedBodyPair pair, in PhysicsJoint joint, in JointAxisX jointAxis, in RootPhenotypeEntity rootPhenotypeEntity)
     {
         JointAxisSensorJobCore.Axis axis = jointAxis.SwapXZ ? JointAxisSensorJobCore.Axis.Z : JointAxisSensorJobCore.Axis.X;
-        JointAxisSensorJobCore.ExecuteAxis(pair, joint, rootPhenotypeEntity, axis, jointAxis.SensorEmitterIndex, jointAxis.AngleLimit, ref LocalToWorldLookup, ref EmitterStateBuffers);
+        JointAxisSensorJobCore.ExecuteAxis(pair, joint, rootPhenotypeEntity, axis, jointAxis.SensorEmitterIndex, jointAxis.AngleLimit, ref LocalTransformLookup, ref EmitterStateBuffers);
     }
 }
 
 [BurstCompile]
 public partial struct UpdateJointAxisYSensorJob : IJobEntity
 {
-    [ReadOnly] public ComponentLookup<LocalToWorld> LocalToWorldLookup;
+    [ReadOnly] public ComponentLookup<LocalTransform> LocalTransformLookup;
     [NativeDisableParallelForRestriction] public BufferLookup<EmitterState> EmitterStateBuffers;
 
     public void Execute(in PhysicsConstrainedBodyPair pair, in PhysicsJoint joint, in JointAxisY jointAxis, in RootPhenotypeEntity rootPhenotypeEntity)
     {
-        JointAxisSensorJobCore.ExecuteAxis(pair, joint, rootPhenotypeEntity, JointAxisSensorJobCore.Axis.Y, jointAxis.SensorEmitterIndex, jointAxis.AngleLimit, ref LocalToWorldLookup, ref EmitterStateBuffers);
+        JointAxisSensorJobCore.ExecuteAxis(pair, joint, rootPhenotypeEntity, JointAxisSensorJobCore.Axis.Y, jointAxis.SensorEmitterIndex, jointAxis.AngleLimit, ref LocalTransformLookup, ref EmitterStateBuffers);
     }
 }
 
 [BurstCompile]
 public partial struct UpdateJointAxisZSensorJob : IJobEntity
 {
-    [ReadOnly] public ComponentLookup<LocalToWorld> LocalToWorldLookup;
+    [ReadOnly] public ComponentLookup<LocalTransform> LocalTransformLookup;
     [NativeDisableParallelForRestriction] public BufferLookup<EmitterState> EmitterStateBuffers;
 
     public void Execute(in PhysicsConstrainedBodyPair pair, in PhysicsJoint joint, in JointAxisZ jointAxis, in RootPhenotypeEntity rootPhenotypeEntity)
     {
         JointAxisSensorJobCore.Axis axis = jointAxis.SwapXZ ? JointAxisSensorJobCore.Axis.X : JointAxisSensorJobCore.Axis.Z;
-        JointAxisSensorJobCore.ExecuteAxis(pair, joint, rootPhenotypeEntity, axis, jointAxis.SensorEmitterIndex, jointAxis.AngleLimit, ref LocalToWorldLookup, ref EmitterStateBuffers);
+        JointAxisSensorJobCore.ExecuteAxis(pair, joint, rootPhenotypeEntity, axis, jointAxis.SensorEmitterIndex, jointAxis.AngleLimit, ref LocalTransformLookup, ref EmitterStateBuffers);
     }
 }
 
@@ -114,11 +114,11 @@ public static class JointAxisSensorJobCore
         in Axis axis,
         ushort emitterIndex,
         float angleLimit,
-        ref ComponentLookup<LocalToWorld> localToWorldLookup,
+        ref ComponentLookup<LocalTransform> localTransformLookup,
         ref BufferLookup<EmitterState> emitterStateBuffers
     )
     {
-        if (!localToWorldLookup.HasComponent(pair.EntityA) || !localToWorldLookup.HasComponent(pair.EntityB))
+        if (!localTransformLookup.HasComponent(pair.EntityA) || !localTransformLookup.HasComponent(pair.EntityB))
             return;
 
         if (!emitterStateBuffers.HasBuffer(rootPhenotypeEntity.Value))
@@ -128,9 +128,15 @@ public static class JointAxisSensorJobCore
         if (emitterIndex >= (ushort)buffer.Length)
             return;
 
+        LocalTransform transformA = localTransformLookup[pair.EntityA];
+        LocalTransform transformB = localTransformLookup[pair.EntityB];
+
+        quaternion worldRotA = transformA.Rotation;
+        quaternion worldRotB = transformB.Rotation;
+
         float angle = GetJointAngle(
-            localToWorldLookup[pair.EntityA].Rotation,
-            localToWorldLookup[pair.EntityB].Rotation,
+            worldRotA,
+            worldRotB,
             joint.BodyAFromJoint,
             joint.BodyBFromJoint,
             axis

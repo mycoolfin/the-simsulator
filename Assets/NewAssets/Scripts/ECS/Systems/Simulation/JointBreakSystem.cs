@@ -15,14 +15,14 @@ public struct JointBreakSystemSettings : IComponentData
 [UpdateAfter(typeof(PhysicsSystemGroup))]
 public partial struct JointBreakSystem : ISystem
 {
-    private ComponentLookup<LocalToWorld> localToWorldLookup;
+    private ComponentLookup<LocalTransform> localTransformLookup;
     private ComponentLookup<LimbIndex> limbIndexLookup;
 
     public void OnCreate(ref SystemState state)
     {
         state.EntityManager.CreateSingleton(new JointBreakSystemSettings { Enabled = true });
 
-        localToWorldLookup = state.GetComponentLookup<LocalToWorld>(isReadOnly: true);
+        localTransformLookup = state.GetComponentLookup<LocalTransform>(isReadOnly: true);
         limbIndexLookup = state.GetComponentLookup<LimbIndex>(isReadOnly: true);
 
         state.RequireForUpdate<PhysicsConstrainedBodyPair>();
@@ -35,14 +35,14 @@ public partial struct JointBreakSystem : ISystem
         if (!SystemAPI.GetSingleton<JointBreakSystemSettings>().Enabled)
             return;
 
-        localToWorldLookup.Update(ref state);
+        localTransformLookup.Update(ref state);
         limbIndexLookup.Update(ref state);
 
         using EntityCommandBuffer ecb = new(Allocator.TempJob);
         new JointBreakJob
         {
             Ecb = ecb.AsParallelWriter(),
-            LocalToWorldLookup = localToWorldLookup,
+            LocalTransformLookup = localTransformLookup,
             LimbIndexLookup = limbIndexLookup
         }.ScheduleParallel(state.Dependency).Complete();
         ecb.Playback(state.EntityManager);
@@ -53,18 +53,21 @@ public partial struct JointBreakSystem : ISystem
 public partial struct JointBreakJob : IJobEntity
 {
     public EntityCommandBuffer.ParallelWriter Ecb;
-    [ReadOnly] public ComponentLookup<LocalToWorld> LocalToWorldLookup;
+    [ReadOnly] public ComponentLookup<LocalTransform> LocalTransformLookup;
     [ReadOnly] public ComponentLookup<LimbIndex> LimbIndexLookup;
 
-    private const float MAX_DISTANCE = 0.25f;
+    private const float MAX_DISTANCE = 0.5f;
 
     private const int INSTANTIATION_KEY = 1;
     private const int DISPOSAL_KEY = 2;
 
     public void Execute(Entity jointEntity, in PhysicsConstrainedBodyPair pair, in PhysicsJoint joint, in RootPhenotypeEntity rootPhenotypeEntity)
     {
-        float3 worldA = math.transform(LocalToWorldLookup[pair.EntityA].Value, joint.BodyAFromJoint.Position);
-        float3 worldB = math.transform(LocalToWorldLookup[pair.EntityB].Value, joint.BodyBFromJoint.Position);
+        LocalTransform transformA = LocalTransformLookup[pair.EntityA];
+        LocalTransform transformB = LocalTransformLookup[pair.EntityB];
+        
+        float3 worldA = math.transform(float4x4.TRS(transformA.Position, transformA.Rotation, transformA.Scale), joint.BodyAFromJoint.Position);
+        float3 worldB = math.transform(float4x4.TRS(transformB.Position, transformB.Rotation, transformB.Scale), joint.BodyBFromJoint.Position);
 
         if (math.distancesq(worldA, worldB) > (MAX_DISTANCE * MAX_DISTANCE))
         {

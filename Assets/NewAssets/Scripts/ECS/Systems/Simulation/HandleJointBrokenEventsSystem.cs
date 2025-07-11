@@ -1,18 +1,36 @@
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
+using Unity.Rendering;
 
 [UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
 [UpdateAfter(typeof(JointBreakSystem))]
 public partial struct HandleJointBrokenEventsSystem : ISystem
 {
-    public readonly void OnCreate(ref SystemState state)
+    private EntityQuery eventQuery;
+
+    public void OnCreate(ref SystemState state)
     {
-        state.RequireForUpdate<JointBrokenEvent>();
+        eventQuery = SystemAPI.QueryBuilder().WithAll<JointBrokenEvent, LimbStatus, NeuralGraphRef, EmitterState>().Build();
+        state.RequireForUpdate(eventQuery);
     }
 
     public void OnUpdate(ref SystemState state)
     {
+        // Check if there are any events to process before creating ECB and scheduling job.
+        bool hasEvents = false;
+        foreach (var buffer in SystemAPI.Query<DynamicBuffer<JointBrokenEvent>>())
+        {
+            if (buffer.Length > 0)
+            {
+                hasEvents = true;
+                break;
+            }
+        }
+
+        if (!hasEvents)
+            return;
+
         using EntityCommandBuffer ecb = new(Allocator.TempJob);
         new JointBrokenEventHandlerJob
         {
@@ -50,8 +68,9 @@ public partial struct JointBrokenEventHandlerJob : IJobEntity
         {
             JointBrokenEvent jointBrokenEvent = eventBuffer[i];
 
-            // Tag the detached limb entity.
+            // Tag and color the detached limb entity.
             Ecb.AddComponent(0, jointBrokenEvent.DetachedLimbEntity, new DetachedLimbTag());
+            Ecb.SetComponent(0, jointBrokenEvent.DetachedLimbEntity, new URPMaterialPropertyBaseColor { Value = new(0f, 0f, 0f, 0.2f) });
 
             // Update the on-board limb status.
             LimbStatus limbStatus = limbStatuses[jointBrokenEvent.LimbIndex];

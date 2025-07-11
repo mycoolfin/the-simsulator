@@ -23,14 +23,16 @@ public partial struct UpdateNeuronsSystem : ISystem
 
     public void OnUpdate(ref SystemState state)
     {
+        FixedStepSimulationSystemGroup fixedStepGroup = state.World.GetExistingSystemManaged<FixedStepSimulationSystemGroup>();
+
         limbStatusLookup.Update(ref state);
 
         state.Dependency = new UpdateNeuronJob
         {
             LimbStatusLookup = limbStatusLookup,
-            ElapsedTime = (float)SystemAPI.Time.ElapsedTime,
-            DeltaTime = SystemAPI.Time.DeltaTime,
-            InverseDeltaTime = 1f / math.max(SystemAPI.Time.DeltaTime, 1e-5f),
+            ElapsedTime = (float)fixedStepGroup.World.Time.ElapsedTime,
+            DeltaTime = fixedStepGroup.World.Time.DeltaTime,
+            InverseDeltaTime = 1f / math.max(fixedStepGroup.World.Time.DeltaTime, 1e-5f),
         }.ScheduleParallel(state.Dependency);
     }
 }

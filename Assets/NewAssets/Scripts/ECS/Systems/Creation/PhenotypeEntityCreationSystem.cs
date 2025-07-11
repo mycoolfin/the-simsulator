@@ -66,6 +66,7 @@ public partial struct PhenotypeEntityCreationSystem : ISystem
         using NativeArray<RootPhenotypeEntityCreationRequest> neuralNetworkCreationRequests = neuralNetworkCreationRequestQuery.ToComponentDataArray<RootPhenotypeEntityCreationRequest>(Allocator.TempJob);
         using NativeParallelHashMap<ulong, NeuralGraphRef> neuralGraphLookup = new(neuralNetworkCreationRequestQuery.CalculateEntityCount(), Allocator.TempJob);
         using NativeParallelHashMap<ulong, Entity> rootPhenotypeEntityLookup = new(neuralNetworkCreationRequestQuery.CalculateEntityCount(), Allocator.TempJob);
+        FixedStepSimulationSystemGroup fixedStepGroup = state.World.GetExistingSystemManaged<FixedStepSimulationSystemGroup>();
         RootPhenotypeEntityBuilder.CreateRootPhenotypeEntities(
             ref state,
             neuralNetworkArchetype,
@@ -73,7 +74,7 @@ public partial struct PhenotypeEntityCreationSystem : ISystem
             neuralNetworkCreationRequests,
             rootPhenotypeEntityLookup,
             neuralGraphLookup,
-            (float)SystemAPI.Time.ElapsedTime
+            (float)fixedStepGroup.World.Time.ElapsedTime
         );
 
         EntityQuery limbCreationRequestQuery = SystemAPI.QueryBuilder().WithAll<LimbEntityCreationRequest>().Build();

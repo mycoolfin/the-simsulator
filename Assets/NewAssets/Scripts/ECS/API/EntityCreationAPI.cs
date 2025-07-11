@@ -37,23 +37,26 @@ public static class EntityCreationAPI
             neuralNetworkRequests.Add(ConvertToNeuralNetworkCreationRequest(c, builder));
         }
 
-        // Add limb entity creation requests to ECS.
-        using NativeArray<Entity> entities = new(limbRequests.Count, Allocator.Temp);
-        entityManager.CreateEntity(limbRequestArchetype, entities);
-        for (int i = 0; i < limbRequests.Count; i++)
-            entityManager.SetComponentData(entities[i], limbRequests[i]);
-
-        // Add joint entity creation requests to ECS.
+        // Convert to NativeArrays for better performance and reduced allocations.
+        using NativeArray<LimbEntityCreationRequest> limbRequestsArray = new(limbRequests.ToArray(), Allocator.Temp);
+        using NativeArray<JointEntityCreationRequest> jointRequestsArray = new(jointRequests.ToArray(), Allocator.Temp);
+        using NativeArray<RootPhenotypeEntityCreationRequest> neuralRequestsArray = new(neuralNetworkRequests.ToArray(), Allocator.Temp);
+        
+        // Batch create all entities at once.
+        using NativeArray<Entity> limbEntities = new(limbRequests.Count, Allocator.Temp);
         using NativeArray<Entity> jointEntities = new(jointRequests.Count, Allocator.Temp);
-        entityManager.CreateEntity(jointRequestArchetype, jointEntities);
-        for (int i = 0; i < jointRequests.Count; i++)
-            entityManager.SetComponentData(jointEntities[i], jointRequests[i]);
-
-        // Add neural network entity creation requests to ECS.
         using NativeArray<Entity> neuralNetworkEntities = new(neuralNetworkRequests.Count, Allocator.Temp);
+        entityManager.CreateEntity(limbRequestArchetype, limbEntities);
+        entityManager.CreateEntity(jointRequestArchetype, jointEntities);
         entityManager.CreateEntity(neuralNetworkRequestArchetype, neuralNetworkEntities);
-        for (int i = 0; i < neuralNetworkRequests.Count; i++)
-            entityManager.SetComponentData(neuralNetworkEntities[i], neuralNetworkRequests[i]);
+        
+        // Set component data.
+        for (int i = 0; i < limbRequestsArray.Length; i++)
+            entityManager.SetComponentData(limbEntities[i], limbRequestsArray[i]);
+        for (int i = 0; i < jointRequestsArray.Length; i++)
+            entityManager.SetComponentData(jointEntities[i], jointRequestsArray[i]);
+        for (int i = 0; i < neuralRequestsArray.Length; i++)
+            entityManager.SetComponentData(neuralNetworkEntities[i], neuralRequestsArray[i]);
     }
 
     private static List<LimbEntityCreationRequest> ConvertToLimbCreationRequests(PhenotypeEntityCreationInfo info)
