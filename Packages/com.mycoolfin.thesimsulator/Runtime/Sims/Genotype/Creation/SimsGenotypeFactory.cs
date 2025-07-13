@@ -34,11 +34,15 @@ namespace mycoolfin.TheSimsulator.Sims.Genotype
             for (int i = 0; i < nodeCount; i++)
                 SimsGenotypeMutator.AddNode(context);
 
-            int connectionCount = SharedRandom.Next(SimsGenotype.MIN_CONNECTIONS, SimsGenotype.MAX_CONNECTIONS + 1);
+            int minConnections = Node.MIN_CONNECTIONS * context.Nodes.Count;
+            int maxConnections = Node.MAX_CONNECTIONS * context.Nodes.Count;
+            int connectionCount = SharedRandom.Next(Math.Max(minConnections, 1), maxConnections + 1);
             for (int i = 0; i < connectionCount; i++)
                 SimsGenotypeMutator.AddConnection(context);
 
-            int neuronDefinitionCount = SharedRandom.Next(SimsGenotype.MIN_NEURON_DEFINITIONS, SimsGenotype.MAX_NEURON_DEFINITIONS + 1);
+            int minNeuronDefinitions = SimsGenotype.MIN_BRAIN_NEURON_DEFINITIONS + Node.MIN_NEURON_DEFINITIONS * context.Nodes.Count;
+            int maxNeuronDefinitions = SimsGenotype.MAX_BRAIN_NEURON_DEFINITIONS + Node.MAX_NEURON_DEFINITIONS * context.Nodes.Count;
+            int neuronDefinitionCount = SharedRandom.Next(minNeuronDefinitions, maxNeuronDefinitions + 1);
             for (int i = 0; i < neuronDefinitionCount; i++)
                 SimsGenotypeMutator.AddNeuronDefinition(context);
 

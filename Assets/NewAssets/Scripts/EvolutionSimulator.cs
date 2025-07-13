@@ -14,28 +14,17 @@ namespace NewAssets
 
     public enum TrialType : byte
     {
-        GroundDistance
+        GroundDistance,
+        WaterDistance
     };
-
-    public class EvolutionSimulatorConfig
-    {
-        public int PopulationSize;
-        public int MaxGenerations;
-        public float SurvivalRate;
-        public float MutationRate;
-        public float SettleTime;
-        public float AssessmentTime;
-        public TrialType TrialType;
-        public SimsGenotype SeedGenotype;
-    }
 
     public class EvolutionSimulator : MonoBehaviour
     {
         [Header("Evolution Parameters")]
         [SerializeField] private int populationSize = 100;
         [SerializeField] private int maxGenerations = 100;
-        [SerializeField] private float survivalRate = 0.3f;
-        [SerializeField] private float mutationRate = 0.1f;
+        [SerializeField] private float survivalRate = 0.2f;
+        [SerializeField] private float mutationRate = 1f;
         [SerializeField] private float settleTime = 5f;
         [SerializeField] private float assessmentTime = 10f;
         [SerializeField] private TrialType trialType = TrialType.GroundDistance;
@@ -58,35 +47,22 @@ namespace NewAssets
         public int CurrentGeneration => currentGeneration;
         public float CurrentGenerationProgress => currentGenerationProgress;
 
+        [Header("Speed Control")]
+        [SerializeField] private SimulationRateMode simulationRate = SimulationRateMode.RealTime;
+
         [Header("Run?")]
         [SerializeField] bool run = false;
-
-        private void Awake()
-        {
-            ecsWorld = World.DefaultGameObjectInjectionWorld;
-        }
 
         private void Update()
         {
             if (!isRunning && run)
             {
-                EvolutionSimulatorConfig config = new()
-                {
-                    PopulationSize = populationSize,
-                    MaxGenerations = maxGenerations,
-                    SurvivalRate = survivalRate,
-                    MutationRate = mutationRate,
-                    SettleTime = settleTime,
-                    AssessmentTime = assessmentTime,
-                    TrialType = trialType,
-                    SeedGenotype = seedGenotype
-                };
-                StartEvolution(config);
+                StartEvolution();
             }
             run = false;
         }
 
-        public void StartEvolution(EvolutionSimulatorConfig config)
+        public void StartEvolution()
         {
             if (isRunning)
             {
@@ -94,7 +70,7 @@ namespace NewAssets
                 return;
             }
 
-            evolutionCoroutine = StartCoroutine(EvolutionLoop(config));
+            evolutionCoroutine = StartCoroutine(EvolutionLoop());
         }
 
         public void StopEvolution()
@@ -106,29 +82,29 @@ namespace NewAssets
             }
 
             isRunning = false;
-            EntityCreationAPI.DestroyAllPhenotypeEntities(ecsWorld);
+            WorldAPI.DestroyWorld(ecsWorld);
         }
 
-        private IEnumerator EvolutionLoop(EvolutionSimulatorConfig config)
+        private IEnumerator EvolutionLoop()
         {
-            Debug.Log("Starting evolution with population size: " + config.PopulationSize);
+            Debug.Log("Starting evolution with population size: " + populationSize);
 
             SimsEvolution evolution = new(
-                (population) => AssessPhenotypesCoroutine(population, ecsWorld, config.SettleTime, config.AssessmentTime, config.TrialType),
+                AssessPhenotypesCoroutine,
                 new SimsEvolutionConfig
                 {
-                    PopulationSize = config.PopulationSize,
-                    SurvivalRate = config.SurvivalRate,
-                    MutationRate = config.MutationRate
+                    PopulationSize = populationSize,
+                    SurvivalRate = survivalRate,
+                    MutationRate = mutationRate
                 }
             );
 
             isRunning = true;
             currentGeneration = 0;
 
-            while (currentGeneration < config.MaxGenerations && isRunning)
+            while (currentGeneration < maxGenerations && isRunning)
             {
-                Debug.Log($"Starting generation {currentGeneration + 1}/{config.MaxGenerations}");
+                Debug.Log($"Starting generation {currentGeneration + 1}/{maxGenerations}");
                 OnGenerationStart?.Invoke(currentGeneration);
 
                 yield return StartCoroutine(evolution.Iterate());
@@ -145,36 +121,50 @@ namespace NewAssets
             OnEvolutionComplete?.Invoke();
         }
 
-        private static IEnumerator AssessPhenotypesCoroutine(List<Individual> population, World ecsWorld, float settleTime, float assessmentTime, TrialType trialType)
+        private IEnumerator AssessPhenotypesCoroutine(List<Individual> population)
         {
-            EvolutionAPI.FreezeSimulationTime(ecsWorld);
+            // Step 0: Completely reset the ECS world.
+            // TODO: Overkill.
+            WorldAPI.DestroyWorld(ecsWorld);
+            ecsWorld = WorldAPI.CreateWorld("EvolutionWorld");
+            CopyEnvironmentSubScenesToWorld(ecsWorld);
+
+            EvolutionAPI.InitialiseTrial(ecsWorld, trialType);
 
             // Step 1: Create ECS entities from phenotypes.
             Debug.Log("Creating entities from phenotypes...");
+            SystemSettingsAPI.SetJointBreakSystemEnabled(ecsWorld, false);
             EntityCreationAPI.CreateEntitiesFromPhenotypes(
                 ecsWorld,
                 population
-                .Select(individual => new PhenotypeEntityCreationInfo
+                .Select((individual, i) => new PhenotypeEntityCreationInfo
                 {
                     Phenotype = individual.phenotype,
+                    PhysicsPositionOffset = System.Numerics.Vector3.Zero,
                     VisualOffset = System.Numerics.Vector3.Zero,
                     AllowInterPhenotypeCollisions = false
                 }).ToList()
             );
 
+            yield return WaitForTrialInitialisationToFinish();
+
             // Step 2: Let entities settle.
             Debug.Log("Settling entities...");
-            SystemSettingsAPI.SetJointBreakSystemEnabled(ecsWorld, true);
-            yield return EvolutionAPI.RunSimulationForSeconds(ecsWorld, settleTime, fullSpeed: false);
+            SystemSettingsAPI.SetSimulationRateControllerMode(ecsWorld, simulationRate);
+            SystemSettingsAPI.SetSimulationRateControllerPauseAfterSeconds(ecsWorld, settleTime / 2f);
+            yield return WaitForSimulationToFinish();
+            EvolutionAPI.ZeroAllLimbVelocities(ecsWorld);
+            SystemSettingsAPI.SetSimulationRateControllerPauseAfterSeconds(ecsWorld, settleTime / 2f);
+            yield return WaitForSimulationToFinish();
             EvolutionAPI.ZeroAllLimbVelocities(ecsWorld);
 
-            // TODO: place entities above ground in ground trials. Will need to calc bounding box once for this.
-            // Delegate responsibility to InitialiseAssessmentSystem?
+            SystemSettingsAPI.SetJointBreakSystemEnabled(ecsWorld, true);
 
             // Step 3: Start assessment.
             Debug.Log("Beginning assessment...");
             EvolutionAPI.BeginAssessment(ecsWorld, trialType);
-            yield return EvolutionAPI.RunSimulationForSeconds(ecsWorld, assessmentTime, fullSpeed: false);
+            SystemSettingsAPI.SetSimulationRateControllerPauseAfterSeconds(ecsWorld, assessmentTime);
+            yield return WaitForSimulationToFinish();
 
             // Step 4: Read back fitness values and assign to matching individuals.
             Debug.Log("Reading assessment results...");
@@ -182,10 +172,33 @@ namespace NewAssets
             foreach (Individual individual in population)
                 if (phenotypeFitnesses.TryGetValue(individual.phenotype.Gid, out float fitness))
                     individual.fitness = Mathf.Max(fitness, 0f);
+        }
 
-            // Step 5: Destroy ECS entities created from phenotypes.
-            Debug.Log("Destroying phenotype entities...");
-            EntityCreationAPI.DestroyAllPhenotypeEntities(ecsWorld);
+        private IEnumerator WaitForTrialInitialisationToFinish()
+        {
+            while (!EvolutionAPI.IsTrialInitialised(ecsWorld))
+                yield return new WaitForSecondsRealtime(0.1f); // Poll every 100ms.
+        }
+
+        private IEnumerator WaitForSimulationToFinish()
+        {
+            while (true)
+            {
+                SimulationRateControllerSettings settings = SystemSettingsAPI.GetSimulationRateControllerSettings(ecsWorld);
+                if (settings.Mode != simulationRate)
+                    SystemSettingsAPI.SetSimulationRateControllerMode(ecsWorld, simulationRate);
+                if (settings.PauseAfterSeconds <= 0f)
+                    break;
+                yield return new WaitForSecondsRealtime(0.1f); // Poll every 100ms.
+            }
+        }
+
+        private static void CopyEnvironmentSubScenesToWorld(World world)
+        {
+            EnvironmentSubScenes envSubScenes = World.DefaultGameObjectInjectionWorld.EntityManager
+                .CreateEntityQuery(typeof(EnvironmentSubScenes))
+                .GetSingleton<EnvironmentSubScenes>();
+            world.EntityManager.AddComponentData(world.EntityManager.CreateEntity(), envSubScenes);
         }
 
         private static float GetAverageFitness(IReadOnlyList<Individual> currentPopulation)

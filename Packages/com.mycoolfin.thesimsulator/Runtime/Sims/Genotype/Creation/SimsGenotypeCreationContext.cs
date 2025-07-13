@@ -39,7 +39,7 @@ namespace mycoolfin.TheSimsulator.Sims.Genotype
 
         private void PruneMissingReferences()
         {
-            // Remove any nodes that cannot be reached by graph traversal from the first node.
+            // Remove any nodes that cannot be reached by graph traversal from the root node.
             if (Nodes.Count > 1)
             {
                 Dictionary<ulong, List<ulong>> childMap = Connections

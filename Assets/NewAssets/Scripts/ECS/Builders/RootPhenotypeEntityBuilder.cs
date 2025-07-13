@@ -14,8 +14,7 @@ public static class RootPhenotypeEntityBuilder
             typeof(PhenotypeCreatedAt),
             typeof(NeuralGraphRef),
             typeof(EmitterState),
-            typeof(JointBrokenEvent),
-            typeof(PhenotypeCentroid)
+            typeof(PhenotypeBoundingBox)
         );
     }
 
@@ -85,9 +84,6 @@ public static class RootPhenotypeEntityBuilder
             // Add to the neural network lookups.
             RootPhenotypeEntityLookup.TryAdd(requestData.PhenotypeGid, rootPhenotypeEntity);
             NeuralGraphLookup.TryAdd(requestData.PhenotypeGid, neuralGraphRef);
-
-            // Joint broken events buffer.
-            Ecb.AddBuffer<JointBrokenEvent>(INSTANTIATION_KEY, rootPhenotypeEntity);
         }
 
         private static int MultipleOf(int value, int multiple)

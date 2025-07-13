@@ -4,7 +4,7 @@ using Unity.Physics.Systems;
 
 [BurstCompile]
 [UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
-[UpdateAfter(typeof(PhysicsSystemGroup))]
+[UpdateBefore(typeof(PhysicsSystemGroup))]
 public partial class RootPhenotypeSystemGroup : ComponentSystemGroup
 {
 }

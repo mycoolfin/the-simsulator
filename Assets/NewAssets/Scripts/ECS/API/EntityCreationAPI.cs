@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Entities;
 using mycoolfin.TheSimsulator.Sims.Phenotype;
-using Unity.Burst;
 
 public struct PhenotypeEntityCreationInfo
 {
     public SimsPhenotype Phenotype;
+    public Vector3 PhysicsPositionOffset;
     public Vector3 VisualOffset;
     public bool AllowInterPhenotypeCollisions;
 }
@@ -83,6 +83,7 @@ public static class EntityCreationAPI
                 Dimensions = limb.Dimensions.ToFloat3(),
                 Mass = limb.Mass,
                 Color = limb.Color.ToFloat4(),
+                PhysicsPositionOffset = info.PhysicsPositionOffset.ToFloat3(),
                 VisualOffset = info.VisualOffset.ToFloat3(),
                 AllowInterPhenotypeCollisions = info.AllowInterPhenotypeCollisions
             };

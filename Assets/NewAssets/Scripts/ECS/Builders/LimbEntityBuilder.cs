@@ -57,9 +57,10 @@ public static class LimbEntityBuilder
     {
         Entity limbPrototype = state.EntityManager.CreateEntity();
 
-        // IDs.
+        // Refs.
         state.EntityManager.AddComponentData(limbPrototype, new RootPhenotypeEntity());
         state.EntityManager.AddComponentData(limbPrototype, new LimbIndex());
+        state.EntityManager.AddComponentData(limbPrototype, new ParentLimb() { Value = Entity.Null });
 
         // Transform.
         state.EntityManager.AddComponentData(limbPrototype, new LocalTransform());
@@ -152,7 +153,7 @@ public static class LimbEntityBuilder
 
             // Transform.
             LocalTransform localTransform = LocalTransform.FromPositionRotationScale(
-                requestData.Position,
+                requestData.Position + requestData.PhysicsPositionOffset,
                 requestData.Rotation,
                 1f
             );

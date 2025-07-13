@@ -77,9 +77,21 @@ namespace mycoolfin.TheSimsulator.Sims.Genotype
 
         public static void AddConnection(SimsGenotypeCreationContext context)
         {
-            if (context.Connections.Count < SimsGenotype.MAX_CONNECTIONS)
+            int totalMaxConnections = context.Nodes.Count * Node.MAX_CONNECTIONS;
+            if (context.Connections.Count < totalMaxConnections)
             {
-                ulong parentNodeId = context.Nodes[SharedRandom.Next(context.Nodes.Count)].Gid;
+                Dictionary<ulong, int> parentCounts = context.Nodes.ToDictionary(node => node.Gid, node => 0);
+                foreach (var connection in context.Connections)
+                    parentCounts[connection.ParentNodeGid]++;
+                List<ulong> eligibleParentIds = parentCounts
+                    .Where(kvp => kvp.Value < Node.MAX_CONNECTIONS)
+                    .Select(kvp => kvp.Key)
+                    .ToList();
+
+                if (eligibleParentIds.Count == 0)
+                    return;
+
+                ulong parentNodeId = eligibleParentIds[SharedRandom.Next(eligibleParentIds.Count)];
                 ulong childNodeId = context.Nodes[SharedRandom.Next(context.Nodes.Count)].Gid;
                 context.Connections.Add(Connection.CreateRandom(parentNodeId, childNodeId));
             }
@@ -87,10 +99,28 @@ namespace mycoolfin.TheSimsulator.Sims.Genotype
 
         public static void RemoveConnection(SimsGenotypeCreationContext context)
         {
-            if (context.Connections.Count > SimsGenotype.MIN_CONNECTIONS)
+            int totalMinConnections = context.Nodes.Count * Node.MIN_CONNECTIONS;
+            if (context.Connections.Count > totalMinConnections)
             {
-                int index = SharedRandom.Next(context.Connections.Count);
-                context.Connections.RemoveAt(index);
+                Dictionary<ulong, List<int>> parentIndices = new();
+                for (int i = 0; i < context.Connections.Count; i++)
+                {
+                    Connection connection = context.Connections[i];
+                    if (!parentIndices.ContainsKey(connection.ParentNodeGid))
+                        parentIndices[connection.ParentNodeGid] = new List<int>();
+                    parentIndices[connection.ParentNodeGid].Add(i);
+                }
+                List<ulong> eligibleParentIds = parentIndices
+                    .Where(kvp => kvp.Value.Count > Node.MIN_CONNECTIONS)
+                    .Select(kvp => kvp.Key)
+                    .ToList();
+
+                if (eligibleParentIds.Count == 0)
+                    return;
+
+                ulong parentNodeId = eligibleParentIds[SharedRandom.Next(eligibleParentIds.Count)];
+                int randomIndexWithinParent = SharedRandom.Next(parentIndices[parentNodeId].Count);
+                context.Connections.RemoveAt(parentIndices[parentNodeId][randomIndexWithinParent]);
             }
         }
 
@@ -110,10 +140,23 @@ namespace mycoolfin.TheSimsulator.Sims.Genotype
 
         public static void AddNeuronDefinition(SimsGenotypeCreationContext context)
         {
-            if (context.NeuronDefinitions.Count < SimsGenotype.MAX_NEURON_DEFINITIONS)
+            int totalMaxNeuronDefinitions = context.Nodes.Count * Node.MAX_NEURON_DEFINITIONS + SimsGenotype.MAX_BRAIN_NEURON_DEFINITIONS;
+            if (context.NeuronDefinitions.Count < totalMaxNeuronDefinitions)
             {
-                List<ulong> existingContainerIds = new(context.Nodes.Select(n => n.Gid)) { SimsGenotype.BRAIN_GID };
-                ulong randomContainerId = existingContainerIds[SharedRandom.Next(existingContainerIds.Count)];
+                Dictionary<ulong, int> containerCounts = context.Nodes.ToDictionary(node => node.Gid, node => 0);
+                containerCounts[SimsGenotype.BRAIN_GID] = 0; // Include brain.
+                foreach (var neuron in context.NeuronDefinitions)
+                    containerCounts[neuron.ContainerGid]++;
+                List<ulong> eligibleContainerIds = containerCounts.Where(kvp =>
+                    kvp.Key == SimsGenotype.BRAIN_GID
+                            ? kvp.Value < SimsGenotype.MAX_BRAIN_NEURON_DEFINITIONS
+                            : kvp.Value < Node.MAX_NEURON_DEFINITIONS
+                    ).Select(kvp => kvp.Key).ToList();
+
+                if (eligibleContainerIds.Count == 0)
+                    return;
+
+                ulong randomContainerId = eligibleContainerIds[SharedRandom.Next(eligibleContainerIds.Count)];
                 NeuronDefinition newNeuronDefinition = NeuronDefinition.CreateRandom(
                     randomContainerId,
                     context.Nodes,
@@ -126,10 +169,29 @@ namespace mycoolfin.TheSimsulator.Sims.Genotype
 
         public static void RemoveNeuronDefinition(SimsGenotypeCreationContext context)
         {
-            if (context.NeuronDefinitions.Count > SimsGenotype.MIN_NEURON_DEFINITIONS)
+            int totalMinNeuronDefinitions = context.Nodes.Count * Node.MIN_NEURON_DEFINITIONS + SimsGenotype.MIN_BRAIN_NEURON_DEFINITIONS;
+            if (context.NeuronDefinitions.Count > totalMinNeuronDefinitions)
             {
-                int index = SharedRandom.Next(context.NeuronDefinitions.Count);
-                context.NeuronDefinitions.RemoveAt(index);
+                Dictionary<ulong, List<int>> containerIndices = new();
+                for (int i = 0; i < context.NeuronDefinitions.Count; i++)
+                {
+                    NeuronDefinition neuron = context.NeuronDefinitions[i];
+                    if (!containerIndices.ContainsKey(neuron.ContainerGid))
+                        containerIndices[neuron.ContainerGid] = new List<int>();
+                    containerIndices[neuron.ContainerGid].Add(i);
+                }
+                List<ulong> eligibleContainerIds = containerIndices.Where(kvp =>
+                    kvp.Key == SimsGenotype.BRAIN_GID
+                            ? kvp.Value.Count > SimsGenotype.MIN_BRAIN_NEURON_DEFINITIONS
+                            : kvp.Value.Count > Node.MIN_NEURON_DEFINITIONS
+                    ).Select(kvp => kvp.Key).ToList();
+
+                if (eligibleContainerIds.Count == 0)
+                    return;
+
+                ulong randomContainerId = eligibleContainerIds[SharedRandom.Next(eligibleContainerIds.Count)];
+                int randomIndexWithinContainer = SharedRandom.Next(containerIndices[randomContainerId].Count);
+                context.NeuronDefinitions.RemoveAt(containerIndices[randomContainerId][randomIndexWithinContainer]);
             }
         }
 

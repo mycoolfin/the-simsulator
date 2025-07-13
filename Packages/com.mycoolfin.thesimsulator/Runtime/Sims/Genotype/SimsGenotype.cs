@@ -7,10 +7,8 @@ namespace mycoolfin.TheSimsulator.Sims.Genotype
     {
         public const int MIN_NODES = 1;
         public const int MAX_NODES = 10;
-        public const int MIN_CONNECTIONS = 1;
-        public const int MAX_CONNECTIONS = 10;
-        public const int MIN_NEURON_DEFINITIONS = 0;
-        public const int MAX_NEURON_DEFINITIONS = 500;
+        public const int MIN_BRAIN_NEURON_DEFINITIONS = 0;
+        public const int MAX_BRAIN_NEURON_DEFINITIONS = 10;
 
         public const ulong BRAIN_GID = 0UL;
 
@@ -27,10 +25,16 @@ namespace mycoolfin.TheSimsulator.Sims.Genotype
 
             if (Nodes.Count < MIN_NODES || Nodes.Count > MAX_NODES)
                 throw new ArgumentOutOfRangeException(nameof(nodes), $"Node count must be between {MIN_NODES} and {MAX_NODES} (Got {Nodes.Count}).");
-            if (Connections.Count < MIN_CONNECTIONS || Connections.Count > MAX_CONNECTIONS)
-                throw new ArgumentOutOfRangeException(nameof(connections), $"Connection count must be between {MIN_CONNECTIONS} and {MAX_CONNECTIONS} (Got {Connections.Count}).");
-            if (NeuronDefinitions.Count < MIN_NEURON_DEFINITIONS || NeuronDefinitions.Count > MAX_NEURON_DEFINITIONS)
-                throw new ArgumentOutOfRangeException(nameof(neuronDefinitions), $"NeuronDefinition count must be between {MIN_NEURON_DEFINITIONS} and {MAX_NEURON_DEFINITIONS} (Got {NeuronDefinitions.Count}).");
+
+            int totalMinConnections = Nodes.Count * Node.MIN_CONNECTIONS;
+            int totalMaxConnections = Nodes.Count * Node.MAX_CONNECTIONS;
+            if (Connections.Count < totalMinConnections || Connections.Count > totalMaxConnections)
+                throw new ArgumentOutOfRangeException(nameof(connections), $"Connection count must be between {totalMinConnections} and {totalMaxConnections} (Got {Connections.Count}).");
+
+            int totalMinNeuronDefinitions = Nodes.Count * Node.MIN_NEURON_DEFINITIONS + MIN_BRAIN_NEURON_DEFINITIONS;
+            int totalMaxNeuronDefinitions = nodes.Count * Node.MAX_NEURON_DEFINITIONS + MAX_BRAIN_NEURON_DEFINITIONS;
+            if (NeuronDefinitions.Count < totalMinNeuronDefinitions || NeuronDefinitions.Count > totalMaxNeuronDefinitions)
+                throw new ArgumentOutOfRangeException(nameof(neuronDefinitions), $"NeuronDefinition count must be between {totalMinNeuronDefinitions} and {totalMaxNeuronDefinitions} (Got {NeuronDefinitions.Count}).");
         }
     }
 }

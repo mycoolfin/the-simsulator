@@ -13,7 +13,7 @@ public static class SystemSettingsAPI
         return entityManager.GetComponentData<SimulationRateControllerSettings>(singletonEntity);
     }
 
-    public static void SetSimulationRateControllerSettings(World world, SimulationRateMode mode, float stopAfterSeconds = 0f)
+    public static void SetSimulationRateControllerMode(World world, SimulationRateMode mode)
     {
         EntityManager entityManager = world.EntityManager;
         EntityQuery query = entityManager.CreateEntityQuery(typeof(SimulationRateControllerSettings));
@@ -23,7 +23,19 @@ public static class SystemSettingsAPI
         Entity singletonEntity = query.GetSingletonEntity();
         SimulationRateControllerSettings settings = entityManager.GetComponentData<SimulationRateControllerSettings>(singletonEntity);
         settings.Mode = mode;
-        settings.StopAfterSeconds = stopAfterSeconds;
+        entityManager.SetComponentData(singletonEntity, settings);
+    }
+
+    public static void SetSimulationRateControllerPauseAfterSeconds(World world, float PauseAfterSeconds)
+    {
+        EntityManager entityManager = world.EntityManager;
+        EntityQuery query = entityManager.CreateEntityQuery(typeof(SimulationRateControllerSettings));
+        if (query.IsEmptyIgnoreFilter)
+            return;
+
+        Entity singletonEntity = query.GetSingletonEntity();
+        SimulationRateControllerSettings settings = entityManager.GetComponentData<SimulationRateControllerSettings>(singletonEntity);
+        settings.PauseAfterSeconds = PauseAfterSeconds;
         entityManager.SetComponentData(singletonEntity, settings);
     }
 

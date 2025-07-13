@@ -2,30 +2,29 @@ using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 
-public struct InitialiseAssessmentRequest : IComponentData
+public struct BeginAssessmentRequest : IComponentData
 {
     public NewAssets.TrialType TrialType;
 }
 
 [UpdateInGroup(typeof(AssessmentSystemGroup))]
-public partial struct InitialiseAssessmentSystem : ISystem
+public partial struct BeginAssessmentSystem : ISystem
 {
     public void OnCreate(ref SystemState state)
     {
-        state.RequireForUpdate<InitialiseAssessmentRequest>();
+        state.RequireForUpdate<BeginAssessmentRequest>();
     }
 
     public void OnUpdate(ref SystemState state)
     {
-        // Get the trial type from the request component.
-        Entity requestEntity = SystemAPI.GetSingletonEntity<InitialiseAssessmentRequest>();
-        NewAssets.TrialType trialType = SystemAPI.GetComponent<InitialiseAssessmentRequest>(requestEntity).TrialType;
+        Entity requestEntity = SystemAPI.GetSingletonEntity<BeginAssessmentRequest>();
+        NewAssets.TrialType trialType = SystemAPI.GetComponent<BeginAssessmentRequest>(requestEntity).TrialType;
 
         using EntityCommandBuffer ecb = new(Allocator.TempJob);
         new AddAssessmentComponentsToPhenotypesJob
         {
             Ecb = ecb.AsParallelWriter(),
-            trialType = trialType
+            trialType = trialType,
         }.ScheduleParallel(state.Dependency).Complete();
 
         ecb.DestroyEntity(requestEntity);
@@ -47,7 +46,10 @@ public partial struct AddAssessmentComponentsToPhenotypesJob : IJobEntity
         switch (trialType)
         {
             case NewAssets.TrialType.GroundDistance:
-                Ecb.AddComponent(chunkIndex, rootPhenotypeEntity, new DistanceAssessmentData());
+                Ecb.AddComponent(chunkIndex, rootPhenotypeEntity, new GroundDistanceAssessmentData());
+                break;
+            case NewAssets.TrialType.WaterDistance:
+                Ecb.AddComponent(chunkIndex, rootPhenotypeEntity, new WaterDistanceAssessmentData());
                 break;
         }
     }

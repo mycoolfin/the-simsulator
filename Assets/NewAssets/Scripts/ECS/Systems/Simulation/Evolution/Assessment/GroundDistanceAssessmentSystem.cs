@@ -3,13 +3,13 @@ using Unity.Entities;
 using Unity.Mathematics;
 
 [UpdateInGroup(typeof(AssessmentSystemGroup))]
-[UpdateAfter(typeof(InitialiseAssessmentSystem))]
+[UpdateAfter(typeof(BeginAssessmentSystem))]
 public partial struct GroundDistanceAssessmentSystem : ISystem
 {
     public void OnCreate(ref SystemState state)
     {
         state.RequireForUpdate<Fitness>();
-        state.RequireForUpdate<DistanceAssessmentData>();
+        state.RequireForUpdate<GroundDistanceAssessmentData>();
     }
 
     public void OnUpdate(ref SystemState state)
@@ -23,9 +23,9 @@ public partial struct GroundDistanceAssessmentSystem : ISystem
 [BurstCompile]
 public partial struct GroundDistanceAssessmentJob : IJobEntity
 {
-    public void Execute(in PhenotypeCentroid centroid, ref Fitness fitness, ref DistanceAssessmentData data)
+    public void Execute(in PhenotypeBoundingBox boundingBox, ref Fitness fitness, ref GroundDistanceAssessmentData data)
     {
-        float3 currentPosition = centroid.Value;
+        float3 currentPosition = (boundingBox.MinBounds + boundingBox.MaxBounds) * 0.5f; // Centroid.
 
         if (fitness.Value < 0f) // Assessment hasn't started yet.
             data.StartPosition = currentPosition;

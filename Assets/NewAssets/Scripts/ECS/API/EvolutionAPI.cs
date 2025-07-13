@@ -1,24 +1,22 @@
-using System.Collections;
 using System.Collections.Generic;
 using Unity.Burst;
 using Unity.Burst.Intrinsics;
 using Unity.Collections;
 using Unity.Entities;
-using UnityEngine;
 
 public static class EvolutionAPI
 {
-    public static void FreezeSimulationTime(World world)
+    public static void InitialiseTrial(World world, NewAssets.TrialType trialType)
     {
-        SystemSettingsAPI.SetSimulationRateControllerSettings(world, SimulationRateMode.Paused);
+        EntityManager entityManager = world.EntityManager;
+        entityManager.CreateSingleton(new InitialiseTrialRequest { TrialType = trialType });
     }
 
-    public static IEnumerator RunSimulationForSeconds(World world, float runSeconds, bool fullSpeed = false)
+    public static bool IsTrialInitialised(World world)
     {
-        SystemSettingsAPI.SetSimulationRateControllerSettings(world, fullSpeed ? SimulationRateMode.FullSpeed : SimulationRateMode.RealTime, runSeconds);
-        while (SystemSettingsAPI.GetSimulationRateControllerSettings(world).StopAfterSeconds > 0f)
-            yield return new WaitForSecondsRealtime(0.1f); // Poll every 100ms.
-        yield break;
+        EntityManager entityManager = world.EntityManager;
+        return !entityManager.HasComponent<InitialiseTrialRequest>(entityManager.CreateEntity())
+            && !entityManager.HasComponent<InitialisingTrialTag>(entityManager.CreateEntity());
     }
 
     public static void ZeroAllLimbVelocities(World world)
@@ -31,7 +29,7 @@ public static class EvolutionAPI
     public static void BeginAssessment(World world, NewAssets.TrialType trialType)
     {
         EntityManager entityManager = world.EntityManager;
-        entityManager.CreateSingleton(new InitialiseAssessmentRequest { TrialType = trialType });
+        entityManager.CreateSingleton(new BeginAssessmentRequest { TrialType = trialType });
     }
 
     public static Dictionary<ulong, float> GetAssessmentResults(World world)
@@ -69,34 +67,29 @@ public struct GetIndividualAssessmentResultsChunkJob : IJobChunk
 
     public NativeParallelHashMap<ulong, float>.ParallelWriter Results;
 
-    public void Execute(
-        in ArchetypeChunk chunk,
-        int unfilteredChunkIndex,
-        bool useEnabledMask,
-        in v128 chunkEnabledMask
-    )
+    public void Execute(in ArchetypeChunk chunk, int unfilteredChunkIndex, bool useEnabledMask, in v128 chunkEnabledMask)
     {
-        var gids = chunk.GetNativeArray(ref GidHandle);
-        var fitnesses = chunk.GetNativeArray(ref FitnessHandle);
-        var limbBuffers = chunk.GetBufferAccessor(ref LimbStatusHandle);
+        NativeArray<PhenotypeGid> phenotypeGids = chunk.GetNativeArray(ref GidHandle);
+        NativeArray<Fitness> fitnesses = chunk.GetNativeArray(ref FitnessHandle);
+        BufferAccessor<LimbStatus> limbStatusBuffers = chunk.GetBufferAccessor(ref LimbStatusHandle);
 
         for (int i = 0; i < chunk.Count; i++)
         {
-            var gid = gids[i];
-            var fitness = fitnesses[i];
-            var limbStatus = limbBuffers[i];
+            PhenotypeGid phenotypeGid = phenotypeGids[i];
+            Fitness fitness = fitnesses[i];
+            DynamicBuffer<LimbStatus> limbStatuses = limbStatusBuffers[i];
 
             bool detached = false;
-            for (int j = 0; j < limbStatus.Length; j++)
+            for (int j = 0; j < limbStatuses.Length; j++)
             {
-                if (limbStatus[j].AttachmentState == AttachmentState.Detached)
+                if (limbStatuses[j].AttachmentState == AttachmentState.Detached)
                 {
                     detached = true;
                     break;
                 }
             }
 
-            Results.TryAdd(gid.Value, detached ? 0f : fitness.Value);
+            Results.TryAdd(phenotypeGid.Value, detached ? 0f : fitness.Value);
         }
     }
 }

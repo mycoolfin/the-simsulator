@@ -37,13 +37,8 @@ public struct EmitterState : IBufferElementData
     public float Value;
 }
 
-public struct JointBrokenEvent : IBufferElementData
+public struct PhenotypeBoundingBox : IComponentData
 {
-    public Entity DetachedLimbEntity;
-    public byte LimbIndex;
-}
-
-public struct PhenotypeCentroid : IComponentData
-{
-    public float3 Value;
+    public float3 MinBounds;
+    public float3 MaxBounds;
 }

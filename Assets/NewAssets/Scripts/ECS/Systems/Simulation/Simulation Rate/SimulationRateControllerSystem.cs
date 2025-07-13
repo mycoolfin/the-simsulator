@@ -11,7 +11,7 @@ public enum SimulationRateMode : byte
 public struct SimulationRateControllerSettings : IComponentData
 {
     public SimulationRateMode Mode;
-    public float StopAfterSeconds;
+    public float PauseAfterSeconds;
 }
 
 [UpdateInGroup(typeof(InitializationSystemGroup))]
@@ -41,18 +41,18 @@ public partial struct SimulationRateControllerSystem : ISystem
         if (settings.Mode != currentMode)
             ChangeSimulationRate(settings.Mode, fixedStepGroup);
 
-        if (settings.Mode != SimulationRateMode.Paused && settings.StopAfterSeconds > 0f)
+        if (settings.Mode != SimulationRateMode.Paused && settings.PauseAfterSeconds > 0f)
         {
             double elapsedFixedTime = fixedStepGroup.World.Time.ElapsedTime;
             float diff = (float)(elapsedFixedTime - lastElapsedFixedTime);
             lastElapsedFixedTime = elapsedFixedTime;
 
-            settings.StopAfterSeconds -= diff;
-            if (settings.StopAfterSeconds <= 0f)
+            settings.PauseAfterSeconds -= diff;
+            if (settings.PauseAfterSeconds <= 0f)
             {
                 settings.Mode = SimulationRateMode.Paused;
                 ChangeSimulationRate(settings.Mode, fixedStepGroup);
-                settings.StopAfterSeconds = 0f;
+                settings.PauseAfterSeconds = 0f;
             }
 
             SystemAPI.SetSingleton(settings);

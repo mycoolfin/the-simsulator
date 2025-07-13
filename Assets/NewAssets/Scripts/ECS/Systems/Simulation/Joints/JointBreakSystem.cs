@@ -11,19 +11,25 @@ public struct JointBreakSystemSettings : IComponentData
     public bool Enabled;
 }
 
+public struct JointBrokenEvent : IBufferElementData
+{
+    public Entity DetachedLimbEntity;
+}
+
 [UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
 [UpdateAfter(typeof(PhysicsSystemGroup))]
 public partial struct JointBreakSystem : ISystem
 {
     private ComponentLookup<LocalTransform> localTransformLookup;
-    private ComponentLookup<LimbIndex> limbIndexLookup;
+    private Entity eventBufferEntity;
 
     public void OnCreate(ref SystemState state)
     {
         state.EntityManager.CreateSingleton(new JointBreakSystemSettings { Enabled = true });
+        eventBufferEntity = state.EntityManager.CreateEntity();
+        state.EntityManager.AddBuffer<JointBrokenEvent>(eventBufferEntity);
 
         localTransformLookup = state.GetComponentLookup<LocalTransform>(isReadOnly: true);
-        limbIndexLookup = state.GetComponentLookup<LimbIndex>(isReadOnly: true);
 
         state.RequireForUpdate<PhysicsConstrainedBodyPair>();
         state.RequireForUpdate<PhysicsJoint>();
@@ -36,32 +42,32 @@ public partial struct JointBreakSystem : ISystem
             return;
 
         localTransformLookup.Update(ref state);
-        limbIndexLookup.Update(ref state);
 
         using EntityCommandBuffer ecb = new(Allocator.TempJob);
         new JointBreakJob
         {
             Ecb = ecb.AsParallelWriter(),
             LocalTransformLookup = localTransformLookup,
-            LimbIndexLookup = limbIndexLookup
+            EventBufferEntity = eventBufferEntity
         }.ScheduleParallel(state.Dependency).Complete();
         ecb.Playback(state.EntityManager);
     }
 }
 
 [BurstCompile]
+[WithAll(typeof(PhysicsConstrainedBodyPair), typeof(PhysicsJoint), typeof(RootPhenotypeEntity))]
 public partial struct JointBreakJob : IJobEntity
 {
     public EntityCommandBuffer.ParallelWriter Ecb;
     [ReadOnly] public ComponentLookup<LocalTransform> LocalTransformLookup;
-    [ReadOnly] public ComponentLookup<LimbIndex> LimbIndexLookup;
+    public Entity EventBufferEntity;
 
     private const float MAX_DISTANCE = 0.5f;
 
     private const int INSTANTIATION_KEY = 1;
     private const int DISPOSAL_KEY = 2;
 
-    public void Execute(Entity jointEntity, in PhysicsConstrainedBodyPair pair, in PhysicsJoint joint, in RootPhenotypeEntity rootPhenotypeEntity)
+    public void Execute(Entity jointEntity, in PhysicsConstrainedBodyPair pair, in PhysicsJoint joint)
     {
         LocalTransform transformA = LocalTransformLookup[pair.EntityA];
         LocalTransform transformB = LocalTransformLookup[pair.EntityB];
@@ -73,10 +79,9 @@ public partial struct JointBreakJob : IJobEntity
         {
             Ecb.DestroyEntity(DISPOSAL_KEY, jointEntity);
 
-            Ecb.AppendToBuffer(INSTANTIATION_KEY, rootPhenotypeEntity.Value, new JointBrokenEvent
+            Ecb.AppendToBuffer(INSTANTIATION_KEY, EventBufferEntity, new JointBrokenEvent
             {
-                DetachedLimbEntity = pair.EntityB,
-                LimbIndex = LimbIndexLookup[pair.EntityB].Value
+                DetachedLimbEntity = pair.EntityB
             });
         }
     }

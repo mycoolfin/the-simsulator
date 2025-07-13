@@ -263,6 +263,8 @@ public partial struct CreateJointEntityJob : IJobEntity
             ecb.AppendToBuffer(sortKey, jointEntity1, new PhysicsJointCompanion() { JointEntity = jointEntity2 });
             ecb.AppendToBuffer(sortKey, jointEntity2, new PhysicsJointCompanion() { JointEntity = jointEntity1 });
         }
+
+        ecb.SetComponent(sortKey, attachedLimbEntity, new ParentLimb { Value = referenceLimbEntity });
     }
 
     [BurstCompile]

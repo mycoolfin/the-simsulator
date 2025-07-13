@@ -8,7 +8,12 @@ public struct Fitness : IComponentData
     public float Value;
 }
 
-public struct DistanceAssessmentData : IComponentData
+public struct GroundDistanceAssessmentData : IComponentData
+{
+    public float3 StartPosition;
+}
+
+public struct WaterDistanceAssessmentData : IComponentData
 {
     public float3 StartPosition;
 }

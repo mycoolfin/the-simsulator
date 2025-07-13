@@ -4,8 +4,7 @@ using Unity.Entities;
 
 public struct DestroyAllPhenotypeEntitiesRequest : IComponentData { }
 
-[UpdateInGroup(typeof(SimulationSystemGroup))]
-[UpdateAfter(typeof(BeginSimulationEntityCommandBufferSystem))]
+[UpdateInGroup(typeof(InitializationSystemGroup))]
 public partial struct PhenotypeEntityDestructionSystem : ISystem
 {
     public void OnCreate(ref SystemState state)

@@ -11,6 +11,10 @@ namespace mycoolfin.TheSimsulator.Sims.Genotype
         public const float MAX_DIMENSION = 1.0f;
         public const int MIN_RECURSIVE_LIMIT = 1;
         public const int MAX_RECURSIVE_LIMIT = 10;
+        public const int MIN_NEURON_DEFINITIONS = 0;
+        public const int MAX_NEURON_DEFINITIONS = 10;
+        public const int MIN_CONNECTIONS = 0;
+        public const int MAX_CONNECTIONS = 4;
 
         public readonly ulong Gid;
         public readonly Vector3 Dimensions;

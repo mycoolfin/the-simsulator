@@ -23,6 +23,7 @@ public struct LimbEntityCreationRequest : IComponentData
     public float3 Dimensions;
     public float Mass;
     public float4 Color;
+    public float3 PhysicsPositionOffset;
     public float3 VisualOffset;
     [MarshalAs(UnmanagedType.U1)] public bool AllowInterPhenotypeCollisions;
 }
@@ -73,8 +74,7 @@ public struct PhenotypeLimbKey : IEquatable<PhenotypeLimbKey>
     }
 }
 
-[UpdateInGroup(typeof(SimulationSystemGroup))]
-[UpdateAfter(typeof(BeginSimulationEntityCommandBufferSystem))]
+[UpdateInGroup(typeof(InitializationSystemGroup))]
 public partial struct PhenotypeEntityCreationSystem : ISystem
 {
     private EntityArchetype jointArchetype;
