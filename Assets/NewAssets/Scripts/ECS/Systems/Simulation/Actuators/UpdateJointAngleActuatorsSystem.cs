@@ -158,8 +158,8 @@ public partial struct UpdateJointAxisXZActuatorsJob : IJobEntity
         DynamicBuffer<EmitterState> buffer = EmitterStateBuffers[rootPhenotypeEntity.Value];
         FixedList512Bytes<Constraint> constraints = joint.GetConstraints();
 
-        JointActuatorUpdateHelper.SetConstraint(ref constraints, jointAxisX.SwapXZ ? 1 : 0, ref buffer, jointAxisX.ActuatorNeuronEmitterIndex, jointAxisX.AngleLimit);
-        JointActuatorUpdateHelper.SetConstraint(ref constraints, jointAxisZ.SwapXZ ? 0 : 1, ref buffer, jointAxisZ.ActuatorNeuronEmitterIndex, jointAxisZ.AngleLimit);
+        JointActuatorUpdateHelper.SetConstraint(ref constraints, jointAxisX.SwapXZ == 1 ? 1 : 0, ref buffer, jointAxisX.ActuatorNeuronEmitterIndex, jointAxisX.AngleLimit);
+        JointActuatorUpdateHelper.SetConstraint(ref constraints, jointAxisZ.SwapXZ == 1 ? 0 : 1, ref buffer, jointAxisZ.ActuatorNeuronEmitterIndex, jointAxisZ.AngleLimit);
 
         joint.SetConstraints(constraints);
     }

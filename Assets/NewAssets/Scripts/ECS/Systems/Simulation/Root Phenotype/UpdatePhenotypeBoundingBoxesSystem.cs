@@ -80,7 +80,7 @@ public partial struct CollectLimbBoundsJob : IJobEntity
         float3 center = localTransform.Position;
 
         // Calculate the oriented bounding box corners and find the axis-aligned bounds.
-        float3x3 rotationMatrix = new(localTransform.Rotation);
+        float3x3 rotationMatrix = new(math.normalize(localTransform.Rotation));
         float3 corner0 = math.mul(rotationMatrix, new float3(-halfExtents.x, -halfExtents.y, -halfExtents.z)) + center;
         float3 corner1 = math.mul(rotationMatrix, new float3( halfExtents.x, -halfExtents.y, -halfExtents.z)) + center;
         float3 corner2 = math.mul(rotationMatrix, new float3(-halfExtents.x,  halfExtents.y, -halfExtents.z)) + center;

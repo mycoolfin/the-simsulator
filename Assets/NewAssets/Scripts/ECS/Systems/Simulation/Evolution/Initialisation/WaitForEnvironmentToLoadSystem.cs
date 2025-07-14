@@ -10,8 +10,6 @@ public struct LoadingEnvironment : IComponentData
 [UpdateAfter(typeof(InitialiseTrialSystem))]
 public partial struct WaitForEnvironmentToLoadSystem : ISystem
 {
-    private const int WAIT_FOR_FRAMES = 0;
-
     public void OnCreate(ref SystemState state)
     {
         state.RequireForUpdate<LoadingEnvironment>();

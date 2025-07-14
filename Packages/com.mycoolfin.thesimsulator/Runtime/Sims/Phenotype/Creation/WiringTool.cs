@@ -88,6 +88,8 @@ namespace mycoolfin.TheSimsulator.Sims.Phenotype
                     break;
                 case RelativeSignalPort.AnyLimb:
                     int chosenLimbIndex = MapToRange(limbInstance, (uint)limbs.Count);
+                    if (chosenLimbIndex < 0 || chosenLimbIndex >= limbs.Count)
+                        break;
                     Limb chosenLimb = limbs[chosenLimbIndex];
                     slot = MapToRange(slot, (uint)(chosenLimb.Sensors.Count + chosenLimb.Neurons.Count));
                     if (!IsValidLimbIndex(chosenLimbIndex, limbs) || !IsValidSlotIndex(slot, limbs[chosenLimbIndex]))

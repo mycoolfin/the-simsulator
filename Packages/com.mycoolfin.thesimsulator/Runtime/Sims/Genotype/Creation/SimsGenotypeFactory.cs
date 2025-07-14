@@ -94,7 +94,8 @@ namespace mycoolfin.TheSimsulator.Sims.Genotype
             );
 
             bool copyFromParent1 = SharedRandom.Next(0, 2) == 0;
-            Dictionary<ulong, ulong> nodeGidMap = new();
+            Dictionary<ulong, ulong> parent1OriginalToCopiedNodeMap = new();
+            Dictionary<ulong, ulong> parent2OriginalToCopiedNodeMap = new();
             for (int i = 0; i < Math.Max(parent1.Nodes.Count, parent2.Nodes.Count); i++)
             {
                 if (i > 0 && i % crossoverInterval == 0)
@@ -106,19 +107,28 @@ namespace mycoolfin.TheSimsulator.Sims.Genotype
                     Node chosenNode = source.Nodes[i];
                     Node copiedNode = chosenNode.CopyWithNewGid();
                     offspringContext.Nodes.Add(copiedNode);
-                    nodeGidMap[chosenNode.Gid] = copiedNode.Gid;
+                    if (copyFromParent1)
+                        parent1OriginalToCopiedNodeMap[chosenNode.Gid] = copiedNode.Gid;
+                    else
+                        parent2OriginalToCopiedNodeMap[chosenNode.Gid] = copiedNode.Gid;
                 }
                 else
                     break;
             }
-            CopyOverRelatedConnections(parent1, parent2, offspringContext, nodeGidMap);
-            CopyOverRelatedNeuronDefinitions(parent1, parent2, offspringContext, nodeGidMap);
+
+            CopyOverRelatedConnections(parent1, parent2, offspringContext, parent1OriginalToCopiedNodeMap, parent2OriginalToCopiedNodeMap);
+            CopyOverRelatedNeuronDefinitions(parent1, parent2, offspringContext, parent1OriginalToCopiedNodeMap, parent2OriginalToCopiedNodeMap);
+
+            Checker("CrossoverRecombination", offspringContext, parent1: parent1, parent2: parent2);
 
             return offspringContext;
         }
 
         private SimsGenotypeCreationContext GraftingRecombination(SimsGenotype recipient, SimsGenotype donor)
         {
+            if (recipient.Connections.Count == 0)
+                return AsexualRecombination(donor);
+
             SimsGenotypeCreationContext offspringContext = new(
                 new List<Node>(),
                 new List<Connection>(),
@@ -134,87 +144,147 @@ namespace mycoolfin.TheSimsulator.Sims.Genotype
                 .Where(n => n.Gid == recipient.Connections[recipientConnectionIndex].ParentNodeGid)
                 .Select(n => recipient.Nodes.IndexOf(n))
                 .FirstOrDefault();
-            Dictionary<ulong, ulong> nodeGidMap = new();
+            Dictionary<ulong, ulong> parent1OriginalToCopiedNodeMap = new();
             for (int i = 0; i <= recipientNodeIndex; i++)
             {
                 Node chosenNode = recipient.Nodes[i];
                 Node copiedNode = recipient.Nodes[i].CopyWithNewGid();
                 offspringContext.Nodes.Add(copiedNode);
-                nodeGidMap[chosenNode.Gid] = copiedNode.Gid;
+                parent1OriginalToCopiedNodeMap[chosenNode.Gid] = copiedNode.Gid;
             }
 
+            if (recipientNodeIndex + 1 == SimsGenotype.MAX_NODES)
+                return AsexualRecombination(recipient); // Impossible to graft more nodes.
+
             // Copy over nodes from the donor, starting from the donor node index.
+                int remainingNodeBudget = SimsGenotype.MAX_NODES - offspringContext.Nodes.Count;
+            Dictionary<ulong, ulong> parent2OriginalToCopiedNodeMap = new();
             for (int i = donorNodeIndex; i < donor.Nodes.Count; i++)
             {
+                if (remainingNodeBudget <= 0)
+                    break;
                 Node chosenNode = donor.Nodes[i];
                 Node copiedNode = donor.Nodes[i].CopyWithNewGid();
                 offspringContext.Nodes.Add(copiedNode);
-                nodeGidMap[chosenNode.Gid] = copiedNode.Gid;
+                parent2OriginalToCopiedNodeMap[chosenNode.Gid] = copiedNode.Gid;
+                remainingNodeBudget--;
             }
 
-            Dictionary<ulong, ulong> connectionGidMap = CopyOverRelatedConnections(recipient, donor, offspringContext, nodeGidMap);
-            CopyOverRelatedNeuronDefinitions(recipient, donor, offspringContext, nodeGidMap);
+            CopyOverRelatedConnections(recipient, donor, offspringContext, parent1OriginalToCopiedNodeMap, parent2OriginalToCopiedNodeMap, recipientNodeIndex, recipientConnectionIndex, donor.Nodes[donorNodeIndex].Gid);
+            CopyOverRelatedNeuronDefinitions(recipient, donor, offspringContext, parent1OriginalToCopiedNodeMap, parent2OriginalToCopiedNodeMap);
 
-            // Change the recipient connection to point to the donor node.
-            ulong offspringRcGid = connectionGidMap[recipient.Connections[recipientConnectionIndex].Gid];
-            int offspringRcIndex = offspringContext.Connections.FindIndex(c => c.Gid == offspringRcGid);
-            offspringContext.Connections[offspringRcIndex] = new Connection(
-                offspringContext.Connections[offspringRcIndex].ParentNodeGid,
-                offspringContext.Nodes[recipientNodeIndex + 1].Gid,
-                offspringContext.Connections[offspringRcIndex].ParentFace,
-                offspringContext.Connections[offspringRcIndex].Position,
-                offspringContext.Connections[offspringRcIndex].Orientation,
-                offspringContext.Connections[offspringRcIndex].Scale,
-                offspringContext.Connections[offspringRcIndex].ReflectionX,
-                offspringContext.Connections[offspringRcIndex].ReflectionY,
-                offspringContext.Connections[offspringRcIndex].ReflectionZ,
-                offspringContext.Connections[offspringRcIndex].TerminalOnly
-            );
+            Checker("GraftingRecombination", offspringContext, parent1: recipient, parent2: donor);
 
             return offspringContext;
         }
 
-        private Dictionary<ulong, ulong> CopyOverRelatedConnections(SimsGenotype parent1, SimsGenotype parent2, SimsGenotypeCreationContext offspringContext, Dictionary<ulong, ulong> nodeGidMap)
+        private void CopyOverRelatedConnections(
+            SimsGenotype parent1,
+            SimsGenotype parent2,
+            SimsGenotypeCreationContext offspringContext,
+            Dictionary<ulong, ulong> parent1OriginalToCopiedNodeMap,
+            Dictionary<ulong, ulong> parent2OriginalToCopiedNodeMap,
+            int recipientNodeIndex = -1,
+            int recipientConnectionIndex = -1,
+            ulong oldDonorNodeGid = 0UL
+        )
         {
-            Dictionary<ulong, ulong> connectionGidMap = new();
-            IEnumerable<Connection> sourceConnections = parent1.Connections.Concat(parent2.Connections);
-            foreach (var (sourceConnection, i) in sourceConnections.Select((c, i) => (c, i)))
+            int donorOffset = recipientNodeIndex + 1; // Donor nodes start after all recipient nodes.
+            for (int i = 0; i < parent1.Connections.Count; i++)
             {
-                if (connectionGidMap.ContainsKey(sourceConnection.Gid))
-                    continue;
+                Connection c = parent1.Connections[i];
 
-                ulong newParentGid = nodeGidMap.TryGetValue(sourceConnection.ParentNodeGid, out ulong newGid) ? newGid : sourceConnection.ParentNodeGid;
-                ulong newChildGid = nodeGidMap.TryGetValue(sourceConnection.ChildNodeGid, out newGid) ? newGid : sourceConnection.ChildNodeGid;
+                // Does the copied version of my original parent node exist?
+                if (!parent1OriginalToCopiedNodeMap.TryGetValue(c.ParentNodeGid, out ulong newParentGid))
+                    continue; // Parent node does not exist in the offspring context.
+
+                // What child node are we now pointing to?
+                ulong newChildGid;
+                if (recipientConnectionIndex == i) // This is the connection we are grafting from the recipient.
+                {
+                    if (!parent2OriginalToCopiedNodeMap.TryGetValue(oldDonorNodeGid, out newChildGid))
+                        throw new InvalidOperationException($"Failed to find new child GID for donor connection. oldDonorNodeGid: {oldDonorNodeGid}");
+                }
+                else
+                {
+                    // What is the index of the child node relative to the parent (can be negative)?
+                    int oldAbsoluteParentNodeIndex = parent1.Nodes.FindIndex(n => n.Gid == c.ParentNodeGid);
+                    int oldAbsoluteChildNodeIndex = parent1.Nodes.FindIndex(n => n.Gid == c.ChildNodeGid);
+                    int relativeChildIndex = oldAbsoluteChildNodeIndex - oldAbsoluteParentNodeIndex;
+
+                    int newAbsoluteParentNodeIndex = offspringContext.Nodes.FindIndex(n => n.Gid == newParentGid);
+                    int newAbsoluteChildNodeIndex = newAbsoluteParentNodeIndex + relativeChildIndex;
+                    if (newAbsoluteChildNodeIndex < 0 || newAbsoluteChildNodeIndex >= offspringContext.Nodes.Count)
+                        continue; // Connection now points out of bounds.
+                    newChildGid = offspringContext.Nodes[newAbsoluteChildNodeIndex].Gid;
+                }
 
                 Connection copiedConnection = new(
                     newParentGid,
                     newChildGid,
-                    sourceConnection.ParentFace,
-                    sourceConnection.Position,
-                    sourceConnection.Orientation,
-                    sourceConnection.Scale,
-                    sourceConnection.ReflectionX,
-                    sourceConnection.ReflectionY,
-                    sourceConnection.ReflectionZ,
-                    sourceConnection.TerminalOnly
+                    c.ParentFace,
+                    c.Position,
+                    c.Orientation,
+                    c.Scale,
+                    c.ReflectionX,
+                    c.ReflectionY,
+                    c.ReflectionZ,
+                    c.TerminalOnly
                 );
                 offspringContext.Connections.Add(copiedConnection);
-
-                connectionGidMap[sourceConnection.Gid] = copiedConnection.Gid;
             }
-            return connectionGidMap;
+
+            for (int i = 0; i < parent2.Connections.Count; i++)
+            {
+                Connection c = parent2.Connections[i];
+
+                // Does the copied version of my original parent node exist?
+                if (!parent2OriginalToCopiedNodeMap.TryGetValue(c.ParentNodeGid, out ulong newParentGid))
+                    continue; // Parent node does not exist in the offspring context.
+
+                // What child node are we now pointing to?
+                // What is the index of the child node relative to the parent (can be negative)?
+                int oldAbsoluteParentNodeIndex = parent2.Nodes.FindIndex(n => n.Gid == c.ParentNodeGid);
+                int oldAbsoluteChildNodeIndex = parent2.Nodes.FindIndex(n => n.Gid == c.ChildNodeGid);
+                int relativeChildIndex = oldAbsoluteChildNodeIndex - oldAbsoluteParentNodeIndex;
+
+                int newAbsoluteParentNodeIndex = offspringContext.Nodes.FindIndex(n => n.Gid == newParentGid);
+                int newAbsoluteChildNodeIndex = newAbsoluteParentNodeIndex + relativeChildIndex + donorOffset; // Adjust for any grafting offset.
+                if (newAbsoluteChildNodeIndex < 0 || newAbsoluteChildNodeIndex >= offspringContext.Nodes.Count)
+                    continue; // Connection now points out of bounds.
+                ulong newChildGid = offspringContext.Nodes[newAbsoluteChildNodeIndex].Gid;
+
+                Connection copiedConnection = new(
+                    newParentGid,
+                    newChildGid,
+                    c.ParentFace,
+                    c.Position,
+                    c.Orientation,
+                    c.Scale,
+                    c.ReflectionX,
+                    c.ReflectionY,
+                    c.ReflectionZ,
+                    c.TerminalOnly
+                );
+                offspringContext.Connections.Add(copiedConnection);
+            }
         }
 
-        private Dictionary<ulong, ulong> CopyOverRelatedNeuronDefinitions(SimsGenotype parent1, SimsGenotype parent2, SimsGenotypeCreationContext offspringContext, Dictionary<ulong, ulong> nodeGidMap)
+        private void CopyOverRelatedNeuronDefinitions(
+            SimsGenotype parent1, SimsGenotype parent2,
+            SimsGenotypeCreationContext offspringContext,
+            Dictionary<ulong, ulong> parent1OriginalToCopiedNodeMap,
+            Dictionary<ulong, ulong> parent2OriginalToCopiedNodeMap
+        )
         {
-            Dictionary<ulong, ulong> neuronDefinitionGidMap = new();
-            IEnumerable<NeuronDefinition> sourceNeuronDefinitions = parent1.NeuronDefinitions.Concat(parent2.NeuronDefinitions);
-            foreach (var sourceNeuron in sourceNeuronDefinitions)
+            for (int i = 0; i < parent1.NeuronDefinitions.Count; i++)
             {
-                if (neuronDefinitionGidMap.ContainsKey(sourceNeuron.Gid))
-                    continue;
-
-                ulong newContainerGid = nodeGidMap.TryGetValue(sourceNeuron.ContainerGid, out ulong newGid) ? newGid : sourceNeuron.ContainerGid;
+                NeuronDefinition sourceNeuron = parent1.NeuronDefinitions[i];
+                ulong newContainerGid;
+                if (sourceNeuron.ContainerGid == SimsGenotype.BRAIN_GID)
+                    newContainerGid = SimsGenotype.BRAIN_GID; // We only take brain neurons from parent1.
+                else if (!parent1OriginalToCopiedNodeMap.TryGetValue(sourceNeuron.ContainerGid, out newContainerGid))
+                    continue; // Skip this neuron definition if its container node wasn't copied.
 
                 NeuronDefinition copiedNeuronDefinition = new(
                     newContainerGid,
@@ -222,10 +292,76 @@ namespace mycoolfin.TheSimsulator.Sims.Genotype
                     sourceNeuron.Inputs
                 );
                 offspringContext.NeuronDefinitions.Add(copiedNeuronDefinition);
-
-                neuronDefinitionGidMap[sourceNeuron.Gid] = copiedNeuronDefinition.Gid;
             }
-            return neuronDefinitionGidMap;
+
+            for (int i = 0; i < parent2.NeuronDefinitions.Count; i++)
+            {
+                NeuronDefinition sourceNeuron = parent2.NeuronDefinitions[i];
+                if (sourceNeuron.ContainerGid == SimsGenotype.BRAIN_GID)
+                    continue; // We only take brain neurons from parent1.
+                if (!parent2OriginalToCopiedNodeMap.TryGetValue(sourceNeuron.ContainerGid, out ulong newContainerGid))
+                    continue; // Skip this neuron definition if its container node wasn't copied.
+
+                NeuronDefinition copiedNeuronDefinition = new(
+                    newContainerGid,
+                    sourceNeuron.ActivationFunction,
+                    sourceNeuron.Inputs
+                );
+                offspringContext.NeuronDefinitions.Add(copiedNeuronDefinition);
+            }
+        }
+
+        private static void Checker(string insideFunc, SimsGenotypeCreationContext context, SimsGenotype parent1, SimsGenotype parent2)
+        {
+            int maxNodes = SimsGenotype.MAX_NODES;
+            if (context.Nodes.Count > maxNodes)
+                UnityEngine.Debug.Log($"{insideFunc}: Expected at most {maxNodes} nodes, but found {context.Nodes.Count}.");
+
+            int maxConnections = Node.MAX_CONNECTIONS * context.Nodes.Count;
+            if (context.Connections.Count > maxConnections)
+            {
+                UnityEngine.Debug.Log($"{insideFunc}: Expected at most {maxConnections} connections, but found {context.Connections.Count}.");
+                Dictionary<ulong, int> connectionsByParent = context.Connections
+                    .GroupBy(c => c.ParentNodeGid)
+                    .ToDictionary(g => g.Key, g => g.Count());
+
+                // Check that all ParentNodeGids exist in the nodes.
+                foreach (ulong parentGid in connectionsByParent.Keys)
+                {
+                    if (!context.Nodes.Any(n => n.Gid == parentGid))
+                    {
+                        UnityEngine.Debug.Log($"{insideFunc}: ParentNodeGid {parentGid} does not exist in nodes.");
+                    }
+                }
+
+                // Print out number of connections per parent node.
+                foreach (var kvp in connectionsByParent)
+                {
+                    UnityEngine.Debug.Log($"{insideFunc}: ParentNodeGid {kvp.Key} has {kvp.Value} connections.");
+                }
+
+
+                // Now do the same for the parent1 and parent2 connections.
+                Dictionary<ulong, int> parent1ConnectionsByParent = parent1.Connections
+                    .GroupBy(c => c.ParentNodeGid)
+                    .ToDictionary(g => g.Key, g => g.Count());
+                Dictionary<ulong, int> parent2ConnectionsByParent = parent2.Connections
+                    .GroupBy(c => c.ParentNodeGid)
+                    .ToDictionary(g => g.Key, g => g.Count());
+                foreach (var kvp in parent1ConnectionsByParent)
+                {
+                    UnityEngine.Debug.Log($"{insideFunc}: PARENT1 | ParentNodeGid {kvp.Key} has {kvp.Value} connections.");
+                }
+                foreach (var kvp in parent2ConnectionsByParent)
+                {
+                    UnityEngine.Debug.Log($"{insideFunc}: PARENT2 | ParentNodeGid {kvp.Key} has {kvp.Value} connections.");
+                }
+
+            }
+
+            int maxNeuronDefinitions = SimsGenotype.MAX_BRAIN_NEURON_DEFINITIONS + Node.MAX_NEURON_DEFINITIONS * context.Nodes.Count;
+            if (context.NeuronDefinitions.Count > maxNeuronDefinitions)
+                UnityEngine.Debug.Log($"{insideFunc}: Expected at most {maxNeuronDefinitions} neuron definitions, but found {context.NeuronDefinitions.Count}.");
         }
     }
 }

@@ -24,7 +24,6 @@ public partial struct WaitForInitialisationCompleteSystem : ISystem
 
         // Resume physics updates.
         state.World.GetExistingSystemManaged<FixedStepSimulationSystemGroup>().Enabled = true;
-        UnityEngine.Debug.Log("Initialisation complete. Resuming simulation.");
 
         // Disable this system after it has run once.
         state.Enabled = false;

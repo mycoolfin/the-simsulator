@@ -112,7 +112,7 @@ public partial struct CreateJointEntityJob : IJobEntity
                     SensorEmitterIndex = neuralGraph.GetEmitterIndexOfSensor(limbIndex, mycoolfin.TheSimsulator.Sims.Phenotype.SensorType.JointAngle, 0),
                     ActuatorNeuronEmitterIndex = neuralGraph.GetEmitterIndexOfActuatorNeuron(limbIndex, mycoolfin.TheSimsulator.Sims.Phenotype.ActuatorType.JointAngle, 0),
                     AngleLimit = request.AngleLimits.x,
-                    SwapXZ = false
+                    SwapXZ = 0
                 });
                 break;
             case mycoolfin.TheSimsulator.Sims.Genotype.JointType.Twist:
@@ -127,7 +127,7 @@ public partial struct CreateJointEntityJob : IJobEntity
                     SensorEmitterIndex = neuralGraph.GetEmitterIndexOfSensor(limbIndex, mycoolfin.TheSimsulator.Sims.Phenotype.SensorType.JointAngle, 0),
                     ActuatorNeuronEmitterIndex = neuralGraph.GetEmitterIndexOfActuatorNeuron(limbIndex, mycoolfin.TheSimsulator.Sims.Phenotype.ActuatorType.JointAngle, 0),
                     AngleLimit = request.AngleLimits.z,
-                    SwapXZ = false
+                    SwapXZ = 0
                 });
                 break;
             case mycoolfin.TheSimsulator.Sims.Genotype.JointType.BendTwist:
@@ -148,14 +148,14 @@ public partial struct CreateJointEntityJob : IJobEntity
                     SensorEmitterIndex = neuralGraph.GetEmitterIndexOfSensor(limbIndex, mycoolfin.TheSimsulator.Sims.Phenotype.SensorType.JointAngle, 0),
                     ActuatorNeuronEmitterIndex = neuralGraph.GetEmitterIndexOfActuatorNeuron(limbIndex, mycoolfin.TheSimsulator.Sims.Phenotype.ActuatorType.JointAngle, 0),
                     AngleLimit = request.AngleLimits.x,
-                    SwapXZ = false
+                    SwapXZ = 0
                 });
                 ecb.AddComponent(sortKey, jointEntity2, new JointAxisZ
                 {
                     SensorEmitterIndex = neuralGraph.GetEmitterIndexOfSensor(limbIndex, mycoolfin.TheSimsulator.Sims.Phenotype.SensorType.JointAngle, 1),
                     ActuatorNeuronEmitterIndex = neuralGraph.GetEmitterIndexOfActuatorNeuron(limbIndex, mycoolfin.TheSimsulator.Sims.Phenotype.ActuatorType.JointAngle, 1),
                     AngleLimit = request.AngleLimits.z,
-                    SwapXZ = false
+                    SwapXZ = 0
                 });
                 break;
             case mycoolfin.TheSimsulator.Sims.Genotype.JointType.TwistBend:
@@ -176,14 +176,14 @@ public partial struct CreateJointEntityJob : IJobEntity
                     SensorEmitterIndex = neuralGraph.GetEmitterIndexOfSensor(limbIndex, mycoolfin.TheSimsulator.Sims.Phenotype.SensorType.JointAngle, 0),
                     ActuatorNeuronEmitterIndex = neuralGraph.GetEmitterIndexOfActuatorNeuron(limbIndex, mycoolfin.TheSimsulator.Sims.Phenotype.ActuatorType.JointAngle, 0),
                     AngleLimit = request.AngleLimits.z,
-                    SwapXZ = true
+                    SwapXZ = 1
                 });
                 ecb.AddComponent(sortKey, jointEntity2, new JointAxisZ
                 {
                     SensorEmitterIndex = neuralGraph.GetEmitterIndexOfSensor(limbIndex, mycoolfin.TheSimsulator.Sims.Phenotype.SensorType.JointAngle, 1),
                     ActuatorNeuronEmitterIndex = neuralGraph.GetEmitterIndexOfActuatorNeuron(limbIndex, mycoolfin.TheSimsulator.Sims.Phenotype.ActuatorType.JointAngle, 1),
                     AngleLimit = request.AngleLimits.x,
-                    SwapXZ = true
+                    SwapXZ = 1
                 });
                 break;
             case mycoolfin.TheSimsulator.Sims.Genotype.JointType.Universal:
@@ -204,7 +204,7 @@ public partial struct CreateJointEntityJob : IJobEntity
                     SensorEmitterIndex = neuralGraph.GetEmitterIndexOfSensor(limbIndex, mycoolfin.TheSimsulator.Sims.Phenotype.SensorType.JointAngle, 0),
                     ActuatorNeuronEmitterIndex = neuralGraph.GetEmitterIndexOfActuatorNeuron(limbIndex, mycoolfin.TheSimsulator.Sims.Phenotype.ActuatorType.JointAngle, 0),
                     AngleLimit = request.AngleLimits.x,
-                    SwapXZ = false
+                    SwapXZ = 0
                 });
                 ecb.AddComponent(sortKey, jointEntity2, new JointAxisY
                 {
@@ -231,7 +231,7 @@ public partial struct CreateJointEntityJob : IJobEntity
                     SensorEmitterIndex = neuralGraph.GetEmitterIndexOfSensor(limbIndex, mycoolfin.TheSimsulator.Sims.Phenotype.SensorType.JointAngle, 0),
                     ActuatorNeuronEmitterIndex = neuralGraph.GetEmitterIndexOfActuatorNeuron(limbIndex, mycoolfin.TheSimsulator.Sims.Phenotype.ActuatorType.JointAngle, 0),
                     AngleLimit = request.AngleLimits.x,
-                    SwapXZ = false
+                    SwapXZ = 0
                 });
                 ecb.AddComponent(sortKey, jointEntity2, new JointAxisY
                 {
@@ -244,7 +244,7 @@ public partial struct CreateJointEntityJob : IJobEntity
                     SensorEmitterIndex = neuralGraph.GetEmitterIndexOfSensor(limbIndex, mycoolfin.TheSimsulator.Sims.Phenotype.SensorType.JointAngle, 2),
                     ActuatorNeuronEmitterIndex = neuralGraph.GetEmitterIndexOfActuatorNeuron(limbIndex, mycoolfin.TheSimsulator.Sims.Phenotype.ActuatorType.JointAngle, 2),
                     AngleLimit = request.AngleLimits.z,
-                    SwapXZ = false
+                    SwapXZ = 0
                 });
                 break;
             default:
@@ -324,7 +324,7 @@ public partial struct CreateJointEntityJob : IJobEntity
     }
 
     [BurstCompile]
-    private static void CreateConstraint(in JointEntityCreationRequest request, ConstraintType type, in bool3 constrainedAxes, float angleLimit, out Constraint constraint)
+    private static void CreateConstraint(in JointEntityCreationRequest request, ConstraintType type, in bool3 constrainedAxes, float angleLimit, out Constraint constraint, float3 target = default)
     {
         float maxImpulseOfMotor = BASE_MAX_MOTOR_IMPULSE * request.MaxMotorImpulseScaleFactor;
         constraint = new()
@@ -336,7 +336,7 @@ public partial struct CreateJointEntityJob : IJobEntity
             SpringFrequency = SPRING_FREQUENCY,
             DampingRatio = DAMPING_RATIO,
             MaxImpulse = new float3(maxImpulseOfMotor, maxImpulseOfMotor, maxImpulseOfMotor),
-            Target = float3.zero
+            Target = target
         };
     }
 }

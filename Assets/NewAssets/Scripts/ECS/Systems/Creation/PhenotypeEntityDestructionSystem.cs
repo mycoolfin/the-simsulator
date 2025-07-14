@@ -14,6 +14,9 @@ public partial struct PhenotypeEntityDestructionSystem : ISystem
 
     public void OnUpdate(ref SystemState state)
     {
+        // Dispose of all BlobAssetReferences before destroying entities.
+        new DisposeBlobAssetsJob().ScheduleParallel(state.Dependency).Complete();
+
         using EntityCommandBuffer ecb = new(Allocator.TempJob);
         new DestroyPhenotypeEntitiesJob
         {
@@ -29,6 +32,17 @@ public partial struct PhenotypeEntityDestructionSystem : ISystem
         ecb.DestroyEntity(requestEntity);
 
         ecb.Playback(state.EntityManager);
+    }
+}
+
+[BurstCompile]
+[WithAll(typeof(NeuralGraphRef))]
+public partial struct DisposeBlobAssetsJob : IJobEntity
+{
+    public void Execute(in NeuralGraphRef neuralGraphRef)
+    {
+        if (neuralGraphRef.Value.IsCreated)
+            neuralGraphRef.Value.Dispose();
     }
 }
 

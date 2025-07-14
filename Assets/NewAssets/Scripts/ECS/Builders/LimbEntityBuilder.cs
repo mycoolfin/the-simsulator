@@ -97,7 +97,7 @@ public static class LimbEntityBuilder
         filter = new CollisionFilter
         {
             BelongsTo = PHENOTYPE_LAYER,
-            CollidesWith = request.AllowInterPhenotypeCollisions
+            CollidesWith = request.AllowInterPhenotypeCollisions == 1
                 ? ALL_LAYERS
                 : ~PHENOTYPE_LAYER,
             GroupIndex = GetNegativeGroupIndex(request.PhenotypeGid)
@@ -154,7 +154,7 @@ public static class LimbEntityBuilder
             // Transform.
             LocalTransform localTransform = LocalTransform.FromPositionRotationScale(
                 requestData.Position + requestData.PhysicsPositionOffset,
-                requestData.Rotation,
+                math.normalize(requestData.Rotation),
                 1f
             );
             Ecb.SetComponent(INSTANTIATION_KEY, limbEntity, localTransform);

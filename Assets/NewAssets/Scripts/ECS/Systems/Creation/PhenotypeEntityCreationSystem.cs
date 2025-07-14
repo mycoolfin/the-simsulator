@@ -25,7 +25,7 @@ public struct LimbEntityCreationRequest : IComponentData
     public float4 Color;
     public float3 PhysicsPositionOffset;
     public float3 VisualOffset;
-    [MarshalAs(UnmanagedType.U1)] public bool AllowInterPhenotypeCollisions;
+    public byte AllowInterPhenotypeCollisions;
 }
 
 public struct JointEntityCreationRequest : IComponentData
@@ -38,7 +38,7 @@ public struct JointEntityCreationRequest : IComponentData
     public float3 ReferenceLimbSpaceXAxis;
     public float3 ReferenceLimbSpaceYAxis;
     public float3 ReferenceLimbSpaceZAxis;
-    [MarshalAs(UnmanagedType.U1)] public bool FlippedHandedness;
+    public byte FlippedHandedness;
     public float3 AngleLimits;
     public float MaxMotorImpulseScaleFactor;
 }

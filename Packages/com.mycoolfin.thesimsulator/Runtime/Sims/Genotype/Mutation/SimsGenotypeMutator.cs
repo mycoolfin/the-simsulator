@@ -57,6 +57,15 @@ namespace mycoolfin.TheSimsulator.Sims.Genotype
             if (context.Nodes.Count > SimsGenotype.MIN_NODES)
             {
                 int index = SharedRandom.Next(context.Nodes.Count);
+
+                ulong nodeGid = context.Nodes[index].Gid;
+
+                // Remove all connections associated with this node.
+                context.Connections.RemoveAll(c => c.ParentNodeGid == nodeGid || c.ChildNodeGid == nodeGid);
+
+                // Remove all neuron definitions associated with this node.
+                context.NeuronDefinitions.RemoveAll(nd => nd.ContainerGid == nodeGid);
+
                 context.Nodes.RemoveAt(index);
             }
         }
@@ -72,6 +81,7 @@ namespace mycoolfin.TheSimsulator.Sims.Genotype
 
         public static void MutateConnections(SimsGenotypeCreationContext context)
         {
+            RemoveDanglingConnections(context);
             ConnectionMutations.Choose().Invoke(context);
         }
 
@@ -135,6 +145,7 @@ namespace mycoolfin.TheSimsulator.Sims.Genotype
 
         public static void MutateNeuronDefinitions(SimsGenotypeCreationContext context)
         {
+            RemoveDanglingNeuronDefinitions(context);
             NeuronDefinitionMutations.Choose().Invoke(context);
         }
 
@@ -202,6 +213,21 @@ namespace mycoolfin.TheSimsulator.Sims.Genotype
                 int index = SharedRandom.Next(context.NeuronDefinitions.Count);
                 NeuronDefinitionMutator.MutateNeuronDefinition(context, index);
             }
+        }
+
+        private static void RemoveDanglingConnections(SimsGenotypeCreationContext context)
+        {
+            // Remove connections that reference nodes that no longer exist.
+            HashSet<ulong> validNodeIds = context.Nodes.Select(n => n.Gid).ToHashSet();
+            context.Connections.RemoveAll(c => !validNodeIds.Contains(c.ParentNodeGid) || !validNodeIds.Contains(c.ChildNodeGid));
+        }
+
+        private static void RemoveDanglingNeuronDefinitions(SimsGenotypeCreationContext context)
+        {
+            // Remove neuron definitions that reference nodes that no longer exist.
+            HashSet<ulong> validNodeIds = context.Nodes.Select(n => n.Gid).ToHashSet();
+            validNodeIds.Add(SimsGenotype.BRAIN_GID); // Include brain as a valid container.
+            context.NeuronDefinitions.RemoveAll(nd => !validNodeIds.Contains(nd.ContainerGid));
         }
     }
 }

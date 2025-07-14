@@ -2,14 +2,6 @@ using Unity.Entities;
 using Unity.Entities.Serialization;
 using Unity.Scenes;
 
-// Order:
-// 0. Pause fixedstep group
-// 1. Initialise environment
-// 2. Wait for environment to load
-// 3. Create phenotype entities
-// 4. Align phenotypes with ground (if applicable)
-// 5. Enable fixedstep group
-
 public struct InitialiseTrialRequest : IComponentData
 {
     public NewAssets.TrialType TrialType;
@@ -44,6 +36,7 @@ public partial struct InitialiseTrialSystem : ISystem
         {
             EntitySceneReference waterDistanceEnvironment = SystemAPI.GetSingleton<EnvironmentSubScenes>().WaterEnvironment;
             environmentEntity = SceneSystem.LoadSceneAsync(state.World.Unmanaged, waterDistanceEnvironment, new() { Flags = SceneLoadFlags.BlockOnStreamIn });
+            state.EntityManager.CreateSingleton(new FluidSimulation() { Enabled = 0 });
         }
 
         if (environmentEntity != Entity.Null)
@@ -55,6 +48,5 @@ public partial struct InitialiseTrialSystem : ISystem
         // This will be re-enabled in WaitForInitialisationCompleteSystem.
         state.WorldUnmanaged.GetExistingSystemState<FixedStepSimulationSystemGroup>().Enabled = false;
         state.WorldUnmanaged.GetExistingSystemState<WaitForInitialisationCompleteSystem>().Enabled = true;
-        UnityEngine.Debug.Log($"Initialising trial: {trialType}.");
     }
 }

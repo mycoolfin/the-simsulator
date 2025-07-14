@@ -92,8 +92,8 @@ public class PhenotypeRenderingTest : UnityEngine.MonoBehaviour
                     new Vector3((float)Math.PI / 15f, (float)Math.PI / 15f, (float)Math.PI / 15f),
                     new Vector3(0.5f, 0.5f, 1f),
                     true,
-                    true,
-                    true,
+                    false,
+                    false,
                     false
                 )
             };
@@ -102,8 +102,8 @@ public class PhenotypeRenderingTest : UnityEngine.MonoBehaviour
             ActivationFunction.Sin,
             new(new(biasAddy, 1f), new(biasAddy, 1f), new(biasAddy, 1f))
         );
-        // SimsGenotype genotype = new(nodes, connections, new() { nd });
-        SimsGenotype genotype = genotypeFactory.CreateInitialisedGenotype();
+        SimsGenotype genotype = new(nodes, connections, new() { nd });
+        // SimsGenotype genotype = genotypeFactory.CreateInitialisedGenotype();
 
         SimsPhenotype phenotype = phenotypeFactory.ConstructPhenotype(genotype);
 

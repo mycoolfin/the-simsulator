@@ -71,7 +71,7 @@ public partial struct UpdateJointAxisXSensorJob : IJobEntity
 
     public void Execute(in PhysicsConstrainedBodyPair pair, in PhysicsJoint joint, in JointAxisX jointAxis, in RootPhenotypeEntity rootPhenotypeEntity)
     {
-        JointAxisSensorJobCore.Axis axis = jointAxis.SwapXZ ? JointAxisSensorJobCore.Axis.Z : JointAxisSensorJobCore.Axis.X;
+        JointAxisSensorJobCore.Axis axis = jointAxis.SwapXZ == 1 ? JointAxisSensorJobCore.Axis.Z : JointAxisSensorJobCore.Axis.X;
         JointAxisSensorJobCore.ExecuteAxis(pair, joint, rootPhenotypeEntity, axis, jointAxis.SensorEmitterIndex, jointAxis.AngleLimit, ref LocalTransformLookup, ref EmitterStateBuffers);
     }
 }
@@ -96,7 +96,7 @@ public partial struct UpdateJointAxisZSensorJob : IJobEntity
 
     public void Execute(in PhysicsConstrainedBodyPair pair, in PhysicsJoint joint, in JointAxisZ jointAxis, in RootPhenotypeEntity rootPhenotypeEntity)
     {
-        JointAxisSensorJobCore.Axis axis = jointAxis.SwapXZ ? JointAxisSensorJobCore.Axis.X : JointAxisSensorJobCore.Axis.Z;
+        JointAxisSensorJobCore.Axis axis = jointAxis.SwapXZ == 1 ? JointAxisSensorJobCore.Axis.X : JointAxisSensorJobCore.Axis.Z;
         JointAxisSensorJobCore.ExecuteAxis(pair, joint, rootPhenotypeEntity, axis, jointAxis.SensorEmitterIndex, jointAxis.AngleLimit, ref LocalTransformLookup, ref EmitterStateBuffers);
     }
 }

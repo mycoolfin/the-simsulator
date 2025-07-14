@@ -6,7 +6,7 @@ public struct JointAxisX : IComponentData
     public ushort SensorEmitterIndex;
     public ushort ActuatorNeuronEmitterIndex;
     public float AngleLimit;
-    [MarshalAs(UnmanagedType.U1)] public bool SwapXZ;
+    public byte SwapXZ;
 }
 
 public struct JointAxisY : IComponentData
@@ -21,5 +21,5 @@ public struct JointAxisZ : IComponentData
     public ushort SensorEmitterIndex;
     public ushort ActuatorNeuronEmitterIndex;
     public float AngleLimit;
-    [MarshalAs(UnmanagedType.U1)] public bool SwapXZ;
+    public byte SwapXZ;
 }
