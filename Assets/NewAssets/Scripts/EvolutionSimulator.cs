@@ -2,8 +2,9 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
 using Unity.Entities;
+using Unity.Entities.Serialization;
+using UnityEngine;
 using mycoolfin.TheSimsulator.Sims.Evolution;
 using mycoolfin.TheSimsulator.Sims.Genotype;
 using mycoolfin.TheSimsulator.Sims.Phenotype;
@@ -20,13 +21,17 @@ namespace NewAssets
 
     public class EvolutionSimulator : MonoBehaviour
     {
+        [Header("Environment SubScenes")]
+        [SerializeField] private EntitySceneReference groundEnvironment;
+        [SerializeField] private EntitySceneReference waterEnvironment;
+
         [Header("Evolution Parameters")]
         [SerializeField] private int populationSize = 100;
         [SerializeField] private int maxGenerations = 100;
         [SerializeField] private float survivalRate = 0.2f;
         [SerializeField] private float mutationRate = 1f;
-        [SerializeField] private float settleTime = 5f;
-        [SerializeField] private float assessmentTime = 10f;
+        [SerializeField] private float settleSeconds = 5f;
+        [SerializeField] private float assessmentSeconds = 10f;
         [SerializeField] private TrialType trialType = TrialType.GroundDistance;
         [SerializeField] private SimsGenotype seedGenotype;
 
@@ -127,13 +132,9 @@ namespace NewAssets
             // TODO: Overkill.
             WorldAPI.DestroyWorld(ecsWorld);
             ecsWorld = WorldAPI.CreateWorld("EvolutionWorld");
-            CopyEnvironmentSubScenesToWorld(ecsWorld);
-
-            EvolutionAPI.InitialiseTrial(ecsWorld, trialType);
 
             // Step 1: Create ECS entities from phenotypes.
             Debug.Log("Creating entities from phenotypes...");
-            SystemSettingsAPI.SetJointBreakSystemEnabled(ecsWorld, false);
             EntityCreationAPI.CreateEntitiesFromPhenotypes(
                 ecsWorld,
                 population
@@ -146,27 +147,19 @@ namespace NewAssets
                 }).ToList()
             );
 
-            yield return WaitForTrialInitialisationToFinish();
+            // Step 2: Initialise trial.
+            Debug.Log("Initialising trial...");
+            yield return EvolutionAPI.InitialiseTrial(ecsWorld, trialType, groundEnvironment, waterEnvironment);
 
-            // Step 2: Let entities settle.
+            // Step 3: Let entities settle.
             Debug.Log("Settling entities...");
-            SystemSettingsAPI.SetSimulationRateControllerMode(ecsWorld, simulationRate);
-            SystemSettingsAPI.SetSimulationRateControllerPauseAfterSeconds(ecsWorld, settleTime / 2f);
-            yield return WaitForSimulationToFinish();
-            EvolutionAPI.ZeroAllLimbVelocities(ecsWorld);
-            SystemSettingsAPI.SetSimulationRateControllerPauseAfterSeconds(ecsWorld, settleTime / 2f);
-            yield return WaitForSimulationToFinish();
-            EvolutionAPI.ZeroAllLimbVelocities(ecsWorld);
+            yield return EvolutionAPI.SettlePhenotypes(ecsWorld, settleSeconds, GetSimulationRateMode);
 
-            SystemSettingsAPI.SetJointBreakSystemEnabled(ecsWorld, true);
-
-            // Step 3: Start assessment.
+            // Step 4: Start assessment.
             Debug.Log("Beginning assessment...");
-            EvolutionAPI.BeginAssessment(ecsWorld, trialType);
-            SystemSettingsAPI.SetSimulationRateControllerPauseAfterSeconds(ecsWorld, assessmentTime);
-            yield return WaitForSimulationToFinish();
+            yield return EvolutionAPI.AssessPhenotypes(ecsWorld, trialType, assessmentSeconds, GetSimulationRateMode);
 
-            // Step 4: Read back fitness values and assign to matching individuals.
+            // Step 5: Read back fitness values and assign to matching individuals.
             Debug.Log("Reading assessment results...");
             Dictionary<ulong, float> phenotypeFitnesses = EvolutionAPI.GetAssessmentResults(ecsWorld);
             foreach (Individual individual in population)
@@ -174,31 +167,9 @@ namespace NewAssets
                     individual.fitness = Mathf.Max(fitness, 0f);
         }
 
-        private IEnumerator WaitForTrialInitialisationToFinish()
+        private SimulationRateMode GetSimulationRateMode()
         {
-            while (!EvolutionAPI.IsTrialInitialised(ecsWorld))
-                yield return new WaitForSecondsRealtime(0.1f); // Poll every 100ms.
-        }
-
-        private IEnumerator WaitForSimulationToFinish()
-        {
-            while (true)
-            {
-                SimulationRateControllerSettings settings = SystemSettingsAPI.GetSimulationRateControllerSettings(ecsWorld);
-                if (settings.Mode != simulationRate)
-                    SystemSettingsAPI.SetSimulationRateControllerMode(ecsWorld, simulationRate);
-                if (settings.PauseAfterSeconds <= 0f)
-                    break;
-                yield return new WaitForSecondsRealtime(0.1f); // Poll every 100ms.
-            }
-        }
-
-        private static void CopyEnvironmentSubScenesToWorld(World world)
-        {
-            EnvironmentSubScenes envSubScenes = World.DefaultGameObjectInjectionWorld.EntityManager
-                .CreateEntityQuery(typeof(EnvironmentSubScenes))
-                .GetSingleton<EnvironmentSubScenes>();
-            world.EntityManager.AddComponentData(world.EntityManager.CreateEntity(), envSubScenes);
+            return simulationRate;
         }
 
         private static float GetAverageFitness(IReadOnlyList<Individual> currentPopulation)

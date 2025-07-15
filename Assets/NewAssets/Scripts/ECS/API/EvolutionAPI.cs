@@ -1,35 +1,125 @@
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using Unity.Burst;
 using Unity.Burst.Intrinsics;
 using Unity.Collections;
 using Unity.Entities;
+using Unity.Entities.Serialization;
+using Unity.Mathematics;
+using Unity.Physics;
+using Unity.Scenes;
 
 public static class EvolutionAPI
 {
-    public static void InitialiseTrial(World world, NewAssets.TrialType trialType)
+    public static IEnumerator InitialiseTrial(World world, NewAssets.TrialType trialType, EntitySceneReference groundEnvironmentSubScene, EntitySceneReference waterEnvironmentSubScene)
     {
         EntityManager entityManager = world.EntityManager;
-        entityManager.CreateSingleton(new InitialiseTrialRequest { TrialType = trialType });
+
+        yield return SettleJoints(world, 5f); // Necessary as long as the joint flip bug exists.
+
+        // Load the trial environment.
+        EntitySceneReference environmentSubSceneReference = trialType switch
+        {
+            NewAssets.TrialType.GroundDistance => groundEnvironmentSubScene,
+            NewAssets.TrialType.WaterDistance => waterEnvironmentSubScene,
+            _ => throw new ArgumentOutOfRangeException(nameof(trialType), "Unsupported trial type.")
+        };
+        Entity sceneEntity = SceneSystem.LoadSceneAsync(
+            world.Unmanaged,
+            environmentSubSceneReference,
+            new SceneSystem.LoadParameters
+            {
+                AutoLoad = true,
+                Flags = SceneLoadFlags.BlockOnStreamIn | SceneLoadFlags.BlockOnImport
+            });
+        while (!SceneSystem.IsSceneLoaded(world.Unmanaged, sceneEntity))
+            yield return null;
+
+        // Set trial-specific physics.
+        if (trialType == NewAssets.TrialType.GroundDistance)
+        {
+            SystemSettingsAPI.SetGravity(world, PhysicsStep.Default.Gravity);
+        }
+        else if (trialType == NewAssets.TrialType.WaterDistance)
+        {
+            SystemSettingsAPI.SetGravity(world, float3.zero);
+            SystemSettingsAPI.SetFluidSimulation(world, true, 1000f);
+        }
+
+        // Reposition phenotype entities if necessary.
+        if (trialType == NewAssets.TrialType.GroundDistance)
+        {
+            entityManager.CreateSingleton(new RepositionPhenotypesRequest() { GroundY = 0f });
+            world.GetExistingSystem<RepositionPhenotypesSystem>().Update(world.Unmanaged);
+        }
     }
 
-    public static bool IsTrialInitialised(World world)
+    private static IEnumerator SettleJoints(World world, float settleSeconds)
     {
         EntityManager entityManager = world.EntityManager;
-        return !entityManager.HasComponent<InitialiseTrialRequest>(entityManager.CreateEntity())
-            && !entityManager.HasComponent<InitialisingTrialTag>(entityManager.CreateEntity());
+
+        // Freeze the root limbs for all phenotypes.
+        entityManager.CreateSingleton<FreezeRootLimbsRequest>();
+
+        // Switch to zero gravity.
+        SystemSettingsAPI.SetGravity(world, float3.zero);
+
+        // Disable the JointBreakSystem to prevent joint breaks during settling.
+        SystemSettingsAPI.SetJointBreakSystemEnabled(world, false);
+
+        // Run the FixedStepSimulationSystemGroup for the specified time.
+        UnityEngine.Debug.Log($"Settling joints for {settleSeconds} seconds...");
+        yield return SimulateForSeconds(world, settleSeconds, () => SimulationRateMode.FullSpeed);
+        UnityEngine.Debug.Log($"Joint settling complete after {settleSeconds} seconds.");
+
+        // Zero all limb velocities.
+        entityManager.CreateSingleton<ZeroAllLimbVelocitiesRequest>();
+
+        // Unfreeze the root limbs.
+        EntityQuery freezeQuery = entityManager.CreateEntityQuery(ComponentType.ReadOnly<FreezeRootLimbsRequest>());
+        if (!freezeQuery.IsEmpty)
+            entityManager.DestroyEntity(freezeQuery.GetSingletonEntity());
     }
 
-    public static void ZeroAllLimbVelocities(World world)
+    public static IEnumerator SettlePhenotypes(World world, float settleSeconds, Func<SimulationRateMode> GetSimulationRateModeCallback)
     {
         EntityManager entityManager = world.EntityManager;
-        Entity singletonEntity = entityManager.CreateEntity();
-        entityManager.AddComponentData(singletonEntity, new ZeroAllLimbVelocitiesRequest()); // Zero-sized, so have to do it this way.
+
+        SystemSettingsAPI.SetJointBreakSystemEnabled(world, true);
+
+        UnityEngine.Debug.Log($"Settling phenotypes for {settleSeconds} seconds...");
+        yield return SimulateForSeconds(world, settleSeconds, GetSimulationRateModeCallback);
+        UnityEngine.Debug.Log($"Phenotype settling complete after {settleSeconds} seconds.");
+
+        entityManager.CreateSingleton<ZeroAllLimbVelocitiesRequest>();
     }
 
-    public static void BeginAssessment(World world, NewAssets.TrialType trialType)
+    private static IEnumerator SimulateForSeconds(World world, float seconds, Func<SimulationRateMode> GetSimulationRateModeCallback)
+    {
+        EntityManager entityManager = world.EntityManager;
+        SimulationRateMode mode = GetSimulationRateModeCallback?.Invoke() ?? SimulationRateMode.RealTime;
+        SystemSettingsAPI.SetSimulationRateControllerMode(world, mode);
+
+        Entity timerSingleton = entityManager.CreateSingleton(new FixedStepPauseAfterTimerRequest() { TimerSeconds = seconds });
+        world.Unmanaged.GetExistingSystemState<FixedStepSimulationSystemGroup>().Enabled = true;
+        while (entityManager.HasComponent<FixedStepPauseAfterTimerRequest>(timerSingleton))
+        {
+            SimulationRateMode newMode = GetSimulationRateModeCallback?.Invoke() ?? SimulationRateMode.RealTime;
+            if (newMode != mode)
+            {
+                mode = newMode;
+                SystemSettingsAPI.SetSimulationRateControllerMode(world, mode);
+            }
+            yield return null;
+        }
+    }
+
+    public static IEnumerator AssessPhenotypes(World world, NewAssets.TrialType trialType, float assessmentSeconds, Func<SimulationRateMode> GetSimulationRateModeCallback)
     {
         EntityManager entityManager = world.EntityManager;
         entityManager.CreateSingleton(new BeginAssessmentRequest { TrialType = trialType });
+        yield return SimulateForSeconds(world, assessmentSeconds, GetSimulationRateModeCallback);
     }
 
     public static Dictionary<ulong, float> GetAssessmentResults(World world)

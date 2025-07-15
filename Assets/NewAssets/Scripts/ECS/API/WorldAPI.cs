@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using Unity.Entities;
-using UnityEngine;
 
 public static class WorldAPI
 {
@@ -18,7 +17,6 @@ public static class WorldAPI
         // Register the world to Unity's PlayerLoop so it actually updates.
         ScriptBehaviourUpdateOrder.AppendWorldToCurrentPlayerLoop(world);
 
-        Debug.Log($"[ECS] Created world '{worldName}' with {systems.Count} systems.");
         return world;
     }
 
@@ -32,7 +30,5 @@ public static class WorldAPI
             World.DefaultGameObjectInjectionWorld = null;
 
         world.Dispose();
-
-        Debug.Log($"[ECS] Destroyed world '{world.Name}'.");
     }
 }

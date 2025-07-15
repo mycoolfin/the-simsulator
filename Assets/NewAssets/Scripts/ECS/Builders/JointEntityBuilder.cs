@@ -324,7 +324,7 @@ public partial struct CreateJointEntityJob : IJobEntity
     }
 
     [BurstCompile]
-    private static void CreateConstraint(in JointEntityCreationRequest request, ConstraintType type, in bool3 constrainedAxes, float angleLimit, out Constraint constraint, float3 target = default)
+    private static void CreateConstraint(in JointEntityCreationRequest request, ConstraintType type, in bool3 constrainedAxes, float angleLimit, out Constraint constraint)
     {
         float maxImpulseOfMotor = BASE_MAX_MOTOR_IMPULSE * request.MaxMotorImpulseScaleFactor;
         constraint = new()
@@ -336,7 +336,7 @@ public partial struct CreateJointEntityJob : IJobEntity
             SpringFrequency = SPRING_FREQUENCY,
             DampingRatio = DAMPING_RATIO,
             MaxImpulse = new float3(maxImpulseOfMotor, maxImpulseOfMotor, maxImpulseOfMotor),
-            Target = target
+            Target = float3.zero
         };
     }
 }

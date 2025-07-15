@@ -9,8 +9,6 @@ public struct RepositionPhenotypesRequest : IComponentData
     public float GroundY;
 }
 
-[UpdateInGroup(typeof(TrialInitialisationSystemGroup))]
-[UpdateAfter(typeof(InitialiseTrialSystem))]
 public partial struct RepositionPhenotypesSystem : ISystem
 {
     public void OnCreate(ref SystemState state)

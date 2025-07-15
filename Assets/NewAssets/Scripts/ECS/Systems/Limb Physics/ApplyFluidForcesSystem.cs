@@ -7,17 +7,16 @@ using Unity.Physics;
 using Unity.Physics.Systems;
 using Unity.Jobs;
 
-public struct FluidSimulation : IComponentData
+public struct FluidSimulationSettings : IComponentData
 {
     public byte Enabled;
+    public float FluidDensity;
 }
 
-[UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
-[UpdateAfter(typeof(PhysicsSystemGroup))]
+[UpdateInGroup(typeof(PhysicsSystemGroup))]
+[UpdateBefore(typeof(PhysicsInitializeGroup))]
 public partial struct ApplyFluidForcesSystem : ISystem
 {
-    private const float FLUID_DENSITY = 1000f; // kg/m³ (water)
-
     public void OnCreate(ref SystemState state)
     {
         state.RequireForUpdate<PhysicsVelocity>();
@@ -25,17 +24,18 @@ public partial struct ApplyFluidForcesSystem : ISystem
         state.RequireForUpdate<LocalTransform>();
         state.RequireForUpdate<PostTransformMatrix>();
         state.RequireForUpdate<LimbIndex>();
-        state.RequireForUpdate<FluidSimulation>();
+        state.RequireForUpdate<FluidSimulationSettings>();
     }
 
     public void OnUpdate(ref SystemState state)
     {
-        if (SystemAPI.GetSingleton<FluidSimulation>().Enabled == 0)
+        FluidSimulationSettings settings = SystemAPI.GetSingleton<FluidSimulationSettings>();
+        if (settings.Enabled == 0)
             return;
 
         JobHandle handle = new ApplyFluidForcesJob
         {
-            FluidDensity = FLUID_DENSITY,
+            FluidDensity = settings.FluidDensity,
             DeltaTime = SystemAPI.Time.DeltaTime
         }
         .ScheduleParallel(state.Dependency);
@@ -64,16 +64,13 @@ partial struct ApplyFluidForcesJob : IJobEntity
         float speed = math.sqrt(speedSq);
         float3 velDir = worldVel / speed;
 
-        // Rotation & scale.
-        float3x3 rot = new(transform.Rotation);
-        float3 scale = postTransform.Value.Scale();
-
         // Face normals in world space.
-        float3 nx = math.mul(rot, new float3(1f, 0f, 0f));
-        float3 ny = math.mul(rot, new float3(0f, 1f, 0f));
-        float3 nz = math.mul(rot, new float3(0f, 0f, 1f));
+        float3 nx = math.rotate(transform.Rotation, new float3(1f, 0f, 0f));
+        float3 ny = math.rotate(transform.Rotation, new float3(0f, 1f, 0f));
+        float3 nz = math.rotate(transform.Rotation, new float3(0f, 0f, 1f));
 
         // Face areas.
+        float3 scale = postTransform.Value.Scale();
         float ax = scale.y * scale.z;
         float ay = scale.x * scale.z;
         float az = scale.x * scale.y;
@@ -81,17 +78,19 @@ partial struct ApplyFluidForcesJob : IJobEntity
         float3 force = float3.zero;
 
         // Aggregate per-face forces.
-        force += FaceForces(nx, ax, velDir, worldVel, speed, speedSq, FluidDensity);
-        force += FaceForces(ny, ay, velDir, worldVel, speed, speedSq, FluidDensity);
-        force += FaceForces(nz, az, velDir, worldVel, speed, speedSq, FluidDensity);
+        force += FaceForces(nx, ax, velDir, speed, speedSq, FluidDensity);
+        force += FaceForces(ny, ay, velDir, speed, speedSq, FluidDensity);
+        force += FaceForces(nz, az, velDir, speed, speedSq, FluidDensity);
 
         velocity.Linear += DeltaTime * invMass * force;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static float3 FaceForces(float3 normal, float area, float3 velDir, float3 worldVel, float speed, float speedSq, float fluidDensity)
+    private static float3 FaceForces(float3 normal, float area, float3 velDir, float speed, float speedSq, float fluidDensity)
     {
-        float absC = math.abs(math.dot(velDir, normal));
+        float dDot = math.dot(velDir, normal);
+        float3 signedNormal = math.sign(dDot) * normal;
+        float absC = math.abs(dDot);
         if (absC < 1e-3f) return float3.zero;
 
         float d = 1f - absC;
@@ -100,10 +99,10 @@ partial struct ApplyFluidForcesJob : IJobEntity
         float Cl = 1.2f * absC * root;
         float projV = absC * speed;
         float dragMag = 0.5f * fluidDensity * projV * projV * area * Cd;
-        float3 dragF = -dragMag * normal;
+        float3 dragF = -dragMag * signedNormal;
 
         float liftMag = 0.5f * fluidDensity * speedSq * area * Cl * absC;
-        float3 liftDir = math.normalizesafe(math.cross(math.cross(worldVel, normal), worldVel));
+        float3 liftDir = math.normalizesafe(math.cross(math.cross(velDir, signedNormal), velDir));
         float3 liftF = liftMag * liftDir;
 
         return dragF + liftF;

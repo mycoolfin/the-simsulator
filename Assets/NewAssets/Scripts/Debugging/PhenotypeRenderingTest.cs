@@ -4,11 +4,10 @@ using System.Collections.Generic;
 using mycoolfin.TheSimsulator.Sims.Genotype;
 using mycoolfin.TheSimsulator.Sims.Phenotype;
 using Unity.Entities;
-using Unity.Jobs;
-using Unity.Collections;
 using System.Threading.Tasks;
 using System.Collections.Concurrent;
 using System.Linq;
+using System.Collections;
 
 public class PhenotypeRenderingTest : UnityEngine.MonoBehaviour
 {
@@ -92,8 +91,8 @@ public class PhenotypeRenderingTest : UnityEngine.MonoBehaviour
                     new Vector3((float)Math.PI / 15f, (float)Math.PI / 15f, (float)Math.PI / 15f),
                     new Vector3(0.5f, 0.5f, 1f),
                     true,
-                    false,
-                    false,
+                    true,
+                    true,
                     false
                 )
             };

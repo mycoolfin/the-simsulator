@@ -4,12 +4,15 @@ using Unity.Mathematics;
 using Unity.Physics;
 using Unity.Physics.Systems;
 
-public struct ZeroAllLimbVelocitiesRequest : IComponentData { }
+public struct ZeroAllLimbVelocitiesRequest : IComponentData
+{
+    public byte Value;
+}
 
 [BurstCompile]
 [UpdateInGroup(typeof(PhysicsSystemGroup))]
 [UpdateBefore(typeof(PhysicsInitializeGroup))]
-public partial struct ZeroAllLimbVelocities : ISystem
+public partial struct ZeroAllLimbVelocitiesSystem : ISystem
 {
     public readonly void OnCreate(ref SystemState state)
     {

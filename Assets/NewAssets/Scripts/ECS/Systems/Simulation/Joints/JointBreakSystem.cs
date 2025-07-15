@@ -25,7 +25,6 @@ public partial struct JointBreakSystem : ISystem
 
     public void OnCreate(ref SystemState state)
     {
-        state.EntityManager.CreateSingleton(new JointBreakSystemSettings { Enabled = true });
         eventBufferEntity = state.EntityManager.CreateEntity();
         state.EntityManager.AddBuffer<JointBrokenEvent>(eventBufferEntity);
 
@@ -34,6 +33,7 @@ public partial struct JointBreakSystem : ISystem
         state.RequireForUpdate<PhysicsConstrainedBodyPair>();
         state.RequireForUpdate<PhysicsJoint>();
         state.RequireForUpdate<RootPhenotypeEntity>();
+        state.RequireForUpdate<JointBreakSystemSettings>();
     }
 
     public void OnUpdate(ref SystemState state)

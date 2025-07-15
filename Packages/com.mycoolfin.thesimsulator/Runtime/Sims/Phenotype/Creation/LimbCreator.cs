@@ -230,7 +230,7 @@ namespace mycoolfin.TheSimsulator.Sims.Phenotype
                 Vector3 parentSpaceYAxis = Vector3.Transform(faceUp, jointRotation);
                 Vector3 parentSpaceZAxis = Vector3.Transform(faceNormal, jointRotation);
 
-                Quaternion parentSpaceRotation = jointRotation * QuaternionHelper.LookRotation(faceNormal, faceUp);
+                Quaternion parentSpaceRotation = Quaternion.Normalize(jointRotation * QuaternionHelper.LookRotation(faceNormal, faceUp));
 
                 // Place child -Z face at anchor in parent space.
                 float halfDepth = Math.Abs(dimensions.Z) * 0.5f;
