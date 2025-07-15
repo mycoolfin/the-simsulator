@@ -62,7 +62,7 @@ public partial struct JointBreakJob : IJobEntity
     [ReadOnly] public ComponentLookup<LocalTransform> LocalTransformLookup;
     public Entity EventBufferEntity;
 
-    private const float MAX_DISTANCE = 0.5f;
+    private const float MAX_DISTANCE = 2f; // TODO: Base this on min. connected face dimensions.
 
     private const int INSTANTIATION_KEY = 1;
     private const int DISPOSAL_KEY = 2;

@@ -7,7 +7,6 @@ using Unity.Entities;
 using System.Threading.Tasks;
 using System.Collections.Concurrent;
 using System.Linq;
-using System.Collections;
 
 public class PhenotypeRenderingTest : UnityEngine.MonoBehaviour
 {
@@ -71,7 +70,7 @@ public class PhenotypeRenderingTest : UnityEngine.MonoBehaviour
         List<Node> nodes = new()
             {
                 new Node(
-                    new Vector3(1f, 1f, 1f),
+                    new Vector3(0.5f, 0.5f, 0.5f),
                     new(mycoolfin.TheSimsulator.Sims.Genotype.JointType.Revolute, new Vector3((float)Math.PI / 4f, (float)Math.PI / 4f, (float)Math.PI / 4f),
                         new InputSetDefinition(new(addyA, 1f), new(addyB, 0f), new(addyC, 0f)),
                         new InputSetDefinition(new(addyA, 1f), new(addyB, 0f), new(addyC, 0f)),

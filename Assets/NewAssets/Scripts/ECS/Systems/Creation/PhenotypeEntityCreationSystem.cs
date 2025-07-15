@@ -96,8 +96,8 @@ public partial struct PhenotypeEntityCreationSystem : ISystem
 
         EntityQuery neuralNetworkCreationRequestQuery = SystemAPI.QueryBuilder().WithAll<RootPhenotypeEntityCreationRequest>().Build();
         using NativeArray<RootPhenotypeEntityCreationRequest> neuralNetworkCreationRequests = neuralNetworkCreationRequestQuery.ToComponentDataArray<RootPhenotypeEntityCreationRequest>(Allocator.TempJob);
-        using NativeParallelHashMap<ulong, NeuralGraphRef> neuralGraphLookup = new(neuralNetworkCreationRequestQuery.CalculateEntityCount(), Allocator.TempJob);
-        using NativeParallelHashMap<ulong, Entity> rootPhenotypeEntityLookup = new(neuralNetworkCreationRequestQuery.CalculateEntityCount(), Allocator.TempJob);
+        using NativeParallelHashMap<ulong, NeuralGraphRef> neuralGraphLookup = new(neuralNetworkCreationRequestQuery.CalculateEntityCount() * 2, Allocator.TempJob);
+        using NativeParallelHashMap<ulong, Entity> rootPhenotypeEntityLookup = new(neuralNetworkCreationRequestQuery.CalculateEntityCount() * 2, Allocator.TempJob);
         FixedStepSimulationSystemGroup fixedStepGroup = state.World.GetExistingSystemManaged<FixedStepSimulationSystemGroup>();
         RootPhenotypeEntityBuilder.CreateRootPhenotypeEntities(
             ref state,
@@ -112,8 +112,8 @@ public partial struct PhenotypeEntityCreationSystem : ISystem
         EntityQuery limbCreationRequestQuery = SystemAPI.QueryBuilder().WithAll<LimbEntityCreationRequest>().Build();
         using NativeArray<LimbEntityCreationRequest> limbCreationRequests = limbCreationRequestQuery.ToComponentDataArray<LimbEntityCreationRequest>(Allocator.TempJob);
         AddCollidersToCache(limbCreationRequests);
-        using NativeParallelHashMap<PhenotypeLimbKey, Entity> limbEntityLookup = new(limbCreationRequestQuery.CalculateEntityCount(), Allocator.TempJob);
-        using NativeParallelHashMap<PhenotypeLimbKey, LocalTransform> limbLocalTransformLookup = new(limbCreationRequestQuery.CalculateEntityCount(), Allocator.TempJob);
+        using NativeParallelHashMap<PhenotypeLimbKey, Entity> limbEntityLookup = new(limbCreationRequestQuery.CalculateEntityCount() * 2, Allocator.TempJob);
+        using NativeParallelHashMap<PhenotypeLimbKey, LocalTransform> limbLocalTransformLookup = new(limbCreationRequestQuery.CalculateEntityCount() * 2, Allocator.TempJob);
         LimbEntityBuilder.CreateLimbEntities(
             ref state,
             limbCreationRequestQuery,

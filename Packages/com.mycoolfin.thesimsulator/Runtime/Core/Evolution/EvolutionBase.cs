@@ -154,7 +154,7 @@ namespace mycoolfin.TheSimsulator
         }
 
         /// <summary>
-        /// Creates the next generation of individuals based on the current assessed population.
+        /// Creates the next generation of individuals based on an assessed population.
         /// </summary>
         /// <param name="population"></param>
         /// <param name="targetPopulationSize"></param>
@@ -172,13 +172,17 @@ namespace mycoolfin.TheSimsulator
             bool padWithInitialisedGenotypes
         )
         {
-            List<(TGenotype, TGenotype)> parentPairs = ChooseParents(population, targetPopulationSize);
+            List<Individual<TGenotype, TPhenotype>> survivors = SelectSurvivors(population, maxSurvivors);
+
+            int offspringNeeded = targetPopulationSize - survivors.Count;
+            
+            List<(TGenotype, TGenotype)> parentPairs = ChooseParents(survivors, offspringNeeded);
 
             List<Individual<TGenotype, TPhenotype>> offspring = CreateOffspring(parentPairs, mutationRate, genotypeFactory);
 
             if (padWithInitialisedGenotypes)
             {
-                for (int i = parentPairs.Count; i < targetPopulationSize; i++)
+                for (int i = parentPairs.Count; i < offspringNeeded; i++)
                 {
                     Individual<TGenotype, TPhenotype> initialisedGenotype = new()
                     {
@@ -188,7 +192,12 @@ namespace mycoolfin.TheSimsulator
                 }
             }
 
-            return offspring;
+            return survivors.Select(s => new Individual<TGenotype, TPhenotype>
+            {
+                genotype = s.genotype,
+                phenotype = default,
+                fitness = 0
+            }).Concat(offspring).ToList();
         }
 
         /// <summary>
@@ -203,8 +212,8 @@ namespace mycoolfin.TheSimsulator
         {
             if (parents == null)
                 throw new ArgumentNullException(nameof(parents));
-            if (parents.Count < 2)
-                throw new ArgumentException("At least two parents are required to form pairs.", nameof(parents));
+            if (parents.Count < 2) // At least two parents are required to form pairs.
+                return new();
 
             var result = new List<(TGenotype, TGenotype)>(pairsWanted);
             int n = parents.Count;
@@ -289,6 +298,9 @@ namespace mycoolfin.TheSimsulator
             IGenotypeFactory<TGenotype> genotypeFactory
         )
         {
+            if (parentPairs == null || parentPairs.Count == 0)
+                return new();
+
             Individual<TGenotype, TPhenotype>[] offspring = new Individual<TGenotype, TPhenotype>[parentPairs.Count];
 
             for (int i = 0; i < parentPairs.Count; i++)

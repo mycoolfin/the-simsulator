@@ -26,8 +26,7 @@ public partial struct RepositionPhenotypesSystem : ISystem
 
         float groundY = SystemAPI.GetComponent<RepositionPhenotypesRequest>(requestEntity).GroundY;
         int phenotypeCount = SystemAPI.GetSingleton<PhenotypeEntitiesMetadata>().TotalRootPhenotypeCount;
-        int hashCapacity = phenotypeCount * 2; // 2x capacity for good hash map performance.
-        using NativeParallelHashMap<Entity, float> limbYTranslations = new(hashCapacity, Allocator.TempJob);
+        using NativeParallelHashMap<Entity, float> limbYTranslations = new(phenotypeCount * 2, Allocator.TempJob);
 
         using EntityCommandBuffer ecb = new(Allocator.TempJob);
 

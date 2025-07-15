@@ -12,11 +12,11 @@ using Unity.Scenes;
 
 public static class EvolutionAPI
 {
-    public static IEnumerator InitialiseTrial(World world, NewAssets.TrialType trialType, EntitySceneReference groundEnvironmentSubScene, EntitySceneReference waterEnvironmentSubScene)
+    public static IEnumerator InitialiseTrial(World world, NewAssets.TrialType trialType, EntitySceneReference groundEnvironmentSubScene, EntitySceneReference waterEnvironmentSubScene, Func<SimulationRateMode> GetSimulationRateModeCallback)
     {
         EntityManager entityManager = world.EntityManager;
 
-        yield return SettleJoints(world, 5f); // Necessary as long as the joint flip bug exists.
+        yield return SettleJoints(world, 5f, GetSimulationRateModeCallback); // Necessary as long as the joint flip bug exists.
 
         // Load the trial environment.
         EntitySceneReference environmentSubSceneReference = trialType switch
@@ -55,7 +55,7 @@ public static class EvolutionAPI
         }
     }
 
-    private static IEnumerator SettleJoints(World world, float settleSeconds)
+    private static IEnumerator SettleJoints(World world, float settleSeconds, Func<SimulationRateMode> GetSimulationRateModeCallback)
     {
         EntityManager entityManager = world.EntityManager;
 
@@ -69,9 +69,7 @@ public static class EvolutionAPI
         SystemSettingsAPI.SetJointBreakSystemEnabled(world, false);
 
         // Run the FixedStepSimulationSystemGroup for the specified time.
-        UnityEngine.Debug.Log($"Settling joints for {settleSeconds} seconds...");
-        yield return SimulateForSeconds(world, settleSeconds, () => SimulationRateMode.FullSpeed);
-        UnityEngine.Debug.Log($"Joint settling complete after {settleSeconds} seconds.");
+        yield return SimulateForSeconds(world, settleSeconds, GetSimulationRateModeCallback);
 
         // Zero all limb velocities.
         entityManager.CreateSingleton<ZeroAllLimbVelocitiesRequest>();
@@ -88,9 +86,7 @@ public static class EvolutionAPI
 
         SystemSettingsAPI.SetJointBreakSystemEnabled(world, true);
 
-        UnityEngine.Debug.Log($"Settling phenotypes for {settleSeconds} seconds...");
         yield return SimulateForSeconds(world, settleSeconds, GetSimulationRateModeCallback);
-        UnityEngine.Debug.Log($"Phenotype settling complete after {settleSeconds} seconds.");
 
         entityManager.CreateSingleton<ZeroAllLimbVelocitiesRequest>();
     }
@@ -131,7 +127,7 @@ public static class EvolutionAPI
             return new Dictionary<ulong, float>();
 
         int individualCount = query.CalculateEntityCount();
-        using NativeParallelHashMap<ulong, float> resultsMap = new(individualCount, Allocator.TempJob);
+        using NativeParallelHashMap<ulong, float> resultsMap = new(individualCount * 2, Allocator.TempJob);
         var job = new GetIndividualAssessmentResultsChunkJob
         {
             Results = resultsMap.AsParallelWriter(),

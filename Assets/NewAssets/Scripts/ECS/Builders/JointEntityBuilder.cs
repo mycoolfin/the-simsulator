@@ -26,8 +26,8 @@ public static class JointEntityBuilder
 [BurstCompile]
 public partial struct CreateJointEntityJob : IJobEntity
 {
-    private const float SPRING_FREQUENCY = 20f;
-    private const float DAMPING_RATIO = 0.8f;
+    private const float SPRING_FREQUENCY = 10f;
+    private const float DAMPING_RATIO = 0.9f;
     private const float BASE_MAX_MOTOR_IMPULSE = 10f;
 
     public EntityCommandBuffer.ParallelWriter Ecb;
@@ -327,14 +327,16 @@ public partial struct CreateJointEntityJob : IJobEntity
     private static void CreateConstraint(in JointEntityCreationRequest request, ConstraintType type, in bool3 constrainedAxes, float angleLimit, out Constraint constraint)
     {
         float maxImpulseOfMotor = BASE_MAX_MOTOR_IMPULSE * request.MaxMotorImpulseScaleFactor;
+        float springFrequency = type == ConstraintType.RotationMotor ? SPRING_FREQUENCY : 50f;
+        float dampingRatio = type == ConstraintType.RotationMotor ? DAMPING_RATIO : 1f;
         constraint = new()
         {
             ConstrainedAxes = constrainedAxes,
             Type = type,
             Min = -angleLimit,
             Max = angleLimit,
-            SpringFrequency = SPRING_FREQUENCY,
-            DampingRatio = DAMPING_RATIO,
+            SpringFrequency = springFrequency,
+            DampingRatio = dampingRatio,
             MaxImpulse = new float3(maxImpulseOfMotor, maxImpulseOfMotor, maxImpulseOfMotor),
             Target = float3.zero
         };

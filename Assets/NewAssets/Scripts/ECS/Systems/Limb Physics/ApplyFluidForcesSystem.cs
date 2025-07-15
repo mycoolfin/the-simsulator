@@ -13,8 +13,7 @@ public struct FluidSimulationSettings : IComponentData
     public float FluidDensity;
 }
 
-[UpdateInGroup(typeof(PhysicsSystemGroup))]
-[UpdateBefore(typeof(PhysicsInitializeGroup))]
+[UpdateInGroup(typeof(BeforePhysicsSystemGroup))]
 public partial struct ApplyFluidForcesSystem : ISystem
 {
     public void OnCreate(ref SystemState state)
@@ -45,7 +44,7 @@ public partial struct ApplyFluidForcesSystem : ISystem
 
 [BurstCompile]
 [WithAll(typeof(LimbIndex))]
-partial struct ApplyFluidForcesJob : IJobEntity
+partial struct ApplyFluidForcesJob : IJobEntity // TODO: Redo with torque calc.
 {
     public float FluidDensity;
     public float DeltaTime;

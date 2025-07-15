@@ -46,7 +46,8 @@ namespace mycoolfin.TheSimsulator
                     return c.Item;
             }
 
-            throw new InvalidOperationException("No choice was selected.");
+            // If we reach here due to floating-point precision issues, return the last choice.
+            return choices[^1].Item;
         }
 
         public IEnumerator<WeightedChoice<T>> GetEnumerator() => choices.GetEnumerator();

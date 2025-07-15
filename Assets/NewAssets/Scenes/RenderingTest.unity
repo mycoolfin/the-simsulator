@@ -312,7 +312,7 @@ MonoBehaviour:
   PhenotypeRendererPrefab: {fileID: 202432343457878997, guid: 3b71d5d5e13c2425f892d729a6613362, type: 3}
   LimbRendererPrefab: {fileID: 1610562237520039383, guid: c8caa9ff018cd475eabe3cc3bb11feed, type: 3}
   JointRendererPrefab: {fileID: 2995815142232830435, guid: e9a645ae979514c3bafa7bcde4483800, type: 3}
-  count: 1
+  count: 6
 --- !u!4 &1278681435
 Transform:
   m_ObjectHideFlags: 0

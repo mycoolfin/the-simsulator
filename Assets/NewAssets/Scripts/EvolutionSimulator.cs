@@ -19,6 +19,14 @@ namespace NewAssets
         WaterDistance
     };
 
+    public struct EvolutionStatistics
+    {
+        public int Generation;
+        public float BestFitness;
+        public float AverageFitness;
+        public float ElapsedTime;
+    }
+
     public class EvolutionSimulator : MonoBehaviour
     {
         [Header("Environment SubScenes")]
@@ -38,19 +46,17 @@ namespace NewAssets
         [Header("Runtime Status")]
         [SerializeField] private bool isRunning = false;
         [SerializeField] private int currentGeneration = 0;
-        [SerializeField] private float currentGenerationProgress = 0f;
 
         public event Action<int> OnGenerationStart;
-        public event Action<int, float, float> OnGenerationComplete;
+        public event Action<EvolutionStatistics> OnGenerationComplete;
         public event Action<List<Individual>> OnPopulationEvaluated;
         public event Action OnEvolutionComplete;
 
         private World ecsWorld;
         private Coroutine evolutionCoroutine;
 
-        public bool IsRunning => isRunning;
-        public int CurrentGeneration => currentGeneration;
-        public float CurrentGenerationProgress => currentGenerationProgress;
+        private readonly List<EvolutionStatistics> statistics = new();
+        public IReadOnlyList<EvolutionStatistics> Statistics => statistics;
 
         [Header("Speed Control")]
         [SerializeField] private SimulationRateMode simulationRate = SimulationRateMode.RealTime;
@@ -104,22 +110,33 @@ namespace NewAssets
                 }
             );
 
-            isRunning = true;
-            currentGeneration = 0;
+            statistics.Clear();
 
-            while (currentGeneration < maxGenerations && isRunning)
+            isRunning = true;
+            currentGeneration = 1;
+
+            while (currentGeneration <= maxGenerations && isRunning)
             {
-                Debug.Log($"Starting generation {currentGeneration + 1}/{maxGenerations}");
+
+                Debug.Log($"Starting generation {currentGeneration}/{maxGenerations}");
+                float startTime = Time.time;
                 OnGenerationStart?.Invoke(currentGeneration);
 
                 yield return StartCoroutine(evolution.Iterate());
 
-                currentGeneration++;
+                EvolutionStatistics stats = new()
+                {
+                    Generation = currentGeneration,
+                    BestFitness = GetBestFitness(evolution.Population),
+                    AverageFitness = GetAverageFitness(evolution.Population),
+                    ElapsedTime = Time.time - startTime
+                };
+                statistics.Add(stats);
 
-                float bestFitness = GetBestFitness(evolution.Population);
-                float averageFitness = GetAverageFitness(evolution.Population);
-                OnGenerationComplete?.Invoke(currentGeneration, bestFitness, averageFitness);
-                Debug.Log($"Generation {currentGeneration} complete. Best fitness: {bestFitness}, Average fitness: {averageFitness}");
+                OnGenerationComplete?.Invoke(stats);
+                Debug.Log($"Generation {currentGeneration} complete. Best fitness: {stats.BestFitness}, Average fitness: {stats.AverageFitness}. Elapsed time: {stats.ElapsedTime:F2} seconds.");
+
+                currentGeneration++;
             }
 
             isRunning = false;
@@ -134,7 +151,6 @@ namespace NewAssets
             ecsWorld = WorldAPI.CreateWorld("EvolutionWorld");
 
             // Step 1: Create ECS entities from phenotypes.
-            Debug.Log("Creating entities from phenotypes...");
             EntityCreationAPI.CreateEntitiesFromPhenotypes(
                 ecsWorld,
                 population
@@ -148,19 +164,15 @@ namespace NewAssets
             );
 
             // Step 2: Initialise trial.
-            Debug.Log("Initialising trial...");
-            yield return EvolutionAPI.InitialiseTrial(ecsWorld, trialType, groundEnvironment, waterEnvironment);
+            yield return EvolutionAPI.InitialiseTrial(ecsWorld, trialType, groundEnvironment, waterEnvironment, GetSimulationRateMode);
 
             // Step 3: Let entities settle.
-            Debug.Log("Settling entities...");
             yield return EvolutionAPI.SettlePhenotypes(ecsWorld, settleSeconds, GetSimulationRateMode);
 
             // Step 4: Start assessment.
-            Debug.Log("Beginning assessment...");
             yield return EvolutionAPI.AssessPhenotypes(ecsWorld, trialType, assessmentSeconds, GetSimulationRateMode);
 
             // Step 5: Read back fitness values and assign to matching individuals.
-            Debug.Log("Reading assessment results...");
             Dictionary<ulong, float> phenotypeFitnesses = EvolutionAPI.GetAssessmentResults(ecsWorld);
             foreach (Individual individual in population)
                 if (phenotypeFitnesses.TryGetValue(individual.phenotype.Gid, out float fitness))

@@ -7,9 +7,9 @@ using Unity.Physics;
 
 public static class ColliderCacheManager
 {
-    #nullable enable
+#nullable enable
     public static ColliderCache? Cache;
-    #nullable disable
+#nullable disable
     private static int ActiveSystemCount;
 
     public static void Acquire()
@@ -64,11 +64,27 @@ public class ColliderCache
 
     public ColliderCache()
     {
-        map = new NativeParallelHashMap<ColliderKey, BlobAssetReference<Collider>>(64, Allocator.Persistent);
+        map = new NativeParallelHashMap<ColliderKey, BlobAssetReference<Collider>>(1024, Allocator.Persistent);
     }
 
     public void AddColliders(NativeHashSet<ColliderKey> keys)
     {
+        // Check if we need to expand capacity.
+        int requiredCapacity = map.Count() + keys.Count;
+        if (requiredCapacity > map.Capacity)
+        {
+            // Expand capacity to accommodate new keys with some headroom.
+            int newCapacity = math.max(requiredCapacity * 2, map.Capacity * 2);
+            NativeParallelHashMap<ColliderKey, BlobAssetReference<Collider>> newMap = new(newCapacity, Allocator.Persistent);
+
+            // Copy existing data.
+            foreach (var kvp in map)
+                newMap.TryAdd(kvp.Key, kvp.Value);
+
+            map.Dispose();
+            map = newMap;
+        }
+
         foreach (ColliderKey key in keys)
             map.TryAdd(key, CreateColliderBlob(key.Dimensions, key.CollisionFilter));
     }

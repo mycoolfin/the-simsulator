@@ -43,7 +43,7 @@ public partial struct HandleJointBrokenEventsSystem : ISystem
 
         // Handle events.
         int maxDetachedLimbCount = eventBuffer.Length * SimsPhenotype.MAX_LIMBS;
-        using NativeParallelMultiHashMap<Entity, byte> RootPhenotypeToDetachedLimbIndicesLookup = new(maxDetachedLimbCount, Allocator.TempJob);
+        using NativeParallelMultiHashMap<Entity, byte> RootPhenotypeToDetachedLimbIndicesLookup = new(maxDetachedLimbCount * 2, Allocator.TempJob);
         
         // Pre-allocate buffer with enough space for each parallel execution to have its own slice.
         int bufferSizePerEvent = SimsPhenotype.MAX_LIMBS;
