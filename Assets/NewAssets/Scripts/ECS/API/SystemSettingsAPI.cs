@@ -1,6 +1,7 @@
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Physics;
+using UnityEngine;
 
 public static class SystemSettingsAPI
 {
@@ -34,10 +35,19 @@ public static class SystemSettingsAPI
     public static void SetGravity(World world, float3 gravity)
     {
         EntityManager entityManager = world.EntityManager;
-        EntityQuery query = entityManager.CreateEntityQuery(ComponentType.ReadWrite<PhysicsStep>());
+        EntityQuery query = entityManager.CreateEntityQuery(typeof(PhysicsStep));
         PhysicsStep p = PhysicsStep.Default;
         p.Gravity = gravity;
         if (query.IsEmpty) entityManager.CreateSingleton(p);
         else query.SetSingleton(p);
+    }
+
+    public static void SetWorldVisualOffset(World world, WorldContainer container)
+    {
+        EntityManager entityManager = world.EntityManager;
+        EntityQuery query = entityManager.CreateEntityQuery(typeof(WorldVisualOffset));        
+        WorldVisualOffset visualOffset = new() { TransformMatrix = container.GetTransformMatrix() };
+        if (query.IsEmptyIgnoreFilter) entityManager.CreateSingleton(visualOffset);
+        else query.SetSingleton(visualOffset);
     }
 }

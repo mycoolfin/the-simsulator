@@ -33,6 +33,9 @@ namespace NewAssets
         [SerializeField] private EntitySceneReference groundEnvironment;
         [SerializeField] private EntitySceneReference waterEnvironment;
 
+        [Header("Presentation")]
+        [SerializeField] private WorldContainer worldContainer;
+
         [Header("Evolution Parameters")]
         [SerializeField] private int populationSize = 100;
         [SerializeField] private int maxGenerations = 100;
@@ -71,6 +74,11 @@ namespace NewAssets
                 StartEvolution();
             }
             run = false;
+
+            if (isRunning)
+            {
+                UpdatePresentation();
+            }
         }
 
         public void StartEvolution()
@@ -117,7 +125,6 @@ namespace NewAssets
 
             while (currentGeneration <= maxGenerations && isRunning)
             {
-
                 Debug.Log($"Starting generation {currentGeneration}/{maxGenerations}");
                 float startTime = Time.time;
                 OnGenerationStart?.Invoke(currentGeneration);
@@ -145,12 +152,13 @@ namespace NewAssets
 
         private IEnumerator AssessPhenotypesCoroutine(List<Individual> population)
         {
-            // Step 0: Completely reset the ECS world.
-            // TODO: Overkill.
+            // Completely reset the ECS world.
+            // TODO: Overkill?
             WorldAPI.DestroyWorld(ecsWorld);
             ecsWorld = WorldAPI.CreateWorld("EvolutionWorld");
+            UpdatePresentation(initialise: true);
 
-            // Step 1: Create ECS entities from phenotypes.
+            // Create ECS entities from phenotypes.
             EntityCreationAPI.CreateEntitiesFromPhenotypes(
                 ecsWorld,
                 population
@@ -163,16 +171,16 @@ namespace NewAssets
                 }).ToList()
             );
 
-            // Step 2: Initialise trial.
+            // Initialise trial.
             yield return EvolutionAPI.InitialiseTrial(ecsWorld, trialType, groundEnvironment, waterEnvironment, GetSimulationRateMode);
 
-            // Step 3: Let entities settle.
+            // Let entities settle.
             yield return EvolutionAPI.SettlePhenotypes(ecsWorld, settleSeconds, GetSimulationRateMode);
 
-            // Step 4: Start assessment.
+            // Start assessment.
             yield return EvolutionAPI.AssessPhenotypes(ecsWorld, trialType, assessmentSeconds, GetSimulationRateMode);
 
-            // Step 5: Read back fitness values and assign to matching individuals.
+            // Read back fitness values and assign to matching individuals.
             Dictionary<ulong, float> phenotypeFitnesses = EvolutionAPI.GetAssessmentResults(ecsWorld);
             foreach (Individual individual in population)
                 if (phenotypeFitnesses.TryGetValue(individual.phenotype.Gid, out float fitness))
@@ -198,6 +206,47 @@ namespace NewAssets
                 return 0f;
 
             return currentPopulation.Max(i => i.fitness);
+        }
+
+        private void UpdatePresentation(bool initialise = false)
+        {
+            if (worldContainer == null) return;
+
+            if (initialise)
+            {
+                switch (trialType)
+                {
+                    case TrialType.GroundDistance:
+                        worldContainer.SetGroundEnabled(true);
+                        worldContainer.SetWaterEnabled(false);
+                        break;
+                    case TrialType.WaterDistance:
+                        worldContainer.SetGroundEnabled(false);
+                        worldContainer.SetWaterEnabled(true);
+                        break;
+                }
+            }
+
+            if (isRunning)
+            {
+                float frequency = simulationRate switch
+                {
+                    SimulationRateMode.Paused => 0f,
+                    SimulationRateMode.RealTime => 5f,
+                    SimulationRateMode.FullSpeed60FPS => 20f,
+                    SimulationRateMode.FullSpeed10FPS => 30f,
+                    _ => 1f,
+                };
+                float fluxFactor = 0.8f + 0.2f * Mathf.Sin(frequency * Time.time);
+                float maxIntensity = 20f;
+                worldContainer.SetEmitterIntensities(maxIntensity * fluxFactor);
+            }
+
+            if (ecsWorld != null && ecsWorld.IsCreated && (initialise || worldContainer.HasChanged))
+                {
+                    SystemSettingsAPI.SetWorldVisualOffset(ecsWorld, worldContainer);
+                    worldContainer.HasChanged = false;
+                }
         }
 
         private void OnDestroy()

@@ -79,7 +79,6 @@ public static class LimbEntityBuilder
             renderMeshArray,
             MaterialMeshInfo.FromRenderMeshArrayIndices(0, 0)
         );
-        state.EntityManager.AddComponentData(limbPrototype, new VisualOffset());
 
         // Physics.
         state.EntityManager.AddSharedComponent(limbPrototype, new PhysicsWorldIndex(0));
@@ -175,10 +174,6 @@ public static class LimbEntityBuilder
                     Center = float3.zero,
                     Extents = requestData.Dimensions * 0.5f
                 }
-            });
-            Ecb.SetComponent(INSTANTIATION_KEY, limbEntity, new VisualOffset
-            {
-                Offset = requestData.VisualOffset
             });
 
             // Physics.

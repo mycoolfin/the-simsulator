@@ -5,7 +5,6 @@ using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
 using Unity.Physics;
-using System.Runtime.InteropServices;
 
 public struct RootPhenotypeEntityCreationRequest : IComponentData
 {
@@ -24,7 +23,6 @@ public struct LimbEntityCreationRequest : IComponentData
     public float Mass;
     public float4 Color;
     public float3 PhysicsPositionOffset;
-    public float3 VisualOffset;
     public byte AllowInterPhenotypeCollisions;
 }
 

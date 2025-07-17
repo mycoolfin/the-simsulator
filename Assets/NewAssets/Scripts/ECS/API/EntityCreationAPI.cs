@@ -84,7 +84,6 @@ public static class EntityCreationAPI
                 Mass = limb.Mass,
                 Color = limb.Color.ToFloat4(),
                 PhysicsPositionOffset = info.PhysicsPositionOffset.ToFloat3(),
-                VisualOffset = info.VisualOffset.ToFloat3(),
                 AllowInterPhenotypeCollisions = info.AllowInterPhenotypeCollisions ? (byte)1 : (byte)0
             };
             requests.Add(request);
