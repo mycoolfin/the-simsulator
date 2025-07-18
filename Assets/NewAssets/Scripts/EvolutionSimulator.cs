@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.Entities;
-using Unity.Entities.Serialization;
 using UnityEngine;
 using mycoolfin.TheSimsulator.Sims.Evolution;
 using mycoolfin.TheSimsulator.Sims.Genotype;
@@ -29,13 +28,6 @@ namespace NewAssets
 
     public class EvolutionSimulator : MonoBehaviour
     {
-        [Header("Environment SubScenes")]
-        [SerializeField] private EntitySceneReference groundEnvironment;
-        [SerializeField] private EntitySceneReference waterEnvironment;
-
-        [Header("Presentation")]
-        [SerializeField] private WorldContainer worldContainer;
-
         [Header("Evolution Parameters")]
         [SerializeField] private int populationSize = 100;
         [SerializeField] private int maxGenerations = 100;
@@ -44,14 +36,16 @@ namespace NewAssets
         [SerializeField] private float settleSeconds = 5f;
         [SerializeField] private float assessmentSeconds = 10f;
         [SerializeField] private TrialType trialType = TrialType.GroundDistance;
+        public TrialType TrialType => trialType;
         [SerializeField] private SimsGenotype seedGenotype;
 
         [Header("Runtime Status")]
-        [SerializeField] private bool isRunning = false;
-        [SerializeField] private int currentGeneration = 0;
+        public bool IsRunning { get; private set; } = false;
+        public int CurrentGeneration { get; private set; } = 0;
 
         public event Action<int> OnGenerationStart;
         public event Action<EvolutionStatistics> OnGenerationComplete;
+        public event Action<World> OnEcsWorldCreated;
         public event Action<List<Individual>> OnPopulationEvaluated;
         public event Action OnEvolutionComplete;
 
@@ -63,27 +57,23 @@ namespace NewAssets
 
         [Header("Speed Control")]
         [SerializeField] private SimulationRateMode simulationRate = SimulationRateMode.RealTime;
+        public SimulationRateMode SimulationRate { get => simulationRate; set => simulationRate = value; }
 
         [Header("Run?")]
         [SerializeField] bool run = false;
 
         private void Update()
         {
-            if (!isRunning && run)
+            if (!IsRunning && run)
             {
                 StartEvolution();
             }
             run = false;
-
-            if (isRunning)
-            {
-                UpdatePresentation();
-            }
         }
 
         public void StartEvolution()
         {
-            if (isRunning)
+            if (IsRunning)
             {
                 Debug.LogWarning("Evolution is already running!");
                 return;
@@ -100,7 +90,7 @@ namespace NewAssets
                 evolutionCoroutine = null;
             }
 
-            isRunning = false;
+            IsRunning = false;
             WorldAPI.DestroyWorld(ecsWorld);
         }
 
@@ -120,20 +110,20 @@ namespace NewAssets
 
             statistics.Clear();
 
-            isRunning = true;
-            currentGeneration = 1;
+            IsRunning = true;
+            CurrentGeneration = 1;
 
-            while (currentGeneration <= maxGenerations && isRunning)
+            while (CurrentGeneration <= maxGenerations && IsRunning)
             {
-                Debug.Log($"Starting generation {currentGeneration}/{maxGenerations}");
+                Debug.Log($"Starting generation {CurrentGeneration}/{maxGenerations}");
                 float startTime = Time.time;
-                OnGenerationStart?.Invoke(currentGeneration);
+                OnGenerationStart?.Invoke(CurrentGeneration);
 
                 yield return StartCoroutine(evolution.Iterate());
 
                 EvolutionStatistics stats = new()
                 {
-                    Generation = currentGeneration,
+                    Generation = CurrentGeneration,
                     BestFitness = GetBestFitness(evolution.Population),
                     AverageFitness = GetAverageFitness(evolution.Population),
                     ElapsedTime = Time.time - startTime
@@ -141,12 +131,12 @@ namespace NewAssets
                 statistics.Add(stats);
 
                 OnGenerationComplete?.Invoke(stats);
-                Debug.Log($"Generation {currentGeneration} complete. Best fitness: {stats.BestFitness}, Average fitness: {stats.AverageFitness}. Elapsed time: {stats.ElapsedTime:F2} seconds.");
+                Debug.Log($"Generation {CurrentGeneration} complete. Best fitness: {stats.BestFitness}, Average fitness: {stats.AverageFitness}. Elapsed time: {stats.ElapsedTime:F2} seconds.");
 
-                currentGeneration++;
+                CurrentGeneration++;
             }
 
-            isRunning = false;
+            IsRunning = false;
             OnEvolutionComplete?.Invoke();
         }
 
@@ -156,7 +146,7 @@ namespace NewAssets
             // TODO: Overkill?
             WorldAPI.DestroyWorld(ecsWorld);
             ecsWorld = WorldAPI.CreateWorld("EvolutionWorld");
-            UpdatePresentation(initialise: true);
+            OnEcsWorldCreated?.Invoke(ecsWorld);
 
             // Create ECS entities from phenotypes.
             EntityCreationAPI.CreateEntitiesFromPhenotypes(
@@ -172,7 +162,7 @@ namespace NewAssets
             );
 
             // Initialise trial.
-            yield return EvolutionAPI.InitialiseTrial(ecsWorld, trialType, groundEnvironment, waterEnvironment, GetSimulationRateMode);
+            yield return EvolutionAPI.InitialiseTrial(ecsWorld, trialType, GetSimulationRateMode);
 
             // Let entities settle.
             yield return EvolutionAPI.SettlePhenotypes(ecsWorld, settleSeconds, GetSimulationRateMode);
@@ -206,47 +196,6 @@ namespace NewAssets
                 return 0f;
 
             return currentPopulation.Max(i => i.fitness);
-        }
-
-        private void UpdatePresentation(bool initialise = false)
-        {
-            if (worldContainer == null) return;
-
-            if (initialise)
-            {
-                switch (trialType)
-                {
-                    case TrialType.GroundDistance:
-                        worldContainer.SetGroundEnabled(true);
-                        worldContainer.SetWaterEnabled(false);
-                        break;
-                    case TrialType.WaterDistance:
-                        worldContainer.SetGroundEnabled(false);
-                        worldContainer.SetWaterEnabled(true);
-                        break;
-                }
-            }
-
-            if (isRunning)
-            {
-                float frequency = simulationRate switch
-                {
-                    SimulationRateMode.Paused => 0f,
-                    SimulationRateMode.RealTime => 5f,
-                    SimulationRateMode.FullSpeed60FPS => 20f,
-                    SimulationRateMode.FullSpeed10FPS => 30f,
-                    _ => 1f,
-                };
-                float fluxFactor = 0.8f + 0.2f * Mathf.Sin(frequency * Time.time);
-                float maxIntensity = 20f;
-                worldContainer.SetEmitterIntensities(maxIntensity * fluxFactor);
-            }
-
-            if (ecsWorld != null && ecsWorld.IsCreated && (initialise || worldContainer.HasChanged))
-                {
-                    SystemSettingsAPI.SetWorldVisualOffset(ecsWorld, worldContainer);
-                    worldContainer.HasChanged = false;
-                }
         }
 
         private void OnDestroy()

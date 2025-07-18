@@ -1,7 +1,6 @@
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Physics;
-using UnityEngine;
 
 public static class SystemSettingsAPI
 {
@@ -42,11 +41,11 @@ public static class SystemSettingsAPI
         else query.SetSingleton(p);
     }
 
-    public static void SetWorldVisualOffset(World world, WorldContainer container)
+    public static void SetWorldVisualOffset(World world, float4x4 transformMatrix)
     {
         EntityManager entityManager = world.EntityManager;
         EntityQuery query = entityManager.CreateEntityQuery(typeof(WorldVisualOffset));        
-        WorldVisualOffset visualOffset = new() { TransformMatrix = container.GetTransformMatrix() };
+        WorldVisualOffset visualOffset = new() { TransformMatrix = transformMatrix };
         if (query.IsEmptyIgnoreFilter) entityManager.CreateSingleton(visualOffset);
         else query.SetSingleton(visualOffset);
     }

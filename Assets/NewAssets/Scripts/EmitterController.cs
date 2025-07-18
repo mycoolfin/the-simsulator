@@ -9,7 +9,7 @@ public class EmitterController : MonoBehaviour
 
     private void Awake()
     {
-        material = GetComponent<Renderer>().sharedMaterial;
+        material = GetComponent<Renderer>().material;
     }
 
     public void SetEmissiveIntensity(float intensity)

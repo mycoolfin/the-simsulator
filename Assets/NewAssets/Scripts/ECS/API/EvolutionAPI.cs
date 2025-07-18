@@ -5,41 +5,24 @@ using Unity.Burst;
 using Unity.Burst.Intrinsics;
 using Unity.Collections;
 using Unity.Entities;
-using Unity.Entities.Serialization;
 using Unity.Mathematics;
 using Unity.Physics;
-using Unity.Scenes;
+using Unity.Transforms;
 
 public static class EvolutionAPI
 {
-    public static IEnumerator InitialiseTrial(World world, NewAssets.TrialType trialType, EntitySceneReference groundEnvironmentSubScene, EntitySceneReference waterEnvironmentSubScene, Func<SimulationRateMode> GetSimulationRateModeCallback)
+    public static IEnumerator InitialiseTrial(World world, NewAssets.TrialType trialType, Func<SimulationRateMode> GetSimulationRateModeCallback)
     {
         EntityManager entityManager = world.EntityManager;
 
         yield return SettleJoints(world, 5f, GetSimulationRateModeCallback); // Necessary as long as the joint flip bug exists.
 
-        // Load the trial environment.
-        EntitySceneReference environmentSubSceneReference = trialType switch
-        {
-            NewAssets.TrialType.GroundDistance => groundEnvironmentSubScene,
-            NewAssets.TrialType.WaterDistance => waterEnvironmentSubScene,
-            _ => throw new ArgumentOutOfRangeException(nameof(trialType), "Unsupported trial type.")
-        };
-        Entity sceneEntity = SceneSystem.LoadSceneAsync(
-            world.Unmanaged,
-            environmentSubSceneReference,
-            new SceneSystem.LoadParameters
-            {
-                AutoLoad = true,
-                Flags = SceneLoadFlags.BlockOnStreamIn | SceneLoadFlags.BlockOnImport
-            });
-        while (!SceneSystem.IsSceneLoaded(world.Unmanaged, sceneEntity))
-            yield return null;
-
-        // Set trial-specific physics.
+        // Set trial-specific environment settings.
         if (trialType == NewAssets.TrialType.GroundDistance)
         {
             SystemSettingsAPI.SetGravity(world, PhysicsStep.Default.Gravity);
+            // Create ground plane.
+            CreateGroundPlane(world);
         }
         else if (trialType == NewAssets.TrialType.WaterDistance)
         {
@@ -53,6 +36,42 @@ public static class EvolutionAPI
             entityManager.CreateSingleton(new RepositionPhenotypesRequest() { GroundY = 0f });
             world.GetExistingSystem<RepositionPhenotypesSystem>().Update(world.Unmanaged);
         }
+    }
+
+    private static void CreateGroundPlane(World world)
+    {
+        float groundSize = 1000f; // Large but not infinite to avoid physics issues
+        float groundThickness = 1f;
+
+        EntityManager entityManager = world.EntityManager;
+
+        Entity groundPlane = entityManager.CreateEntity();
+
+        entityManager.AddComponentData(groundPlane, new LocalTransform
+        {
+            Position = new float3(0f, -groundThickness * 0.5f, 0f),
+            Rotation = quaternion.identity,
+            Scale = 1f
+        });
+
+        BoxGeometry boxGeometry = new()
+        {
+            Center = float3.zero,
+            Size = new float3(groundSize, groundThickness, groundSize),
+            Orientation = quaternion.identity
+        };
+
+        CollisionFilter groundFilter = new()
+        {
+            BelongsTo = 1u, // Ground layer.
+            CollidesWith = ~0u, // Collide with everything.
+            GroupIndex = 0
+        };
+
+        BlobAssetReference<Collider> groundCollider = BoxCollider.Create(boxGeometry, groundFilter);
+
+        entityManager.AddComponentData(groundPlane, new PhysicsCollider { Value = groundCollider });
+        entityManager.AddSharedComponent(groundPlane, new PhysicsWorldIndex(0));
     }
 
     private static IEnumerator SettleJoints(World world, float settleSeconds, Func<SimulationRateMode> GetSimulationRateModeCallback)
