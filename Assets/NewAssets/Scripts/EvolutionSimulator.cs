@@ -38,6 +38,8 @@ namespace NewAssets
         [SerializeField] private TrialType trialType = TrialType.GroundDistance;
         public TrialType TrialType => trialType;
         [SerializeField] private SimsGenotype seedGenotype;
+        [SerializeField] private int simulationSeed = 0;
+        [SerializeField] private bool useSimulationSeed = false;
 
         [Header("Runtime Status")]
         public bool IsRunning { get; private set; } = false;
@@ -98,15 +100,14 @@ namespace NewAssets
         {
             Debug.Log("Starting evolution with population size: " + populationSize);
 
-            SimsEvolution evolution = new(
-                AssessPhenotypesCoroutine,
-                new SimsEvolutionConfig
-                {
-                    PopulationSize = populationSize,
-                    SurvivalRate = survivalRate,
-                    MutationRate = mutationRate
-                }
-            );
+            SimsEvolutionConfig config = new()
+            {
+                PopulationSize = populationSize,
+                SurvivalRate = survivalRate,
+                MutationRate = mutationRate,
+            };
+            if (useSimulationSeed) config.Seed = simulationSeed;
+            SimsEvolution evolution = new(AssessPhenotypesCoroutine, config);
 
             statistics.Clear();
 
@@ -143,7 +144,6 @@ namespace NewAssets
         private IEnumerator AssessPhenotypesCoroutine(List<Individual> population)
         {
             // Completely reset the ECS world.
-            // TODO: Overkill?
             WorldAPI.DestroyWorld(ecsWorld);
             ecsWorld = WorldAPI.CreateWorld("EvolutionWorld");
             OnEcsWorldCreated?.Invoke(ecsWorld);

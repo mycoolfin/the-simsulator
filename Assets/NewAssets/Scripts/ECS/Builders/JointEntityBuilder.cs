@@ -42,8 +42,6 @@ public partial struct CreateJointEntityJob : IJobEntity
 
     public void Execute(Entity requestEntity, ref JointEntityCreationRequest requestData)
     {
-        Ecb.DestroyEntity(DISPOSAL_KEY, requestEntity);
-
         PhenotypeLimbKey refKey = new(requestData.PhenotypeGid, requestData.ReferenceLimbIndex);
         PhenotypeLimbKey attKey = new(requestData.PhenotypeGid, requestData.AttachedLimbIndex);
         if (!LimbEntityLookup.TryGetValue(refKey, out Entity referenceLimbEntity)) return;
@@ -64,6 +62,8 @@ public partial struct CreateJointEntityJob : IJobEntity
             neuralGraphRef,
             requestData.AttachedLimbIndex
         );
+
+        Ecb.DestroyEntity(DISPOSAL_KEY, requestEntity);
     }
 
     // BUG: Some joint configurations cause the attached limb to do a 360deg flip when the simulation starts.

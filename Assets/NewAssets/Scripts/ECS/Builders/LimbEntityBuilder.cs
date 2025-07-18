@@ -128,24 +128,19 @@ public static class LimbEntityBuilder
         public NativeParallelHashMap<PhenotypeLimbKey, Entity>.ParallelWriter LimbEntityLookup;
         public NativeParallelHashMap<PhenotypeLimbKey, LocalTransform>.ParallelWriter LimbLocalTransformLookup;
 
-        private const int INSTANTIATION_KEY = 1;
-        private const int DISPOSAL_KEY = 2;
-
         public void Execute(int index)
         {
-            Ecb.DestroyEntity(DISPOSAL_KEY, RequestEntities[index]); // Destroy request entity in the Disposal stage.
-
             LimbEntityCreationRequest requestData = Requests[index];
             Entity limbEntity = LimbEntities[index];
 
             // Root phenotype entity reference.
-            Ecb.SetComponent(INSTANTIATION_KEY, limbEntity, new RootPhenotypeEntity
+            Ecb.SetComponent(index, limbEntity, new RootPhenotypeEntity
             {
                 Value = RootPhenotypeEntityLookup[requestData.PhenotypeGid]
             });
 
             // Limb index.
-            Ecb.SetComponent(INSTANTIATION_KEY, limbEntity, new LimbIndex
+            Ecb.SetComponent(index, limbEntity, new LimbIndex
             {
                 Value = requestData.LimbIndex
             });
@@ -156,18 +151,18 @@ public static class LimbEntityBuilder
                 math.normalize(requestData.Rotation),
                 1f
             );
-            Ecb.SetComponent(INSTANTIATION_KEY, limbEntity, localTransform);
-            Ecb.SetComponent(INSTANTIATION_KEY, limbEntity, new PostTransformMatrix
+            Ecb.SetComponent(index, limbEntity, localTransform);
+            Ecb.SetComponent(index, limbEntity, new PostTransformMatrix
             {
                 Value = float4x4.Scale(requestData.Dimensions)
             });
 
             // Rendering.
-            Ecb.SetComponent(INSTANTIATION_KEY, limbEntity, new URPMaterialPropertyBaseColor
+            Ecb.SetComponent(index, limbEntity, new URPMaterialPropertyBaseColor
             {
                 Value = requestData.Color
             });
-            Ecb.SetComponent(INSTANTIATION_KEY, limbEntity, new RenderBounds
+            Ecb.SetComponent(index, limbEntity, new RenderBounds
             {
                 Value = new AABB
                 {
@@ -179,13 +174,17 @@ public static class LimbEntityBuilder
             // Physics.
             GetCollisionFilter(requestData, out CollisionFilter collisionFilter);
             ColliderMap.TryGetValue(new(requestData.Dimensions, collisionFilter), out BlobAssetReference<Collider> collider);
-            Ecb.SetComponent(INSTANTIATION_KEY, limbEntity, new PhysicsCollider { Value = collider });
-            Ecb.SetComponent(INSTANTIATION_KEY, limbEntity, PhysicsMass.CreateDynamic(collider.Value.MassProperties, requestData.Mass));
+            Ecb.SetComponent(index, limbEntity, new PhysicsCollider { Value = collider });
+            Ecb.SetComponent(index, limbEntity, PhysicsMass.CreateDynamic(collider.Value.MassProperties, requestData.Mass));
 
             // Add to lookups.
             PhenotypeLimbKey key = new(requestData.PhenotypeGid, requestData.LimbIndex);
             LimbEntityLookup.TryAdd(key, limbEntity);
             LimbLocalTransformLookup.TryAdd(key, localTransform);
+
+            // Destroy the request entity.
+            int disposalOffsetIndex = RequestEntities.Length;
+            Ecb.DestroyEntity(index + disposalOffsetIndex, RequestEntities[index]);
         }
     }
 }

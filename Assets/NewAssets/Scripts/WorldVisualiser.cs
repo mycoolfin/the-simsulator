@@ -79,8 +79,8 @@ public class WorldVisualiser : MonoBehaviour
         {
             SimulationRateMode.Paused => 0f,
             SimulationRateMode.RealTime => 5f,
-            SimulationRateMode.FullSpeed60FPS => 20f,
-            SimulationRateMode.FullSpeed10FPS => 30f,
+            SimulationRateMode.FullSpeed => 20f,
+            SimulationRateMode.MaximumOverdrive => 40f,
             _ => 1f,
         };
         float fluxFactor = 0.8f + 0.2f * Mathf.Sin(frequency * Time.time);

@@ -10,8 +10,7 @@ public struct FreezeRootLimbsRequest : IComponentData
 }
 
 [BurstCompile]
-[UpdateInGroup(typeof(PhysicsSystemGroup))]
-[UpdateBefore(typeof(PhysicsInitializeGroup))]
+[UpdateInGroup(typeof(BeforePhysicsSystemGroup))]
 public partial struct FreezeRootLimbsSystem : ISystem
 {
     public readonly void OnCreate(ref SystemState state)

@@ -10,7 +10,7 @@ public class FrameBudgetRateManager : IRateManager
     private readonly double frameBudget;
     private readonly double? maxUpdateRate; // Optional rate cap (updates per second)
 
-    private double lastFixedUpdateTime;
+    private double lastFixedUpdateTime = 0.0;
     private double frameStartTime = -1;
     private int lastFrameCount = -1;
     private double lastUpdateTime = -1; // Track last update time for rate limiting
@@ -33,7 +33,7 @@ public class FrameBudgetRateManager : IRateManager
     public FrameBudgetRateManager(double fixedTimestep, double frameBudget, double? maxUpdateRate = null)
     {
         this.fixedTimestep = math.clamp(fixedTimestep, 0.0001f, 10f);
-        this.frameBudget = math.clamp(frameBudget, 0.0001f, 10f);        
+        this.frameBudget = math.clamp(frameBudget, 0.0001f, 10f);
         this.maxUpdateRate = maxUpdateRate > 0 ? maxUpdateRate : null;
     }
 
@@ -76,7 +76,7 @@ public class FrameBudgetRateManager : IRateManager
 
         group.World.PopTime();
         didPushTime = false;
-        
+
         if (oldGroupAllocators != null)
         {
             group.World.RestoreGroupAllocator(oldGroupAllocators);
@@ -89,12 +89,7 @@ public class FrameBudgetRateManager : IRateManager
         // Push simulated time to ECS world.
         group.World.PushTime(new TimeData(lastFixedUpdateTime, (float)fixedTimestep));
         lastFixedUpdateTime += fixedTimestep;
-        
-        // Reset simulation time periodically to prevent floating point drift.
-        const double MAX_SIMULATION_TIME = 3600.0; // 1 hour.
-        if (lastFixedUpdateTime > MAX_SIMULATION_TIME)
-            lastFixedUpdateTime = 0.0;
-        
+
         didPushTime = true;
 
         // Set up group allocators.

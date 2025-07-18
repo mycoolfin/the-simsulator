@@ -12,7 +12,7 @@ namespace mycoolfin.TheSimsulator.Sims.Genotype
 
         public const ulong BRAIN_GID = 0UL;
 
-        public readonly string Gid = Guid.NewGuid().ToString();
+        public readonly string Gid = SharedRandom.NextUInt64().ToString();
         public readonly List<Node> Nodes;
         public readonly List<Connection> Connections;
         public readonly List<NeuronDefinition> NeuronDefinitions;

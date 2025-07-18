@@ -49,41 +49,40 @@ public static class RootPhenotypeEntityBuilder
         public NativeParallelHashMap<ulong, NeuralGraphRef>.ParallelWriter NeuralGraphLookup;
         public float ElapsedTime;
 
-        private const int INSTANTIATION_KEY = 1;
-        private const int DISPOSAL_KEY = 2;
-
         public void Execute(int index)
         {
-            Ecb.DestroyEntity(DISPOSAL_KEY, RequestEntities[index]);
-
             RootPhenotypeEntityCreationRequest requestData = Requests[index];
             Entity rootPhenotypeEntity = RootPhenotypeEntities[index];
 
             // Phenotype GID.
-            Ecb.SetComponent(INSTANTIATION_KEY, rootPhenotypeEntity, new PhenotypeGid { Value = requestData.PhenotypeGid });
+            Ecb.SetComponent(index, rootPhenotypeEntity, new PhenotypeGid { Value = requestData.PhenotypeGid });
 
             // Limb count.
-            Ecb.SetComponent(INSTANTIATION_KEY, rootPhenotypeEntity, new LimbCount { Value = requestData.LimbCount });
+            Ecb.SetComponent(index, rootPhenotypeEntity, new LimbCount { Value = requestData.LimbCount });
 
             // Limb statuses buffer.
-            DynamicBuffer<LimbStatus> limbStatusBuf = Ecb.AddBuffer<LimbStatus>(INSTANTIATION_KEY, rootPhenotypeEntity);
-            limbStatusBuf.Resize(MultipleOf((int)requestData.LimbCount, 4), NativeArrayOptions.ClearMemory); // SIMD-friendly length.
+            DynamicBuffer<LimbStatus> limbStatusBuf = Ecb.AddBuffer<LimbStatus>(index, rootPhenotypeEntity);
+            limbStatusBuf.Resize(requestData.LimbCount, NativeArrayOptions.ClearMemory);
 
             // Creation time.
-            Ecb.SetComponent(INSTANTIATION_KEY, rootPhenotypeEntity, new PhenotypeCreatedAt { Value = ElapsedTime });
+            Ecb.SetComponent(index, rootPhenotypeEntity, new PhenotypeCreatedAt { Value = ElapsedTime });
 
             // Neural graph blob reference.
             NeuralGraphRef neuralGraphRef = new() { Value = requestData.Graph };
-            Ecb.SetComponent(INSTANTIATION_KEY, rootPhenotypeEntity, neuralGraphRef);
+            Ecb.SetComponent(index, rootPhenotypeEntity, neuralGraphRef);
 
             // Emitter states buffer.
-            DynamicBuffer<EmitterState> emitterStatesBuf = Ecb.AddBuffer<EmitterState>(INSTANTIATION_KEY, rootPhenotypeEntity);
+            DynamicBuffer<EmitterState> emitterStatesBuf = Ecb.AddBuffer<EmitterState>(index, rootPhenotypeEntity);
             int emitterCount = requestData.Graph.Value.TotalEmitterCount;
             emitterStatesBuf.Resize(MultipleOf(emitterCount, 4), NativeArrayOptions.ClearMemory); // SIMD-friendly length.
 
             // Add to the neural network lookups.
             RootPhenotypeEntityLookup.TryAdd(requestData.PhenotypeGid, rootPhenotypeEntity);
             NeuralGraphLookup.TryAdd(requestData.PhenotypeGid, neuralGraphRef);
+
+            // Destroy the request entity.
+            int disposalOffsetIndex = RequestEntities.Length;
+            Ecb.DestroyEntity(index + disposalOffsetIndex, RequestEntities[index]);
         }
 
         private static int MultipleOf(int value, int multiple)

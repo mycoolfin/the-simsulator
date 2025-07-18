@@ -2,7 +2,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 
 namespace mycoolfin.TheSimsulator
 {
@@ -10,7 +9,8 @@ namespace mycoolfin.TheSimsulator
     {
         public int PopulationSize { get; set; } = 100;
         public float SurvivalRate { get; set; } = 0.2f;
-        public virtual float MutationRate { get; set; } = 0.1f;
+        public float MutationRate { get; set; } = 0.1f;
+        public int Seed { get; set; } = Environment.TickCount;
     }
 
     public abstract class EvolutionBase<TEvolutionConfig, TGenotype, TPhenotype>
@@ -53,8 +53,10 @@ namespace mycoolfin.TheSimsulator
             TEvolutionConfig config
         )
         {
-            this.config = config;
+            SharedRandom.Reset();
+            SharedRandom.Seed(config.Seed);
 
+            this.config = config;
             this.genotypeFactory = genotypeFactory;
             this.phenotypeFactory = phenotypeFactory;
             AssessPhenotypes = assessPhenotypesDelegate;

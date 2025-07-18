@@ -298,14 +298,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: caaec48b19ab3426d9e1d86d0e398c40, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  populationSize: 100
+  populationSize: 200
   maxGenerations: 1000000
   survivalRate: 0.2
   mutationRate: 10
   settleSeconds: 5
   assessmentSeconds: 10
-  trialType: 0
-  simulationRate: 1
+  trialType: 1
+  simulationSeed: 0
+  useSimulationSeed: 0
+  simulationRate: 2
   run: 1
 --- !u!4 &231955684
 Transform:

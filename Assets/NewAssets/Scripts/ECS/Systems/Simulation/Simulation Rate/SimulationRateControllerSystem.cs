@@ -4,8 +4,8 @@ public enum SimulationRateMode : byte
 {
     Paused,
     RealTime,
-    FullSpeed60FPS,
-    FullSpeed10FPS
+    FullSpeed,
+    MaximumOverdrive
 }
 
 public struct SimulationRateControllerSettings : IComponentData
@@ -17,9 +17,9 @@ public struct SimulationRateControllerSettings : IComponentData
 public partial struct SimulationRateControllerSystem : ISystem
 {
     const double FIXED_TIMESTEP = 1.0 / 60.0;
-    private const float REAL_TIME_FRAME_BUDGET = 1f / 60f; // 60 FPS.
-    private const float FULL_SPEED_60FPS_FRAME_BUDGET = 1f / 60f; // 60 FPS.
-    private const float FULL_SPEED_10FPS_FRAME_BUDGET = 1f / 10f; // 10 FPS.
+    private const float REAL_TIME_FRAME_BUDGET = 1f / 90f; // 90 FPS.
+    private const float FULL_SPEED_FRAME_BUDGET = 1f / 90f; // 90 FPS.
+    private const float MAXIMUM_OVERDRIVE_FRAME_BUDGET = 1f / 10f; // 10 FPS.
 
     private SimulationRateMode currentMode;
 
@@ -43,16 +43,15 @@ public partial struct SimulationRateControllerSystem : ISystem
                     fixedStepGroup.Enabled = false;
                     break;
                 case SimulationRateMode.RealTime:
-                    // Cap to 60 Hz to match the fixed timestep rate
                     fixedStepGroup.RateManager = new FrameBudgetRateManager(FIXED_TIMESTEP, REAL_TIME_FRAME_BUDGET, 1 / FIXED_TIMESTEP);
                     fixedStepGroup.Enabled = true;
                     break;
-                case SimulationRateMode.FullSpeed60FPS:
-                    fixedStepGroup.RateManager = new FrameBudgetRateManager(FIXED_TIMESTEP, FULL_SPEED_60FPS_FRAME_BUDGET);
+                case SimulationRateMode.FullSpeed:
+                    fixedStepGroup.RateManager = new FrameBudgetRateManager(FIXED_TIMESTEP, FULL_SPEED_FRAME_BUDGET);
                     fixedStepGroup.Enabled = true;
                     break;
-                case SimulationRateMode.FullSpeed10FPS:
-                    fixedStepGroup.RateManager = new FrameBudgetRateManager(FIXED_TIMESTEP, FULL_SPEED_10FPS_FRAME_BUDGET);
+                case SimulationRateMode.MaximumOverdrive:
+                    fixedStepGroup.RateManager = new FrameBudgetRateManager(FIXED_TIMESTEP, MAXIMUM_OVERDRIVE_FRAME_BUDGET);
                     fixedStepGroup.Enabled = true;
                     break;
             }
