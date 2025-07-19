@@ -26,7 +26,7 @@ namespace mycoolfin.TheSimsulator.Sims.Genotype
             JointType newJointType = JointDefinition.AllJointTypes[SharedRandom.Next(JointDefinition.AllJointTypes.Length)];
             JointDefinition newJointDefinition = new(newJointType, node.JointDefinition.AngleLimits,
                 node.JointDefinition.XAxisInputs, node.JointDefinition.YAxisInputs, node.JointDefinition.ZAxisInputs);
-            Node newNode = new(node.Dimensions, newJointDefinition, node.RecursiveLimit);
+            Node newNode = node.CopyWithNewJoint(newJointDefinition);
             context.Nodes[nodeIndex] = newNode;
         }
 
@@ -41,7 +41,7 @@ namespace mycoolfin.TheSimsulator.Sims.Genotype
             );
             JointDefinition newJointDefinition = new(node.JointDefinition.JointType, newAngleLimits,
                 node.JointDefinition.XAxisInputs, node.JointDefinition.YAxisInputs, node.JointDefinition.ZAxisInputs);
-            Node newNode = new(node.Dimensions, newJointDefinition, node.RecursiveLimit);
+            Node newNode = node.CopyWithNewJoint(newJointDefinition);
             context.Nodes[nodeIndex] = newNode;
         }
 
@@ -52,7 +52,7 @@ namespace mycoolfin.TheSimsulator.Sims.Genotype
             InputSetDefinitionMutator.MutateInputSetDefinition(context, node.Gid, node.JointDefinition.XAxisInputs, newInputs => newXAxisInputs = newInputs);
             JointDefinition newJointDefinition = new(node.JointDefinition.JointType, node.JointDefinition.AngleLimits,
                 newXAxisInputs, node.JointDefinition.YAxisInputs, node.JointDefinition.ZAxisInputs);
-            Node newNode = new(node.Dimensions, newJointDefinition, node.RecursiveLimit);
+            Node newNode = node.CopyWithNewJoint(newJointDefinition);
             context.Nodes[nodeIndex] = newNode;
         }
 
@@ -63,7 +63,7 @@ namespace mycoolfin.TheSimsulator.Sims.Genotype
             InputSetDefinitionMutator.MutateInputSetDefinition(context, node.Gid, node.JointDefinition.YAxisInputs, newInputs => newYAxisInputs = newInputs);
             JointDefinition newJointDefinition = new(node.JointDefinition.JointType, node.JointDefinition.AngleLimits,
                 node.JointDefinition.XAxisInputs, newYAxisInputs, node.JointDefinition.ZAxisInputs);
-            Node newNode = new(node.Dimensions, newJointDefinition, node.RecursiveLimit);
+            Node newNode = node.CopyWithNewJoint(newJointDefinition);
             context.Nodes[nodeIndex] = newNode;
         }
 
@@ -74,8 +74,13 @@ namespace mycoolfin.TheSimsulator.Sims.Genotype
             InputSetDefinitionMutator.MutateInputSetDefinition(context, node.Gid, node.JointDefinition.ZAxisInputs, newInputs => newZAxisInputs = newInputs);
             JointDefinition newJointDefinition = new(node.JointDefinition.JointType, node.JointDefinition.AngleLimits,
                 node.JointDefinition.XAxisInputs, node.JointDefinition.YAxisInputs, newZAxisInputs);
-            Node newNode = new(node.Dimensions, newJointDefinition, node.RecursiveLimit);
+            Node newNode = node.CopyWithNewJoint(newJointDefinition);
             context.Nodes[nodeIndex] = newNode;
+        }
+
+        private static Node CopyWithNewJoint(this Node node, JointDefinition jointDefinition)
+        {
+            return new(node.Dimensions, jointDefinition, node.RecursiveLimit, node.Color);
         }
     }
 }

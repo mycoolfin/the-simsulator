@@ -38,8 +38,10 @@ namespace NewAssets
         [SerializeField] private TrialType trialType = TrialType.GroundDistance;
         public TrialType TrialType => trialType;
         [SerializeField] private SimsGenotype seedGenotype;
-        [SerializeField] private int simulationSeed = 0;
-        [SerializeField] private bool useSimulationSeed = false;
+
+        // Seeding isn't working yet on the ECS side.
+        // [SerializeField] private int simulationSeed = 0;
+        // [SerializeField] private bool useSimulationSeed = false;
 
         [Header("Runtime Status")]
         public bool IsRunning { get; private set; } = false;
@@ -106,7 +108,7 @@ namespace NewAssets
                 SurvivalRate = survivalRate,
                 MutationRate = mutationRate,
             };
-            if (useSimulationSeed) config.Seed = simulationSeed;
+            // if (useSimulationSeed) config.Seed = simulationSeed;
             SimsEvolution evolution = new(AssessPhenotypesCoroutine, config);
 
             statistics.Clear();

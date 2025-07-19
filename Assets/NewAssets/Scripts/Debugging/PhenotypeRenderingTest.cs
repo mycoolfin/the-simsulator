@@ -76,7 +76,8 @@ public class PhenotypeRenderingTest : UnityEngine.MonoBehaviour
                         new InputSetDefinition(new(addyA, 1f), new(addyB, 0f), new(addyC, 0f)),
                         new InputSetDefinition(new(addyA, 1f), new(addyB, 0f), new(addyC, 0f))
                     ),
-                    2
+                    2,
+                    new NodeColor(0f, 0f, 0f, 0f, 0f, 0f)
                 )
             };
         List<Connection> connections = new()

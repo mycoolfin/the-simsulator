@@ -87,7 +87,7 @@ namespace mycoolfin.TheSimsulator.Sims.Phenotype
             bool mirrorForward = isParentLimbFaceForwardMirrored ^ isFaceForwardMirrored;
             CreatedLimbData newLimbData = CreateChildLimb(
                 parentData, node, connectionToParent, neuronDefinitions,
-                mirrorRight, mirrorUp, mirrorForward,
+                mirrorRight, mirrorUp, mirrorForward, nodeRecursionDepth,
                 receiverToInputDefinitionSetGidMap
             );
 
@@ -180,7 +180,7 @@ namespace mycoolfin.TheSimsulator.Sims.Phenotype
         }
 
         private static CreatedLimbData CreateChildLimb(CreatedLimbData parentData, Node node, Connection? connection, List<NeuronDefinition> neuronDefinitions,
-            bool mirrorRight, bool mirrorUp, bool mirrorForward,
+            bool mirrorRight, bool mirrorUp, bool mirrorForward, int nodeRecursionDepth,
             Dictionary<ISignalReceiver, InputSetDefinition> receiverToInputDefinitionSetGidMap
         )
         {
@@ -193,7 +193,8 @@ namespace mycoolfin.TheSimsulator.Sims.Phenotype
             );
 
             // Create new limb with absolute dimensions.
-            Limb newLimb = new(new(dimensions.X, dimensions.Y, dimensions.Z), mirrorRight, mirrorUp, mirrorForward);
+            Limb newLimb = new(new(dimensions.X, dimensions.Y, dimensions.Z));
+            newLimb.SetColor(node.Color.ToRGBA(nodeRecursionDepth));
 
             bool swapX = false;
             if (connection != null)

@@ -27,7 +27,7 @@ public static class EvolutionAPI
         else if (trialType == NewAssets.TrialType.WaterDistance)
         {
             SystemSettingsAPI.SetGravity(world, float3.zero);
-            SystemSettingsAPI.SetFluidSimulation(world, true, 1000f);
+            SystemSettingsAPI.SetFluidSimulation(world, true, 1f);
         }
 
         // Reposition phenotype entities if necessary.

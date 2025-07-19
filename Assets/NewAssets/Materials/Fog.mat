@@ -99,7 +99,7 @@ Material:
     - _EdgeSoftness: 1
     - _EnvironmentReflections: 1
     - _FalloffPower: 1
-    - _FogDensity: 0.23
+    - _FogDensity: 0.2
     - _FogDistanceMax: 10
     - _GlossMapScale: 0
     - _Glossiness: 0

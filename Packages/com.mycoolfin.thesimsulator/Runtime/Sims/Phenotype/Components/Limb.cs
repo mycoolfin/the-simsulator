@@ -1,6 +1,7 @@
 using System;
 using System.Numerics;
 using System.Collections.Generic;
+using mycoolfin.TheSimsulator.Sims.Genotype;
 
 namespace mycoolfin.TheSimsulator.Sims.Phenotype
 {
@@ -17,15 +18,11 @@ namespace mycoolfin.TheSimsulator.Sims.Phenotype
         public List<Sensor> Sensors { get; private set; }
         public List<Actuator> Actuators { get; private set; }
 
+        public Vector4 Color { get; private set; }
+
         public event Action OnTransformChanged;
 
-        // DEBUG.
-        public readonly bool DebugMirroredX;
-        public readonly bool DebugMirroredY;
-        public readonly bool DebugMirroredZ;
-        public readonly Vector4 Color;
-
-        public Limb(Vector3 dimensions, bool mirroredX, bool mirroredY, bool mirroredZ)
+        public Limb(Vector3 dimensions)
         {
             Dimensions = dimensions;
             Position = Vector3.Zero;
@@ -35,15 +32,6 @@ namespace mycoolfin.TheSimsulator.Sims.Phenotype
             Neurons = new();
             Sensors = new();
             Actuators = new();
-
-            DebugMirroredX = mirroredX;
-            DebugMirroredY = mirroredY;
-            DebugMirroredZ = mirroredZ;
-
-            Color = new Vector4(DebugMirroredX ? 1f : 0f,
-                                DebugMirroredY ? 1f : 0f,
-                                DebugMirroredZ ? 1f : 0f,
-                                1f);
         }
 
         public void SetJoint(Joint joint)
@@ -73,6 +61,11 @@ namespace mycoolfin.TheSimsulator.Sims.Phenotype
             Position = position;
             Rotation = rotation;
             OnTransformChanged?.Invoke();
+        }
+        
+        public void SetColor(Vector4 color)
+        {
+            Color = color;
         }
     }
 }

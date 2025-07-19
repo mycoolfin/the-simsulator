@@ -20,33 +20,36 @@ namespace mycoolfin.TheSimsulator.Sims.Genotype
         public readonly Vector3 Dimensions;
         public readonly JointDefinition JointDefinition;
         public readonly int RecursiveLimit;
+        public readonly NodeColor Color;
 
         public int SensorCount => JointDefinition.JointType.DegreesOfFreedom();
 
-        public Node(Vector3 dimensions, JointDefinition jointDefinition, int recursiveLimit)
+        public Node(Vector3 dimensions, JointDefinition jointDefinition, int recursiveLimit, NodeColor color)
         {
             Gid = SharedRandom.NextUInt64();
             Dimensions = dimensions;
             JointDefinition = jointDefinition;
             RecursiveLimit = recursiveLimit;
+            Color = color;
         }
 
-        private Node(ulong gid, Vector3 dimensions, JointDefinition jointDefinition, int recursiveLimit)
+        private Node(ulong gid, Vector3 dimensions, JointDefinition jointDefinition, int recursiveLimit, NodeColor color)
         {
             Gid = gid;
             Dimensions = dimensions;
             JointDefinition = jointDefinition;
             RecursiveLimit = recursiveLimit;
+            Color = color;
         }
 
         public Node CopyWithNewGid()
         {
-            return new Node(Dimensions, JointDefinition, RecursiveLimit);
+            return new Node(Dimensions, JointDefinition, RecursiveLimit, Color);
         }
 
         public Node CopyWithSameGid(JointDefinition newJointDefinition)
         {
-            return new Node(Gid, Dimensions, newJointDefinition, RecursiveLimit);
+            return new Node(Gid, Dimensions, newJointDefinition, RecursiveLimit, Color);
         }
 
         public static Node CreateRandom(IReadOnlyList<Node> nodes, IReadOnlyList<Connection> connections, IReadOnlyList<NeuronDefinition> neuronDefinitions)
@@ -55,7 +58,9 @@ namespace mycoolfin.TheSimsulator.Sims.Genotype
 
             int randomRecursiveLimit = RandomRecursiveLimit();
 
-            Node randomNode = new(randomDimensions, new(), randomRecursiveLimit);
+            NodeColor randomColor = NodeColor.CreateRandom();
+
+            Node randomNode = new(randomDimensions, new(), randomRecursiveLimit, randomColor);
             JointDefinition randomJointDefinition = JointDefinition.CreateRandom(randomNode.Gid, nodes, connections, neuronDefinitions);
             return randomNode.CopyWithSameGid(randomJointDefinition);
         }

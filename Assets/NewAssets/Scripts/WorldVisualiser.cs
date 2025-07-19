@@ -10,7 +10,11 @@ public class WorldVisualiser : MonoBehaviour
     [SerializeField] private GameObject water;
     [SerializeField] private EmitterController innerEmitter;
     [SerializeField] private EmitterController outerEmitter;
+    [SerializeField] private Color emitterColor = Color.white;
     [SerializeField] private float dynamicScaleFactor = 1f;
+    [SerializeField] private bool colorByFitness = false;
+
+
     public float DynamicScaleFactor => dynamicScaleFactor;
     private float previousDynamicScaleFactor;
     private bool dynamicScaleFactorHasChanged = false;
@@ -24,17 +28,23 @@ public class WorldVisualiser : MonoBehaviour
             hologramTransform.hasChanged = value;
         }
     }
+
+    private bool previousColorByFitness;
+
+
     private World ecsWorld;
 
     public void Start()
     {
         previousDynamicScaleFactor = dynamicScaleFactor;
+        previousColorByFitness = colorByFitness;
 
         evolutionSimulator.OnEcsWorldCreated += (ecsWorld) =>
         {
             this.ecsWorld = ecsWorld;
             InitialiseVisualiser(evolutionSimulator.TrialType);
             SystemSettingsAPI.SetWorldVisualOffset(ecsWorld, GetTransformMatrix());
+            SystemSettingsAPI.SetColorByFitness(ecsWorld, colorByFitness);
         };
     }
 
@@ -55,11 +65,27 @@ public class WorldVisualiser : MonoBehaviour
                 SystemSettingsAPI.SetWorldVisualOffset(ecsWorld, GetTransformMatrix());
                 HasChanged = false;
             }
+
+            if (previousColorByFitness != colorByFitness)
+            {
+                SystemSettingsAPI.SetColorByFitness(ecsWorld, colorByFitness);
+                previousColorByFitness = colorByFitness;
+            }
+        }
+        else
+        {
+            SetEmitterIntensities(0f);
+            SetGroundEnabled(false);
+            SetWaterEnabled(false);
         }
     }
 
     private void InitialiseVisualiser(NewAssets.TrialType trialType)
     {
+        innerEmitter.SetEmissiveColor(emitterColor);
+        outerEmitter.SetEmissiveColor(emitterColor);
+        SetEmitterIntensities(0f);
+
         switch (trialType)
         {
             case NewAssets.TrialType.GroundDistance:

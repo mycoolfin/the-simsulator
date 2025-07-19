@@ -67,6 +67,7 @@ public static class LimbEntityBuilder
         state.EntityManager.AddComponentData(limbPrototype, new PostTransformMatrix());
 
         // Rendering.
+        state.EntityManager.AddComponentData(limbPrototype, new LimbColor());
         state.EntityManager.AddComponentData(limbPrototype, new URPMaterialPropertyBaseColor());
         state.EntityManager.AddComponentData(limbPrototype, new RenderBounds());
         RenderMeshUtility.AddComponents(
@@ -158,6 +159,10 @@ public static class LimbEntityBuilder
             });
 
             // Rendering.
+            Ecb.SetComponent(index, limbEntity, new LimbColor
+            {
+                Value = requestData.Color
+            });
             Ecb.SetComponent(index, limbEntity, new URPMaterialPropertyBaseColor
             {
                 Value = requestData.Color

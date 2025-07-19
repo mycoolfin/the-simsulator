@@ -49,6 +49,12 @@ public partial struct ApplyFluidForcesJob : IJobEntity
     public float FluidDensity;
     public float DeltaTime;
 
+    // Numerical stability constants
+    private const float MinSpeedSq = 1e-4f;
+    private const float MinAbsC = 1e-2f;
+    private const float MinCrossMagSq = 1e-6f;
+    private const float MinDotThreshold = 1e-3f;
+
     public void Execute(
         ref PhysicsVelocity velocity,
         in PhysicsMass mass,
@@ -122,15 +128,16 @@ public partial struct ApplyFluidForcesJob : IJobEntity
 
                 float3 localVelocity = velocity.Linear + math.cross(velocity.Angular, r);
                 float speedSq = math.lengthsq(localVelocity);
-                if (speedSq < 1e-6f) continue;
+                
+                if (speedSq < MinSpeedSq) continue;
 
                 float speed = math.sqrt(speedSq);
                 float3 velDir = localVelocity / speed;
 
                 float dDot = math.dot(velDir, worldNormal);
-                if (dDot <= 1e-3f) continue; // Facing away.
+                if (dDot <= MinDotThreshold) continue; // Facing away.
 
-                ComputeFluidForce(worldNormal, velDir, areaPerQuadrant, speed, speedSq, FluidDensity, out float3 force);
+                ComputeFluidForce(worldNormal, velDir, dDot, areaPerQuadrant, speed, speedSq, FluidDensity, out float3 force);
                 totalForce += force;
                 totalTorque += math.cross(r, force);
             }
@@ -138,25 +145,41 @@ public partial struct ApplyFluidForcesJob : IJobEntity
 
     [BurstCompile]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void ComputeFluidForce(in float3 normal, in float3 velDir, float area,  float speed, float speedSq, float fluidDensity, out float3 force)
+    private static void ComputeFluidForce(in float3 normal, in float3 velDir, float dDot, float area, float speed, float speedSq, float fluidDensity, out float3 force)
     {
-        float dDot = math.dot(velDir, normal);
         float3 signedNormal = math.sign(dDot) * normal;
         float absC = math.min(math.abs(dDot), 1f);
-        if (absC < 1e-3f) { force = float3.zero; return; }
+        
+        // More conservative threshold to prevent numerical issues
+        if (absC < MinAbsC) { force = float3.zero; return; }
 
+        // Compute drag coefficient using stable formulation
         float d = 1f - absC;
         float Cd = 0.5f + 1.5f * (d * d);
-        float root = math.sqrt(1f - absC * absC);
+        
+        // Lift coefficient calculation
+        float absCsq = absC * absC;
+        float oneMinusAbsCsq = math.max(1f - absCsq, 0f); // Clamp to prevent negative values
+        float root = math.sqrt(oneMinusAbsCsq);
         float Cl = 1.2f * absC * root;
-        float projV = absC * speed;
 
+        float projV = absC * speed;
         float dragMag = 0.5f * fluidDensity * projV * projV * area * Cd;
         float3 dragF = -dragMag * signedNormal;
 
+        // Lift force calculation
         float liftMag = 0.5f * fluidDensity * speedSq * area * Cl * absC;
-        float3 liftDir = math.normalizesafe(math.cross(math.cross(velDir, signedNormal), velDir));
-        float3 liftF = liftMag * liftDir;
+        
+        // Compute lift direction
+        float3 crossVelNormal = math.cross(velDir, signedNormal);
+        float crossMagSq = math.lengthsq(crossVelNormal);
+        
+        float3 liftF = float3.zero;
+        if (crossMagSq > MinCrossMagSq) // Only compute lift if cross product is significant
+        {
+            float3 liftDir = math.cross(crossVelNormal, velDir) / math.sqrt(crossMagSq);
+            liftF = liftMag * liftDir;
+        }
 
         force = dragF + liftF;
     }

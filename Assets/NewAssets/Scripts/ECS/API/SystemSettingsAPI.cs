@@ -44,9 +44,18 @@ public static class SystemSettingsAPI
     public static void SetWorldVisualOffset(World world, float4x4 transformMatrix)
     {
         EntityManager entityManager = world.EntityManager;
-        EntityQuery query = entityManager.CreateEntityQuery(typeof(WorldVisualOffset));        
+        EntityQuery query = entityManager.CreateEntityQuery(typeof(WorldVisualOffset));
         WorldVisualOffset visualOffset = new() { TransformMatrix = transformMatrix };
         if (query.IsEmptyIgnoreFilter) entityManager.CreateSingleton(visualOffset);
         else query.SetSingleton(visualOffset);
+    }
+    
+    public static void SetColorByFitness(World world, bool enabled)
+    {
+        EntityManager entityManager = world.EntityManager;
+        EntityQuery query = entityManager.CreateEntityQuery(typeof(ColorByFitnessSystemSettings));
+        ColorByFitnessSystemSettings settings = new() { Enabled = enabled };
+        if (query.IsEmptyIgnoreFilter) entityManager.CreateSingleton(settings);
+        else query.SetSingleton(settings);
     }
 }

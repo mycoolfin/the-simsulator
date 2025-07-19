@@ -25,7 +25,7 @@ namespace mycoolfin.TheSimsulator.Sims.Genotype
 
             Node node = context.Nodes[nodeIndex];
             Vector3 newDimensions = new(RandomDimension(node.Dimensions.X), RandomDimension(node.Dimensions.Y), RandomDimension(node.Dimensions.Z));
-            Node newNode = new(newDimensions, node.JointDefinition, node.RecursiveLimit);
+            Node newNode = new(newDimensions, node.JointDefinition, node.RecursiveLimit, node.Color);
             context.Nodes[nodeIndex] = newNode;
         }
 
@@ -42,7 +42,7 @@ namespace mycoolfin.TheSimsulator.Sims.Genotype
 
             Node node = context.Nodes[nodeIndex];
             int newRecursiveLimit = RandomRecursiveLimit(node.RecursiveLimit);
-            Node newNode = new(node.Dimensions, node.JointDefinition, newRecursiveLimit);
+            Node newNode = new(node.Dimensions, node.JointDefinition, newRecursiveLimit, node.Color);
             context.Nodes[nodeIndex] = newNode;
         }
     }
