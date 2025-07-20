@@ -5,7 +5,6 @@ using Unity.Mathematics;
 using Unity.Transforms;
 using Unity.Physics;
 using Unity.Physics.Systems;
-using Unity.Jobs;
 
 public struct FluidSimulationSettings : IComponentData
 {
@@ -32,13 +31,11 @@ public partial struct ApplyFluidForcesSystem : ISystem
         if (settings.Enabled == 0)
             return;
 
-        JobHandle handle = new ApplyFluidForcesJob
+        state.Dependency = new ApplyFluidForcesJob
         {
             FluidDensity = settings.FluidDensity,
             DeltaTime = SystemAPI.Time.DeltaTime
-        }
-        .ScheduleParallel(state.Dependency);
-        state.Dependency = handle;
+        }.ScheduleParallel(state.Dependency);
     }
 }
 
@@ -50,7 +47,7 @@ public partial struct ApplyFluidForcesJob : IJobEntity
     public float DeltaTime;
 
     // Numerical stability constants
-    private const float MinSpeedSq = 1e-4f;
+    private const float MinSpeedSq = 1e-3f;
     private const float MinAbsC = 1e-2f;
     private const float MinCrossMagSq = 1e-6f;
     private const float MinDotThreshold = 1e-3f;
@@ -85,14 +82,34 @@ public partial struct ApplyFluidForcesJob : IJobEntity
         ApplyFace(0, 0, +1, 1, 0, 0, 0, 1, 0, scale.x, scale.y, position, rotation, FluidDensity, velocity, ref totalForce, ref totalTorque);
         ApplyFace(0, 0, -1, 1, 0, 0, 0, 1, 0, scale.x, scale.y, position, rotation, FluidDensity, velocity, ref totalForce, ref totalTorque);
 
-        // Apply accumulated force and torque
-        velocity.Linear += DeltaTime * invMass * totalForce;
+        // Clamp forces to prevent excessive values.
+        totalForce = math.clamp(totalForce, new float3(-1000f), new float3(1000f));
+        totalTorque = math.clamp(totalTorque, new float3(-1000f), new float3(1000f));
 
+        // Validate inertia values
+        if (math.any(mass.InverseInertia > 1000f) || math.any(mass.InverseInertia < 0f))
+            return;
+
+        // Apply accumulated force and torque
         float3x3 localInvInertiaMatrix = float3x3.Scale(mass.InverseInertia);
         float3x3 R = new(rotation);
         float3x3 invInertiaWorld = math.mul(math.mul(R, localInvInertiaMatrix), math.transpose(R));
 
-        velocity.Angular += DeltaTime * math.mul(invInertiaWorld, totalTorque);
+        float3 linearVelocityDelta = DeltaTime * invMass * totalForce;
+        float3 angularVelocityDelta = DeltaTime * math.mul(invInertiaWorld, totalTorque);
+
+        // Clamp velocity deltas to prevent extreme values
+        linearVelocityDelta = math.clamp(linearVelocityDelta, new float3(-100f), new float3(100f));
+        angularVelocityDelta = math.clamp(angularVelocityDelta, new float3(-10f), new float3(10f));
+
+        // Check for NaN or Inf values
+        if (math.any(math.isnan(linearVelocityDelta)) || math.any(math.isinf(linearVelocityDelta)) ||
+            math.any(math.isnan(angularVelocityDelta)) || math.any(math.isinf(angularVelocityDelta)))
+            return;
+
+        // Apply with additional safety clamping
+        velocity.Linear = math.clamp(velocity.Linear + linearVelocityDelta, new float3(-200f), new float3(200f));
+        velocity.Angular = math.clamp(velocity.Angular + angularVelocityDelta, new float3(-50f), new float3(50f));
     }
 
     [BurstCompile]
@@ -128,7 +145,7 @@ public partial struct ApplyFluidForcesJob : IJobEntity
 
                 float3 localVelocity = velocity.Linear + math.cross(velocity.Angular, r);
                 float speedSq = math.lengthsq(localVelocity);
-                
+
                 if (speedSq < MinSpeedSq) continue;
 
                 float speed = math.sqrt(speedSq);
@@ -149,14 +166,14 @@ public partial struct ApplyFluidForcesJob : IJobEntity
     {
         float3 signedNormal = math.sign(dDot) * normal;
         float absC = math.min(math.abs(dDot), 1f);
-        
+
         // More conservative threshold to prevent numerical issues
         if (absC < MinAbsC) { force = float3.zero; return; }
 
         // Compute drag coefficient using stable formulation
         float d = 1f - absC;
         float Cd = 0.5f + 1.5f * (d * d);
-        
+
         // Lift coefficient calculation
         float absCsq = absC * absC;
         float oneMinusAbsCsq = math.max(1f - absCsq, 0f); // Clamp to prevent negative values
@@ -169,11 +186,11 @@ public partial struct ApplyFluidForcesJob : IJobEntity
 
         // Lift force calculation
         float liftMag = 0.5f * fluidDensity * speedSq * area * Cl * absC;
-        
+
         // Compute lift direction
         float3 crossVelNormal = math.cross(velDir, signedNormal);
         float crossMagSq = math.lengthsq(crossVelNormal);
-        
+
         float3 liftF = float3.zero;
         if (crossMagSq > MinCrossMagSq) // Only compute lift if cross product is significant
         {

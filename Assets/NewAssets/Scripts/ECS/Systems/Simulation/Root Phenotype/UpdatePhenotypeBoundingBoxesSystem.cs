@@ -1,6 +1,7 @@
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
+using Unity.Jobs;
 using Unity.Mathematics;
 using Unity.Transforms;
 
@@ -36,15 +37,15 @@ public partial struct UpdatePhenotypeBoundingBoxesSystem : ISystem
 
         limbBounds.Clear();
 
-        new CollectLimbBoundsJob
+        JobHandle collectLimbsJob = new CollectLimbBoundsJob
         {
             LimbBounds = limbBounds.AsParallelWriter()
-        }.ScheduleParallel(state.Dependency).Complete();
+        }.ScheduleParallel(state.Dependency);
 
-        new UpdatePhenotypeBoundingBoxesJob
+        state.Dependency = new UpdatePhenotypeBoundingBoxesJob
         {
             LimbBounds = limbBounds.AsReadOnly()
-        }.ScheduleParallel(state.Dependency).Complete();
+        }.ScheduleParallel(collectLimbsJob);
     }
 
     public void OnDestroy(ref SystemState state)

@@ -38,7 +38,7 @@ public struct JointEntityCreationRequest : IComponentData
     public float3 ReferenceLimbSpaceZAxis;
     public byte FlippedHandedness;
     public float3 AngleLimits;
-    public float MaxMotorImpulseScaleFactor;
+    public float MinCrossSectionalArea;
 }
 
 [BurstCompile]

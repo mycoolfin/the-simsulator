@@ -16,7 +16,8 @@ public static class JointEntityBuilder
             typeof(PhysicsWorldIndex),
             typeof(PhysicsConstrainedBodyPair),
             typeof(PhysicsJoint),
-            typeof(PhysicsJointCompanion)
+            typeof(PhysicsJointCompanion),
+            typeof(JointBreakDistance)
         );
     }
 
@@ -254,11 +255,14 @@ public partial struct CreateJointEntityJob : IJobEntity
         ecb.SetComponent(sortKey, jointEntity1, new RootPhenotypeEntity { Value = rootPhenotypeEntity });
         ecb.SetSharedComponent(sortKey, jointEntity1, new PhysicsWorldIndex(0));
         ecb.SetComponent(sortKey, jointEntity1, new PhysicsConstrainedBodyPair(referenceLimbEntity, attachedLimbEntity, false));
+        JointBreakDistance breakDistance = new() { DistanceSquared = request.MinCrossSectionalArea * request.MinCrossSectionalArea };
+        ecb.SetComponent(sortKey, jointEntity1, breakDistance);
         if (jointEntity2 != Entity.Null)
         {
             ecb.SetComponent(sortKey, jointEntity2, new RootPhenotypeEntity { Value = rootPhenotypeEntity });
             ecb.SetSharedComponent(sortKey, jointEntity2, new PhysicsWorldIndex(0));
             ecb.SetComponent(sortKey, jointEntity2, new PhysicsConstrainedBodyPair(referenceLimbEntity, attachedLimbEntity, false));
+            ecb.SetComponent(sortKey, jointEntity2, breakDistance);
 
             ecb.AppendToBuffer(sortKey, jointEntity1, new PhysicsJointCompanion() { JointEntity = jointEntity2 });
             ecb.AppendToBuffer(sortKey, jointEntity2, new PhysicsJointCompanion() { JointEntity = jointEntity1 });
@@ -326,7 +330,7 @@ public partial struct CreateJointEntityJob : IJobEntity
     [BurstCompile]
     private static void CreateConstraint(in JointEntityCreationRequest request, ConstraintType type, in bool3 constrainedAxes, float angleLimit, out Constraint constraint)
     {
-        float maxImpulseOfMotor = BASE_MAX_MOTOR_IMPULSE * request.MaxMotorImpulseScaleFactor;
+        float maxImpulseOfMotor = BASE_MAX_MOTOR_IMPULSE * request.MinCrossSectionalArea;
         float springFrequency = type == ConstraintType.RotationMotor ? SPRING_FREQUENCY : 50f;
         float dampingRatio = type == ConstraintType.RotationMotor ? DAMPING_RATIO : 1f;
         constraint = new()

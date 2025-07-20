@@ -1,9 +1,8 @@
-using mycoolfin.TheSimsulator.Sims.Phenotype;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Jobs;
-using Unity.Rendering;
+using mycoolfin.TheSimsulator.Sims.Phenotype;
 
 [UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
 [UpdateAfter(typeof(JointBreakSystem))]
@@ -44,7 +43,7 @@ public partial struct HandleJointBrokenEventsSystem : ISystem
         // Handle events.
         int maxDetachedLimbCount = eventBuffer.Length * SimsPhenotype.MAX_LIMBS;
         using NativeParallelMultiHashMap<Entity, byte> RootPhenotypeToDetachedLimbIndicesLookup = new(maxDetachedLimbCount * 2, Allocator.TempJob);
-        
+
         // Pre-allocate buffer with enough space for each parallel execution to have its own slice.
         int bufferSizePerEvent = SimsPhenotype.MAX_LIMBS;
         using NativeArray<Entity> tempEntityBuffer = new(eventBuffer.Length * bufferSizePerEvent, Allocator.TempJob);
@@ -69,7 +68,7 @@ public partial struct HandleJointBrokenEventsSystem : ISystem
 
         // Clear the event buffer before playing back the ECB to avoid invalidation.
         eventBuffer.Clear();
-        
+
         ecb.Playback(state.EntityManager);
     }
 }
@@ -107,18 +106,17 @@ public partial struct JointBrokenEventHandler : IJobFor
         // Get this execution's slice of the buffer.
         int bufferStartIndex = index * BufferSizePerEvent;
         NativeSlice<Entity> myBuffer = TempEntityBuffer.Slice(bufferStartIndex, BufferSizePerEvent);
-        
+
         // Use the slice as a stack.
         int stackIndex = 0;
         myBuffer[stackIndex++] = detachedLimb;
-        
+
         while (stackIndex > 0)
         {
             Entity d = myBuffer[--stackIndex];
-            
-            // Tag and color the limb.
+
+            // Tag the limb.
             Ecb.AddComponent(index, d, new DetachedLimbTag());
-            Ecb.SetComponent(index, d, new URPMaterialPropertyBaseColor { Value = new(0f, 0f, 0f, 0.2f) });
 
             // Add the detached limb index to the lookup.
             byte currentLimbIndex = LimbIndexLookup[d].Value;

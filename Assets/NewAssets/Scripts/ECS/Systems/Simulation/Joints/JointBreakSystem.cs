@@ -55,19 +55,17 @@ public partial struct JointBreakSystem : ISystem
 }
 
 [BurstCompile]
-[WithAll(typeof(PhysicsConstrainedBodyPair), typeof(PhysicsJoint), typeof(RootPhenotypeEntity))]
+[WithAll(typeof(RootPhenotypeEntity))]
 public partial struct JointBreakJob : IJobEntity
 {
     public EntityCommandBuffer.ParallelWriter Ecb;
     [ReadOnly] public ComponentLookup<LocalTransform> LocalTransformLookup;
     public Entity EventBufferEntity;
 
-    private const float MAX_DISTANCE = 3f;
-
     private const int INSTANTIATION_KEY = 1;
     private const int DISPOSAL_KEY = 2;
 
-    public void Execute(Entity jointEntity, in PhysicsConstrainedBodyPair pair, in PhysicsJoint joint)
+    public void Execute(Entity jointEntity, in PhysicsConstrainedBodyPair pair, in PhysicsJoint joint, in JointBreakDistance breakDistance)
     {
         LocalTransform transformA = LocalTransformLookup[pair.EntityA];
         LocalTransform transformB = LocalTransformLookup[pair.EntityB];
@@ -75,7 +73,7 @@ public partial struct JointBreakJob : IJobEntity
         float3 worldA = math.transform(float4x4.TRS(transformA.Position, transformA.Rotation, transformA.Scale), joint.BodyAFromJoint.Position);
         float3 worldB = math.transform(float4x4.TRS(transformB.Position, transformB.Rotation, transformB.Scale), joint.BodyBFromJoint.Position);
 
-        if (math.distancesq(worldA, worldB) > (MAX_DISTANCE * MAX_DISTANCE))
+        if (math.distancesq(worldA, worldB) > breakDistance.DistanceSquared)
         {
             Ecb.DestroyEntity(DISPOSAL_KEY, jointEntity);
 

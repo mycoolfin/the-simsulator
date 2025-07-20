@@ -11,11 +11,8 @@ public class WorldVisualiser : MonoBehaviour
     [SerializeField] private EmitterController innerEmitter;
     [SerializeField] private EmitterController outerEmitter;
     [SerializeField] private Color emitterColor = Color.white;
-    [SerializeField] private float dynamicScaleFactor = 1f;
-    [SerializeField] private bool colorByFitness = false;
 
-
-    public float DynamicScaleFactor => dynamicScaleFactor;
+    public float DynamicScaleFactor = 1f;
     private float previousDynamicScaleFactor;
     private bool dynamicScaleFactorHasChanged = false;
     public bool HasChanged
@@ -29,31 +26,36 @@ public class WorldVisualiser : MonoBehaviour
         }
     }
 
+    public bool ColorByFitness = false;
     private bool previousColorByFitness;
+
+    public bool FilterBySurvivors = false;
+    private bool previousFilterBySurvivors;
 
 
     private World ecsWorld;
 
     public void Start()
     {
-        previousDynamicScaleFactor = dynamicScaleFactor;
-        previousColorByFitness = colorByFitness;
+        previousDynamicScaleFactor = DynamicScaleFactor;
+        previousColorByFitness = ColorByFitness;
 
         evolutionSimulator.OnEcsWorldCreated += (ecsWorld) =>
         {
             this.ecsWorld = ecsWorld;
             InitialiseVisualiser(evolutionSimulator.TrialType);
             SystemSettingsAPI.SetWorldVisualOffset(ecsWorld, GetTransformMatrix());
-            SystemSettingsAPI.SetColorByFitness(ecsWorld, colorByFitness);
+            SystemSettingsAPI.SetColorByFitness(ecsWorld, ColorByFitness);
+            SystemSettingsAPI.SetFilterBySurvivors(ecsWorld, FilterBySurvivors, evolutionSimulator.MaxSurvivors);
         };
     }
 
     public void Update()
     {
-        if (previousDynamicScaleFactor != dynamicScaleFactor)
+        if (previousDynamicScaleFactor != DynamicScaleFactor)
         {
             dynamicScaleFactorHasChanged = true;
-            previousDynamicScaleFactor = dynamicScaleFactor;
+            previousDynamicScaleFactor = DynamicScaleFactor;
         }
 
         if (evolutionSimulator.IsRunning)
@@ -66,10 +68,16 @@ public class WorldVisualiser : MonoBehaviour
                 HasChanged = false;
             }
 
-            if (previousColorByFitness != colorByFitness)
+            if (previousColorByFitness != ColorByFitness)
             {
-                SystemSettingsAPI.SetColorByFitness(ecsWorld, colorByFitness);
-                previousColorByFitness = colorByFitness;
+                SystemSettingsAPI.SetColorByFitness(ecsWorld, ColorByFitness);
+                previousColorByFitness = ColorByFitness;
+            }
+
+            if (previousFilterBySurvivors != FilterBySurvivors)
+            {
+                SystemSettingsAPI.SetFilterBySurvivors(ecsWorld, FilterBySurvivors, evolutionSimulator.MaxSurvivors);
+                previousFilterBySurvivors = FilterBySurvivors;
             }
         }
         else

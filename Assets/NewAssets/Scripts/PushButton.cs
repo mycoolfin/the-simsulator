@@ -1,9 +1,9 @@
 using System;
 using UnityEngine;
 
-[RequireComponent(typeof(Renderer))]
+[RequireComponent(typeof(AudioSource))]
 [RequireComponent(typeof(EmitterController))]
-public class PushButton : MonoBehaviour
+public class PushButton : MonoBehaviour, IInteractable
 {
     [SerializeField] private Color inactiveColor = Color.gray;
     [SerializeField] private float inactiveEmissivity = 0.1f;
@@ -12,7 +12,7 @@ public class PushButton : MonoBehaviour
     public bool IsActive { get; private set; } = false;
     public event Action<bool> OnButtonPressed;
 
-    private Renderer buttonRenderer;
+    private AudioSource audioSource;
     private EmitterController emitterController;
 
     [SerializeField] private bool debugPressButton = false;
@@ -28,13 +28,14 @@ public class PushButton : MonoBehaviour
 
     private void Start()
     {
-        buttonRenderer = GetComponent<Renderer>();
+        audioSource = GetComponent<AudioSource>();
         emitterController = GetComponent<EmitterController>();
         SetActive(false);
     }
 
-    public void Push()
+    private void Push()
     {
+        audioSource.PlayOneShot(audioSource.clip);
         OnButtonPressed?.Invoke(IsActive);
     }
 
@@ -42,8 +43,12 @@ public class PushButton : MonoBehaviour
     {
         IsActive = active;
 
-        buttonRenderer.material.color = active ? activeColor : inactiveColor;
         emitterController.SetEmissiveColor(active ? activeColor : inactiveColor);
         emitterController.SetEmissiveIntensity(active ? activeEmissivity : inactiveEmissivity);
+    }
+
+    public void Interact()
+    {
+        Push();
     }
 }

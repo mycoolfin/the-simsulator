@@ -31,7 +31,9 @@ namespace NewAssets
         [Header("Evolution Parameters")]
         [SerializeField] private int populationSize = 100;
         [SerializeField] private int maxGenerations = 100;
+        public int MaxGenerations => maxGenerations;
         [SerializeField] private float survivalRate = 0.2f;
+        public int MaxSurvivors => (int)Mathf.Ceil(populationSize * survivalRate);
         [SerializeField] private float mutationRate = 1f;
         [SerializeField] private float settleSeconds = 5f;
         [SerializeField] private float assessmentSeconds = 10f;
@@ -116,6 +118,9 @@ namespace NewAssets
             IsRunning = true;
             CurrentGeneration = 1;
 
+            ecsWorld = WorldAPI.CreateWorld("EvolutionWorld");
+            OnEcsWorldCreated?.Invoke(ecsWorld);
+
             while (CurrentGeneration <= maxGenerations && IsRunning)
             {
                 Debug.Log($"Starting generation {CurrentGeneration}/{maxGenerations}");
@@ -140,18 +145,18 @@ namespace NewAssets
             }
 
             IsRunning = false;
+            WorldAPI.DestroyWorld(ecsWorld);
+
             OnEvolutionComplete?.Invoke();
         }
 
         private IEnumerator AssessPhenotypesCoroutine(List<Individual> population)
         {
-            // Completely reset the ECS world.
-            WorldAPI.DestroyWorld(ecsWorld);
-            ecsWorld = WorldAPI.CreateWorld("EvolutionWorld");
-            OnEcsWorldCreated?.Invoke(ecsWorld);
+            // Destroy all existing phenotype entities.
+            yield return EntityCreationAPI.DestroyAllPhenotypeEntities(ecsWorld);
 
             // Create ECS entities from phenotypes.
-            EntityCreationAPI.CreateEntitiesFromPhenotypes(
+            yield return EntityCreationAPI.CreateEntitiesFromPhenotypes(
                 ecsWorld,
                 population
                 .Select((individual, i) => new PhenotypeEntityCreationInfo
@@ -163,11 +168,11 @@ namespace NewAssets
                 }).ToList()
             );
 
-            // Initialise trial.
+            // Initialise the trial world.
             yield return EvolutionAPI.InitialiseTrial(ecsWorld, trialType, GetSimulationRateMode);
 
             // Let entities settle.
-            yield return EvolutionAPI.SettlePhenotypes(ecsWorld, settleSeconds, GetSimulationRateMode);
+            yield return EvolutionAPI.SettlePhenotypes(ecsWorld, trialType, settleSeconds, GetSimulationRateMode);
 
             // Start assessment.
             yield return EvolutionAPI.AssessPhenotypes(ecsWorld, trialType, assessmentSeconds, GetSimulationRateMode);

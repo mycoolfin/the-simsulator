@@ -1,4 +1,3 @@
-using System.Runtime.InteropServices;
 using Unity.Entities;
 
 public struct JointAxisX : IComponentData
@@ -22,4 +21,9 @@ public struct JointAxisZ : IComponentData
     public ushort ActuatorNeuronEmitterIndex;
     public float AngleLimit;
     public byte SwapXZ;
+}
+
+public struct JointBreakDistance : IComponentData
+{
+    public float DistanceSquared;
 }

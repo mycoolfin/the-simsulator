@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Entities;
 using mycoolfin.TheSimsulator.Sims.Phenotype;
+using System.Collections;
 
 public struct PhenotypeEntityCreationInfo
 {
@@ -14,57 +15,74 @@ public struct PhenotypeEntityCreationInfo
 
 public static class EntityCreationAPI
 {
-    public static void CreateEntitiesFromPhenotypes(World world, List<PhenotypeEntityCreationInfo> creationInfoList)
+    public static IEnumerator CreateEntitiesFromPhenotypes(World world, List<PhenotypeEntityCreationInfo> creationInfoList)
     {
         EntityManager entityManager = world.EntityManager;
-        
+
         EntityArchetype limbRequestArchetype = entityManager.CreateArchetype(
             typeof(LimbEntityCreationRequest)
         );
         EntityArchetype jointRequestArchetype = entityManager.CreateArchetype(
             typeof(JointEntityCreationRequest)
         );
-        EntityArchetype neuralNetworkRequestArchetype = entityManager.CreateArchetype(
+        EntityArchetype rootPhenotypeRequestArchetype = entityManager.CreateArchetype(
             typeof(RootPhenotypeEntityCreationRequest)
         );
 
         List<LimbEntityCreationRequest> limbRequests = new();
         List<JointEntityCreationRequest> jointRequests = new();
-        List<RootPhenotypeEntityCreationRequest> neuralNetworkRequests = new();
+        List<RootPhenotypeEntityCreationRequest> rootPhenotypeRequests = new();
         foreach (PhenotypeEntityCreationInfo c in creationInfoList)
         {
             limbRequests.AddRange(ConvertToLimbCreationRequests(c));
             jointRequests.AddRange(ConvertToJointCreationRequests(c));
             using BlobBuilder builder = new(Allocator.Temp);
-            neuralNetworkRequests.Add(ConvertToNeuralNetworkCreationRequest(c, builder));
+            rootPhenotypeRequests.Add(ConvertToRootPhenotypeCreationRequest(c, builder));
         }
 
         // Convert to NativeArrays for better performance and reduced allocations.
-        using NativeArray<LimbEntityCreationRequest> limbRequestsArray = new(limbRequests.ToArray(), Allocator.Temp);
-        using NativeArray<JointEntityCreationRequest> jointRequestsArray = new(jointRequests.ToArray(), Allocator.Temp);
-        using NativeArray<RootPhenotypeEntityCreationRequest> neuralRequestsArray = new(neuralNetworkRequests.ToArray(), Allocator.Temp);
+        NativeArray<LimbEntityCreationRequest> limbRequestsArray = new(limbRequests.ToArray(), Allocator.Temp);
+        NativeArray<JointEntityCreationRequest> jointRequestsArray = new(jointRequests.ToArray(), Allocator.Temp);
+        NativeArray<RootPhenotypeEntityCreationRequest> rootPhenotypeRequestsArray = new(rootPhenotypeRequests.ToArray(), Allocator.Temp);
 
         // Batch create all entities at once.
-        using NativeArray<Entity> limbEntities = new(limbRequests.Count, Allocator.Temp);
-        using NativeArray<Entity> jointEntities = new(jointRequests.Count, Allocator.Temp);
-        using NativeArray<Entity> neuralNetworkEntities = new(neuralNetworkRequests.Count, Allocator.Temp);
+        NativeArray<Entity> limbEntities = new(limbRequests.Count, Allocator.Temp);
+        NativeArray<Entity> jointEntities = new(jointRequests.Count, Allocator.Temp);
+        NativeArray<Entity> rootPhenotypeEntities = new(rootPhenotypeRequests.Count, Allocator.Temp);
         entityManager.CreateEntity(limbRequestArchetype, limbEntities);
         entityManager.CreateEntity(jointRequestArchetype, jointEntities);
-        entityManager.CreateEntity(neuralNetworkRequestArchetype, neuralNetworkEntities);
+        entityManager.CreateEntity(rootPhenotypeRequestArchetype, rootPhenotypeEntities);
 
         // Set component data.
         for (int i = 0; i < limbRequestsArray.Length; i++)
             entityManager.SetComponentData(limbEntities[i], limbRequestsArray[i]);
         for (int i = 0; i < jointRequestsArray.Length; i++)
             entityManager.SetComponentData(jointEntities[i], jointRequestsArray[i]);
-        for (int i = 0; i < neuralRequestsArray.Length; i++)
-            entityManager.SetComponentData(neuralNetworkEntities[i], neuralRequestsArray[i]);
+        for (int i = 0; i < rootPhenotypeRequestsArray.Length; i++)
+            entityManager.SetComponentData(rootPhenotypeEntities[i], rootPhenotypeRequestsArray[i]);
+
+        // Dispose of NativeArrays to free memory.
+        limbRequestsArray.Dispose();
+        jointRequestsArray.Dispose();
+        rootPhenotypeRequestsArray.Dispose();
+        limbEntities.Dispose();
+        jointEntities.Dispose();
+        rootPhenotypeEntities.Dispose();
+
+        // Query for the existence of any of the request components to ensure they are processed.
+        EntityQuery limbQuery = entityManager.CreateEntityQuery(ComponentType.ReadOnly<LimbEntityCreationRequest>());
+        EntityQuery jointQuery = entityManager.CreateEntityQuery(ComponentType.ReadOnly<JointEntityCreationRequest>());
+        EntityQuery rootPhenotypeQuery = entityManager.CreateEntityQuery(ComponentType.ReadOnly<RootPhenotypeEntityCreationRequest>());
+        while (!limbQuery.IsEmptyIgnoreFilter || !jointQuery.IsEmptyIgnoreFilter || !rootPhenotypeQuery.IsEmptyIgnoreFilter)
+            yield return null;
     }
 
-    public static void DestroyAllPhenotypeEntities(World world)
+    public static IEnumerator DestroyAllPhenotypeEntities(World world)
     {
         EntityManager entityManager = world.EntityManager;
-        entityManager.CreateSingleton<DestroyAllPhenotypeEntitiesRequest>();
+        Entity destroyRequestSingleton = entityManager.CreateSingleton<DestroyAllPhenotypeEntitiesRequest>();
+        while (entityManager.HasComponent<DestroyAllPhenotypeEntitiesRequest>(destroyRequestSingleton))
+            yield return null;
     }
 
     private static List<LimbEntityCreationRequest> ConvertToLimbCreationRequests(PhenotypeEntityCreationInfo info)
@@ -119,7 +137,7 @@ public static class EntityCreationAPI
                 ReferenceLimbSpaceYAxis = attachedLimb.Joint.ParentSpaceYAxis.ToFloat3(),
                 ReferenceLimbSpaceZAxis = attachedLimb.Joint.ParentSpaceZAxis.ToFloat3(),
                 AngleLimits = attachedLimb.Joint.AngleLimits.ToFloat3(),
-                MaxMotorImpulseScaleFactor = attachedLimb.Joint.MinCrossSectionalArea
+                MinCrossSectionalArea = attachedLimb.Joint.MinCrossSectionalArea
             };
             requests.Add(request);
         }
@@ -127,7 +145,7 @@ public static class EntityCreationAPI
         return requests;
     }
 
-    private static RootPhenotypeEntityCreationRequest ConvertToNeuralNetworkCreationRequest(PhenotypeEntityCreationInfo info, BlobBuilder builder)
+    private static RootPhenotypeEntityCreationRequest ConvertToRootPhenotypeCreationRequest(PhenotypeEntityCreationInfo info, BlobBuilder builder)
     {
         BlobAssetReference<CompiledNeuralGraph> compiledNeuralGraph = NeuralCompiler.Compile(info.Phenotype, builder);
 

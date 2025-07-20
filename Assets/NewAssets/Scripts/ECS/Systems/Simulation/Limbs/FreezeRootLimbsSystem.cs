@@ -20,7 +20,7 @@ public partial struct FreezeRootLimbsSystem : ISystem
 
     public void OnUpdate(ref SystemState state)
     {
-        new FreezeRootLimbsJob().ScheduleParallel(state.Dependency).Complete();
+        state.Dependency = new FreezeRootLimbsJob().ScheduleParallel(state.Dependency);
         // Request entity is manually destroyed.
     }
 }

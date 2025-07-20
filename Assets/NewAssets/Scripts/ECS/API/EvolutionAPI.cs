@@ -9,11 +9,18 @@ using Unity.Mathematics;
 using Unity.Physics;
 using Unity.Transforms;
 
+public struct GroundPlaneTag : IComponentData { }
+
 public static class EvolutionAPI
 {
     public static IEnumerator InitialiseTrial(World world, NewAssets.TrialType trialType, Func<SimulationRateMode> GetSimulationRateModeCallback)
     {
         EntityManager entityManager = world.EntityManager;
+
+        // Reset the physical world.
+        SystemSettingsAPI.SetGravity(world, float3.zero);
+        SystemSettingsAPI.SetFluidSimulation(world, false, 1f);
+        DestroyGroundPlane(world);
 
         yield return SettleJoints(world, 5f, GetSimulationRateModeCallback); // Necessary as long as the joint flip bug exists.
 
@@ -47,6 +54,8 @@ public static class EvolutionAPI
 
         Entity groundPlane = entityManager.CreateEntity();
 
+        entityManager.AddComponentData(groundPlane, new GroundPlaneTag());
+
         entityManager.AddComponentData(groundPlane, new LocalTransform
         {
             Position = new float3(0f, -groundThickness * 0.5f, 0f),
@@ -74,6 +83,17 @@ public static class EvolutionAPI
         entityManager.AddSharedComponent(groundPlane, new PhysicsWorldIndex(0));
     }
 
+    private static void DestroyGroundPlane(World world)
+    {
+        EntityManager entityManager = world.EntityManager;
+        EntityQuery groundPlaneQuery = entityManager.CreateEntityQuery(ComponentType.ReadOnly<GroundPlaneTag>());
+        if (!groundPlaneQuery.IsEmptyIgnoreFilter)
+        {
+            Entity groundPlane = groundPlaneQuery.GetSingletonEntity();
+            entityManager.DestroyEntity(groundPlane);
+        }
+    }
+
     private static IEnumerator SettleJoints(World world, float settleSeconds, Func<SimulationRateMode> GetSimulationRateModeCallback)
     {
         EntityManager entityManager = world.EntityManager;
@@ -99,7 +119,7 @@ public static class EvolutionAPI
             entityManager.DestroyEntity(freezeQuery.GetSingletonEntity());
     }
 
-    public static IEnumerator SettlePhenotypes(World world, float settleSeconds, Func<SimulationRateMode> GetSimulationRateModeCallback)
+    public static IEnumerator SettlePhenotypes(World world, NewAssets.TrialType trialType, float settleSeconds, Func<SimulationRateMode> GetSimulationRateModeCallback)
     {
         EntityManager entityManager = world.EntityManager;
 

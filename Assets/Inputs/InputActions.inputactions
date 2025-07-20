@@ -43,9 +43,9 @@
                 },
                 {
                     "name": "Click",
-                    "type": "PassThrough",
+                    "type": "Button",
                     "id": "c5cbb5a8-7c6c-4bc3-b985-5dc43314bc7f",
-                    "expectedControlType": "Button",
+                    "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": true
@@ -73,6 +73,15 @@
                     "type": "PassThrough",
                     "id": "41199329-86ce-4e74-9f6f-fdf1267557f2",
                     "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Escape",
+                    "type": "Button",
+                    "id": "95a34157-f683-4bb9-bdeb-35bdfd2ee7df",
+                    "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
@@ -419,6 +428,17 @@
                     "action": "RightClick",
                     "isComposite": false,
                     "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "ba3a8b7e-dce8-44fb-b579-31ac5eea4aae",
+                    "path": "<Keyboard>/escape",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": ";Keyboard&Mouse",
+                    "action": "Escape",
+                    "isComposite": false,
+                    "isPartOfComposite": false
                 }
             ]
         },
@@ -448,7 +468,7 @@
                     "name": "Cancel",
                     "type": "Button",
                     "id": "d72e2920-66c8-4ee4-a8a8-14c4d2848d5b",
-                    "expectedControlType": "Button",
+                    "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
