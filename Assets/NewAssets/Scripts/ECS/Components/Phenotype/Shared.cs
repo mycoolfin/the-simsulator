@@ -1,6 +1,9 @@
 using Unity.Entities;
 
-public struct RootPhenotypeEntity : IComponentData
+namespace mycoolfin.TheSimsulator.UnityIntegration.ECS.Components.Phenotype
 {
-    public Entity Value;
+    public struct RootPhenotypeEntity : IComponentData
+    {
+        public Entity Value;
+    }
 }

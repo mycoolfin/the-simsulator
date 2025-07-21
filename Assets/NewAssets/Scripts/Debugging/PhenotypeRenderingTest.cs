@@ -7,6 +7,7 @@ using Unity.Entities;
 using System.Threading.Tasks;
 using System.Collections.Concurrent;
 using System.Linq;
+using mycoolfin.TheSimsulator.UnityIntegration.ECS.API;
 
 public class PhenotypeRenderingTest : UnityEngine.MonoBehaviour
 {
@@ -57,7 +58,7 @@ public class PhenotypeRenderingTest : UnityEngine.MonoBehaviour
             phenotypeCreationInfoList.Add(info);
         }
 
-        EntityCreationAPI.CreateEntitiesFromPhenotypes(World.DefaultGameObjectInjectionWorld, phenotypeCreationInfoList);
+        EntityManagement.CreateEntitiesFromPhenotypes(World.DefaultGameObjectInjectionWorld, phenotypeCreationInfoList);
     }
 
     public SimsPhenotype RandomPhenotype(SimsGenotypeFactory genotypeFactory, SimsPhenotypeFactory phenotypeFactory, int i)

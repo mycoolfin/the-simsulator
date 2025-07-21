@@ -1,10 +1,13 @@
 using System.Numerics;
 using Unity.Mathematics;
 
-public static class QuaternionExtensions
+namespace mycoolfin.TheSimsulator.UnityIntegration.ECS.Math
 {
-    public static quaternion ToQuaternion(this Quaternion quaternion)
+    public static class QuaternionExtensions
     {
-        return new quaternion(quaternion.X, quaternion.Y, quaternion.Z, quaternion.W);
+        public static quaternion ToQuaternion(this Quaternion quaternion)
+        {
+            return new quaternion(quaternion.X, quaternion.Y, quaternion.Z, quaternion.W);
+        }
     }
 }

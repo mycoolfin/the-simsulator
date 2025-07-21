@@ -8,9 +8,10 @@ using mycoolfin.TheSimsulator.Sims.Evolution;
 using mycoolfin.TheSimsulator.Sims.Genotype;
 using mycoolfin.TheSimsulator.Sims.Phenotype;
 
-namespace NewAssets
+namespace mycoolfin.TheSimsulator.UnityIntegration
 {
-    using Individual = mycoolfin.TheSimsulator.Individual<SimsGenotype, SimsPhenotype>;
+    using Individual = Individual<SimsGenotype, SimsPhenotype>;
+    using SimulationRateMode = ECS.Systems.Simulation.SimulationRate.SimulationRateMode;
 
     public enum TrialType : byte
     {
@@ -62,8 +63,7 @@ namespace NewAssets
         public IReadOnlyList<EvolutionStatistics> Statistics => statistics;
 
         [Header("Speed Control")]
-        [SerializeField] private SimulationRateMode simulationRate = SimulationRateMode.RealTime;
-        public SimulationRateMode SimulationRate { get => simulationRate; set => simulationRate = value; }
+        public SimulationRateMode SimulationRate = SimulationRateMode.FullSpeed;
 
         [Header("Run?")]
         [SerializeField] bool run = false;
@@ -97,7 +97,7 @@ namespace NewAssets
             }
 
             IsRunning = false;
-            WorldAPI.DestroyWorld(ecsWorld);
+            ECS.API.WorldManagement.DestroyWorld(ecsWorld);
         }
 
         private IEnumerator EvolutionLoop()
@@ -118,7 +118,7 @@ namespace NewAssets
             IsRunning = true;
             CurrentGeneration = 1;
 
-            ecsWorld = WorldAPI.CreateWorld("EvolutionWorld");
+            ecsWorld = ECS.API.WorldManagement.CreateWorld("EvolutionWorld");
             OnEcsWorldCreated?.Invoke(ecsWorld);
 
             while (CurrentGeneration <= maxGenerations && IsRunning)
@@ -145,7 +145,7 @@ namespace NewAssets
             }
 
             IsRunning = false;
-            WorldAPI.DestroyWorld(ecsWorld);
+            ECS.API.WorldManagement.DestroyWorld(ecsWorld);
 
             OnEvolutionComplete?.Invoke();
         }
@@ -153,13 +153,13 @@ namespace NewAssets
         private IEnumerator AssessPhenotypesCoroutine(List<Individual> population)
         {
             // Destroy all existing phenotype entities.
-            yield return EntityCreationAPI.DestroyAllPhenotypeEntities(ecsWorld);
+            yield return ECS.API.EntityManagement.DestroyAllPhenotypeEntities(ecsWorld);
 
             // Create ECS entities from phenotypes.
-            yield return EntityCreationAPI.CreateEntitiesFromPhenotypes(
+            yield return ECS.API.EntityManagement.CreateEntitiesFromPhenotypes(
                 ecsWorld,
                 population
-                .Select((individual, i) => new PhenotypeEntityCreationInfo
+                .Select((individual, i) => new ECS.API.PhenotypeEntityCreationInfo
                 {
                     Phenotype = individual.phenotype,
                     PhysicsPositionOffset = System.Numerics.Vector3.Zero,
@@ -169,16 +169,16 @@ namespace NewAssets
             );
 
             // Initialise the trial world.
-            yield return EvolutionAPI.InitialiseTrial(ecsWorld, trialType, GetSimulationRateMode);
+            yield return ECS.API.Evolution.InitialiseTrial(ecsWorld, trialType, GetSimulationRateMode);
 
             // Let entities settle.
-            yield return EvolutionAPI.SettlePhenotypes(ecsWorld, trialType, settleSeconds, GetSimulationRateMode);
+            yield return ECS.API.Evolution.SettlePhenotypes(ecsWorld, settleSeconds, GetSimulationRateMode);
 
             // Start assessment.
-            yield return EvolutionAPI.AssessPhenotypes(ecsWorld, trialType, assessmentSeconds, GetSimulationRateMode);
+            yield return ECS.API.Evolution.AssessPhenotypes(ecsWorld, trialType, assessmentSeconds, GetSimulationRateMode);
 
             // Read back fitness values and assign to matching individuals.
-            Dictionary<ulong, float> phenotypeFitnesses = EvolutionAPI.GetAssessmentResults(ecsWorld);
+            Dictionary<ulong, float> phenotypeFitnesses = ECS.API.Evolution.GetAssessmentResults(ecsWorld);
             foreach (Individual individual in population)
                 if (phenotypeFitnesses.TryGetValue(individual.phenotype.Gid, out float fitness))
                     individual.fitness = Mathf.Max(fitness, 0f);
@@ -186,7 +186,7 @@ namespace NewAssets
 
         private SimulationRateMode GetSimulationRateMode()
         {
-            return simulationRate;
+            return SimulationRate;
         }
 
         private static float GetAverageFitness(IReadOnlyList<Individual> currentPopulation)

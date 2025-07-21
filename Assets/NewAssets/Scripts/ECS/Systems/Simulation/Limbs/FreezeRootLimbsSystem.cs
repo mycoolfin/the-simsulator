@@ -4,36 +4,41 @@ using Unity.Mathematics;
 using Unity.Physics;
 using Unity.Physics.Systems;
 
-public struct FreezeRootLimbsRequest : IComponentData
+namespace mycoolfin.TheSimsulator.UnityIntegration.ECS.Systems.Simulation.Limbs
 {
-    public byte Value;
-}
+    using Components.Phenotype;
 
-[BurstCompile]
-[UpdateInGroup(typeof(BeforePhysicsSystemGroup))]
-public partial struct FreezeRootLimbsSystem : ISystem
-{
-    public readonly void OnCreate(ref SystemState state)
+    public struct FreezeRootLimbsRequest : IComponentData
     {
-        state.RequireForUpdate<FreezeRootLimbsRequest>();
+        public byte Value;
     }
 
-    public void OnUpdate(ref SystemState state)
+    [BurstCompile]
+    [UpdateInGroup(typeof(BeforePhysicsSystemGroup))]
+    public partial struct FreezeRootLimbsSystem : ISystem
     {
-        state.Dependency = new FreezeRootLimbsJob().ScheduleParallel(state.Dependency);
-        // Request entity is manually destroyed.
-    }
-}
-
-[BurstCompile]
-public partial struct FreezeRootLimbsJob : IJobEntity
-{
-    public void Execute(in LimbIndex limbIndex, ref PhysicsVelocity velocity)
-    {
-        if (limbIndex.Value == 0)
+        public readonly void OnCreate(ref SystemState state)
         {
-            velocity.Linear = float3.zero;
-            velocity.Angular = float3.zero;
+            state.RequireForUpdate<FreezeRootLimbsRequest>();
+        }
+
+        public void OnUpdate(ref SystemState state)
+        {
+            state.Dependency = new FreezeRootLimbsJob().ScheduleParallel(state.Dependency);
+            // Request entity is manually destroyed.
+        }
+    }
+
+    [BurstCompile]
+    public partial struct FreezeRootLimbsJob : IJobEntity
+    {
+        public void Execute(in LimbIndex limbIndex, ref PhysicsVelocity velocity)
+        {
+            if (limbIndex.Value == 0)
+            {
+                velocity.Linear = float3.zero;
+                velocity.Angular = float3.zero;
+            }
         }
     }
 }

@@ -305,7 +305,7 @@ MonoBehaviour:
   settleSeconds: 10
   assessmentSeconds: 10
   trialType: 1
-  simulationRate: 2
+  SimulationRate: 2
   run: 0
 --- !u!4 &231955684
 Transform:
@@ -1360,7 +1360,7 @@ MonoBehaviour:
   playerCamera: {fileID: 1733528765}
   characterController: {fileID: 1613917391}
   movementSpeed: 5
-  mouseSensitivity: 2
+  mouseSensitivity: 1
   minLookAngle: -90
   maxLookAngle: 90
   interactionRange: 5

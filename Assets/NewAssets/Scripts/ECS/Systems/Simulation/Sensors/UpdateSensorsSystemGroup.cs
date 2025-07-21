@@ -2,9 +2,12 @@ using Unity.Burst;
 using Unity.Entities;
 using Unity.Physics.Systems;
 
-[BurstCompile]
-[UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
-[UpdateAfter(typeof(PhysicsSystemGroup))]
-public partial class UpdateSensorsSystemGroup : ComponentSystemGroup
+namespace mycoolfin.TheSimsulator.UnityIntegration.ECS.Systems.Simulation.Sensors
 {
+    [BurstCompile]
+    [UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
+    [UpdateAfter(typeof(PhysicsSystemGroup))]
+    public partial class UpdateSensorsSystemGroup : ComponentSystemGroup
+    {
+    }
 }

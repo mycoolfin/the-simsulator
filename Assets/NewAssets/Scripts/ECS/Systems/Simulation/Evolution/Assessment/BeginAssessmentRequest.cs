@@ -2,55 +2,61 @@ using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 
-public struct BeginAssessmentRequest : IComponentData
+namespace mycoolfin.TheSimsulator.UnityIntegration.ECS.Systems.Simulation.Evolution.Assessment
 {
-    public NewAssets.TrialType TrialType;
-}
+    using Components.Evolution;
+    using Components.Phenotype;
 
-[UpdateInGroup(typeof(AssessmentSystemGroup))]
-public partial struct BeginAssessmentSystem : ISystem
-{
-    public void OnCreate(ref SystemState state)
+    public struct BeginAssessmentRequest : IComponentData
     {
-        state.RequireForUpdate<BeginAssessmentRequest>();
+        public TrialType TrialType;
     }
 
-    public void OnUpdate(ref SystemState state)
+    [UpdateInGroup(typeof(AssessmentSystemGroup))]
+    public partial struct BeginAssessmentSystem : ISystem
     {
-        Entity requestEntity = SystemAPI.GetSingletonEntity<BeginAssessmentRequest>();
-        NewAssets.TrialType trialType = SystemAPI.GetComponent<BeginAssessmentRequest>(requestEntity).TrialType;
-
-        using EntityCommandBuffer ecb = new(Allocator.TempJob);
-        new AddAssessmentComponentsToPhenotypesJob
+        public void OnCreate(ref SystemState state)
         {
-            Ecb = ecb.AsParallelWriter(),
-            trialType = trialType,
-        }.ScheduleParallel(state.Dependency).Complete();
+            state.RequireForUpdate<BeginAssessmentRequest>();
+        }
 
-        ecb.DestroyEntity(requestEntity);
+        public void OnUpdate(ref SystemState state)
+        {
+            Entity requestEntity = SystemAPI.GetSingletonEntity<BeginAssessmentRequest>();
+            TrialType trialType = SystemAPI.GetComponent<BeginAssessmentRequest>(requestEntity).TrialType;
 
-        ecb.Playback(state.EntityManager);
+            using EntityCommandBuffer ecb = new(Allocator.TempJob);
+            new AddAssessmentComponentsToPhenotypesJob
+            {
+                Ecb = ecb.AsParallelWriter(),
+                trialType = trialType,
+            }.ScheduleParallel(state.Dependency).Complete();
+
+            ecb.DestroyEntity(requestEntity);
+
+            ecb.Playback(state.EntityManager);
+        }
     }
-}
 
-[BurstCompile]
-[WithAll(typeof(PhenotypeGid))]
-public partial struct AddAssessmentComponentsToPhenotypesJob : IJobEntity
-{
-    public EntityCommandBuffer.ParallelWriter Ecb;
-    public NewAssets.TrialType trialType;
-
-    public void Execute([ChunkIndexInQuery] int chunkIndex, Entity rootPhenotypeEntity)
+    [BurstCompile]
+    [WithAll(typeof(PhenotypeGid))]
+    public partial struct AddAssessmentComponentsToPhenotypesJob : IJobEntity
     {
-        Ecb.AddComponent(chunkIndex, rootPhenotypeEntity, new Fitness() { Value = -1f }); // -1 indicates that assessment hasn't started yet.
-        switch (trialType)
+        public EntityCommandBuffer.ParallelWriter Ecb;
+        public TrialType trialType;
+
+        public void Execute([ChunkIndexInQuery] int chunkIndex, Entity rootPhenotypeEntity)
         {
-            case NewAssets.TrialType.GroundDistance:
-                Ecb.AddComponent(chunkIndex, rootPhenotypeEntity, new GroundDistanceAssessmentData());
-                break;
-            case NewAssets.TrialType.WaterDistance:
-                Ecb.AddComponent(chunkIndex, rootPhenotypeEntity, new WaterDistanceAssessmentData());
-                break;
+            Ecb.AddComponent(chunkIndex, rootPhenotypeEntity, new Fitness() { Value = -1f }); // -1 indicates that assessment hasn't started yet.
+            switch (trialType)
+            {
+                case TrialType.GroundDistance:
+                    Ecb.AddComponent(chunkIndex, rootPhenotypeEntity, new GroundDistanceAssessmentData());
+                    break;
+                case TrialType.WaterDistance:
+                    Ecb.AddComponent(chunkIndex, rootPhenotypeEntity, new WaterDistanceAssessmentData());
+                    break;
+            }
         }
     }
 }

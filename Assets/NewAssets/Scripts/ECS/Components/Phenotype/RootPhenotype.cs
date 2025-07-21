@@ -1,44 +1,49 @@
 using Unity.Entities;
 using Unity.Mathematics;
 
-public struct PhenotypeGid : IComponentData
+namespace mycoolfin.TheSimsulator.UnityIntegration.ECS.Components.Phenotype
 {
-    public ulong Value;
-}
+    using NeuralNetwork;
 
-public struct LimbCount : IComponentData
-{
-    public byte Value;
-}
+    public struct PhenotypeGid : IComponentData
+    {
+        public ulong Value;
+    }
 
-public enum AttachmentState : byte
-{
-    Attached,
-    Detached
-}
+    public struct LimbCount : IComponentData
+    {
+        public byte Value;
+    }
 
-public struct LimbStatus : IBufferElementData
-{
-   public AttachmentState AttachmentState;
-}
+    public enum AttachmentState : byte
+    {
+        Attached,
+        Detached
+    }
 
-public struct PhenotypeCreatedAt : IComponentData
-{
-    public float Value;
-}
+    public struct LimbStatus : IBufferElementData
+    {
+        public AttachmentState AttachmentState;
+    }
 
-public struct NeuralGraphRef : IComponentData
-{
-    public BlobAssetReference<CompiledNeuralGraph> Value;
-}
+    public struct PhenotypeCreatedAt : IComponentData
+    {
+        public float Value;
+    }
 
-public struct EmitterState : IBufferElementData
-{
-    public float Value;
-}
+    public struct NeuralGraphRef : IComponentData
+    {
+        public BlobAssetReference<CompiledNeuralGraph> Value;
+    }
 
-public struct PhenotypeBoundingBox : IComponentData
-{
-    public float3 MinBounds;
-    public float3 MaxBounds;
+    public struct EmitterState : IBufferElementData
+    {
+        public float Value;
+    }
+
+    public struct PhenotypeBoundingBox : IComponentData
+    {
+        public float3 MinBounds;
+        public float3 MaxBounds;
+    }
 }

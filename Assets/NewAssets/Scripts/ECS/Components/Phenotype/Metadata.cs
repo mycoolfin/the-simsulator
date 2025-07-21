@@ -1,7 +1,10 @@
 using Unity.Entities;
 
-public struct PhenotypeEntitiesMetadata : IComponentData
+namespace mycoolfin.TheSimsulator.UnityIntegration.ECS.Components.Phenotype
 {
-    public int TotalRootPhenotypeCount;
-    public int TotalLimbCount;
+    public struct PhenotypeEntitiesMetadata : IComponentData
+    {
+        public int TotalRootPhenotypeCount;
+        public int TotalLimbCount;
+    }
 }

@@ -4,34 +4,39 @@ using Unity.Mathematics;
 using Unity.Physics;
 using Unity.Physics.Systems;
 
-public struct ZeroAllLimbVelocitiesRequest : IComponentData
+namespace mycoolfin.TheSimsulator.UnityIntegration.ECS.Systems.Simulation.Limbs
 {
-    public byte Value;
-}
+    using Components.Phenotype;
 
-[BurstCompile]
-[UpdateInGroup(typeof(BeforePhysicsSystemGroup))]
-public partial struct ZeroAllLimbVelocitiesSystem : ISystem
-{
-    public readonly void OnCreate(ref SystemState state)
+    public struct ZeroAllLimbVelocitiesRequest : IComponentData
     {
-        state.RequireForUpdate<ZeroAllLimbVelocitiesRequest>();
+        public byte Value;
     }
 
-    public void OnUpdate(ref SystemState state)
+    [BurstCompile]
+    [UpdateInGroup(typeof(BeforePhysicsSystemGroup))]
+    public partial struct ZeroAllLimbVelocitiesSystem : ISystem
     {
-        new ZeroAllLimbVelocitiesJob().ScheduleParallel(state.Dependency).Complete();
-        state.EntityManager.DestroyEntity(SystemAPI.GetSingletonEntity<ZeroAllLimbVelocitiesRequest>());
-    }
-}
+        public readonly void OnCreate(ref SystemState state)
+        {
+            state.RequireForUpdate<ZeroAllLimbVelocitiesRequest>();
+        }
 
-[BurstCompile]
-[WithAll(typeof(LimbIndex), typeof(PhysicsVelocity))]
-public partial struct ZeroAllLimbVelocitiesJob : IJobEntity
-{
-    public void Execute(ref PhysicsVelocity velocity)
+        public void OnUpdate(ref SystemState state)
+        {
+            new ZeroAllLimbVelocitiesJob().ScheduleParallel(state.Dependency).Complete();
+            state.EntityManager.DestroyEntity(SystemAPI.GetSingletonEntity<ZeroAllLimbVelocitiesRequest>());
+        }
+    }
+
+    [BurstCompile]
+    [WithAll(typeof(LimbIndex), typeof(PhysicsVelocity))]
+    public partial struct ZeroAllLimbVelocitiesJob : IJobEntity
     {
-        velocity.Linear = float3.zero;
-        velocity.Angular = float3.zero;
+        public void Execute(ref PhysicsVelocity velocity)
+        {
+            velocity.Linear = float3.zero;
+            velocity.Angular = float3.zero;
+        }
     }
 }
