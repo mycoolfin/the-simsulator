@@ -3,6 +3,12 @@ using Unity.Mathematics;
 
 namespace mycoolfin.TheSimsulator.UnityIntegration.ECS.Components.Evolution
 {
+    public enum TrialType : byte
+    {
+        GroundDistance,
+        WaterDistance
+    };
+
     public struct Fitness : IComponentData
     {
         public float Value;

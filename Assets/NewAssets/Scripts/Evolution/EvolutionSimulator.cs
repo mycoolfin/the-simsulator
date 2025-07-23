@@ -4,20 +4,15 @@ using System.Collections.Generic;
 using System.Linq;
 using Unity.Entities;
 using UnityEngine;
-using mycoolfin.TheSimsulator.Sims.Evolution;
-using mycoolfin.TheSimsulator.Sims.Genotype;
-using mycoolfin.TheSimsulator.Sims.Phenotype;
 
-namespace mycoolfin.TheSimsulator.UnityIntegration
+namespace mycoolfin.TheSimsulator.UnityIntegration.Evolution
 {
-    using Individual = Individual<SimsGenotype, SimsPhenotype>;
-    using SimulationRateMode = ECS.Systems.Simulation.SimulationRate.SimulationRateMode;
+    using Sims.Genotype;
+    using Sims.Evolution;
 
-    public enum TrialType : byte
-    {
-        GroundDistance,
-        WaterDistance
-    };
+    using Individual = Core.Evolution.Individual<Sims.Genotype.SimsGenotype, Sims.Phenotype.SimsPhenotype>;
+    using TrialType = ECS.Components.Evolution.TrialType;
+    using SimulationRateMode = ECS.Systems.Simulation.SimulationRate.SimulationRateMode;
 
     public struct EvolutionStatistics
     {
@@ -104,6 +99,8 @@ namespace mycoolfin.TheSimsulator.UnityIntegration
         {
             Debug.Log("Starting evolution with population size: " + populationSize);
 
+            // Factories...
+
             SimsEvolutionConfig config = new()
             {
                 PopulationSize = populationSize,
@@ -111,7 +108,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration
                 MutationRate = mutationRate,
             };
             // if (useSimulationSeed) config.Seed = simulationSeed;
-            SimsEvolution evolution = new(AssessPhenotypesCoroutine, config);
+            SimsEvolution evolution = new(config, AssessPhenotypesCoroutine);
 
             statistics.Clear();
 
@@ -182,6 +179,8 @@ namespace mycoolfin.TheSimsulator.UnityIntegration
             foreach (Individual individual in population)
                 if (phenotypeFitnesses.TryGetValue(individual.phenotype.Gid, out float fitness))
                     individual.fitness = Mathf.Max(fitness, 0f);
+                else
+                    individual.fitness = 0f;
         }
 
         private SimulationRateMode GetSimulationRateMode()

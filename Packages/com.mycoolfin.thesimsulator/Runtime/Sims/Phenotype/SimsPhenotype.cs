@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
-using mycoolfin.TheSimsulator.Sims.Genotype;
 
 namespace mycoolfin.TheSimsulator.Sims.Phenotype
 {
+    using Core.Phenotype;
+    using Genotype;
+
     public class SimsPhenotype : IPhenotype<SimsPhenotype>
     {
         public const int MAX_LIMBS = 20;

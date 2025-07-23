@@ -1,6 +1,6 @@
 using System;
 
-namespace mycoolfin.TheSimsulator
+namespace mycoolfin.TheSimsulator.Core.Phenotype
 {
     public interface IPhenotype<T> : IDisposable where T : IPhenotype<T>
     {

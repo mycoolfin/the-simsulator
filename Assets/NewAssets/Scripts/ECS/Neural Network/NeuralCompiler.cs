@@ -1,11 +1,12 @@
 using System;
 using Unity.Collections;
 using Unity.Entities;
-using mycoolfin.TheSimsulator.Sims.Phenotype;
-using mycoolfin.TheSimsulator.Sims.Genotype;
 
 namespace mycoolfin.TheSimsulator.UnityIntegration.ECS.NeuralNetwork
 {
+    using Sims.Genotype;
+    using Sims.Phenotype;
+
     public static class NeuralCompiler
     {
         const int MAX_INPUTS_PER_NEURON = 3;
@@ -23,7 +24,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.ECS.NeuralNetwork
             ushort limbNeuronSliceStartIndex = 0;
             for (int i = 0; i < limbCount; i++)
             {
-                mycoolfin.TheSimsulator.Sims.Phenotype.Limb limb = phenotype.Limbs[i];
+                Limb limb = phenotype.Limbs[i];
                 ushort sensorCount = (ushort)limb.Sensors.Count;
                 ushort actuatorCount = (ushort)limb.Actuators.Count;
                 ushort limbNeuronCount = (ushort)limb.Neurons.Count;
@@ -73,10 +74,10 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.ECS.NeuralNetwork
 
             for (byte i = 0; i < limbCount; i++)
             {
-                mycoolfin.TheSimsulator.Sims.Phenotype.Limb limb = phenotype.Limbs[i];
+                Limb limb = phenotype.Limbs[i];
 
                 // Limb sensors.
-                foreach (mycoolfin.TheSimsulator.Sims.Phenotype.Sensor sensor in limb.Sensors)
+                foreach (Sensor sensor in limb.Sensors)
                 {
                     sensors[sensorIndex++] = new()
                     {
@@ -85,11 +86,11 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.ECS.NeuralNetwork
                 }
 
                 // Limb actuators.
-                foreach (mycoolfin.TheSimsulator.Sims.Phenotype.Actuator actuator in limb.Actuators)
+                foreach (Actuator actuator in limb.Actuators)
                 {
                     // Create a neuron meta for this actuator.
                     CompiledNeuralGraph.NeuronMeta neuronMeta = CreateNeuronMeta(
-                        actuator, mycoolfin.TheSimsulator.Sims.Genotype.ActivationFunction.Sum, inputs, ref inputIndex,
+                        actuator, ActivationFunction.Sum, inputs, ref inputIndex,
                         totalSensorCount, totalActuatorCount, totalLimbNeuronCount, totalBrainNeuronCount,
                         sensorSlices, limbNeuronSlices
                     );
@@ -103,7 +104,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.ECS.NeuralNetwork
                 }
 
                 // Limb neurons.
-                foreach (mycoolfin.TheSimsulator.Sims.Phenotype.Neuron neuron in limb.Neurons)
+                foreach (Neuron neuron in limb.Neurons)
                 {
                     CompiledNeuralGraph.NeuronMeta neuronMeta = CreateNeuronMeta(
                         neuron, neuron.ActivationFunction, inputs, ref inputIndex,
@@ -115,7 +116,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.ECS.NeuralNetwork
             }
 
             // Brain neurons.
-            foreach (mycoolfin.TheSimsulator.Sims.Phenotype.Neuron neuron in phenotype.Brain.Neurons)
+            foreach (Neuron neuron in phenotype.Brain.Neurons)
             {
                 CompiledNeuralGraph.NeuronMeta neuronMeta = CreateNeuronMeta(
                     neuron, neuron.ActivationFunction, inputs, ref inputIndex,

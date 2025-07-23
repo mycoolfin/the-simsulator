@@ -1,8 +1,9 @@
 using System.Collections.Generic;
-using mycoolfin.TheSimsulator.Sims.Genotype;
 
 namespace mycoolfin.TheSimsulator.Sims.Phenotype
 {
+    using Genotype;
+
     public static class BrainCreator
     {
         public static Brain CreateBrain(IEnumerable<NeuronDefinition> neuronDefinitions, Dictionary<ISignalReceiver, InputSetDefinition> receiverToInputDefinitionSetGidMap)

@@ -4,7 +4,9 @@ using UnityEngine;
 
 namespace mycoolfin.TheSimsulator.UnityIntegration.Presentation
 {
-    using ECS.Systems.Simulation.SimulationRate;
+    using UnityIntegration.Evolution;
+    using TrialType = ECS.Components.Evolution.TrialType;
+    using SimulationRateMode = ECS.Systems.Simulation.SimulationRate.SimulationRateMode;
 
     public class WorldVisualiser : MonoBehaviour
     {

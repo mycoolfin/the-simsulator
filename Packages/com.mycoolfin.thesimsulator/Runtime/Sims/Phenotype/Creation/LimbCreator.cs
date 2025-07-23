@@ -1,11 +1,12 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
-using System.Collections.Generic;
-using mycoolfin.TheSimsulator.Sims.Genotype;
 
 namespace mycoolfin.TheSimsulator.Sims.Phenotype
 {
+    using Genotype;
+
     public static class LimbCreator
     {
         private readonly struct CreatedLimbData

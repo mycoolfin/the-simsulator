@@ -3,8 +3,11 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace mycoolfin.TheSimsulator
+namespace mycoolfin.TheSimsulator.Core.Evolution
 {
+    using Genotype;
+    using Phenotype;
+
     public abstract class EvolutionConfigBase
     {
         public int PopulationSize { get; set; } = 100;
@@ -47,18 +50,28 @@ namespace mycoolfin.TheSimsulator
         public bool IsIterating { get; private set; }
 
         public EvolutionBase(
-            IGenotypeFactory<TGenotype> genotypeFactory,
-            IPhenotypeFactory<TGenotype, TPhenotype> phenotypeFactory,
+            TEvolutionConfig config,
             AssessPhenotypesDelegate assessPhenotypesDelegate,
-            TEvolutionConfig config
+            IGenotypeFactory<TGenotype> genotypeFactory,
+            IPhenotypeFactory<TGenotype, TPhenotype> phenotypeFactory
         )
         {
             SharedRandom.Reset();
             SharedRandom.Seed(config.Seed);
 
             this.config = config;
+
+            if (config.PopulationSize <= 0)
+                throw new ArgumentException("Population size must be greater than zero.");
+
             this.genotypeFactory = genotypeFactory;
             this.phenotypeFactory = phenotypeFactory;
+
+            if (genotypeFactory == null)
+                throw new ArgumentNullException(nameof(genotypeFactory));
+            if (phenotypeFactory == null)
+                throw new ArgumentNullException(nameof(phenotypeFactory));
+
             AssessPhenotypes = assessPhenotypesDelegate;
             maxSurvivors = (int)Math.Ceiling(config.PopulationSize * config.SurvivalRate);
             mutationRate = config.MutationRate;
@@ -77,16 +90,64 @@ namespace mycoolfin.TheSimsulator
             population.ForEach(individual => individual.phenotype?.Dispose());
 
             if (IterationCount == 0) // First iteration - initialise the population.
-                population = InitialisePopulation(genotypeFactory, config.PopulationSize);
+            {
+                population = new();
+                yield return genotypeFactory.CreateInitialisedGenotypes(config.PopulationSize, (_, newGenotype) =>
+                {
+                    population.Add(new Individual<TGenotype, TPhenotype>
+                    {
+                        genotype = newGenotype,
+                        phenotype = default,
+                        fitness = 0
+                    });
+                });
+            }
             else // Create the next population based on assessed fitnesses.
-                population = CreateNextGeneration(population, config.PopulationSize, mutationRate, genotypeFactory, true);
+            {
+                List<Individual<TGenotype, TPhenotype>> survivors = SelectSurvivors(population, maxSurvivors);
+                int offspringNeeded = config.PopulationSize - survivors.Count;
+
+                // Choose parent pairs and create offspring.
+                List<(TGenotype, TGenotype)> parentPairs = ChooseParents(survivors, offspringNeeded);
+                Individual<TGenotype, TPhenotype>[] offspring = new Individual<TGenotype, TPhenotype>[parentPairs.Count];
+                yield return genotypeFactory.Recombine(parentPairs, mutationRate, (index, newGenotype) =>
+                {
+                    offspring[index] = new()
+                    {
+                        genotype = newGenotype,
+                        phenotype = default,
+                        fitness = 0
+                    };
+                });
+
+                // If we need more offspring than we have parent pairs, create additional initialised genotypes.
+                int padCount = offspringNeeded - parentPairs.Count;
+                yield return genotypeFactory.CreateInitialisedGenotypes(padCount, (index, newGenotype) =>
+                {
+                    offspring[parentPairs.Count + index] = new()
+                    {
+                        genotype = newGenotype,
+                        phenotype = default,
+                        fitness = 0
+                    };
+                });
+
+                population = survivors.Select(s => new Individual<TGenotype, TPhenotype>
+                {
+                    genotype = s.genotype,
+                    phenotype = default,
+                    fitness = 0
+                }).Concat(offspring).ToList();
+            }
 
             IterationCount++;
             OnIterationStart?.Invoke();
 
             // Create new phenotypes.
-            foreach (Individual<TGenotype, TPhenotype> individual in population)
-                individual.phenotype = phenotypeFactory.ConstructPhenotype(individual.genotype);
+            yield return phenotypeFactory.ConstructPhenotypes(population.Select(individual => individual.genotype).ToList(), (index, phenotype) =>
+            {
+                population[index].phenotype = phenotype;
+            });
 
             // Assess the phenotypes.
             OnAssessmentStart?.Invoke();
@@ -100,37 +161,6 @@ namespace mycoolfin.TheSimsulator
             OnIterationEnd?.Invoke();
 
             IsIterating = false;
-        }
-
-        /// <summary>
-        /// Initialises a population of individuals with random genotypes.
-        /// </summary>
-        /// <param name="genotypeFactory"></param>
-        /// <param name="populationSize"></param>
-        /// <returns>
-        /// A list of individuals.
-        /// </returns>   
-        protected virtual List<Individual<TGenotype, TPhenotype>> InitialisePopulation(IGenotypeFactory<TGenotype> genotypeFactory, int populationSize)
-        {
-            if (populationSize <= 0)
-                throw new ArgumentException("Population size must be greater than zero.");
-
-            if (genotypeFactory == null)
-                throw new ArgumentNullException(nameof(genotypeFactory));
-
-            List<Individual<TGenotype, TPhenotype>> population = new();
-            for (int i = 0; i < populationSize; i++)
-            {
-                Individual<TGenotype, TPhenotype> individual = new()
-                {
-                    genotype = genotypeFactory.CreateInitialisedGenotype(),
-                    phenotype = default,
-                    fitness = 0
-                };
-                population.Add(individual);
-            }
-
-            return population;
         }
 
         /// <summary>
@@ -153,53 +183,6 @@ namespace mycoolfin.TheSimsulator
             .OrderByDescending(x => x.fitness)
             .Take(maxSurvivors)
             .ToList();
-        }
-
-        /// <summary>
-        /// Creates the next generation of individuals based on an assessed population.
-        /// </summary>
-        /// <param name="population"></param>
-        /// <param name="targetPopulationSize"></param>
-        /// <param name="mutationRate"></param>
-        /// <param name="genotypeFactory"></param>
-        /// <param name="padWithInitialisedGenotypes"></param>
-        /// <returns>
-        /// A list of individuals of maximum length targetPopulationSize.
-        /// </returns>
-        protected virtual List<Individual<TGenotype, TPhenotype>> CreateNextGeneration(
-            List<Individual<TGenotype, TPhenotype>> population,
-            int targetPopulationSize,
-            float mutationRate,
-            IGenotypeFactory<TGenotype> genotypeFactory,
-            bool padWithInitialisedGenotypes
-        )
-        {
-            List<Individual<TGenotype, TPhenotype>> survivors = SelectSurvivors(population, maxSurvivors);
-
-            int offspringNeeded = targetPopulationSize - survivors.Count;
-            
-            List<(TGenotype, TGenotype)> parentPairs = ChooseParents(survivors, offspringNeeded);
-
-            List<Individual<TGenotype, TPhenotype>> offspring = CreateOffspring(parentPairs, mutationRate, genotypeFactory);
-
-            if (padWithInitialisedGenotypes)
-            {
-                for (int i = parentPairs.Count; i < offspringNeeded; i++)
-                {
-                    Individual<TGenotype, TPhenotype> initialisedGenotype = new()
-                    {
-                        genotype = genotypeFactory.CreateInitialisedGenotype()
-                    };
-                    offspring.Add(initialisedGenotype);
-                }
-            }
-
-            return survivors.Select(s => new Individual<TGenotype, TPhenotype>
-            {
-                genotype = s.genotype,
-                phenotype = default,
-                fitness = 0
-            }).Concat(offspring).ToList();
         }
 
         /// <summary>
@@ -283,42 +266,6 @@ namespace mycoolfin.TheSimsulator
             }
 
             return result;
-        }
-
-        /// <summary>
-        /// Creates offspring from a list of parent pairs.
-        /// </summary>
-        /// <param name="parentPairs"></param>
-        /// <param name="mutationRate"></param>
-        /// <param name="genotypeFactory"></param>
-        /// <returns>
-        /// A list of offspring individuals.
-        /// </returns>
-        protected List<Individual<TGenotype, TPhenotype>> CreateOffspring(
-            List<(TGenotype, TGenotype)> parentPairs,
-            float mutationRate,
-            IGenotypeFactory<TGenotype> genotypeFactory
-        )
-        {
-            if (parentPairs == null || parentPairs.Count == 0)
-                return new();
-
-            Individual<TGenotype, TPhenotype>[] offspring = new Individual<TGenotype, TPhenotype>[parentPairs.Count];
-
-            for (int i = 0; i < parentPairs.Count; i++)
-            {
-                (TGenotype parent1, TGenotype parent2) = parentPairs[i];
-                IGenotypeCreationContext<TGenotype> offspringContext = genotypeFactory.Recombine(parent1, parent2);
-                offspringContext.Mutate(mutationRate);
-                offspring[i] = new Individual<TGenotype, TPhenotype>
-                {
-                    genotype = offspringContext.CreateGenotypeFromContext(),
-                    phenotype = default,
-                    fitness = 0
-                };
-            }
-
-            return offspring.ToList();
         }
     }
 }

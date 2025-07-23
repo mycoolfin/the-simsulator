@@ -3,6 +3,8 @@ using System.Linq;
 
 namespace mycoolfin.TheSimsulator.Sims.Genotype
 {
+    using Core.Genotype;
+
     public class SimsGenotypeCreationContext : IGenotypeCreationContext<SimsGenotype>
     {
         public List<Node> Nodes { get; }

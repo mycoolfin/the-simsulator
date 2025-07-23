@@ -1,13 +1,14 @@
 using System;
 using System.Numerics;
 using System.Collections.Generic;
-using mycoolfin.TheSimsulator.Sims.Genotype;
 
 namespace mycoolfin.TheSimsulator.Sims.Phenotype
 {
+    using Genotype;
+
     public class Joint
     {
-        public readonly Genotype.JointType Type;
+        public readonly JointType Type;
 
         public readonly Limb ParentLimb;
         public readonly Limb ChildLimb;
@@ -25,7 +26,7 @@ namespace mycoolfin.TheSimsulator.Sims.Phenotype
         public readonly List<JointAngleActuator> Actuators;
 
         public Joint(
-            Genotype.JointType type,
+            JointType type,
             Limb parentLimb,
             Limb childLimb,
             Vector3 parentSpaceAnchor,

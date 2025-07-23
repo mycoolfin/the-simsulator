@@ -2,7 +2,8 @@ using UnityEngine;
 
 namespace mycoolfin.TheSimsulator.UnityIntegration.Presentation.Interaction
 {
-    using ECS.Systems.Simulation.SimulationRate;
+    using UnityIntegration.Evolution;
+    using SimulationRateMode = ECS.Systems.Simulation.SimulationRate.SimulationRateMode;
 
     public class ControlPanel : MonoBehaviour
     {

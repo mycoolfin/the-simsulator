@@ -3,6 +3,8 @@ using System.Collections.Generic;
 
 namespace mycoolfin.TheSimsulator.Sims.Genotype
 {
+    using Core.Genotype;
+
     public class SimsGenotype : IGenotype<SimsGenotype>
     {
         public const int MIN_NODES = 1;

@@ -1,4 +1,4 @@
-namespace mycoolfin.TheSimsulator
+namespace mycoolfin.TheSimsulator.Core.Genotype
 {
     public interface IGenotypeCreationContext<TGenotype> where TGenotype : IGenotype<TGenotype>
     {

@@ -1,9 +1,10 @@
 using System.Linq;
 using System.Collections.Generic;
-using mycoolfin.TheSimsulator.Sims.Genotype;
 
 namespace mycoolfin.TheSimsulator.Sims.Phenotype
 {
+    using Genotype;
+
     public static class WiringTool
     {
         public static void WireUpNervousSystem(

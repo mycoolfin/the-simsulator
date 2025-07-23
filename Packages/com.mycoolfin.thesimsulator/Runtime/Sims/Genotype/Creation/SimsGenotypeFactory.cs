@@ -1,31 +1,67 @@
 using System;
-using System.Linq;
+using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace mycoolfin.TheSimsulator.Sims.Genotype
 {
+    using Core.Genotype;
+
     public class SimsGenotypeFactory : IGenotypeFactory<SimsGenotype>
     {
-        private readonly float asexualProbability;
-        private readonly float crossoverProbability;
-        private readonly float graftingProbability;
-        private readonly int crossoverInterval;
+        public readonly float AsexualProbability;
+        public readonly float CrossoverProbability;
+        public readonly float GraftingProbability;
+        public readonly int CrossoverInterval;
 
-        public SimsGenotypeFactory(float asexualProbability, float crossoverProbability, float graftingProbability, int crossoverInterval)
+        private readonly int createYieldAfterCount;
+        private readonly int recombineYieldAfterCount;
+
+        public SimsGenotypeFactory(
+            float asexualProbability = 0.4f,
+            float crossoverProbability = 0.3f,
+            float graftingProbability = 0.3f,
+            int crossoverInterval = 2,
+            int createYieldAfterCount = 100,
+            int recombineYieldAfterCount = 100
+        )
         {
-            this.asexualProbability = asexualProbability;
-            this.crossoverProbability = crossoverProbability;
-            this.graftingProbability = graftingProbability;
-            this.crossoverInterval = crossoverInterval;
-
             if (Math.Abs(asexualProbability + crossoverProbability + graftingProbability - 1.0f) > 1e-6f)
                 throw new ArgumentException("Recombination probabilities must sum to 1.0");
 
             if (crossoverInterval <= 0)
                 throw new ArgumentException("Crossover interval must be greater than 0");
+
+            AsexualProbability = asexualProbability;
+            CrossoverProbability = crossoverProbability;
+            GraftingProbability = graftingProbability;
+            CrossoverInterval = crossoverInterval;
+
+            this.createYieldAfterCount = createYieldAfterCount;
+            this.recombineYieldAfterCount = recombineYieldAfterCount;
         }
 
-        public SimsGenotype CreateInitialisedGenotype()
+        public virtual IEnumerator CreateInitialisedGenotypes(int count, IGenotypeFactory<SimsGenotype>.OnGenotypeCreatedDelegate onCreated)
+        {
+            for (int i = 0; i < count; i++)
+            {
+                onCreated?.Invoke(i, CreateInitialisedGenotype());
+                if (i % createYieldAfterCount == 0 && i > 0)
+                    yield return null;
+            }
+        }
+
+        public virtual IEnumerator Recombine(IReadOnlyList<(SimsGenotype parent1, SimsGenotype parent2)> parents, float mutationRate, IGenotypeFactory<SimsGenotype>.OnGenotypeCreatedDelegate onRecombined)
+        {
+            for (int i = 0; i < parents.Count; i++)
+            {
+                onRecombined?.Invoke(i, Recombine(parents[i].parent1, parents[i].parent2, mutationRate));
+                if (i % recombineYieldAfterCount == 0 && i > 0)
+                    yield return null;
+            }
+        }
+
+        protected SimsGenotype CreateInitialisedGenotype()
         {
             // Sims creatures initialise with a random genotype.
             SimsGenotypeCreationContext context = new(new List<Node>(), new List<Connection>(), new List<NeuronDefinition>());
@@ -63,21 +99,22 @@ namespace mycoolfin.TheSimsulator.Sims.Genotype
             return context.CreateGenotypeFromContext(false); // No need to prune if 'add' mutations worked correctly.
         }
 
-        public SimsGenotypeCreationContext Recombine(SimsGenotype parent1, SimsGenotype parent2)
+        protected SimsGenotype Recombine(SimsGenotype parent1, SimsGenotype parent2, float mutationRate)
         {
             double randomValue = SharedRandom.NextDouble();
-            if (randomValue < asexualProbability)
-                return AsexualRecombination(parent1);
-            else if (randomValue < asexualProbability + crossoverProbability)
-                return CrossoverRecombination(parent1, parent2);
-            else if (randomValue < asexualProbability + crossoverProbability + graftingProbability)
-                return GraftingRecombination(parent1, parent2);
+            SimsGenotypeCreationContext offspringContext;
+            if (randomValue < AsexualProbability)
+                offspringContext = AsexualRecombination(parent1);
+            else if (randomValue < AsexualProbability + CrossoverProbability)
+                offspringContext = CrossoverRecombination(parent1, parent2);
+            else if (randomValue < AsexualProbability + CrossoverProbability + GraftingProbability)
+                offspringContext = GraftingRecombination(parent1, parent2);
             else
                 throw new InvalidOperationException("Recombination probabilities do not sum to 1.0");
-        }
-        IGenotypeCreationContext<SimsGenotype> IGenotypeFactory<SimsGenotype>.Recombine(SimsGenotype parent1, SimsGenotype parent2)
-        {
-            return Recombine(parent1, parent2);
+
+            offspringContext.Mutate(mutationRate);
+
+            return offspringContext.CreateGenotypeFromContext(true);
         }
 
         private SimsGenotypeCreationContext AsexualRecombination(SimsGenotype parent1)
@@ -98,7 +135,7 @@ namespace mycoolfin.TheSimsulator.Sims.Genotype
             Dictionary<ulong, ulong> parent2OriginalToCopiedNodeMap = new();
             for (int i = 0; i < Math.Max(parent1.Nodes.Count, parent2.Nodes.Count); i++)
             {
-                if (i > 0 && i % crossoverInterval == 0)
+                if (i > 0 && i % CrossoverInterval == 0)
                     copyFromParent1 = !copyFromParent1;
 
                 SimsGenotype source = copyFromParent1 ? parent1 : parent2;
@@ -118,8 +155,6 @@ namespace mycoolfin.TheSimsulator.Sims.Genotype
 
             CopyOverRelatedConnections(parent1, parent2, offspringContext, parent1OriginalToCopiedNodeMap, parent2OriginalToCopiedNodeMap);
             CopyOverRelatedNeuronDefinitions(parent1, parent2, offspringContext, parent1OriginalToCopiedNodeMap, parent2OriginalToCopiedNodeMap);
-
-            Checker("CrossoverRecombination", offspringContext, parent1: parent1, parent2: parent2);
 
             return offspringContext;
         }
@@ -157,7 +192,7 @@ namespace mycoolfin.TheSimsulator.Sims.Genotype
                 return AsexualRecombination(recipient); // Impossible to graft more nodes.
 
             // Copy over nodes from the donor, starting from the donor node index.
-                int remainingNodeBudget = SimsGenotype.MAX_NODES - offspringContext.Nodes.Count;
+            int remainingNodeBudget = SimsGenotype.MAX_NODES - offspringContext.Nodes.Count;
             Dictionary<ulong, ulong> parent2OriginalToCopiedNodeMap = new();
             for (int i = donorNodeIndex; i < donor.Nodes.Count; i++)
             {
@@ -172,8 +207,6 @@ namespace mycoolfin.TheSimsulator.Sims.Genotype
 
             CopyOverRelatedConnections(recipient, donor, offspringContext, parent1OriginalToCopiedNodeMap, parent2OriginalToCopiedNodeMap, recipientNodeIndex, recipientConnectionIndex, donor.Nodes[donorNodeIndex].Gid);
             CopyOverRelatedNeuronDefinitions(recipient, donor, offspringContext, parent1OriginalToCopiedNodeMap, parent2OriginalToCopiedNodeMap);
-
-            Checker("GraftingRecombination", offspringContext, parent1: recipient, parent2: donor);
 
             return offspringContext;
         }
@@ -309,59 +342,6 @@ namespace mycoolfin.TheSimsulator.Sims.Genotype
                 );
                 offspringContext.NeuronDefinitions.Add(copiedNeuronDefinition);
             }
-        }
-
-        private static void Checker(string insideFunc, SimsGenotypeCreationContext context, SimsGenotype parent1, SimsGenotype parent2)
-        {
-            int maxNodes = SimsGenotype.MAX_NODES;
-            if (context.Nodes.Count > maxNodes)
-                UnityEngine.Debug.Log($"{insideFunc}: Expected at most {maxNodes} nodes, but found {context.Nodes.Count}.");
-
-            int maxConnections = Node.MAX_CONNECTIONS * context.Nodes.Count;
-            if (context.Connections.Count > maxConnections)
-            {
-                UnityEngine.Debug.Log($"{insideFunc}: Expected at most {maxConnections} connections, but found {context.Connections.Count}.");
-                Dictionary<ulong, int> connectionsByParent = context.Connections
-                    .GroupBy(c => c.ParentNodeGid)
-                    .ToDictionary(g => g.Key, g => g.Count());
-
-                // Check that all ParentNodeGids exist in the nodes.
-                foreach (ulong parentGid in connectionsByParent.Keys)
-                {
-                    if (!context.Nodes.Any(n => n.Gid == parentGid))
-                    {
-                        UnityEngine.Debug.Log($"{insideFunc}: ParentNodeGid {parentGid} does not exist in nodes.");
-                    }
-                }
-
-                // Print out number of connections per parent node.
-                foreach (var kvp in connectionsByParent)
-                {
-                    UnityEngine.Debug.Log($"{insideFunc}: ParentNodeGid {kvp.Key} has {kvp.Value} connections.");
-                }
-
-
-                // Now do the same for the parent1 and parent2 connections.
-                Dictionary<ulong, int> parent1ConnectionsByParent = parent1.Connections
-                    .GroupBy(c => c.ParentNodeGid)
-                    .ToDictionary(g => g.Key, g => g.Count());
-                Dictionary<ulong, int> parent2ConnectionsByParent = parent2.Connections
-                    .GroupBy(c => c.ParentNodeGid)
-                    .ToDictionary(g => g.Key, g => g.Count());
-                foreach (var kvp in parent1ConnectionsByParent)
-                {
-                    UnityEngine.Debug.Log($"{insideFunc}: PARENT1 | ParentNodeGid {kvp.Key} has {kvp.Value} connections.");
-                }
-                foreach (var kvp in parent2ConnectionsByParent)
-                {
-                    UnityEngine.Debug.Log($"{insideFunc}: PARENT2 | ParentNodeGid {kvp.Key} has {kvp.Value} connections.");
-                }
-
-            }
-
-            int maxNeuronDefinitions = SimsGenotype.MAX_BRAIN_NEURON_DEFINITIONS + Node.MAX_NEURON_DEFINITIONS * context.Nodes.Count;
-            if (context.NeuronDefinitions.Count > maxNeuronDefinitions)
-                UnityEngine.Debug.Log($"{insideFunc}: Expected at most {maxNeuronDefinitions} neuron definitions, but found {context.NeuronDefinitions.Count}.");
         }
     }
 }

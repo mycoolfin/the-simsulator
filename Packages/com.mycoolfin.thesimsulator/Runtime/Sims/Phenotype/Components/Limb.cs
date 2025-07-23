@@ -1,7 +1,6 @@
 using System;
 using System.Numerics;
 using System.Collections.Generic;
-using mycoolfin.TheSimsulator.Sims.Genotype;
 
 namespace mycoolfin.TheSimsulator.Sims.Phenotype
 {
