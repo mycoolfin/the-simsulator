@@ -6,6 +6,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Headless
     using Evolution;
     using Utilities;
     using TrialType = ECS.Components.Evolution.TrialType;
+    using SimulationRateMode = ECS.Systems.Simulation.SimulationRate.SimulationRateMode;
 
     [RequireComponent(typeof(EvolutionSimulator))]
     public class HeadlessSimulationRunner : MonoBehaviour
@@ -24,6 +25,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Headless
             evolutionParameters = ParseEvolutionParameters();
             outputDir = ParseOutputDir();
             evolutionSimulator.SetEvolutionParameters(evolutionParameters);
+            evolutionSimulator.SimulationRate = SimulationRateMode.Headless;
             evolutionSimulator.OnEvolutionComplete += FinishSimulation;
             evolutionSimulator.StartEvolution();
         }

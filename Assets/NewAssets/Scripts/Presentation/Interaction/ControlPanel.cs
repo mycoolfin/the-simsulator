@@ -21,8 +21,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Presentation.Interaction
         [SerializeField] private PushButton startStopButton;
         [SerializeField] private PushButton pauseButton;
         [SerializeField] private PushButton playButton;
-        [SerializeField] private PushButton ffButton;
-        [SerializeField] private PushButton fffButton;
+        [SerializeField] private PushButton fastForwardButton;
         [SerializeField] private PushButton zoomInButton;
         [SerializeField] private PushButton zoomOutButton;
         [SerializeField] private PushButton colorByFitnessButton;
@@ -75,14 +74,9 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Presentation.Interaction
                 evolutionSimulator.SimulationRate = SimulationRateMode.RealTime;
             };
 
-            ffButton.OnButtonPressed += (isActive) =>
+            fastForwardButton.OnButtonPressed += (isActive) =>
             {
                 evolutionSimulator.SimulationRate = SimulationRateMode.FullSpeed;
-            };
-
-            fffButton.OnButtonPressed += (isActive) =>
-            {
-                evolutionSimulator.SimulationRate = SimulationRateMode.MaximumOverdrive;
             };
 
             zoomInButton.OnButtonPressed += (isActive) =>
@@ -111,8 +105,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Presentation.Interaction
             startStopButton.SetActive(evolutionSimulator.IsRunning);
             pauseButton.SetActive(evolutionSimulator.IsRunning && evolutionSimulator.SimulationRate == SimulationRateMode.Paused);
             playButton.SetActive(evolutionSimulator.IsRunning && evolutionSimulator.SimulationRate == SimulationRateMode.RealTime);
-            ffButton.SetActive(evolutionSimulator.IsRunning && evolutionSimulator.SimulationRate == SimulationRateMode.FullSpeed);
-            fffButton.SetActive(evolutionSimulator.IsRunning && evolutionSimulator.SimulationRate == SimulationRateMode.MaximumOverdrive);
+            fastForwardButton.SetActive(evolutionSimulator.IsRunning && evolutionSimulator.SimulationRate == SimulationRateMode.FullSpeed);
             zoomInButton.SetActive(evolutionSimulator.IsRunning);
             zoomOutButton.SetActive(evolutionSimulator.IsRunning);
             colorByFitnessButton.SetActive(evolutionSimulator.IsRunning && worldVisualiser.ColorByFitness);

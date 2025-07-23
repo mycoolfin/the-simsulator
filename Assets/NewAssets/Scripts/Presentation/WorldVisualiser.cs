@@ -120,7 +120,6 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Presentation
                 SimulationRateMode.Paused => 0f,
                 SimulationRateMode.RealTime => 5f,
                 SimulationRateMode.FullSpeed => 20f,
-                SimulationRateMode.MaximumOverdrive => 40f,
                 _ => 1f,
             };
             float fluxFactor = 0.8f + 0.2f * Mathf.Sin(frequency * Time.time);

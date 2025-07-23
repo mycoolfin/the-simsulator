@@ -306,7 +306,6 @@ MonoBehaviour:
   assessmentSeconds: 10
   trialType: 1
   SimulationRate: 2
-  run: 0
 --- !u!4 &231955684
 Transform:
   m_ObjectHideFlags: 0
@@ -711,11 +710,7 @@ PrefabInstance:
       propertyPath: evolutionSimulator
       value: 
       objectReference: {fileID: 231955683}
-    m_RemovedComponents:
-    - {fileID: 9217871556604597603, guid: 9faa4f5c3073d42289e96a9bf999e769, type: 3}
-    - {fileID: 7395085014661171599, guid: 9faa4f5c3073d42289e96a9bf999e769, type: 3}
-    - {fileID: 3935327827271422364, guid: 9faa4f5c3073d42289e96a9bf999e769, type: 3}
-    - {fileID: 2405359521281499540, guid: 9faa4f5c3073d42289e96a9bf999e769, type: 3}
+    m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []
@@ -1553,7 +1548,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   reticleColor: {r: 1, g: 1, b: 1, a: 1}
-  interactableColor: {r: 0.6830921, g: 0, b: 1, a: 1}
+  interactableColor: {r: 0, g: 0.5358739, b: 1, a: 1}
   reticleSize: 10
   showReticle: 1
 --- !u!1 &1616901345
@@ -2041,7 +2036,6 @@ GameObject:
   - component: {fileID: 1915397809}
   - component: {fileID: 1915397812}
   - component: {fileID: 1915397811}
-  - component: {fileID: 1915397810}
   m_Layer: 0
   m_Name: Visor
   m_TagString: Untagged
@@ -2064,27 +2058,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1613917392}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!65 &1915397810
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1915397808}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 1, y: 1, z: 1}
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!23 &1915397811
 MeshRenderer:
   m_ObjectHideFlags: 0
