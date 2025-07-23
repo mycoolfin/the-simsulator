@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 15003, guid: 0000000000000000e000000000000000, type: 0}
-  m_Name: BurstTest
+  m_Name: Default
   m_EditorClassIdentifier: 
   m_AssetVersion: 1
   m_BuildTarget: 2
@@ -20,10 +20,12 @@ MonoBehaviour:
     rid: 3882731336732770375
   m_OverrideGlobalSceneList: 1
   m_Scenes:
-  - m_enabled: 0
-    m_path: Assets/NewAssets/Scenes/RenderingTest.unity
   - m_enabled: 1
-    m_path: Assets/NewAssets/Scenes/EvolutionSimulator.unity
+    m_path: Assets/NewAssets/Scenes/ApplicationEntryPoint.unity
+  - m_enabled: 1
+    m_path: Assets/NewAssets/Scenes/Lab.unity
+  - m_enabled: 1
+    m_path: Assets/NewAssets/Scenes/HeadlessSimulation.unity
   m_ScriptingDefines: []
   m_PlayerSettingsYaml:
     m_Settings: []

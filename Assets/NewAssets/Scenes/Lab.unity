@@ -301,7 +301,7 @@ MonoBehaviour:
   populationSize: 100
   maxGenerations: 10000
   survivalRate: 0.2
-  mutationRate: 10
+  mutationRate: 1
   settleSeconds: 10
   assessmentSeconds: 10
   trialType: 1

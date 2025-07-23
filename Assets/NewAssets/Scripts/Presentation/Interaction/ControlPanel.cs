@@ -128,7 +128,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Presentation.Interaction
             }
             else
             {
-                float generationProgress = (float)evolutionSimulator.CurrentGeneration / evolutionSimulator.MaxGenerations;
+                float generationProgress = evolutionSimulator.MaxGenerations <= 0 ? 0f : (float)evolutionSimulator.CurrentGeneration / evolutionSimulator.MaxGenerations;
                 generationProgressMeter.SetProgress(Mathf.Lerp(generationProgressMeter.CurrentProgress, generationProgress, Time.deltaTime * 2f));
                 float zoomLevel = (worldVisualiser.DynamicScaleFactor - minZoom) / (maxZoom - minZoom);
                 zoomMeter.SetProgress(zoomLevel);

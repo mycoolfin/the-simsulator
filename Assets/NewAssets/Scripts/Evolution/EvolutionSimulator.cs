@@ -14,6 +14,17 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Evolution
     using TrialType = ECS.Components.Evolution.TrialType;
     using SimulationRateMode = ECS.Systems.Simulation.SimulationRate.SimulationRateMode;
 
+    public struct EvolutionParameters
+    {
+        public int? PopulationSize;
+        public int? MaxGenerations;
+        public float? SurvivalRate;
+        public float? MutationRate;
+        public float? SettleSeconds;
+        public float? AssessmentSeconds;
+        public TrialType? TrialType;
+    }
+
     public struct EvolutionStatistics
     {
         public int Generation;
@@ -26,13 +37,18 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Evolution
     {
         [Header("Evolution Parameters")]
         [SerializeField] private int populationSize = 100;
+        public int PopulationSize => populationSize;
         [SerializeField] private int maxGenerations = 100;
         public int MaxGenerations => maxGenerations;
         [SerializeField] private float survivalRate = 0.2f;
+        public float SurvivalRate => survivalRate;
         public int MaxSurvivors => (int)Mathf.Ceil(populationSize * survivalRate);
         [SerializeField] private float mutationRate = 1f;
+        public float MutationRate => mutationRate;
         [SerializeField] private float settleSeconds = 10f;
+        public float SettleSeconds => settleSeconds;
         [SerializeField] private float assessmentSeconds = 10f;
+        public float AssessmentSeconds => assessmentSeconds;
         [SerializeField] private TrialType trialType = TrialType.GroundDistance;
         public TrialType TrialType => trialType;
         [SerializeField] private TGenotype seedGenotype;
@@ -60,16 +76,21 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Evolution
         [Header("Speed Control")]
         public SimulationRateMode SimulationRate = SimulationRateMode.FullSpeed;
 
-        [Header("Run?")]
-        [SerializeField] bool run = false;
-
-        private void Update()
+        public void SetEvolutionParameters(EvolutionParameters parameters)
         {
-            if (!IsRunning && run)
+            if (IsRunning)
             {
-                StartEvolution();
+                Debug.LogWarning("Cannot change evolution parameters while evolution is running!");
+                return;
             }
-            run = false;
+
+            populationSize = parameters.PopulationSize ?? populationSize;
+            maxGenerations = parameters.MaxGenerations ?? maxGenerations;
+            survivalRate = parameters.SurvivalRate ?? survivalRate;
+            mutationRate = parameters.MutationRate ?? mutationRate;
+            settleSeconds = parameters.SettleSeconds ?? settleSeconds;
+            assessmentSeconds = parameters.AssessmentSeconds ?? assessmentSeconds;
+            trialType = parameters.TrialType ?? trialType;
         }
 
         public void StartEvolution()
@@ -123,7 +144,8 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Evolution
             ecsWorld = ECS.API.WorldManagement.CreateWorld("EvolutionWorld");
             OnEcsWorldCreated?.Invoke(ecsWorld);
 
-            while (CurrentGeneration <= maxGenerations && IsRunning)
+            bool runForever = maxGenerations <= 0;
+            while ((runForever || CurrentGeneration <= maxGenerations) && IsRunning)
             {
                 float startTime = Time.time;
                 OnGenerationStart?.Invoke(CurrentGeneration);
@@ -140,7 +162,8 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Evolution
                 statistics.Add(stats);
 
                 OnGenerationComplete?.Invoke(stats);
-                Debug.Log($"Generation {CurrentGeneration}/{maxGenerations} complete. Best fitness: {stats.BestFitness}, Average fitness: {stats.AverageFitness}. Elapsed time: {stats.ElapsedTime:F2} seconds.");
+                string maxGenerationsString = runForever ? "∞" : maxGenerations.ToString();
+                Debug.Log($"Generation {CurrentGeneration}/{maxGenerationsString} complete. Best fitness: {stats.BestFitness}. Average fitness: {stats.AverageFitness}. Elapsed time: {stats.ElapsedTime:F2} seconds.");
 
                 CurrentGeneration++;
             }
@@ -211,7 +234,8 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Evolution
 
         private void OnDestroy()
         {
-            StopEvolution();
+            if (IsRunning)
+                StopEvolution();
         }
     }
 }
