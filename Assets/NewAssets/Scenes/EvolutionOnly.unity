@@ -155,7 +155,7 @@ MonoBehaviour:
   settleSeconds: 10
   assessmentSeconds: 10
   trialType: 0
-  simulationRate: 2
+  SimulationRate: 2
   run: 1
 --- !u!4 &231955684
 Transform:

@@ -7,9 +7,9 @@ using UnityEngine;
 
 namespace mycoolfin.TheSimsulator.UnityIntegration.Evolution
 {
-    using Sims.Genotype;
-    using Sims.Evolution;
-
+    using TGenotype = Sims.Genotype.SimsGenotype;
+    using TEvolution = Sims.Evolution.SimsEvolution;
+    using TEvolutionConfig = Sims.Evolution.SimsEvolutionConfig;
     using Individual = Core.Evolution.Individual<Sims.Genotype.SimsGenotype, Sims.Phenotype.SimsPhenotype>;
     using TrialType = ECS.Components.Evolution.TrialType;
     using SimulationRateMode = ECS.Systems.Simulation.SimulationRate.SimulationRateMode;
@@ -31,11 +31,11 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Evolution
         [SerializeField] private float survivalRate = 0.2f;
         public int MaxSurvivors => (int)Mathf.Ceil(populationSize * survivalRate);
         [SerializeField] private float mutationRate = 1f;
-        [SerializeField] private float settleSeconds = 5f;
+        [SerializeField] private float settleSeconds = 10f;
         [SerializeField] private float assessmentSeconds = 10f;
         [SerializeField] private TrialType trialType = TrialType.GroundDistance;
         public TrialType TrialType => trialType;
-        [SerializeField] private SimsGenotype seedGenotype;
+        [SerializeField] private TGenotype seedGenotype;
 
         // Seeding isn't working yet on the ECS side.
         // [SerializeField] private int simulationSeed = 0;
@@ -48,9 +48,9 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Evolution
         public event Action<int> OnGenerationStart;
         public event Action<EvolutionStatistics> OnGenerationComplete;
         public event Action<World> OnEcsWorldCreated;
-        public event Action<List<Individual>> OnPopulationEvaluated;
         public event Action OnEvolutionComplete;
 
+        private TEvolution evolution;
         private World ecsWorld;
         private Coroutine evolutionCoroutine;
 
@@ -85,30 +85,35 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Evolution
 
         public void StopEvolution()
         {
+            IsRunning = false;
+
             if (evolutionCoroutine != null)
             {
                 StopCoroutine(evolutionCoroutine);
                 evolutionCoroutine = null;
             }
 
-            IsRunning = false;
+            evolution.Dispose();
+
             ECS.API.WorldManagement.DestroyWorld(ecsWorld);
         }
 
         private IEnumerator EvolutionLoop()
         {
-            Debug.Log("Starting evolution with population size: " + populationSize);
+            Debug.Log($"Beginning evolution. Parameters: Population Size = {populationSize}, Max Generations = {maxGenerations}, Survival Rate = {survivalRate}, Mutation Rate = {mutationRate}, Settle Seconds = {settleSeconds}, Assessment Seconds = {assessmentSeconds}, Trial Type = {trialType}");
 
-            // Factories...
-
-            SimsEvolutionConfig config = new()
+            TEvolutionConfig config = new()
             {
                 PopulationSize = populationSize,
                 SurvivalRate = survivalRate,
                 MutationRate = mutationRate,
             };
             // if (useSimulationSeed) config.Seed = simulationSeed;
-            SimsEvolution evolution = new(config, AssessPhenotypesCoroutine);
+            evolution = new(
+                config,
+                (population, cancellationToken) =>
+                    Utilities.AsyncUtils.CoroutineAsTask(this, AssessIndividualsCoroutine(population), cancellationToken)
+            );
 
             statistics.Clear();
 
@@ -120,11 +125,10 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Evolution
 
             while (CurrentGeneration <= maxGenerations && IsRunning)
             {
-                Debug.Log($"Starting generation {CurrentGeneration}/{maxGenerations}");
                 float startTime = Time.time;
                 OnGenerationStart?.Invoke(CurrentGeneration);
 
-                yield return StartCoroutine(evolution.Iterate());
+                yield return Utilities.AsyncUtils.TaskAsCoroutine(evolution.IterateAsync());
 
                 EvolutionStatistics stats = new()
                 {
@@ -136,7 +140,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Evolution
                 statistics.Add(stats);
 
                 OnGenerationComplete?.Invoke(stats);
-                Debug.Log($"Generation {CurrentGeneration} complete. Best fitness: {stats.BestFitness}, Average fitness: {stats.AverageFitness}. Elapsed time: {stats.ElapsedTime:F2} seconds.");
+                Debug.Log($"Generation {CurrentGeneration}/{maxGenerations} complete. Best fitness: {stats.BestFitness}, Average fitness: {stats.AverageFitness}. Elapsed time: {stats.ElapsedTime:F2} seconds.");
 
                 CurrentGeneration++;
             }
@@ -144,10 +148,11 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Evolution
             IsRunning = false;
             ECS.API.WorldManagement.DestroyWorld(ecsWorld);
 
+            Debug.Log("Evolution complete.");
             OnEvolutionComplete?.Invoke();
         }
 
-        private IEnumerator AssessPhenotypesCoroutine(List<Individual> population)
+        private IEnumerator AssessIndividualsCoroutine(List<Individual> population)
         {
             // Destroy all existing phenotype entities.
             yield return ECS.API.EntityManagement.DestroyAllPhenotypeEntities(ecsWorld);

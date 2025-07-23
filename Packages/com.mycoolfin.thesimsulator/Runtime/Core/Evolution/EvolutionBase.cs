@@ -1,7 +1,8 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace mycoolfin.TheSimsulator.Core.Evolution
 {
@@ -16,7 +17,7 @@ namespace mycoolfin.TheSimsulator.Core.Evolution
         public int Seed { get; set; } = Environment.TickCount;
     }
 
-    public abstract class EvolutionBase<TEvolutionConfig, TGenotype, TPhenotype>
+    public abstract class EvolutionBase<TEvolutionConfig, TGenotype, TPhenotype> : IDisposable
         where TEvolutionConfig : EvolutionConfigBase
         where TGenotype : IGenotype<TGenotype>
         where TPhenotype : IPhenotype<TPhenotype>
@@ -26,32 +27,35 @@ namespace mycoolfin.TheSimsulator.Core.Evolution
         protected IGenotypeFactory<TGenotype> genotypeFactory;
         protected IPhenotypeFactory<TGenotype, TPhenotype> phenotypeFactory;
 
-        /// <summary>
-        /// Delegate for assessing phenotypes.
-        /// It is expected to populate the individual.fitness field.
-        /// </summary>
-        /// <param name="population">The population of individuals.</param>
-        /// <returns>An enumerator for coroutine support.</returns>
-        public delegate IEnumerator AssessPhenotypesDelegate(List<Individual<TGenotype, TPhenotype>> population);
-        protected AssessPhenotypesDelegate AssessPhenotypes;
-
         protected List<Individual<TGenotype, TPhenotype>> population;
         public IReadOnlyList<Individual<TGenotype, TPhenotype>> Population => population.AsReadOnly();
 
-        protected int maxSurvivors;
-
-        protected float mutationRate;
+        /// <summary>
+        /// Delegate for assessing individuals.
+        /// It is expected to populate the individual.fitness field.
+        /// </summary>
+        /// <param name="population">The population of individuals.</param>
+        /// <returns>A task that completes when the assessment is done.</returns>
+        public delegate Task AssessIndividualsDelegate(List<Individual<TGenotype, TPhenotype>> population, CancellationToken cancellationToken);
+        protected AssessIndividualsDelegate AssessIndividuals;
 
         public int IterationCount { get; private set; } = 0;
         public event Action OnIterationStart;
         public event Action OnAssessmentStart;
         public event Action OnAssessmentEnd;
         public event Action OnIterationEnd;
-        public bool IsIterating { get; private set; }
+        private volatile bool isIterating;
+        public bool IsIterating => isIterating;
+
+        public float GenotypeCreationProgress { get; private set; }
+        public float PhenotypeCreationProgress { get; private set; }
+
+        private readonly CancellationTokenSource cancellationTokenSource;
+        private readonly CancellationToken cancellationToken;
 
         public EvolutionBase(
             TEvolutionConfig config,
-            AssessPhenotypesDelegate assessPhenotypesDelegate,
+            AssessIndividualsDelegate assessIndividualsDelegate,
             IGenotypeFactory<TGenotype> genotypeFactory,
             IPhenotypeFactory<TGenotype, TPhenotype> phenotypeFactory
         )
@@ -72,86 +76,108 @@ namespace mycoolfin.TheSimsulator.Core.Evolution
             if (phenotypeFactory == null)
                 throw new ArgumentNullException(nameof(phenotypeFactory));
 
-            AssessPhenotypes = assessPhenotypesDelegate;
-            maxSurvivors = (int)Math.Ceiling(config.PopulationSize * config.SurvivalRate);
-            mutationRate = config.MutationRate;
+            population = new(config.PopulationSize);
 
-            population = new();
+            AssessIndividuals = assessIndividualsDelegate;
+
+            cancellationTokenSource = new();
+            cancellationToken = cancellationTokenSource.Token;
+        }
+
+        public void Dispose()
+        {
+            cancellationTokenSource.Cancel();
         }
 
         /// <summary>
         /// Performs one iteration of the evolution process.
         /// </summary>
-        public IEnumerator Iterate()
+        /// <returns>A task that completes when the iteration is done.</returns>
+        public async Task IterateAsync()
         {
-            IsIterating = true;
+            isIterating = true;
 
             // Dispose of old phenotypes.
-            population.ForEach(individual => individual.phenotype?.Dispose());
+            foreach (Individual<TGenotype, TPhenotype> individual in population)
+                individual.phenotype?.Dispose();
 
+            // Create new genotypes.
+            List<TGenotype> genotypes;
             if (IterationCount == 0) // First iteration - initialise the population.
             {
-                population = new();
-                yield return genotypeFactory.CreateInitialisedGenotypes(config.PopulationSize, (_, newGenotype) =>
-                {
-                    population.Add(new Individual<TGenotype, TPhenotype>
-                    {
-                        genotype = newGenotype,
-                        phenotype = default,
-                        fitness = 0
-                    });
-                });
+                genotypes = await CreateInitialisedGenotypesAsync(
+                    genotypeFactory,
+                    config.PopulationSize,
+                    cancellationToken,
+                    new Progress<int>(progress => GenotypeCreationProgress = progress / (float)config.PopulationSize)
+                );
             }
             else // Create the next population based on assessed fitnesses.
             {
+                int maxSurvivors = (int)Math.Ceiling(config.PopulationSize * config.SurvivalRate);
                 List<Individual<TGenotype, TPhenotype>> survivors = SelectSurvivors(population, maxSurvivors);
                 int offspringNeeded = config.PopulationSize - survivors.Count;
 
-                // Choose parent pairs and create offspring.
-                List<(TGenotype, TGenotype)> parentPairs = ChooseParents(survivors, offspringNeeded);
-                Individual<TGenotype, TPhenotype>[] offspring = new Individual<TGenotype, TPhenotype>[parentPairs.Count];
-                yield return genotypeFactory.Recombine(parentPairs, mutationRate, (index, newGenotype) =>
+                genotypes = survivors.Select(s => s.genotype).ToList();
+                if (offspringNeeded > 0)
                 {
-                    offspring[index] = new()
-                    {
-                        genotype = newGenotype,
-                        phenotype = default,
-                        fitness = 0
-                    };
-                });
+                    // Choose parent pairs and create offspring.
+                    List<(TGenotype, TGenotype)> parentPairs = ChooseParents(survivors, offspringNeeded);
+                    genotypes.AddRange(await RecombineAllAsync(
+                        genotypeFactory,
+                        parentPairs,
+                        config.MutationRate,
+                        cancellationToken,
+                        new Progress<int>(progress => GenotypeCreationProgress = progress / (float)offspringNeeded)
+                    ));
 
-                // If we need more offspring than we have parent pairs, create additional initialised genotypes.
-                int padCount = offspringNeeded - parentPairs.Count;
-                yield return genotypeFactory.CreateInitialisedGenotypes(padCount, (index, newGenotype) =>
-                {
-                    offspring[parentPairs.Count + index] = new()
+                    // If we need more offspring than we have parent pairs, create additional initialised genotypes.
+                    int padCount = offspringNeeded - parentPairs.Count;
+                    if (padCount > 0)
                     {
-                        genotype = newGenotype,
-                        phenotype = default,
-                        fitness = 0
-                    };
-                });
-
-                population = survivors.Select(s => new Individual<TGenotype, TPhenotype>
-                {
-                    genotype = s.genotype,
-                    phenotype = default,
-                    fitness = 0
-                }).Concat(offspring).ToList();
+                        List<TGenotype> paddingGenotypes = await CreateInitialisedGenotypesAsync(
+                            genotypeFactory,
+                            padCount,
+                            cancellationToken,
+                            new Progress<int>(progress => GenotypeCreationProgress = (progress + parentPairs.Count) / (float)offspringNeeded)
+                        );
+                        genotypes.AddRange(paddingGenotypes);
+                    }
+                }
             }
+
+            if (genotypes.Count != config.PopulationSize)
+                throw new InvalidOperationException($"Expected {config.PopulationSize} genotypes, but got {genotypes.Count}.");
 
             IterationCount++;
             OnIterationStart?.Invoke();
 
             // Create new phenotypes.
-            yield return phenotypeFactory.ConstructPhenotypes(population.Select(individual => individual.genotype).ToList(), (index, phenotype) =>
-            {
-                population[index].phenotype = phenotype;
-            });
+            List<TPhenotype> phenotypes = await ConstructPhenotypesAsync(
+                phenotypeFactory,
+                genotypes,
+                cancellationToken,
+                new Progress<int>(progress => PhenotypeCreationProgress = progress / (float)config.PopulationSize)
+            );
 
-            // Assess the phenotypes.
+            if (phenotypes.Count != config.PopulationSize)
+                throw new InvalidOperationException($"Expected {config.PopulationSize} phenotypes, but got {phenotypes.Count}.");
+
+            // Create new individuals from genotypes and phenotypes.
+            population.Clear();
+            for (int i = 0; i < config.PopulationSize; i++)
+            {
+                population.Add(new()
+                {
+                    genotype = genotypes[i],
+                    phenotype = phenotypes[i],
+                    fitness = 0
+                });
+            }
+
+            // Assess the individuals.
             OnAssessmentStart?.Invoke();
-            yield return AssessPhenotypes(population);
+            await AssessIndividuals(population, cancellationToken);
             OnAssessmentEnd?.Invoke();
 
             // Clamp fitnesses above zero.
@@ -160,7 +186,7 @@ namespace mycoolfin.TheSimsulator.Core.Evolution
 
             OnIterationEnd?.Invoke();
 
-            IsIterating = false;
+            isIterating = false;
         }
 
         /// <summary>
@@ -266,6 +292,57 @@ namespace mycoolfin.TheSimsulator.Core.Evolution
             }
 
             return result;
+        }
+
+        private static Task<List<TGenotype>> CreateInitialisedGenotypesAsync(IGenotypeFactory<TGenotype> genotypeFactory, int count, CancellationToken token, IProgress<int> progress = null)
+        {
+            return Task.Run(() =>
+            {
+                List<TGenotype> genotypes = new(count);
+                for (int i = 0; i < count; i++)
+                {
+                    token.ThrowIfCancellationRequested();
+
+                    genotypes.Add(genotypeFactory.CreateInitialisedGenotype());
+
+                    progress?.Report(i + 1);
+                }
+                return genotypes;
+            });
+        }
+
+        private static Task<List<TGenotype>> RecombineAllAsync(IGenotypeFactory<TGenotype> genotypeFactory, IReadOnlyList<(TGenotype parent1, TGenotype parent2)> parents, float mutationRate, CancellationToken token, IProgress<int> progress = null)
+        {
+            return Task.Run(() =>
+            {
+                List<TGenotype> offspring = new(parents.Count);
+                for (int i = 0; i < parents.Count; i++)
+                {
+                    token.ThrowIfCancellationRequested();
+
+                    offspring.Add(genotypeFactory.Recombine(parents[i].parent1, parents[i].parent2, mutationRate));
+
+                    progress?.Report(i + 1);
+                }
+                return offspring;
+            });
+        }
+
+        private static Task<List<TPhenotype>> ConstructPhenotypesAsync(IPhenotypeFactory<TGenotype, TPhenotype> phenotypeFactory, IReadOnlyList<TGenotype> genotypes, CancellationToken token, IProgress<int> progress = null)
+        {
+            return Task.Run(() =>
+            {
+                List<TPhenotype> phenotypes = new(genotypes.Count);
+                for (int i = 0; i < genotypes.Count; i++)
+                {
+                    token.ThrowIfCancellationRequested();
+
+                    phenotypes.Add(phenotypeFactory.ConstructPhenotype(genotypes[i]));
+
+                    progress?.Report(i + 1);
+                }
+                return phenotypes;
+            });
         }
     }
 }

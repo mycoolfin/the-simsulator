@@ -1,25 +1,12 @@
 using System;
 using System.Numerics;
-using System.Collections.Generic;
 
 namespace mycoolfin.TheSimsulator.Sims.Phenotype
 {
-    public static class SpawnCollisionHandler
+    public static class CollisionDetector
     {
-        // Returns a list of limbs that collide with the new limb being considered.
-        public static List<Limb> GetLimbCollisions(Limb newLimb, List<Limb> existingLimbs)
-        {
-            List<Limb> collisions = new();
-            foreach (var limb in existingLimbs)
-            {
-                if (ObbOverlap(newLimb, limb))
-                    collisions.Add(limb);
-            }
-            return collisions;
-        }
-
         // Returns true if the OBBs of two limbs overlap in world space (using SAT).
-        private static bool ObbOverlap(Limb a, Limb b)
+        public static bool ObbOverlap(Limb a, Limb b)
         {
             // Get OBB data for both limbs.
             var (centerA, axesA, halfA) = GetObbData(a);

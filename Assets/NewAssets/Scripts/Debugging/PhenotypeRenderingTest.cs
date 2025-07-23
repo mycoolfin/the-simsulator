@@ -58,7 +58,7 @@ public class PhenotypeRenderingTest : UnityEngine.MonoBehaviour
             phenotypeCreationInfoList.Add(info);
         }
 
-        EntityManagement.CreateEntitiesFromPhenotypes(World.DefaultGameObjectInjectionWorld, phenotypeCreationInfoList);
+        StartCoroutine(EntityManagement.CreateEntitiesFromPhenotypes(World.DefaultGameObjectInjectionWorld, phenotypeCreationInfoList));
     }
 
     public SimsPhenotype RandomPhenotype(SimsGenotypeFactory genotypeFactory, SimsPhenotypeFactory phenotypeFactory, int i)

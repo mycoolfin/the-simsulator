@@ -12,7 +12,7 @@ namespace mycoolfin.TheSimsulator.Sims.Evolution
     {
         public SimsEvolution(
             SimsEvolutionConfig config,
-            AssessPhenotypesDelegate assessPhenotypesDelegate
+            AssessIndividualsDelegate assessPhenotypesDelegate
         ) : base(config, assessPhenotypesDelegate, new SimsGenotypeFactory(), new SimsPhenotypeFactory())
         {
         }

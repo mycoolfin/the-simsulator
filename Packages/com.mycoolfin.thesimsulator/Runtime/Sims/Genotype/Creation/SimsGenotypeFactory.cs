@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -14,16 +13,11 @@ namespace mycoolfin.TheSimsulator.Sims.Genotype
         public readonly float GraftingProbability;
         public readonly int CrossoverInterval;
 
-        private readonly int createYieldAfterCount;
-        private readonly int recombineYieldAfterCount;
-
         public SimsGenotypeFactory(
             float asexualProbability = 0.4f,
             float crossoverProbability = 0.3f,
             float graftingProbability = 0.3f,
-            int crossoverInterval = 2,
-            int createYieldAfterCount = 100,
-            int recombineYieldAfterCount = 100
+            int crossoverInterval = 2
         )
         {
             if (Math.Abs(asexualProbability + crossoverProbability + graftingProbability - 1.0f) > 1e-6f)
@@ -36,32 +30,9 @@ namespace mycoolfin.TheSimsulator.Sims.Genotype
             CrossoverProbability = crossoverProbability;
             GraftingProbability = graftingProbability;
             CrossoverInterval = crossoverInterval;
-
-            this.createYieldAfterCount = createYieldAfterCount;
-            this.recombineYieldAfterCount = recombineYieldAfterCount;
         }
 
-        public virtual IEnumerator CreateInitialisedGenotypes(int count, IGenotypeFactory<SimsGenotype>.OnGenotypeCreatedDelegate onCreated)
-        {
-            for (int i = 0; i < count; i++)
-            {
-                onCreated?.Invoke(i, CreateInitialisedGenotype());
-                if (i % createYieldAfterCount == 0 && i > 0)
-                    yield return null;
-            }
-        }
-
-        public virtual IEnumerator Recombine(IReadOnlyList<(SimsGenotype parent1, SimsGenotype parent2)> parents, float mutationRate, IGenotypeFactory<SimsGenotype>.OnGenotypeCreatedDelegate onRecombined)
-        {
-            for (int i = 0; i < parents.Count; i++)
-            {
-                onRecombined?.Invoke(i, Recombine(parents[i].parent1, parents[i].parent2, mutationRate));
-                if (i % recombineYieldAfterCount == 0 && i > 0)
-                    yield return null;
-            }
-        }
-
-        protected SimsGenotype CreateInitialisedGenotype()
+        public SimsGenotype CreateInitialisedGenotype()
         {
             // Sims creatures initialise with a random genotype.
             SimsGenotypeCreationContext context = new(new List<Node>(), new List<Connection>(), new List<NeuronDefinition>());
@@ -99,7 +70,7 @@ namespace mycoolfin.TheSimsulator.Sims.Genotype
             return context.CreateGenotypeFromContext(false); // No need to prune if 'add' mutations worked correctly.
         }
 
-        protected SimsGenotype Recombine(SimsGenotype parent1, SimsGenotype parent2, float mutationRate)
+        public SimsGenotype Recombine(SimsGenotype parent1, SimsGenotype parent2, float mutationRate)
         {
             double randomValue = SharedRandom.NextDouble();
             SimsGenotypeCreationContext offspringContext;

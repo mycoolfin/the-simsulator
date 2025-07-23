@@ -50,7 +50,9 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.ECS.Systems.Simulation.Joints
             using NativeParallelMultiHashMap<Entity, byte> RootPhenotypeToDetachedLimbIndicesLookup = new(maxDetachedLimbCount * 2, Allocator.TempJob);
 
             // Pre-allocate buffer with enough space for each parallel execution to have its own slice.
-            int bufferSizePerEvent = SimsPhenotype.MAX_LIMBS;
+            // We need MAX_LIMBS + 1 to handle the worst case where we have MAX_LIMBS limbs in a chain
+            // (the +1 accounts for the stack temporarily holding both parent and child during processing).
+            int bufferSizePerEvent = SimsPhenotype.MAX_LIMBS + 1;
             using NativeArray<Entity> tempEntityBuffer = new(eventBuffer.Length * bufferSizePerEvent, Allocator.TempJob);
 
             JobHandle eventHandlerJobHandle = new JointBrokenEventHandler

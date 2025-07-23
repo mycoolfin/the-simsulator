@@ -229,7 +229,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 962091038}
-  - component: {fileID: 962091040}
   - component: {fileID: 962091039}
   m_Layer: 0
   m_Name: Debugger
@@ -266,20 +265,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ShowJoints: 1
---- !u!114 &962091040
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 962091037}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 954ebfac44ec14eafa22275cb6e9506e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  SimulationSpeedMode: 1
-  EnableJointBreakSystem: 0
 --- !u!1 &1278681433
 GameObject:
   m_ObjectHideFlags: 0
