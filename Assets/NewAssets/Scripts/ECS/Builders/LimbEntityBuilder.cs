@@ -41,6 +41,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.ECS.Builders
             using NativeArray<Entity> limbEntities = new(limbCreationRequests.Length, Allocator.TempJob);
             Entity limbPrototype = CreateLimbPrototype(ref state, RenderMeshArray);
             state.EntityManager.Instantiate(limbPrototype, limbEntities);
+            state.EntityManager.DestroyEntity(limbPrototype);
 
             using NativeArray<Entity> limbCreationRequestEntities = limbCreationRequestQuery.ToEntityArray(Allocator.TempJob);
             using EntityCommandBuffer ecb = new(Allocator.TempJob);

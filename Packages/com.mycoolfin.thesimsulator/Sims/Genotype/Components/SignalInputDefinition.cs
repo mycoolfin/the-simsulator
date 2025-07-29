@@ -3,13 +3,13 @@ using System.Runtime.InteropServices;
 namespace mycoolfin.TheSimsulator.Sims.Genotype
 {
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    public readonly struct SignalInputDefinition
+    public struct SignalInputDefinition
     {
         public const float MIN_WEIGHT = -1.0f;
         public const float MAX_WEIGHT = 1.0f;
 
-        public readonly SignalEmitterAddress SignalEmitterAddress;
-        public readonly float Weight;
+        public SignalEmitterAddress SignalEmitterAddress { get; set; }
+        public float Weight { get; set; }
 
         public SignalInputDefinition(SignalEmitterAddress signalEmitterAddress, float weight)
         {

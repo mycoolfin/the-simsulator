@@ -6,11 +6,11 @@ using System.Runtime.InteropServices;
 namespace mycoolfin.TheSimsulator.Sims.Genotype
 {
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    public readonly struct InputSetDefinition
+    public struct InputSetDefinition
     {
-        public readonly SignalInputDefinition A;
-        public readonly SignalInputDefinition B;
-        public readonly SignalInputDefinition C;
+        public SignalInputDefinition A { get; set; }
+        public SignalInputDefinition B { get; set; }
+        public SignalInputDefinition C { get; set; }
 
         public InputSetDefinition(SignalInputDefinition a, SignalInputDefinition b, SignalInputDefinition c)
         {

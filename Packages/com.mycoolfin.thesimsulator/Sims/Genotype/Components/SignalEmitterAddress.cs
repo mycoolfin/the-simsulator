@@ -9,11 +9,11 @@ namespace mycoolfin.TheSimsulator.Sims.Genotype
     }
 
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    public readonly struct SignalEmitterAddress
+    public struct SignalEmitterAddress
     {
-        public readonly RelativeSignalPort Port;
-        public readonly byte Slot;
-        public readonly byte LimbInstance;
+        public RelativeSignalPort Port { get; set; }
+        public byte Slot { get; set; }
+        public byte LimbInstance { get; set; }
 
         public SignalEmitterAddress(RelativeSignalPort port, byte slot, byte limbInstance = default)
         {

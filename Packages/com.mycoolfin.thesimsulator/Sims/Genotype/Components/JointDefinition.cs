@@ -35,18 +35,18 @@ namespace mycoolfin.TheSimsulator.Sims.Genotype
     }
 
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    public readonly struct JointDefinition
+    public struct JointDefinition
     {
         public const float MIN_ANCHOR_ON_PARENT_FACE = -1.0f;
         public const float MAX_ANCHOR_ON_PARENT_FACE = 1.0f;
         public const float MIN_ANGLE_LIMIT = (float)-Math.PI / 2;
         public const float MAX_ANGLE_LIMIT = (float)Math.PI / 2;
 
-        public readonly JointType JointType;
-        public readonly Vector3 AngleLimits; // Radians.
-        public readonly InputSetDefinition XAxisInputs;
-        public readonly InputSetDefinition YAxisInputs;
-        public readonly InputSetDefinition ZAxisInputs;
+        public JointType JointType { get; set; }
+        public Vector3 AngleLimits { get; set; } // Radians.
+        public InputSetDefinition XAxisInputs { get; set; }
+        public InputSetDefinition YAxisInputs { get; set; }
+        public InputSetDefinition ZAxisInputs { get; set; }
 
         public static readonly JointType[] AllJointTypes = (JointType[])Enum.GetValues(typeof(JointType));
 

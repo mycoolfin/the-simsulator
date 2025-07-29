@@ -314,7 +314,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.ECS.Builders
             {
                 Position = referenceLimbSpaceAnchor,
                 Axis = referenceLimbSpaceXAxis * (flippedHandedness ? -1f : 1f),
-                PerpendicularAxis = referenceLimbSpaceYAxis * (flippedHandedness ? -1f : 1f),
+                PerpendicularAxis = referenceLimbSpaceYAxis * (flippedHandedness ? -1f : 1f)
             };
 
             float4x4 T_B_from_A = math.mul(math.inverse(attachedLimbLocalTransform), referenceLimbLocalTransform);
@@ -322,8 +322,8 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.ECS.Builders
             BodyFrame bodyBFromJoint = new()
             {
                 Position = math.transform(T_B_from_A, bodyAFromJoint.Position),
-                Axis = math.mul(T_B_from_A, new float4(bodyAFromJoint.Axis, 0)).xyz,
-                PerpendicularAxis = math.mul(T_B_from_A, new float4(bodyAFromJoint.PerpendicularAxis, 0)).xyz,
+                Axis = math.normalize(math.mul(T_B_from_A, new float4(bodyAFromJoint.Axis, 0)).xyz),
+                PerpendicularAxis = math.normalize(math.mul(T_B_from_A, new float4(bodyAFromJoint.PerpendicularAxis, 0)).xyz)
             };
 
             joint = new()
@@ -339,12 +339,13 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.ECS.Builders
             float maxImpulseOfMotor = BASE_MAX_MOTOR_IMPULSE * request.MinCrossSectionalArea;
             float springFrequency = type == ConstraintType.RotationMotor ? SPRING_FREQUENCY : 50f;
             float dampingRatio = type == ConstraintType.RotationMotor ? DAMPING_RATIO : 1f;
+            float limit = math.abs(angleLimit);
             constraint = new()
             {
                 ConstrainedAxes = constrainedAxes,
                 Type = type,
-                Min = -angleLimit,
-                Max = angleLimit,
+                Min = -limit,
+                Max = limit,
                 SpringFrequency = springFrequency,
                 DampingRatio = dampingRatio,
                 MaxImpulse = new float3(maxImpulseOfMotor, maxImpulseOfMotor, maxImpulseOfMotor),
@@ -353,4 +354,3 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.ECS.Builders
         }
     }
 }
-

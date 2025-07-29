@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 namespace mycoolfin.TheSimsulator.Sims.Genotype
 {
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    public readonly struct Node
+    public struct Node
     {
         public const float MIN_DIMENSION = 0.1f;
         public const float MAX_DIMENSION = 2.0f;
@@ -16,13 +16,13 @@ namespace mycoolfin.TheSimsulator.Sims.Genotype
         public const int MIN_CONNECTIONS = 0;
         public const int MAX_CONNECTIONS = 4;
 
-        public readonly ulong Gid;
-        public readonly Vector3 Dimensions;
-        public readonly JointDefinition JointDefinition;
-        public readonly int RecursiveLimit;
-        public readonly NodeColor Color;
+        public ulong Gid { get; set; }
+        public Vector3 Dimensions { get; set; }
+        public JointDefinition JointDefinition { get; set; }
+        public int RecursiveLimit { get; set; }
+        public NodeColor Color { get; set; }
 
-        public int SensorCount => JointDefinition.JointType.DegreesOfFreedom();
+        public readonly int SensorCount => JointDefinition.JointType.DegreesOfFreedom();
 
         public Node(Vector3 dimensions, JointDefinition jointDefinition, int recursiveLimit, NodeColor color)
         {
@@ -42,12 +42,12 @@ namespace mycoolfin.TheSimsulator.Sims.Genotype
             Color = color;
         }
 
-        public Node CopyWithNewGid()
+        public readonly Node CopyWithNewGid()
         {
             return new Node(Dimensions, JointDefinition, RecursiveLimit, Color);
         }
 
-        public Node CopyWithSameGid(JointDefinition newJointDefinition)
+        public readonly Node CopyWithSameGid(JointDefinition newJointDefinition)
         {
             return new Node(Gid, Dimensions, newJointDefinition, RecursiveLimit, Color);
         }

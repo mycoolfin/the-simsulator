@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 namespace mycoolfin.TheSimsulator.Sims.Genotype
 {
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    public readonly struct Connection
+    public struct Connection
     {
         public const int MIN_PARENT_FACE = 0;
         public const int MAX_PARENT_FACE = 5;
@@ -16,17 +16,17 @@ namespace mycoolfin.TheSimsulator.Sims.Genotype
         public const float MIN_SCALE = 0.1f;
         public const float MAX_SCALE = 2.0f;
 
-        public readonly ulong Gid;
-        public readonly ulong ParentNodeGid;
-        public readonly ulong ChildNodeGid;
-        public readonly int ParentFace;
-        public readonly Vector2 Position; // Position on the parent limb's face in [-1, 1]x[-1, 1].
-        public readonly Vector3 Orientation; // Euler angles in radians.
-        public readonly Vector3 Scale;
-        public readonly bool ReflectionX;
-        public readonly bool ReflectionY;
-        public readonly bool ReflectionZ;
-        public readonly bool TerminalOnly;
+        public ulong Gid { get; set; }
+        public ulong ParentNodeGid { get; set; }
+        public ulong ChildNodeGid { get; set; }
+        public int ParentFace { get; set; }
+        public Vector2 Position; // Position on the parent limb's face in [-1, 1]x[-1, 1] { get; set; }
+        public Vector3 Orientation; // Euler angles in radians { get; set; }
+        public Vector3 Scale { get; set; }
+        public bool ReflectionX { get; set; }
+        public bool ReflectionY { get; set; }
+        public bool ReflectionZ { get; set; }
+        public bool TerminalOnly { get; set; }
 
         public Connection(ulong parentNodeGid, ulong childNodeGid, int parentFace, Vector2 position, Vector3 orientation, Vector3 scale, bool reflectionX, bool reflectionY, bool reflectionZ, bool terminalOnly)
         {

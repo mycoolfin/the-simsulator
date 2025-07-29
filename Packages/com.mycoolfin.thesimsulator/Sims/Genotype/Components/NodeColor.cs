@@ -8,13 +8,13 @@ namespace mycoolfin.TheSimsulator.Sims.Genotype
         public const float MIN_COLOR_RECURSIVE_OFFSET = -0.1f;
         public const float MAX_COLOR_RECURSIVE_OFFSET = 0.1f;
 
-        public float H;
-        public float S;
-        public float V;
+        public float H { get; set; }
+        public float S { get; set; }
+        public float V { get; set; }
 
-        public float RecursiveOffsetH;
-        public float RecursiveOffsetS;
-        public float RecursiveOffsetV;
+        public float RecursiveOffsetH { get; set; }
+        public float RecursiveOffsetS { get; set; }
+        public float RecursiveOffsetV { get; set; }
 
         public NodeColor(float h, float s, float v, float recursiveOffsetH, float recursiveOffsetS, float recursiveOffsetV)
         {

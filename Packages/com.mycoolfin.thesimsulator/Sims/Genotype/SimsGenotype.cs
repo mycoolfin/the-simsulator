@@ -14,13 +14,14 @@ namespace mycoolfin.TheSimsulator.Sims.Genotype
 
         public const ulong BRAIN_GID = 0UL;
 
-        public readonly string Gid = SharedRandom.NextUInt64().ToString();
-        public readonly List<Node> Nodes;
-        public readonly List<Connection> Connections;
-        public readonly List<NeuronDefinition> NeuronDefinitions;
+        public string Gid { get; set; }
+        public List<Node> Nodes { get; set; }
+        public List<Connection> Connections { get; set; }
+        public List<NeuronDefinition> NeuronDefinitions { get; set; }
 
         public SimsGenotype(List<Node> nodes, List<Connection> connections, List<NeuronDefinition> neuronDefinitions)
         {
+            Gid = SharedRandom.NextUInt64().ToString();
             Nodes = nodes ?? throw new ArgumentNullException(nameof(nodes), "Nodes cannot be null.");
             Connections = connections ?? throw new ArgumentNullException(nameof(connections), "Connections cannot be null.");
             NeuronDefinitions = neuronDefinitions ?? throw new ArgumentNullException(nameof(neuronDefinitions), "NeuronDefinitions cannot be null.");

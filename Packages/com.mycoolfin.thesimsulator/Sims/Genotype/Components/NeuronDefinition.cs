@@ -31,12 +31,12 @@ namespace mycoolfin.TheSimsulator.Sims.Genotype
     }
 
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    public readonly struct NeuronDefinition
+    public struct NeuronDefinition
     {
-        public readonly ulong Gid;
-        public readonly ulong ContainerGid;
-        public readonly ActivationFunction ActivationFunction;
-        public readonly InputSetDefinition Inputs;
+        public ulong Gid { get; set; }
+        public ulong ContainerGid { get; set; }
+        public ActivationFunction ActivationFunction { get; set; }
+        public InputSetDefinition Inputs { get; set; }
 
         private const int ActivationFunctionCount = (int)ActivationFunction.SumThreshold + 1;
 
