@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace mycoolfin.TheSimsulator.UnityIntegration.Presentation
+namespace mycoolfin.TheSimsulator.UnityIntegration.UI
 {
     [RequireComponent(typeof(HingeJoint))]
     public class HingedPanel : MonoBehaviour

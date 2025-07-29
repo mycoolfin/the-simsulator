@@ -1,8 +1,10 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-namespace mycoolfin.TheSimsulator.UnityIntegration.Presentation.Interaction
+namespace mycoolfin.TheSimsulator.UnityIntegration.UI
 {
+    using Interactable;
+
     public class FPSPlayerController : MonoBehaviour
     {
         public Camera playerCamera;

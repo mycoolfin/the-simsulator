@@ -1,4 +1,4 @@
-namespace mycoolfin.TheSimsulator.UnityIntegration.Presentation.Interaction
+namespace mycoolfin.TheSimsulator.UnityIntegration.UI.Interactable
 {
     public interface IInteractable
     {

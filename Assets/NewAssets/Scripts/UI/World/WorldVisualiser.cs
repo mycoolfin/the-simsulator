@@ -2,7 +2,7 @@ using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 
-namespace mycoolfin.TheSimsulator.UnityIntegration.Presentation
+namespace mycoolfin.TheSimsulator.UnityIntegration.UI
 {
     using UnityIntegration.Evolution;
     using TrialType = ECS.Components.Evolution.TrialType;

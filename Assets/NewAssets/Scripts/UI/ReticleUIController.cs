@@ -1,8 +1,10 @@
 using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace mycoolfin.TheSimsulator.UnityIntegration.Presentation.Interaction
+namespace mycoolfin.TheSimsulator.UnityIntegration.UI
 {
+    using Interactable;
+
     [RequireComponent(typeof(UIDocument))]
     [RequireComponent(typeof(FPSPlayerController))]
     public class ReticleUIController : MonoBehaviour

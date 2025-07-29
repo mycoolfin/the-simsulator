@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace mycoolfin.TheSimsulator.UnityIntegration.Presentation.Interaction
+namespace mycoolfin.TheSimsulator.UnityIntegration.UI.Interactable
 {
     [RequireComponent(typeof(AudioSource))]
     [RequireComponent(typeof(EmitterController))]

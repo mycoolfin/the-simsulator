@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace mycoolfin.TheSimsulator.UnityIntegration.Presentation.Interaction
+namespace mycoolfin.TheSimsulator.UnityIntegration.UI.Interactable
 {
     using UnityIntegration.Evolution;
     using SimulationRateMode = ECS.Systems.Simulation.SimulationRate.SimulationRateMode;
