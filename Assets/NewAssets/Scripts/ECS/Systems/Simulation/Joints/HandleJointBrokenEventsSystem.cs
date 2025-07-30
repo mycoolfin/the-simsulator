@@ -2,10 +2,10 @@ using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Jobs;
-using mycoolfin.TheSimsulator.Sims.Phenotype;
 
 namespace mycoolfin.TheSimsulator.UnityIntegration.ECS.Systems.Simulation.Joints
 {
+    using Sims.Phenotype;
     using Components.Phenotype;
     using NeuralNetwork;
 

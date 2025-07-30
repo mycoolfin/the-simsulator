@@ -16,7 +16,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.ECS.Builders
                 typeof(PhenotypeGid),
                 typeof(LimbCount),
                 typeof(LimbStatus),
-                typeof(PhenotypeCreatedAt),
+                typeof(PhenotypeSimulationTime),
                 typeof(NeuralGraphRef),
                 typeof(EmitterState),
                 typeof(PhenotypeBoundingBox)
@@ -36,8 +36,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.ECS.Builders
                 Requests = rootPhenotypeCreationRequests,
                 RootPhenotypeEntities = rootPhenotypeEntities,
                 RootPhenotypeEntityLookup = rootPhenotypeEntityLookup.AsParallelWriter(),
-                NeuralGraphLookup = neuralGraphLookup.AsParallelWriter(),
-                ElapsedTime = elapsedTime
+                NeuralGraphLookup = neuralGraphLookup.AsParallelWriter()
             };
             setUpRootPhenotypeEntityJob.ScheduleParallelByRef(rootPhenotypeCreationRequestEntities.Length, 64, state.Dependency).Complete();
             ecb.Playback(state.EntityManager);
@@ -52,7 +51,6 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.ECS.Builders
             [ReadOnly] public NativeArray<Entity> RootPhenotypeEntities;
             public NativeParallelHashMap<ulong, Entity>.ParallelWriter RootPhenotypeEntityLookup;
             public NativeParallelHashMap<ulong, NeuralGraphRef>.ParallelWriter NeuralGraphLookup;
-            public float ElapsedTime;
 
             public void Execute(int index)
             {
@@ -69,8 +67,8 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.ECS.Builders
                 DynamicBuffer<LimbStatus> limbStatusBuf = Ecb.AddBuffer<LimbStatus>(index, rootPhenotypeEntity);
                 limbStatusBuf.Resize(requestData.LimbCount, NativeArrayOptions.ClearMemory);
 
-                // Creation time.
-                Ecb.SetComponent(index, rootPhenotypeEntity, new PhenotypeCreatedAt { Value = ElapsedTime });
+                // Simulation time.
+                Ecb.SetComponent(index, rootPhenotypeEntity, new PhenotypeSimulationTime { Value = 0 });
 
                 // Neural graph blob reference.
                 NeuralGraphRef neuralGraphRef = new() { Value = requestData.Graph };

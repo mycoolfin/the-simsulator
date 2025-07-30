@@ -3,10 +3,10 @@ using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
-using mycoolfin.TheSimsulator.Sims.Genotype;
 
 namespace mycoolfin.TheSimsulator.UnityIntegration.ECS.Systems.Simulation.Neurons
 {
+    using Sims.Genotype;
     using Components.Phenotype;
     using Sensors;
     using Actuators;
@@ -37,7 +37,6 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.ECS.Systems.Simulation.Neuron
             state.Dependency = new UpdateNeuronJob
             {
                 LimbStatusLookup = limbStatusLookup,
-                ElapsedTime = (float)fixedStepGroup.World.Time.ElapsedTime,
                 DeltaTime = fixedStepGroup.World.Time.DeltaTime,
                 InverseDeltaTime = 1f / math.max(fixedStepGroup.World.Time.DeltaTime, 1e-5f),
             }.ScheduleParallel(state.Dependency);
@@ -48,14 +47,13 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.ECS.Systems.Simulation.Neuron
     public partial struct UpdateNeuronJob : IJobEntity
     {
         [ReadOnly] public BufferLookup<LimbStatus> LimbStatusLookup;
-        public float ElapsedTime;
         public float DeltaTime;
         public float InverseDeltaTime;
 
-        public void Execute(Entity rootPhenotypeEntity, in LimbCount limbCount, in PhenotypeCreatedAt createdAt, in NeuralGraphRef graphRef, ref DynamicBuffer<EmitterState> emitterStates)
+        public void Execute(Entity rootPhenotypeEntity, in LimbCount limbCount, in PhenotypeSimulationTime simulationTime, in NeuralGraphRef graphRef, ref DynamicBuffer<EmitterState> emitterStates)
         {
             DynamicBuffer<LimbStatus> limbStatuses = LimbStatusLookup[rootPhenotypeEntity];
-            float phenotypeElapsedTime = ElapsedTime - createdAt.Value;
+            float phenotypeSimulationTime = simulationTime.Value;
             ref readonly BlobAssetReference<CompiledNeuralGraph> graph = ref graphRef.Value;
             ref BlobArray<CompiledNeuralGraph.ArraySlice> actuatorSlices = ref graph.Value.ActuatorSlices;
             ref BlobArray<CompiledNeuralGraph.ArraySlice> limbNeuronSlices = ref graph.Value.LimbNeuronSlices;
@@ -82,24 +80,24 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.ECS.Systems.Simulation.Neuron
                 for (int i = 0; i < actuatorSlice.count; i++)
                     UpdateNeuron(ref inputMetas, ref e, (ushort)(actStartIndex + i),
                         in actuatorsMeta[actuatorSlice.startIndex + i].neuronMeta,
-                        phenotypeElapsedTime, DeltaTime, InverseDeltaTime);
+                        phenotypeSimulationTime, DeltaTime, InverseDeltaTime);
                 for (int i = 0; i < limbNeuronSlice.count; i++)
                     UpdateNeuron(ref inputMetas, ref e, (ushort)(lnStartIndex + i),
                         in limbNeuronsMeta[limbNeuronSlice.startIndex + i],
-                        phenotypeElapsedTime, DeltaTime, InverseDeltaTime);
+                        phenotypeSimulationTime, DeltaTime, InverseDeltaTime);
             }
 
             // Update brain neurons.
             for (int i = 0; i < graph.Value.BrainNeuronCount; i++)
                 UpdateNeuron(ref inputMetas, ref e, (ushort)(brainNeuronEmitterStartIndex + i),
                     in brainNeuronsMeta[i],
-                    phenotypeElapsedTime, DeltaTime, InverseDeltaTime);
+                    phenotypeSimulationTime, DeltaTime, InverseDeltaTime);
         }
 
-        private static void UpdateNeuron(ref BlobArray<CompiledNeuralGraph.InputMeta> inputMetas, ref NativeArray<float> e, ushort emitterIndex, in CompiledNeuralGraph.NeuronMeta neuronMeta, float phenotypeElapsedTime, float DeltaTime, float InverseDeltaTime)
+        private static void UpdateNeuron(ref BlobArray<CompiledNeuralGraph.InputMeta> inputMetas, ref NativeArray<float> e, ushort emitterIndex, in CompiledNeuralGraph.NeuronMeta neuronMeta, float phenotypeSimulationTime, float DeltaTime, float InverseDeltaTime)
         {
             float previousValue = e[emitterIndex];
-            float newValue = Activate(neuronMeta.activationFunction, in neuronMeta, ref inputMetas, e, previousValue, phenotypeElapsedTime, DeltaTime, InverseDeltaTime);
+            float newValue = Activate(neuronMeta.activationFunction, in neuronMeta, ref inputMetas, e, previousValue, phenotypeSimulationTime, DeltaTime, InverseDeltaTime);
             e[emitterIndex] = newValue;
         }
 

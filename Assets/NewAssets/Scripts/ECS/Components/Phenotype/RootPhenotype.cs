@@ -26,7 +26,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.ECS.Components.Phenotype
         public AttachmentState AttachmentState;
     }
 
-    public struct PhenotypeCreatedAt : IComponentData
+    public struct PhenotypeSimulationTime : IComponentData
     {
         public float Value;
     }
