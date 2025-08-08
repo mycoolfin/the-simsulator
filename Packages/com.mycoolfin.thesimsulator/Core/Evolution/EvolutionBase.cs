@@ -17,18 +17,19 @@ namespace mycoolfin.TheSimsulator.Core.Evolution
         public int Seed { get; set; } = Environment.TickCount;
     }
 
-    public abstract class EvolutionBase<TEvolutionConfig, TGenotype, TPhenotype> : IDisposable
+    public abstract class EvolutionBase<TEvolutionConfig, TGenotype, TPhenotype, TIndividual> : IDisposable
         where TEvolutionConfig : EvolutionConfigBase
         where TGenotype : IGenotype<TGenotype>
         where TPhenotype : IPhenotype<TPhenotype>
+        where TIndividual : IIndividual<TGenotype, TPhenotype>, new()
     {
-        private readonly TEvolutionConfig config;
+        private readonly EvolutionConfigBase config;
 
         protected IGenotypeFactory<TGenotype> genotypeFactory;
         protected IPhenotypeFactory<TGenotype, TPhenotype> phenotypeFactory;
 
-        protected List<Individual<TGenotype, TPhenotype>> population;
-        public IReadOnlyList<Individual<TGenotype, TPhenotype>> Population => population.AsReadOnly();
+        protected List<TIndividual> population;
+        public IReadOnlyList<TIndividual> Population => population.AsReadOnly();
 
         /// <summary>
         /// Delegate for assessing individuals.
@@ -36,7 +37,7 @@ namespace mycoolfin.TheSimsulator.Core.Evolution
         /// </summary>
         /// <param name="population">The population of individuals.</param>
         /// <returns>A task that completes when the assessment is done.</returns>
-        public delegate Task AssessIndividualsDelegate(List<Individual<TGenotype, TPhenotype>> population, CancellationToken cancellationToken);
+        public delegate Task AssessIndividualsDelegate(List<TIndividual> population, CancellationToken cancellationToken);
         protected AssessIndividualsDelegate AssessIndividuals;
 
         public int IterationCount { get; private set; } = 0;
@@ -98,8 +99,8 @@ namespace mycoolfin.TheSimsulator.Core.Evolution
             isIterating = true;
 
             // Dispose of old phenotypes.
-            foreach (Individual<TGenotype, TPhenotype> individual in population)
-                individual.phenotype?.Dispose();
+            foreach (TIndividual individual in population)
+                individual.Phenotype?.Dispose();
 
             // Create new genotypes.
             List<TGenotype> genotypes;
@@ -115,10 +116,10 @@ namespace mycoolfin.TheSimsulator.Core.Evolution
             else // Create the next population based on assessed fitnesses.
             {
                 int maxSurvivors = (int)Math.Ceiling(config.PopulationSize * config.SurvivalRate);
-                List<Individual<TGenotype, TPhenotype>> survivors = SelectSurvivors(population, maxSurvivors);
+                List<TIndividual> survivors = SelectSurvivors(population, maxSurvivors);
                 int offspringNeeded = config.PopulationSize - survivors.Count;
 
-                genotypes = survivors.Select(s => s.genotype).ToList();
+                genotypes = survivors.Select(s => s.Genotype).ToList();
                 if (offspringNeeded > 0)
                 {
                     // Choose parent pairs and create offspring.
@@ -169,9 +170,9 @@ namespace mycoolfin.TheSimsulator.Core.Evolution
             {
                 population.Add(new()
                 {
-                    genotype = genotypes[i],
-                    phenotype = phenotypes[i],
-                    fitness = 0
+                    Genotype = genotypes[i],
+                    Phenotype = phenotypes[i],
+                    Fitness = 0
                 });
             }
 
@@ -181,8 +182,8 @@ namespace mycoolfin.TheSimsulator.Core.Evolution
             OnAssessmentEnd?.Invoke();
 
             // Clamp fitnesses above zero.
-            foreach (Individual<TGenotype, TPhenotype> individual in population)
-                individual.fitness = Math.Max(0, individual.fitness);
+            foreach (TIndividual individual in population)
+                individual.Fitness = Math.Max(0, individual.Fitness);
 
             OnIterationEnd?.Invoke();
 
@@ -194,19 +195,17 @@ namespace mycoolfin.TheSimsulator.Core.Evolution
         /// </summary>
         /// <param name="population"></param>
         /// <param name="maxSurvivors"></param>
-        /// <param name="includeZeroFitness"></param>
         /// <returns>
         /// A list of individuals of maximum length maxSurvivors, ordered by fitness in descending order.
         /// </returns>
-        public List<Individual<TGenotype, TPhenotype>> SelectSurvivors(
-            List<Individual<TGenotype, TPhenotype>> population,
-            int maxSurvivors,
-            bool includeZeroFitness = false
+        public List<TIndividual> SelectSurvivors(
+            List<TIndividual> population,
+            int maxSurvivors
         )
         {
             return population
-            .Where(x => includeZeroFitness || x.fitness > 0)
-            .OrderByDescending(x => x.fitness)
+            .Where(x => x.Fitness > 0)
+            .OrderByDescending(x => x.Fitness)
             .Take(maxSurvivors)
             .ToList();
         }
@@ -219,7 +218,7 @@ namespace mycoolfin.TheSimsulator.Core.Evolution
         /// <returns>
         /// A list of tuples containing the genotypes of the selected parent pairs.
         /// </returns> 
-        protected List<(TGenotype, TGenotype)> ChooseParents(IReadOnlyList<Individual<TGenotype, TPhenotype>> parents, int pairsWanted)
+        protected List<(TGenotype, TGenotype)> ChooseParents(IReadOnlyList<TIndividual> parents, int pairsWanted)
         {
             if (parents == null)
                 throw new ArgumentNullException(nameof(parents));
@@ -235,7 +234,7 @@ namespace mycoolfin.TheSimsulator.Core.Evolution
             double running = 0.0;
             for (int k = 0; k < n; ++k)
             {
-                running += parents[k].fitness;
+                running += parents[k].Fitness;
                 cum[k] = running;
             }
             double totalFit = running;
@@ -274,7 +273,7 @@ namespace mycoolfin.TheSimsulator.Core.Evolution
                 }
                 else
                 {
-                    double fit1 = p1.fitness;
+                    double fit1 = p1.Fitness;
                     // Pick in [0, totalFit-fit1).
                     double r = SharedRandom.NextDouble() * (totalFit - fit1);
                     // Translate into original wheel, skipping slice i.
@@ -285,10 +284,10 @@ namespace mycoolfin.TheSimsulator.Core.Evolution
                 var p2 = parents[j];
 
                 // Order as (more-fit, less-fit).
-                if (p1.fitness >= p2.fitness)
-                    result.Add((p1.genotype, p2.genotype));
+                if (p1.Fitness >= p2.Fitness)
+                    result.Add((p1.Genotype, p2.Genotype));
                 else
-                    result.Add((p2.genotype, p1.genotype));
+                    result.Add((p2.Genotype, p1.Genotype));
             }
 
             return result;

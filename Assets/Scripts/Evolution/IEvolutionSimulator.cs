@@ -1,0 +1,52 @@
+using System;
+using System.Collections.Generic;
+using Unity.Entities;
+
+namespace mycoolfin.TheSimsulator.UnityIntegration.Evolution
+{
+    public interface IEvolutionSimulator
+    {
+        // Evolution parameters.
+        int PopulationSize { get; }
+        int MaxGenerations { get; }
+        float SurvivalRate { get; }
+        int MaxSurvivors { get; }
+        float MutationRate { get; }
+        float SettleSeconds { get; }
+        float AssessmentSeconds { get; }
+        TrialType TrialType { get; }
+        string SeedGenotypeName { get; }
+        bool LockMorphologies { get; }
+
+        // Runtime status.
+        bool IsRunning { get; }
+        bool IsEvolutionLoopPaused { get; }
+        bool IsSimulationPaused { get; }
+        bool IsSimulationRealTime { get; }
+        bool IsSimulationFullSpeed { get; }
+        bool IsSimulationHeadless { get; }
+        int CurrentGeneration { get; }
+        float SettleProgress { get; }
+        float AssessmentProgress { get; }
+        IReadOnlyList<EvolutionStatistics> Statistics { get; }
+
+        // Events.
+        event Action OnEvolutionStart;
+        event Action<World> OnEcsWorldCreated;
+        event Action<int> OnGenerationStart;
+        event Action<EvolutionStatistics> OnGenerationComplete;
+        event Action OnEvolutionComplete;
+
+        // Methods.
+        void SetEvolutionParameters(EvolutionParameters parameters);
+        void StartEvolution();
+        void StopEvolution();
+        void SetEvolutionLoopPaused(bool paused);
+        void PauseSimulation();
+        void RealTimeSimulation();
+        void FullSpeedSimulation();
+        void HeadlessSimulation();
+
+        List<IAssessableCreature> GetBestIndividuals(int count);
+    }
+}

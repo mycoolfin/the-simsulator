@@ -14,6 +14,7 @@ namespace mycoolfin.TheSimsulator.Sims.Genotype
 
         public const ulong BRAIN_GID = 0UL;
 
+        public string Name { get; set; }
         public string Gid { get; set; }
         public List<Node> Nodes { get; set; }
         public List<Connection> Connections { get; set; }
@@ -21,6 +22,7 @@ namespace mycoolfin.TheSimsulator.Sims.Genotype
 
         public SimsGenotype(List<Node> nodes, List<Connection> connections, List<NeuronDefinition> neuronDefinitions)
         {
+            Name = "<Unnamed>";
             Gid = SharedRandom.NextUInt64().ToString();
             Nodes = nodes ?? throw new ArgumentNullException(nameof(nodes), "Nodes cannot be null.");
             Connections = connections ?? throw new ArgumentNullException(nameof(connections), "Connections cannot be null.");
