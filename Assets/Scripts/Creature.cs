@@ -63,7 +63,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration
             return Breed(other);
         }
 
-        public void Select(bool toggle, bool multiselect)
+        public void Select()
         {
             // TODO
         }

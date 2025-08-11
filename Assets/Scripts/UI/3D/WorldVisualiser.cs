@@ -2,7 +2,7 @@ using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 
-namespace mycoolfin.TheSimsulator.UnityIntegration.UI
+namespace mycoolfin.TheSimsulator.UnityIntegration.UI.ThreeD
 {
     using UnityIntegration.Evolution;
 

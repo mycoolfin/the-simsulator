@@ -1,11 +1,11 @@
 using System;
 using UnityEngine;
 
-namespace mycoolfin.TheSimsulator.UnityIntegration.UI.Interactable
+namespace mycoolfin.TheSimsulator.UnityIntegration.UI.ThreeD
 {
     [RequireComponent(typeof(AudioSource))]
     [RequireComponent(typeof(EmitterController))]
-    public class PushButton : MonoBehaviour, IInteractable
+    public class PushButton : MonoBehaviour, ISelectable
     {
         [SerializeField] private Color inactiveColor = Color.gray;
         [SerializeField] private float inactiveEmissivity = 0.1f;
@@ -16,11 +16,13 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.UI.Interactable
 
         private AudioSource audioSource;
         private EmitterController emitterController;
+        private Collider buttonCollider;
 
         private void Start()
         {
             audioSource = GetComponent<AudioSource>();
             emitterController = GetComponent<EmitterController>();
+            buttonCollider = GetComponent<Collider>();
             SetActive(false);
         }
 
@@ -38,7 +40,11 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.UI.Interactable
             emitterController.SetEmissiveIntensity(active ? activeEmissivity : inactiveEmissivity);
         }
 
-        public void Interact()
+        public Vector3 WorldPosition => transform.position;
+        public Quaternion WorldRotation => transform.rotation;
+        public Bounds Bounds => buttonCollider.bounds;
+
+        public void Select()
         {
             Push();
         }

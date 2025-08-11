@@ -2,18 +2,17 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.EventSystems;
 
-namespace mycoolfin.TheSimsulator.UnityIntegration.UI
+namespace mycoolfin.TheSimsulator.UnityIntegration.UI.Player
 {
     public class PlayerController : MonoBehaviour
     {
-        public Camera playerCamera;
+        public UnityEngine.Camera playerCamera;
         public Transform orbitTarget;
         public float movementMultiplier;
         public float lookMultiplier;
         public float scrollMultiplier;
         public float panMultiplier;
         public bool passThroughUI = false;
-        public bool toggleOnSelect = true;
 
         private Vector2 horizontalMovement;
         private float verticalMovement;
@@ -136,7 +135,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.UI
             {
                 if (hit.transform.TryGetComponent(out ISelectable selected))
                 {
-                    selected.Select(toggleOnSelect, false);
+                    selected.Select();
                     return;
                 }
             }

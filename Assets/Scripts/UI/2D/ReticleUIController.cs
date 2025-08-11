@@ -3,7 +3,7 @@ using UnityEngine.UIElements;
 
 namespace mycoolfin.TheSimsulator.UnityIntegration.UI
 {
-    using Interactable;
+    using Player;
 
     [RequireComponent(typeof(UIDocument))]
     [RequireComponent(typeof(FPSPlayerController))]
@@ -81,7 +81,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.UI
 
             if (Physics.Raycast(ray, out RaycastHit hit, playerController.interactionRange, playerController.interactionLayerMask))
             {
-                return hit.collider.GetComponent<IInteractable>() != null;
+                return hit.collider.GetComponent<ISelectable>() != null;
             }
 
             return false;

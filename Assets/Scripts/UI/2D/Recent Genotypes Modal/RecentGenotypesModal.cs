@@ -5,7 +5,7 @@
 // using UnityEngine;
 // using UnityEngine.UIElements;
 
-// namespace mycoolfin.TheSimsulator.UnityIntegration.UI.Screen
+// namespace mycoolfin.TheSimsulator.UnityIntegration.UI.TwoD
 // {
 //     public class RecentGenotypesModal : MonoBehaviour
 //     {

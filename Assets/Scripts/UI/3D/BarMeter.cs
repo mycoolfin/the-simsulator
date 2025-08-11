@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace mycoolfin.TheSimsulator.UnityIntegration.UI
+namespace mycoolfin.TheSimsulator.UnityIntegration.UI.ThreeD
 {
     public class BarMeter : MonoBehaviour
     {

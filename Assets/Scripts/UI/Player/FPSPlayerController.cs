@@ -1,13 +1,11 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-namespace mycoolfin.TheSimsulator.UnityIntegration.UI
+namespace mycoolfin.TheSimsulator.UnityIntegration.UI.Player
 {
-    using Interactable;
-
     public class FPSPlayerController : MonoBehaviour
     {
-        public Camera playerCamera;
+        public UnityEngine.Camera playerCamera;
         public CharacterController characterController;
 
         [Header("Movement Settings")]
@@ -133,9 +131,9 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.UI
 
             if (Physics.Raycast(ray, out RaycastHit hit, interactionRange, interactionLayerMask))
             {
-                if (hit.collider.TryGetComponent<IInteractable>(out var interactable))
+                if (hit.collider.TryGetComponent<ISelectable>(out var selectable))
                 {
-                    interactable.Interact();
+                    selectable.Select();
                 }
             }
         }

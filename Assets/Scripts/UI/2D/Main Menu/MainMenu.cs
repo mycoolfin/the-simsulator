@@ -2,8 +2,10 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-namespace mycoolfin.TheSimsulator.UnityIntegration.UI.Screen
+namespace mycoolfin.TheSimsulator.UnityIntegration.UI.TwoD
 {
+    using UI.Player;
+
     public class MainMenu : MonoBehaviour
     {
         public PlayerController player;

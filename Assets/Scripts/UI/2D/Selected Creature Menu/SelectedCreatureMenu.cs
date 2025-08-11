@@ -2,7 +2,7 @@ using System;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace mycoolfin.TheSimsulator.UnityIntegration.UI.Screen
+namespace mycoolfin.TheSimsulator.UnityIntegration.UI.TwoD
 {
     public class SelectedCreatureMenu : SelectedCreatureMenuBase<ICreature>
     {
@@ -11,7 +11,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.UI.Screen
     public abstract class SelectedCreatureMenuBase<TCreature> : MonoBehaviour
         where TCreature : class, ICreature
     {
-        public Camera cam;
+        public UnityEngine.Camera cam;
 
         private TCreature selectedCreature;
         public TCreature SelectedCreature => selectedCreature;

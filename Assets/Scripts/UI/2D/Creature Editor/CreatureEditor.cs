@@ -8,7 +8,7 @@
 // using UnityEditor;
 // using SFB;
 
-// namespace mycoolfin.TheSimsulator.UnityIntegration.UI.Screen
+// namespace mycoolfin.TheSimsulator.UnityIntegration.UI.TwoD
 // {
 //     public class CreatureEditor : MonoBehaviour
 //     {

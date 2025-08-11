@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace mycoolfin.TheSimsulator.UnityIntegration.UI.Interactable
+namespace mycoolfin.TheSimsulator.UnityIntegration.UI.ThreeD
 {
     using Evolution;
 

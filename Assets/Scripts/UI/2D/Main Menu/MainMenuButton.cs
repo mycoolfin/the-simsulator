@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace mycoolfin.TheSimsulator.UnityIntegration.UI.Screen
+namespace mycoolfin.TheSimsulator.UnityIntegration.UI.TwoD
 {
     public class MainMenuButton : MonoBehaviour, ISelectable
     {
@@ -29,7 +29,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.UI.Screen
             meshRenderer.material.color = new Color(defaultColor.r, defaultColor.g, defaultColor.b, a);
         }
 
-        public void Select(bool toggle, bool multiselect)
+        public void Select()
         {
             OnSelect();
         }

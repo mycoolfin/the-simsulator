@@ -5,8 +5,10 @@ using UnityEngine.SceneManagement;
 using UnityEngine.UIElements;
 using SFB;
 
-namespace mycoolfin.TheSimsulator.UnityIntegration.UI.Screen
+namespace mycoolfin.TheSimsulator.UnityIntegration.UI.TwoD
 {
+    using UI.Player;
+
     public class ZooModeMenu : MonoBehaviour
     {
         public PlayerController playerController;
@@ -264,7 +266,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.UI.Screen
         private void ToggleBreeding(bool breeding)
         {
             breedingCreature = breeding;
-            playerController.toggleOnSelect = !breeding;
+            // playerController.toggleOnSelect = !breeding;
             selectedCreatureMenu.SetInfoText(breedingCreature ? "Select a creature to breed with..." : null);
             if (breeding)
             {

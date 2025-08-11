@@ -1,7 +1,7 @@
 using System;
 using UnityEngine.UIElements;
 
-namespace mycoolfin.TheSimsulator.UnityIntegration.UI.Screen
+namespace mycoolfin.TheSimsulator.UnityIntegration.UI.TwoD
 {
     using Evolution;
 

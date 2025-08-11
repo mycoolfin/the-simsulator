@@ -4,9 +4,10 @@ using UnityEngine.UIElements;
 
 // TODO: New paradigm - FocusGrid individuals will use a separate world. "Frames", "capsules" etc. should all use the same methodology.
 
-namespace mycoolfin.TheSimsulator.UnityIntegration.UI.Screen
+namespace mycoolfin.TheSimsulator.UnityIntegration.UI.TwoD
 {
     using Evolution;
+    using UI.Camera;
 
     public class FocusGrid : MonoBehaviour
     {

@@ -5,13 +5,14 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UIElements;
+using Unity.Entities;
 using SFB;
 
-namespace mycoolfin.TheSimsulator.UnityIntegration.UI.Screen
+namespace mycoolfin.TheSimsulator.UnityIntegration.UI.TwoD
 {
     using Utilities;
     using Evolution;
-    using Unity.Entities;
+    using UI.Player;
 
     public class EvolutionSimulatorMenu : MonoBehaviour
     {

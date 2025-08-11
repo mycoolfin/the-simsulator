@@ -1,9 +1,10 @@
 using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace mycoolfin.TheSimsulator.UnityIntegration.UI.Screen
+namespace mycoolfin.TheSimsulator.UnityIntegration.UI.TwoD
 {
     using Evolution;
+    using UI.Camera;
 
     public class FocusFrame
     {
@@ -60,7 +61,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.UI.Screen
             frameElement.style.width = 300;
             frameElement.style.height = 200;
             viewport.style.backgroundImage = new StyleBackground(Background.FromRenderTexture(rt));
-            followCamera.GetComponent<Camera>().targetTexture = rt;
+            followCamera.GetComponent<UnityEngine.Camera>().targetTexture = rt;
         }
     }
 }

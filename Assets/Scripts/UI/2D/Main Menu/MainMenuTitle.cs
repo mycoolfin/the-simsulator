@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace mycoolfin.TheSimsulator.UnityIntegration.UI.Screen
+namespace mycoolfin.TheSimsulator.UnityIntegration.UI.TwoD
 {
     public class MainMenuTitle : MonoBehaviour
     {

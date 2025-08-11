@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace mycoolfin.TheSimsulator.UnityIntegration.UI
+namespace mycoolfin.TheSimsulator.UnityIntegration.UI.ThreeD
 {
     public class EmitterController : MonoBehaviour
     {

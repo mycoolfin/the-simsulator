@@ -1,17 +1,17 @@
 using UnityEngine;
 
-namespace mycoolfin.TheSimsulator.UnityIntegration.UI
+namespace mycoolfin.TheSimsulator.UnityIntegration.UI.Camera
 {
     public class FollowCamera : MonoBehaviour
     {
-        public Camera cam;
+        public UnityEngine.Camera cam;
         private ISelectable target;
         private float desiredHeight;
         private float desiredDistance;
 
         private void Awake()
         {
-            cam = GetComponent<Camera>();
+            cam = GetComponent<UnityEngine.Camera>();
         }
 
         private void Update()
