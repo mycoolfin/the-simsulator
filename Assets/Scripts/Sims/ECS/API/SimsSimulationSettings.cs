@@ -12,6 +12,9 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.API
     {
         public void SetGravity(World world, float3 gravity)
         {
+            if (!world.IsCreated)
+                return;
+
             EntityManager entityManager = world.EntityManager;
             EntityQuery query = entityManager.CreateEntityQuery(typeof(PhysicsStep));
             PhysicsStep p = PhysicsStep.Default;
@@ -22,6 +25,9 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.API
 
         public void SetFluidSimulation(World world, bool enabled, float fluidDensity = 1000f)
         {
+            if (!world.IsCreated)
+                return;
+
             EntityManager entityManager = world.EntityManager;
             EntityQuery query = entityManager.CreateEntityQuery(typeof(FluidSimulationSettings));
             FluidSimulationSettings settings = new() { Enabled = (byte)(enabled ? 1 : 0), FluidDensity = fluidDensity };
@@ -31,6 +37,9 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.API
 
         public void SetJointBreakSystemEnabled(World world, bool enabled)
         {
+            if (!world.IsCreated)
+                return;
+
             EntityManager entityManager = world.EntityManager;
             EntityQuery query = entityManager.CreateEntityQuery(typeof(JointBreakSystemSettings));
             JointBreakSystemSettings settings = new() { Enabled = enabled };

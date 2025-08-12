@@ -15,8 +15,9 @@ MonoBehaviour:
   themeUss: {fileID: -4733365628477956816, guid: 9c738bcec0121423d878155ae5ba55d1, type: 3}
   m_DisableNoThemeWarning: 0
   m_TargetTexture: {fileID: 0}
-  m_RenderMode: 0
-  m_WorldSpaceLayer: 0
+  m_RenderMode: 1
+  m_ColliderUpdateMode: 0
+  m_ColliderIsTrigger: 1
   m_ScaleMode: 1
   m_ReferenceSpritePixelsPerUnit: 100
   m_PixelsPerUnit: 100

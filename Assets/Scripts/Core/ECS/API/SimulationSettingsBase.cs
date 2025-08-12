@@ -14,6 +14,9 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.ECS.API
 
         public void SetSimulationRateControllerMode(World world, SimulationRateMode mode)
         {
+            if (!world.IsCreated)
+                return;
+
             EntityManager entityManager = world.EntityManager;
             EntityQuery query = entityManager.CreateEntityQuery(typeof(SimulationRateControllerSettings));
             SimulationRateControllerSettings settings = new() { Mode = mode };

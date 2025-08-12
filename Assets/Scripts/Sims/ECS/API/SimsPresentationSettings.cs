@@ -9,6 +9,9 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.API
     {
         public override void SetColorByFitness(World world, bool enabled)
         {
+            if (!world.IsCreated)
+                return;
+
             EntityManager entityManager = world.EntityManager;
             EntityQuery query = entityManager.CreateEntityQuery(typeof(FitnessVisualisationSystemSettings));
             if (query.IsEmptyIgnoreFilter)
@@ -23,6 +26,9 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.API
 
         public override void SetFilterBySurvivors(World world, bool enabled, int maxSurvivors = 0)
         {
+            if (!world.IsCreated)
+                return;
+
             EntityManager entityManager = world.EntityManager;
             EntityQuery query = entityManager.CreateEntityQuery(typeof(FitnessVisualisationSystemSettings));
             if (query.IsEmptyIgnoreFilter)

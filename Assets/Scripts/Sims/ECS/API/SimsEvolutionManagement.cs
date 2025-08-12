@@ -33,6 +33,9 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.API
 
         public IEnumerator InitialiseTrial(World world, TrialType trialType, Func<SimulationRateMode> GetSimulationRateModeCallback)
         {
+            if (!world.IsCreated)
+                yield break;
+
             EntityManager entityManager = world.EntityManager;
 
             // Reset the physical world.
@@ -41,6 +44,9 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.API
             DestroyGroundPlane(world);
 
             yield return SettleJoints(world, 2f, GetSimulationRateModeCallback); // Necessary as long as the joint flip bug exists.
+            
+            if (!world.IsCreated)
+                yield break;
 
             // Set trial-specific environment settings.
             if (trialType == TrialType.GroundDistance)
@@ -65,6 +71,9 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.API
 
         private void CreateGroundPlane(World world)
         {
+            if (!world.IsCreated)
+                return;
+
             float groundSize = 1000f; // Large but not infinite to avoid physics issues
             float groundThickness = 1f;
 
@@ -103,6 +112,9 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.API
 
         private void DestroyGroundPlane(World world)
         {
+            if (!world.IsCreated)
+                return;
+
             EntityManager entityManager = world.EntityManager;
             EntityQuery groundPlaneQuery = entityManager.CreateEntityQuery(ComponentType.ReadOnly<GroundPlaneTag>());
             if (!groundPlaneQuery.IsEmptyIgnoreFilter)
@@ -114,6 +126,9 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.API
 
         private IEnumerator SettleJoints(World world, float settleSeconds, Func<SimulationRateMode> GetSimulationRateModeCallback, IProgress<float> progress = null)
         {
+            if (!world.IsCreated)
+                yield break;
+
             EntityManager entityManager = world.EntityManager;
 
             // Freeze the root limbs for all phenotypes.
@@ -139,6 +154,9 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.API
 
         public IEnumerator SettlePhenotypes(World world, float settleSeconds, Func<SimulationRateMode> GetSimulationRateModeCallback, IProgress<float> progress = null)
         {
+            if (!world.IsCreated)
+                yield break;
+
             EntityManager entityManager = world.EntityManager;
 
             simulationSettings.SetJointBreakSystemEnabled(world, true);
@@ -150,6 +168,9 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.API
 
         public IEnumerator AssessPhenotypes(World world, TrialType trialType, float assessmentSeconds, Func<SimulationRateMode> GetSimulationRateModeCallback, IProgress<float> progress = null)
         {
+            if (!world.IsCreated)
+                yield break;
+
             EntityManager entityManager = world.EntityManager;
             entityManager.CreateSingleton(new BeginAssessmentRequest { TrialType = trialType });
             yield return SimulateForSeconds(world, assessmentSeconds, GetSimulationRateModeCallback, progress);
@@ -157,6 +178,9 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.API
 
         public Dictionary<ulong, float> GetAssessmentResults(World world)
         {
+            if (!world.IsCreated)
+                return new Dictionary<ulong, float>();
+
             EntityManager entityManager = world.EntityManager;
             EntityQuery query = entityManager.CreateEntityQuery(typeof(PhenotypeGid), typeof(Fitness), typeof(LimbStatus));
 
@@ -182,6 +206,9 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.API
 
         private IEnumerator SimulateForSeconds(World world, float seconds, Func<SimulationRateMode> GetSimulationRateModeCallback, IProgress<float> progress = null)
         {
+            if (!world.IsCreated)
+                yield break;
+
             EntityManager entityManager = world.EntityManager;
             SimulationRateMode mode = GetSimulationRateModeCallback?.Invoke() ?? SimulationRateMode.RealTime;
             simulationSettings.SetSimulationRateControllerMode(world, mode);
@@ -190,6 +217,9 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.API
             world.Unmanaged.GetExistingSystemState<FixedStepSimulationSystemGroup>().Enabled = true;
             while (entityManager.HasComponent<FixedStepPauseAfterTimerRequest>(timerSingleton))
             {
+                if (!world.IsCreated)
+                    yield break;
+
                 SimulationRateMode newMode = GetSimulationRateModeCallback?.Invoke() ?? SimulationRateMode.RealTime;
                 if (newMode != mode)
                 {

@@ -9,6 +9,9 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.ECS.API
     {
         public void SetWorldVisualOffset(World world, float4x4 transformMatrix)
         {
+            if (!world.IsCreated)
+                return;
+
             EntityManager entityManager = world.EntityManager;
             EntityQuery query = entityManager.CreateEntityQuery(typeof(WorldVisualOffset));
             WorldVisualOffset visualOffset = new() { TransformMatrix = transformMatrix };
