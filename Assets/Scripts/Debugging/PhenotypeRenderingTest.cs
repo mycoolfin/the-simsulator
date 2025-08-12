@@ -7,7 +7,8 @@ using Unity.Entities;
 using System.Threading.Tasks;
 using System.Collections.Concurrent;
 using System.Linq;
-using mycoolfin.TheSimsulator.UnityIntegration.ECS.API;
+using mycoolfin.TheSimsulator.UnityIntegration.Core.ECS.API;
+using mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.API;
 
 public class PhenotypeRenderingTest : UnityEngine.MonoBehaviour
 {

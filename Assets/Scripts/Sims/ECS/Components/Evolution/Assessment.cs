@@ -1,0 +1,20 @@
+using Unity.Entities;
+using Unity.Mathematics;
+
+namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Components.Evolution
+{
+    public struct Fitness : IComponentData
+    {
+        public float Value;
+    }
+
+    public struct GroundDistanceAssessmentData : IComponentData
+    {
+        public float3 StartPosition;
+    }
+
+    public struct WaterDistanceAssessmentData : IComponentData
+    {
+        public float3 StartPosition;
+    }
+}

@@ -584,6 +584,57 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!1 &1005240740366907183
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7888199907129474824}
+  - component: {fileID: 8308118176286841317}
+  m_Layer: 0
+  m_Name: Best Fitness Graph Document
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7888199907129474824
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1005240740366907183}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0.5, z: -0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 7151481692047648291}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &8308118176286841317
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1005240740366907183}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 19102, guid: 0000000000000000e000000000000000, type: 0}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_PanelSettings: {fileID: 11400000, guid: 86b8ca1cf746d4d5889c0032cda950ee, type: 2}
+  m_ParentUI: {fileID: 0}
+  sourceAsset: {fileID: 0}
+  m_SortingOrder: 0
+  m_WorldSpaceSizeMode: 1
+  m_WorldSpaceWidth: 1920
+  m_WorldSpaceHeight: 1080
 --- !u!1 &1190431859330159133
 GameObject:
   m_ObjectHideFlags: 0
@@ -897,12 +948,12 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: 21300000, guid: 4b35b3b8b1e054e148188a35eb97c5fc, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 8f0a45f47b19a4853806365dfe5dd3dc, type: 3}
   m_Color: {r: 0, g: 0, b: 0, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
-  m_Size: {x: 5.12, y: 5.12}
+  m_Size: {x: 3.84, y: 5.12}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
@@ -3614,12 +3665,12 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: 21300000, guid: 5f30110545d2f4b2e9d4c1768b5d58f1, type: 3}
+  m_Sprite: {fileID: 21300000, guid: b04970759d94c4884ade436d020876e3, type: 3}
   m_Color: {r: 0, g: 0, b: 0, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
-  m_Size: {x: 5.12, y: 5.12}
+  m_Size: {x: 3.2, y: 5.12}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
@@ -4157,7 +4208,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8d1fc155aac7149f6a0579264816b4b1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  evolutionSimulator: {fileID: 0}
+  simulatorContainer: {fileID: 0}
   hologramTransform: {fileID: 4764606941084956418}
   ground: {fileID: 3581006699668049978}
   water: {fileID: 4180108446003344734}
@@ -4752,7 +4803,8 @@ Transform:
   m_LocalPosition: {x: 0, y: 0.1, z: 0.25}
   m_LocalScale: {x: 0.95, y: 1, z: 0.451}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 7888199907129474824}
   m_Father: {fileID: 2393187259119444669}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &6403070479843161644
@@ -5272,7 +5324,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 02b49c651ed6142689401a99557e0fb7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  evolutionSimulator: {fileID: 0}
+  simulatorContainer: {fileID: 0}
   worldVisualiser: {fileID: 1853972962793007436}
   minZoom: 1
   maxZoom: 20
@@ -5290,6 +5342,8 @@ MonoBehaviour:
   filterByFitnessButton: {fileID: 4216110973512330087}
   generationProgressMeter: {fileID: 4839942541485835599}
   zoomMeter: {fileID: 2118065122165512674}
+  bestFitnessGraphDocument: {fileID: 8308118176286841317}
+  averageFitnessGraphDocument: {fileID: 6251877466009823528}
 --- !u!1 &5669879866853903304
 GameObject:
   m_ObjectHideFlags: 0
@@ -5321,7 +5375,8 @@ Transform:
   m_LocalPosition: {x: 0, y: 0.1, z: -0.25}
   m_LocalScale: {x: 0.95, y: 1, z: 0.45}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 8259903707159258002}
   m_Father: {fileID: 2393187259119444669}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &7885543213701446824
@@ -6360,7 +6415,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: 21300000, guid: f86682c2b95b44f10a00e7251a2060b3, type: 3}
+  m_Sprite: {fileID: 21300000, guid: a3e17e3a1498c4ede9aa5b77c6e942da, type: 3}
   m_Color: {r: 0, g: 0, b: 0, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -6772,6 +6827,57 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!1 &8809210999358247909
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 8259903707159258002}
+  - component: {fileID: 6251877466009823528}
+  m_Layer: 0
+  m_Name: Average Fitness Graph Document
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &8259903707159258002
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8809210999358247909}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0.5000025, z: 1.1111102}
+  m_LocalScale: {x: 1, y: 1, z: 1.0022223}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 7641846261835427722}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &6251877466009823528
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8809210999358247909}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 19102, guid: 0000000000000000e000000000000000, type: 0}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_PanelSettings: {fileID: 11400000, guid: 86b8ca1cf746d4d5889c0032cda950ee, type: 2}
+  m_ParentUI: {fileID: 0}
+  sourceAsset: {fileID: 0}
+  m_SortingOrder: 0
+  m_WorldSpaceSizeMode: 1
+  m_WorldSpaceWidth: 1920
+  m_WorldSpaceHeight: 1080
 --- !u!1 &8863404493916666769
 GameObject:
   m_ObjectHideFlags: 0
