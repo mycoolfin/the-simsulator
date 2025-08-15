@@ -2,31 +2,41 @@ using UnityEngine;
 
 namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
 {
-    [RequireComponent(typeof(HingeJoint))]
+    public enum HingeBehaviour
+    {
+        RotateX90,
+        RotateX180
+    }
+
+    [RequireComponent(typeof(Animator))]
     public class HingedPanel : MonoBehaviour
     {
         [SerializeField] private bool startOpen = false;
-        [SerializeField] private float openAngle = 0f;
-        [SerializeField] private float closeAngle = 90f;
+        [SerializeField] private HingeBehaviour hingeBehaviour = HingeBehaviour.RotateX90;
+        [SerializeField] private bool invertBehaviour = false;
         public bool IsOpen { get; private set; } = false;
 
-        private HingeJoint hinge;
+        private Animator animator;
 
         private void Start()
         {
-            hinge = GetComponent<HingeJoint>();
+            animator = GetComponent<Animator>();
             SetOpen(startOpen);
         }
 
         public void SetOpen(bool open)
         {
-            hinge.spring = new()
+            switch (hingeBehaviour)
             {
-                spring = hinge.spring.spring,
-                damper = hinge.spring.damper,
-                targetPosition = open ? openAngle : closeAngle
-            };
-
+                case HingeBehaviour.RotateX90:
+                    animator.SetBool("X90", open ^ invertBehaviour);
+                    break;
+                case HingeBehaviour.RotateX180:
+                    animator.SetBool("X180", open ^ invertBehaviour);
+                    break;
+                default:
+                    break;
+            }
             IsOpen = open;
         }
     }

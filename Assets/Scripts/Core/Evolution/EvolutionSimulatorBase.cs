@@ -21,13 +21,13 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.Evolution
 
     public struct EvolutionParameters
     {
+        public TrialType? TrialType;
         public int? PopulationSize;
         public int? MaxGenerations;
         public float? SurvivalRate;
         public float? MutationRate;
         public float? SettleSeconds;
         public float? AssessmentSeconds;
-        public TrialType? TrialType;
         public string SeedGenotypePath;
         public bool? LockMorphologies;
     }

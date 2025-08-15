@@ -77,7 +77,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.TwoD
         {
             if (playerController.playerCamera == null) return false;
 
-            Ray ray = playerController.playerCamera.ScreenPointToRay(new Vector3(UnityEngine.Screen.width / 2f, UnityEngine.Screen.height / 2f, 0f));
+            Ray ray = playerController.playerCamera.ScreenPointToRay(new Vector3(Screen.width / 2f, Screen.height / 2f, 0f));
 
             if (Physics.Raycast(ray, out RaycastHit hit, playerController.interactionRange, playerController.interactionLayerMask))
             {

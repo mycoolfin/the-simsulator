@@ -10,6 +10,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
     public class ControlPanel : MonoBehaviour
     {
         [SerializeField] private GameObject simulatorContainer;
+        [SerializeField] private SimulatorSettingsUnit settingsUnit;
         [SerializeField] private WorldVisualiser worldVisualiser;
         [SerializeField] private float minZoom = 1f;
         [SerializeField] private float maxZoom = 20f;
@@ -48,6 +49,8 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
                 return;
             }
 
+            settingsUnit.IsSimulatorRunning = () => simulator.IsRunning;
+
             InitialiseButtons();
             InitialiseGraphs();
         }
@@ -73,6 +76,8 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
             {
                 if (!simulator.IsRunning)
                 {
+                    EvolutionParameters parameters = settingsUnit.GetEvolutionParameters();
+                    simulator.SetEvolutionParameters(parameters);
                     simulator.StartEvolution();
                     worldVisualiser.DynamicScaleFactor = 0f;
                     desiredZoom = defaultZoom;
@@ -135,6 +140,14 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
 
         private void UpdateButtons()
         {
+            pauseButton.SetDisabled(!simulator.IsRunning);
+            playButton.SetDisabled(!simulator.IsRunning);
+            fastForwardButton.SetDisabled(!simulator.IsRunning);
+            zoomInButton.SetDisabled(!simulator.IsRunning);
+            zoomOutButton.SetDisabled(!simulator.IsRunning);
+            colorByFitnessButton.SetDisabled(!simulator.IsRunning);
+            filterByFitnessButton.SetDisabled(!simulator.IsRunning);
+
             startStopButton.SetActive(simulator.IsRunning);
             pauseButton.SetActive(simulator.IsRunning && simulator.IsSimulationPaused);
             playButton.SetActive(simulator.IsRunning && simulator.IsSimulationRealTime);

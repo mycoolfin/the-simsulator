@@ -3,7 +3,7 @@ using UnityEngine.UIElements;
 
 namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.TwoD
 {
-    public class Version : MonoBehaviour
+    public class ScreenSpaceVersion : MonoBehaviour
     {
         private void Start()
         {
