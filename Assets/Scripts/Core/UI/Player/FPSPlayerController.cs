@@ -23,7 +23,6 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.Player
         public LayerMask interactionLayerMask = -1;
 
         private Vector2 horizontalMovement;
-        private float verticalMovement;
         private Vector2 lookDeltas;
         private float currentPitch = 0f;
         private bool isCursorLocked = true;
@@ -45,9 +44,12 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.Player
             Vector3 movement = Vector3.zero;
             movement += transform.forward * horizontalMovement.y;
             movement += transform.right * horizontalMovement.x;
-            movement += transform.up * verticalMovement;
+            movement *= movementSpeed;
 
-            characterController.Move(movementSpeed * Time.deltaTime * movement);
+            // Apply gravity.
+            movement += Physics.gravity.y * transform.up;
+
+            characterController.Move(movement * Time.deltaTime);
         }
 
         private void HandleLook()
