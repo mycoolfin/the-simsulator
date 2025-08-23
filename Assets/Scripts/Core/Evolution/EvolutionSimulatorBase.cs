@@ -182,7 +182,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.Evolution
         public void FullSpeedSimulation() => simulationRate = SimulationRateMode.FullSpeed;
         public void HeadlessSimulation() => simulationRate = SimulationRateMode.Headless;
 
-        public List<IAssessableCreature> GetBestIndividuals(int count)
+        public List<IAssessableCreature> GetBestCreatures(int count)
         {
             if (evolution == null || evolution.Population == null || evolution.Population.Count == 0)
                 return new List<IAssessableCreature>();
@@ -222,7 +222,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.Evolution
             IsRunning = true;
             CurrentGeneration = 0;
 
-            ecsWorld = ecsApi.World.CreateWorld("EvolutionWorld");
+            ecsWorld = ecsApi.World.GetOrCreateWorld("EvolutionWorld");
             OnEcsWorldCreated?.Invoke(ecsWorld);
 
             bool runForever = maxGenerations <= 0;

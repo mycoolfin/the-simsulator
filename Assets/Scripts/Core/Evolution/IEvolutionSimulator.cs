@@ -49,7 +49,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.Evolution
         void RealTimeSimulation();
         void FullSpeedSimulation();
         void HeadlessSimulation();
-        List<IAssessableCreature> GetBestIndividuals(int count);
+        List<IAssessableCreature> GetBestCreatures(int count);
         ISimulationSettings GetSimulationSettingsAPI();
         IPresentationSettings GetPresentationSettingsAPI();
     }

@@ -6,6 +6,7 @@ using UnityEngine;
 namespace mycoolfin.TheSimsulator.UnityIntegration.Core.ECS.API
 {
     using TheSimsulator.Core.Phenotype;
+    using Core.ECS.Rendering;
 
     public struct PhenotypeEntityCreationInfo<TPhenotype>
         where TPhenotype : IPhenotype<TPhenotype>
@@ -21,11 +22,13 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.ECS.API
         IEnumerator CreateEntitiesFromPhenotypes(World world, List<PhenotypeEntityCreationInfo<TPhenotype>> creationInfoList);
 
         IEnumerator DestroyAllPhenotypeEntities(World world);
-    
-        IEnumerator DestroyPhenotypeEntities(World world, TPhenotype phenotype);
+
+        void MarkPhenotypeEntitiesForDestruction(World world, TPhenotype phenotype);
 
         PhenotypeTransformData GetPhenotypeTransformData(World world, TPhenotype phenotype);
 
         bool TryRaycastToPhenotype(World world, Ray ray, float rayLength, out ulong phenotypeGid);
+
+        void SetPhenotypeCompanionObject(World world, TPhenotype phenotype, PhenotypeCompanionObject companionObject);
     }
 }

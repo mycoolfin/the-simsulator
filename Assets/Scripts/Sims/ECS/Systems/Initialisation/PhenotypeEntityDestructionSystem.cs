@@ -4,6 +4,7 @@ using Unity.Entities;
 
 namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Systems.Initialisation
 {
+    using Core.ECS.Math;
     using Components.Phenotype;
 
     public struct DestroyPhenotypeEntitiesRequest : IComponentData
@@ -14,31 +15,69 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Systems.Initialisati
     [UpdateInGroup(typeof(InitializationSystemGroup))]
     public partial struct PhenotypeEntityDestructionSystem : ISystem
     {
+        private NativeList<ulong> phenotypeGidsToDestroy;
+
         public void OnCreate(ref SystemState state)
         {
+            phenotypeGidsToDestroy = new NativeList<ulong>(Allocator.Persistent);
+
             state.RequireForUpdate<DestroyPhenotypeEntitiesRequest>();
         }
 
         public void OnUpdate(ref SystemState state)
         {
-            // Get the request component.
-            DestroyPhenotypeEntitiesRequest request = SystemAPI.GetSingleton<DestroyPhenotypeEntitiesRequest>();
-
             using EntityCommandBuffer ecb = new(Allocator.TempJob);
-            if (request.PhenotypeGid == 0)
-                DestroyAllPhenotypeEntities(ref state, ecb);
+
+            if (!SystemAPI.HasSingleton<PhenotypeEntitiesMetadata>())
+            {
+                // No metadata - just destroy the requests.
+                foreach (var (request, requestEntity) in SystemAPI.Query<DestroyPhenotypeEntitiesRequest>().WithEntityAccess())
+                {
+                    ecb.DestroyEntity(requestEntity);
+                }
+
+                ecb.Playback(state.EntityManager);
+            }
             else
-                DestroySpecificChildPhenotypeEntities(ref state, ecb, request.PhenotypeGid);
+            {
+                PhenotypeEntitiesMetadata metadata = SystemAPI.GetSingleton<PhenotypeEntitiesMetadata>();
+                int requiredCapacity = metadata.TotalRootPhenotypeCount.NextPowerOfTwo();
+                if (requiredCapacity > phenotypeGidsToDestroy.Capacity)
+                {
+                    phenotypeGidsToDestroy.Dispose();
+                    phenotypeGidsToDestroy = new(requiredCapacity, Allocator.Persistent);
+                }
+                phenotypeGidsToDestroy.Clear();
 
-            // Destroy the request entity itself.
-            Entity requestEntity = SystemAPI.GetSingletonEntity<DestroyPhenotypeEntitiesRequest>();
-            ecb.DestroyEntity(requestEntity);
+                bool destroyAll = false;
+                foreach (var (request, requestEntity) in SystemAPI.Query<DestroyPhenotypeEntitiesRequest>().WithEntityAccess())
+                {
+                    ecb.DestroyEntity(requestEntity);
 
-            ecb.Playback(state.EntityManager);
+                    if (request.PhenotypeGid == 0)
+                        destroyAll = true;
 
-            // Request metadata recalculation after destruction.
-            if (!SystemAPI.HasSingleton<RecalculatePhenotypeMetadataRequest>())
-                state.EntityManager.CreateSingleton<RecalculatePhenotypeMetadataRequest>();
+                    if (!destroyAll)
+                        phenotypeGidsToDestroy.Add(request.PhenotypeGid);
+                }
+
+                if (destroyAll)
+                    DestroyAllPhenotypeEntities(ref state, ecb);
+                else
+                    DestroySpecificChildPhenotypeEntities(ref state, ecb, phenotypeGidsToDestroy);
+
+                ecb.Playback(state.EntityManager);
+
+                // Request metadata recalculation after destruction.
+                if (!SystemAPI.HasSingleton<RecalculatePhenotypeMetadataRequest>())
+                    state.EntityManager.CreateSingleton<RecalculatePhenotypeMetadataRequest>();
+            }
+        }
+
+        public void OnDestroy(ref SystemState state)
+        {
+            if (phenotypeGidsToDestroy.IsCreated)
+                phenotypeGidsToDestroy.Dispose();
         }
 
         private void DestroyAllPhenotypeEntities(ref SystemState state, EntityCommandBuffer ecb)
@@ -52,39 +91,36 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Systems.Initialisati
             }.ScheduleParallel(state.Dependency).Complete();
         }
 
-        private void DestroySpecificChildPhenotypeEntities(ref SystemState state, EntityCommandBuffer ecb, ulong phenotypeGid)
+        private void DestroySpecificChildPhenotypeEntities(ref SystemState state, EntityCommandBuffer ecb, NativeList<ulong> phenotypeGids)
         {
-            // Find the root entity for the specified phenotype GID.
-            Entity rootPhenotypeEntity = Entity.Null;
-
+            // Find the root entity for the specified phenotype GIDs.
             foreach (var (phenotypeGidComponent, entity) in SystemAPI.Query<RefRO<PhenotypeGid>>().WithEntityAccess())
             {
-                if (phenotypeGidComponent.ValueRO.Value == phenotypeGid)
+                if (phenotypeGids.Contains(phenotypeGidComponent.ValueRO.Value))
                 {
-                    rootPhenotypeEntity = entity;
-                    break;
+                    Entity rootPhenotypeEntity = entity;
+
+                    if (rootPhenotypeEntity != Entity.Null)
+                    {
+                        // Dispose of blob assets for this specific phenotype.
+                        if (state.EntityManager.HasComponent<NeuralGraphRef>(rootPhenotypeEntity))
+                        {
+                            NeuralGraphRef neuralGraphRef = state.EntityManager.GetComponentData<NeuralGraphRef>(rootPhenotypeEntity);
+                            if (neuralGraphRef.Value.IsCreated)
+                                neuralGraphRef.Value.Dispose();
+                        }
+
+                        // Destroy all entities related to this phenotype.
+                        new DestroySpecificChildPhenotypeEntitiesJob
+                        {
+                            Ecb = ecb.AsParallelWriter(),
+                            RootPhenotypeEntity = rootPhenotypeEntity
+                        }.ScheduleParallel(state.Dependency).Complete();
+
+                        // Destroy the root phenotype entity itself.
+                        ecb.DestroyEntity(rootPhenotypeEntity);
+                    }
                 }
-            }
-
-            if (rootPhenotypeEntity != Entity.Null)
-            {
-                // Dispose of blob assets for this specific phenotype.
-                if (state.EntityManager.HasComponent<NeuralGraphRef>(rootPhenotypeEntity))
-                {
-                    NeuralGraphRef neuralGraphRef = state.EntityManager.GetComponentData<NeuralGraphRef>(rootPhenotypeEntity);
-                    if (neuralGraphRef.Value.IsCreated)
-                        neuralGraphRef.Value.Dispose();
-                }
-
-                // Destroy all entities related to this phenotype.
-                new DestroySpecificChildPhenotypeEntitiesJob
-                {
-                    Ecb = ecb.AsParallelWriter(),
-                    RootPhenotypeEntity = rootPhenotypeEntity
-                }.ScheduleParallel(state.Dependency).Complete();
-
-                // Destroy the root phenotype entity itself.
-                ecb.DestroyEntity(rootPhenotypeEntity);
             }
         }
     }

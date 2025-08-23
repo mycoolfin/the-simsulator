@@ -4,7 +4,8 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.ECS.API
 {
     public interface IWorldManagement
     {
-        World CreateWorld(string worldName);
+        World GetWorld(string worldName);
+        World GetOrCreateWorld(string worldName);
         void DestroyWorld(World world);
     }
 }

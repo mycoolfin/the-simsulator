@@ -13,6 +13,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.API
     using Core;
     using Core.ECS.API;
     using Core.ECS.Math;
+    using Core.ECS.Rendering;
     using NeuralNetwork;
     using Builders;
     using Systems.Initialisation;
@@ -90,24 +91,29 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.API
                 yield break;
 
             EntityManager entityManager = world.EntityManager;
+            EntityArchetype destructionRequestArchetype = entityManager.CreateArchetype(
+                typeof(DestroyPhenotypeEntitiesRequest)
+            );
             DestroyPhenotypeEntitiesRequest request = new() { PhenotypeGid = 0 };
-            Entity destroyRequestSingleton = entityManager.CreateSingleton(request);
+            Entity destructionRequestEntity = entityManager.CreateEntity(destructionRequestArchetype);
+            entityManager.SetComponentData(destructionRequestEntity, request);
 
-            while (world.IsCreated && entityManager.HasComponent<DestroyPhenotypeEntitiesRequest>(destroyRequestSingleton))
+            while (world.IsCreated && entityManager.HasComponent<DestroyPhenotypeEntitiesRequest>(destructionRequestEntity))
                 yield return null;
         }
 
-        public IEnumerator DestroyPhenotypeEntities(World world, SimsPhenotype phenotype)
+        public void MarkPhenotypeEntitiesForDestruction(World world, SimsPhenotype phenotype)
         {
-            if (world == null || !world.IsCreated)
-                yield break;
+            if (world == null || !world.IsCreated || phenotype == null)
+                return;
 
             EntityManager entityManager = world.EntityManager;
+            EntityArchetype destructionRequestArchetype = entityManager.CreateArchetype(
+                typeof(DestroyPhenotypeEntitiesRequest)
+            );
             DestroyPhenotypeEntitiesRequest request = new() { PhenotypeGid = phenotype.Gid };
-            Entity destroyRequestSingleton = entityManager.CreateSingleton(request);
-
-            while (world.IsCreated && entityManager.HasComponent<DestroyPhenotypeEntitiesRequest>(destroyRequestSingleton))
-                yield return null;
+            Entity destructionRequestEntity = entityManager.CreateEntity(destructionRequestArchetype);
+            entityManager.SetComponentData(destructionRequestEntity, request);
         }
 
         public PhenotypeTransformData GetPhenotypeTransformData(World world, SimsPhenotype phenotype)
@@ -200,6 +206,41 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.API
                     extents = (boundingBox.MaxBounds - boundingBox.MinBounds) * 0.5f
                 }
             };
+        }
+
+        public void SetPhenotypeCompanionObject(World world, SimsPhenotype phenotype, PhenotypeCompanionObject companionObject)
+        {
+            if (!world.IsCreated)
+                return;
+
+            EntityManager entityManager = world.EntityManager;
+            Entity rootPhenotypeEntity = GetPhenotypeEntity(world, phenotype);
+            if (rootPhenotypeEntity == Entity.Null) return;
+
+            if (entityManager.HasComponent<PhenotypeCompanionObject>(rootPhenotypeEntity))
+                entityManager.RemoveComponent<PhenotypeCompanionObject>(rootPhenotypeEntity);
+
+            if (companionObject != null)
+                entityManager.AddComponentObject(rootPhenotypeEntity, companionObject);
+        }
+
+        private Entity GetPhenotypeEntity(World world, SimsPhenotype phenotype)
+        {
+            if (!world.IsCreated)
+                return Entity.Null;
+
+            EntityManager entityManager = world.EntityManager;
+            EntityQuery query = entityManager.CreateEntityQuery(ComponentType.ReadOnly<PhenotypeGid>());
+            using NativeArray<Entity> entities = query.ToEntityArray(Allocator.Temp);
+            using NativeArray<PhenotypeGid> phenotypeGids = query.ToComponentDataArray<PhenotypeGid>(Allocator.Temp);
+            for (int i = 0; i < phenotypeGids.Length; i++)
+            {
+                if (phenotypeGids[i].Value == phenotype.Gid)
+                {
+                    return entities[i];
+                }
+            }
+            return Entity.Null;
         }
 
         private static CollisionFilter RayToPhenotypeFilter = new()

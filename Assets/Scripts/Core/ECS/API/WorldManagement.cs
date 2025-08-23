@@ -5,8 +5,25 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.ECS.API
 {
     public class WorldManagement : IWorldManagement
     {
-        public World CreateWorld(string worldName)
+        public World GetWorld(string worldName)
         {
+            // Find the world by name.
+            foreach (World world in World.All)
+            {
+                if (world != null && world.IsCreated && 
+                    string.Equals(world.Name, worldName, System.StringComparison.Ordinal))
+                    return world;
+            }
+            return null;
+        }
+
+        public World GetOrCreateWorld(string worldName)
+        {
+            // If this world already exists, return it.
+            World existingWorld = GetWorld(worldName);
+            if (existingWorld != null && existingWorld.IsCreated)
+                return existingWorld;
+
             World world = new(worldName);
 
             // Discover all systems using the default filter.

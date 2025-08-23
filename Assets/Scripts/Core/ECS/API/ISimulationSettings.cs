@@ -16,5 +16,9 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.ECS.API
         SimulationRateInfo GetSimulationRateInfo(World world);
 
         void SetSimulationRateControllerMode(World world, SimulationRateMode mode);
+
+        void SetGravity(World world, float3 gravity);
+
+        void SetFluidSimulation(World world, bool enabled, float fluidDensity = 1000f);
     }
 }

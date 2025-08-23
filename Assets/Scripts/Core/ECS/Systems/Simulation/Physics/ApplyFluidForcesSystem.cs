@@ -6,10 +6,8 @@ using Unity.Transforms;
 using Unity.Physics;
 using Unity.Physics.Systems;
 
-namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Systems.Simulation.Limbs
+namespace mycoolfin.TheSimsulator.UnityIntegration.Core.ECS.Systems.Simulation.Physics
 {
-    using Components.Phenotype;
-
     public struct FluidSimulationSettings : IComponentData
     {
         public byte Enabled;
@@ -25,7 +23,6 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Systems.Simulation.L
             state.RequireForUpdate<PhysicsMass>();
             state.RequireForUpdate<LocalTransform>();
             state.RequireForUpdate<PostTransformMatrix>();
-            state.RequireForUpdate<LimbIndex>();
             state.RequireForUpdate<FluidSimulationSettings>();
         }
 
@@ -44,7 +41,6 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Systems.Simulation.L
     }
 
     [BurstCompile]
-    [WithAll(typeof(LimbIndex))]
     public partial struct ApplyFluidForcesJob : IJobEntity
     {
         public float FluidDensity;

@@ -7,6 +7,7 @@ using Unity.Transforms;
 
 namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Systems.Simulation.RootPhenotypes
 {
+    using Core.ECS.Math;
     using Components.Phenotype;
 
     [UpdateInGroup(typeof(RootPhenotypeSystemGroup))]
@@ -32,11 +33,12 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Systems.Simulation.R
 
             // Check if we need to reallocate based on metadata counts.           
             PhenotypeEntitiesMetadata metadata = SystemAPI.GetSingleton<PhenotypeEntitiesMetadata>();
-            int requiredLimbCapacity = NextPowerOfTwo(metadata.TotalLimbCount * 2); // 2x capacity for good hash map performance.
-            if (requiredLimbCapacity > limbBounds.Capacity)
+            int requiredCapacity = (metadata.TotalLimbCount * 2).NextPowerOfTwo(); // 2x capacity for good hash map performance.
+            int newCapacity = math.max(requiredCapacity * 2, limbBounds.Capacity * 2);
+            if (requiredCapacity > limbBounds.Capacity)
             {
                 limbBounds.Dispose();
-                limbBounds = new(requiredLimbCapacity, Allocator.Persistent);
+                limbBounds = new(newCapacity, Allocator.Persistent);
             }
 
             limbBounds.Clear();
@@ -56,19 +58,6 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Systems.Simulation.R
         {
             if (limbBounds.IsCreated)
                 limbBounds.Dispose();
-        }
-
-        private static int NextPowerOfTwo(int value)
-        {
-            if (value <= 0) return 1;
-            if (value == 1) return 2;
-
-            // Find the next power of 2.
-            int power = 1;
-            while (power < value)
-                power <<= 1;
-
-            return power;
         }
     }
 

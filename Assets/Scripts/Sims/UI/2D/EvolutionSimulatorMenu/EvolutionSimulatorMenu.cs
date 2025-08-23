@@ -409,7 +409,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.UI.TwoD
             simulator.OnGenerationComplete += (stats) =>
             {
                 // Record the best individuals.
-                previousBestIndividuals = simulator.GetBestIndividuals(FocusGrid.maxFrames);
+                previousBestIndividuals = simulator.GetBestCreatures(FocusGrid.maxFrames);
             };
             void updateFocusGrid() => focusGrid.SetFrameTargets(previousBestIndividuals);
             simulator.OnGenerationStart += (generation) => updateFocusGrid();
@@ -427,7 +427,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.UI.TwoD
 
         private void InitialiseSelectedIndividualMenu()
         {
-            selectedCreatureMenu.EnableSaveButton(() => selectedCreatureMenu.SelectedCreature.SaveGenotypeToFile());
+            selectedCreatureMenu.EnableSaveButton(() => selectedCreatureMenu.SelectedCreature.SaveGenotypeToFile((_) => { }));
             selectedCreatureMenu.EnableProtectButton(() =>
             {
                 IAssessableCreature individual = selectedCreatureMenu.SelectedCreature;

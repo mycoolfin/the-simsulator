@@ -40,11 +40,11 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.ECS.Systems.Presentation
 
         public void Execute(in LocalTransform transform, in PostTransformMatrix postTransform, ref LocalToWorld localToWorld)
         {
-            float4x4 realTransform = float4x4.TRS(
+            float4x4 realTransform = math.mul(float4x4.TRS(
                 transform.Position,
                 transform.Rotation,
-                postTransform.Value.Scale()
-            );
+                new float3(transform.Scale)
+            ), postTransform.Value);
 
             localToWorld.Value = math.mul(WorldVisualOffset.TransformMatrix, realTransform);
         }

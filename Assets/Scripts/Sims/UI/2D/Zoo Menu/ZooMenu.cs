@@ -215,7 +215,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.UI.TwoD
 
         private void InitialiseSelectedPhenotypeMenu()
         {
-            selectedCreatureMenu.EnableSaveButton(() => selectedCreatureMenu.SelectedCreature?.SaveGenotypeToFile());
+            selectedCreatureMenu.EnableSaveButton(() => selectedCreatureMenu.SelectedCreature?.SaveGenotypeToFile((_) => { }));
             selectedCreatureMenu.EnableCullButton(() => selectedCreatureMenu.SelectedCreature?.Cull());
             selectedCreatureMenu.EnableBreedButton(() =>
             {

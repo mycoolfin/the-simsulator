@@ -2,6 +2,8 @@ using UnityEngine;
 
 namespace mycoolfin.TheSimsulator.UnityIntegration.Core
 {
+    using System;
+    using System.Collections;
     using TheSimsulator.Core.Genotype;
     using TheSimsulator.Core.Phenotype;
     using UI;
@@ -22,7 +24,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core
         OnCullDelegate OnCull { get; set; }
         void Cull();
 
-        void SaveGenotypeToFile();
+        void SaveGenotypeToFile(Action<FileOperationResult> OnComplete, string filePath = null);
 
         ICreature Breed(ICreature other);
     }
@@ -48,9 +50,16 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core
             OnCull?.Invoke();
         }
 
-        public void SaveGenotypeToFile()
+        public void SaveGenotypeToFile(Action<FileOperationResult> OnComplete, string filePath = null)
         {
-            GenotypeDiskOperations.SaveGenotypeToFile(Genotype);
+            if (filePath == null) // Prompt user for file path.
+            {
+                GenotypeDiskOperations.SaveGenotypeToFilePathDialog(Genotype, OnComplete);
+            }
+            else
+            {
+                GenotypeDiskOperations.SaveGenotypeToFilePath(Genotype, filePath, OnComplete);
+            }
         }
 
         public Creature<TGenotype, TPhenotype> Breed(ICreature other)

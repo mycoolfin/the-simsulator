@@ -8,6 +8,7 @@ using Unity.Rendering;
 
 namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Systems.Presentation
 {
+    using Core.ECS.Math;
     using Components.Evolution;
     using Components.Phenotype;
 
@@ -77,7 +78,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Systems.Presentation
         private void UpdateSortedPairs(ref SystemState state)
         {
             PhenotypeEntitiesMetadata metadata = SystemAPI.GetSingleton<PhenotypeEntitiesMetadata>();
-            int requiredPhenotypeCapacity = NextPowerOfTwo(metadata.TotalRootPhenotypeCount);
+            int requiredPhenotypeCapacity = metadata.TotalRootPhenotypeCount.NextPowerOfTwo();
             if (requiredPhenotypeCapacity > phenotypeFitnessPairs.Capacity)
             {
                 phenotypeFitnessPairs.Dispose();
@@ -156,19 +157,6 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Systems.Presentation
             ecb2.Playback(state.EntityManager);
 
             filteringBySurvivors = true;
-        }
-
-        private static int NextPowerOfTwo(int value)
-        {
-            if (value <= 0) return 1;
-            if (value == 1) return 2;
-
-            // Find the next power of 2.
-            int power = 1;
-            while (power < value)
-                power <<= 1;
-
-            return power;
         }
 
         private struct DescendingFitnessComparer : IComparer<PhenotypeFitnessPair>
