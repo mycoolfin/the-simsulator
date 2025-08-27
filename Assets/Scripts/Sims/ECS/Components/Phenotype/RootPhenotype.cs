@@ -43,7 +43,8 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Components.Phenotype
 
     public struct PhenotypeBoundingBox : IComponentData
     {
-        public float3 MinBounds;
-        public float3 MaxBounds;
+        public float3 Center;
+        public float3 CurrentExtents;
+        public float3 MaxExtents;
     }
 }

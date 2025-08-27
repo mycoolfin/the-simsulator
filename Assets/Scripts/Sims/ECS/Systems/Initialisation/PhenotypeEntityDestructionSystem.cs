@@ -9,7 +9,10 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Systems.Initialisati
 
     public struct DestroyPhenotypeEntitiesRequest : IComponentData
     {
-        public ulong PhenotypeGid; // GID of the phenotype to destroy, or 0 for all.
+        /// <summary>
+        /// GID of the phenotype to destroy, or 0 for all.
+        /// </summary>
+        public ulong PhenotypeGid;
     }
 
     [UpdateInGroup(typeof(InitializationSystemGroup))]
@@ -154,10 +157,10 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Systems.Initialisati
         public EntityCommandBuffer.ParallelWriter Ecb;
         public Entity RootPhenotypeEntity;
 
-        public void Execute(Entity entity, in RootPhenotypeEntity rootPhenotypeEntity)
+        public void Execute([ChunkIndexInQuery] int chunkIndex, Entity entity, in RootPhenotypeEntity rootPhenotypeEntity)
         {
             if (rootPhenotypeEntity.Value == RootPhenotypeEntity)
-                Ecb.DestroyEntity(0, entity);
+                Ecb.DestroyEntity(chunkIndex, entity);
         }
     }
 }

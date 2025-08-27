@@ -41,7 +41,10 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
                     return;
                 List<IAssessableCreature> bestCreatures = simulator.GetBestCreatures(fabricateCount);
                 for (int i = 0; i < bestCreatures.Count; i++)
-                    FabricateDockedCapsule(bestCreatures[i]);
+                {
+                    CapsuleEnvironment environment = simulator.TrialType == TrialType.WaterDistance ? CapsuleEnvironment.Aquatic : CapsuleEnvironment.Terrestrial;
+                    FabricateDockedCapsule(bestCreatures[i], environment);
+                }
             };
         }
 
@@ -87,15 +90,15 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
             incineratorRightGate.SetOpen(ShouldGateOpen(incineratorRightGate.transform.position, oldestDockPosition));
         }
 
-        public void FabricateDockedCapsule(ICreature creature)
+        public void FabricateDockedCapsule(ICreature creature, CapsuleEnvironment environment)
         {
             GameObject dockObject = Instantiate(dockPrefab, spawnPoint.position, spawnPoint.rotation);
-            GameObject capsuleObject = Instantiate(capsulePrefab, spawnPoint.position, spawnPoint.rotation);
-
             CapsuleDock dock = dockObject.GetComponent<CapsuleDock>();
-            ICreatureCapsule capsule = capsuleObject.GetComponent<ICreatureCapsule>();
+            dock.DisableFirstEnterSound = true;
 
-            capsule.InitialiseFromCreature(creature);
+            GameObject capsuleObject = Instantiate(capsulePrefab, spawnPoint.position, spawnPoint.rotation);
+            ICreatureCapsule capsule = capsuleObject.GetComponent<ICreatureCapsule>();
+            capsule.InitialiseFromCreature(creature, environment);
 
             docksOnConveyor.Insert(0, dock);
         }

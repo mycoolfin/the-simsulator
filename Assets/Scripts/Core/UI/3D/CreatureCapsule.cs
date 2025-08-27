@@ -10,14 +10,30 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
 {
     using TheSimsulator.Core.Genotype;
     using TheSimsulator.Core.Phenotype;
-    using Core.ECS.API;
-    using Core.ECS.Rendering;
-    using Core.UI.IO;
+    using ECS.API;
+    using ECS.Rendering;
+    using ECS.Systems.Simulation.SimulationRate;
+    using UI.IO;
+
+    public enum CapsuleState
+    {
+        Empty,
+        Loading,
+        Loaded,
+        FileMissingError,
+        InvalidGenotypeError
+    }
+
+    public enum CapsuleEnvironment
+    {
+        Terrestrial,
+        Aquatic
+    }
 
     public interface ICreatureCapsule
     {
-        void InitialiseFromCreature(ICreature creature);
-        void InitialiseFromGenotypeFilePath(string filePath);
+        void InitialiseFromCreature(ICreature creature, CapsuleEnvironment environment);
+        void InitialiseFromGenotypeFilePath(string filePath, CapsuleEnvironment environment);
     }
 
     [RequireComponent(typeof(XRGrabInteractable), typeof(Rigidbody), typeof(AudioSource))]
@@ -27,29 +43,50 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
         where TPhenotypeFactory : IPhenotypeFactory<TGenotype, TPhenotype>
         where TECSAPI : IECSAPI<TPhenotype>
     {
-        private const string CapsuleWorld = "CapsuleWorld";
+        private const string TerrestrialCapsuleWorld = "TerrestrialCapsuleWorld";
+        private const string AquaticCapsuleWorld = "AquaticCapsuleWorld";
 
         [SerializeField] private PhenotypeCompanionObject companionObject;
         [SerializeField] private TextMeshPro fileMissingError;
         [SerializeField] private TextMeshPro invalidGenotypeError;
+        [SerializeField] private PushButton environmentToggleButton;
+        [SerializeField] private GameObject groundEnvironment;
+        [SerializeField] private GameObject aquaticEnvironment;
 
         protected abstract TPhenotypeFactory PhenotypeFactory { get; }
         protected abstract TECSAPI ECSAPI { get; }
 
-        private enum CapsuleState
+        public CapsuleState State { get; private set; } = CapsuleState.Empty;
+
+        private CapsuleEnvironment environment = CapsuleEnvironment.Aquatic;
+        public CapsuleEnvironment Environment
         {
-            Empty,
-            Loading,
-            Loaded,
-            FileMissingError,
-            InvalidGenotypeError
+            get => environment;
+            private set
+            {
+                environment = value;
+
+                // Toggle display gameobjects.
+                environmentToggleButton.SetActive(value == CapsuleEnvironment.Aquatic);
+                groundEnvironment.SetActive(value == CapsuleEnvironment.Terrestrial);
+                aquaticEnvironment.SetActive(value == CapsuleEnvironment.Aquatic);
+            }
         }
-        private CapsuleState capsuleState = CapsuleState.Empty;
 
         private string genotypeFilePath;
+        private TGenotype genotype;
         private TPhenotype phenotype;
 
-        public void InitialiseFromCreature(ICreature creature)
+        private void Start()
+        {
+            environmentToggleButton.OnButtonPressed += (_) =>
+            {
+                ToggleEnvironment();
+                environmentToggleButton.SetActive(environment == CapsuleEnvironment.Aquatic);
+            };
+        }
+
+        public void InitialiseFromCreature(ICreature creature, CapsuleEnvironment environment)
         {
             // Save creature genotype to application data storage.
             string filePath = Path.Combine(Application.persistentDataPath, $"{creature.Name}.genotype");
@@ -58,7 +95,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
                 if (result == FileOperationResult.Success)
                 {
                     genotypeFilePath = filePath;
-                    InitialiseFromGenotypeFilePath(genotypeFilePath);
+                    InitialiseFromGenotypeFilePath(genotypeFilePath, environment);
                 }
                 else
                 {
@@ -67,7 +104,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
             }, filePath);
         }
 
-        public void InitialiseFromGenotypeFilePath(string filePath)
+        public void InitialiseFromGenotypeFilePath(string filePath, CapsuleEnvironment environment)
         {
             if (string.IsNullOrEmpty(filePath))
             {
@@ -82,7 +119,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
             {
                 if (result == FileOperationResult.Success && genotype != null)
                 {
-                    StartCoroutine(InitialiseFromGenotype(genotype));
+                    StartCoroutine(InitialiseFromGenotype(genotype, environment));
                 }
                 else
                 {
@@ -91,10 +128,12 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
             });
         }
 
-        private IEnumerator InitialiseFromGenotype(TGenotype genotype)
+        private IEnumerator InitialiseFromGenotype(TGenotype genotype, CapsuleEnvironment environment)
         {
-            World world = ECSAPI.World.GetOrCreateWorld(CapsuleWorld);
-            ECSAPI.Simulation.SetGravity(world, float3.zero);
+            this.genotype = genotype;
+            Environment = environment;
+
+            World world = GetWorld(Environment);
 
             if (phenotype != null)
                 DestroyPhenotype(world);
@@ -122,22 +161,60 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
             SetState(CapsuleState.Loaded);
         }
 
+        private void ToggleEnvironment()
+        {
+            // Destroy current phenotype entities.
+            DestroyPhenotype(GetWorld(Environment));
+
+            CapsuleEnvironment newEnvironment = Environment == CapsuleEnvironment.Terrestrial ? CapsuleEnvironment.Aquatic : CapsuleEnvironment.Terrestrial;
+
+            // Recreate entities in selected environment world.
+            StartCoroutine(InitialiseFromGenotype(genotype, newEnvironment));
+        }
+
         private void DestroyPhenotype(World world)
         {
             ECSAPI.Phenotype.MarkPhenotypeEntitiesForDestruction(world, phenotype);
         }
 
-        private void SetState(CapsuleState capsuleState)
+        private void SetState(CapsuleState state)
         {
-            this.capsuleState = capsuleState;
+            State = state;
 
-            fileMissingError.enabled = capsuleState == CapsuleState.FileMissingError;
-            invalidGenotypeError.enabled = capsuleState == CapsuleState.InvalidGenotypeError;
+            fileMissingError.enabled = state == CapsuleState.FileMissingError;
+            invalidGenotypeError.enabled = state == CapsuleState.InvalidGenotypeError;
+        }
+
+        private World GetWorld(CapsuleEnvironment environment)
+        {
+            World world = ECSAPI.World.GetOrCreateWorld(GetWorldName(environment), (world) =>
+            {
+                ECSAPI.Simulation.SetSimulationRateControllerMode(world, SimulationRateMode.RealTime);
+
+                if (environment == CapsuleEnvironment.Terrestrial)
+                {
+                    ECSAPI.Simulation.SetGravity(world, float3.zero);
+                    ECSAPI.Simulation.SetFluidSimulation(world, false);
+                    ECSAPI.Simulation.CreateGroundPlane(world);
+                }
+
+                if (environment == CapsuleEnvironment.Aquatic)
+                {
+                    ECSAPI.Simulation.SetGravity(world, Physics.gravity);
+                    ECSAPI.Simulation.SetFluidSimulation(world, true, 1f);
+                }
+            });
+            return world;
+        }
+
+        private string GetWorldName(CapsuleEnvironment environment)
+        {
+            return environment == CapsuleEnvironment.Terrestrial ? TerrestrialCapsuleWorld : AquaticCapsuleWorld;
         }
 
         private void OnDestroy()
         {
-            World world = ECSAPI.World.GetWorld(CapsuleWorld);
+            World world = ECSAPI.World.GetWorld(GetWorldName(environment));
             if (world != null && world.IsCreated)
                 DestroyPhenotype(world);
 

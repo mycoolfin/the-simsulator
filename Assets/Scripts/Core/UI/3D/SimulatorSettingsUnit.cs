@@ -103,7 +103,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
         private int GetMaxGenerations() => MaxGenerationsOptions[maxGenerationsGroup.ActiveButtonIndex];
         private void SetMaxGenerationsToDefaultValue() => maxGenerationsGroup.SetActiveButton(1);
 
-        private readonly float[] SurvivalRateOptions = { 5f, 10f, 15f, 20f, 30f, 50f };
+        private readonly float[] SurvivalRateOptions = { 0.05f, 0.010f, 0.015f, 0.020f, 0.030f, 0.050f };
         private float GetSurvivalRate() => SurvivalRateOptions[survivalRateGroup.ActiveButtonIndex];
         private void SetSurvivalRateToDefaultValue() => survivalRateGroup.SetActiveButton(3);
 

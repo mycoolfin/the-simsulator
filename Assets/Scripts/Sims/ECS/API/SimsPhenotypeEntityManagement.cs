@@ -202,8 +202,8 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.API
                 Rotation = localTransform.Rotation,
                 Bounds = new()
                 {
-                    center = boundingBox.MinBounds + (boundingBox.MaxBounds - boundingBox.MinBounds) * 0.5f,
-                    extents = (boundingBox.MaxBounds - boundingBox.MinBounds) * 0.5f
+                    center = boundingBox.Center,
+                    extents = boundingBox.CurrentExtents
                 }
             };
         }

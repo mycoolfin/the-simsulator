@@ -20,5 +20,9 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.ECS.API
         void SetGravity(World world, float3 gravity);
 
         void SetFluidSimulation(World world, bool enabled, float fluidDensity = 1000f);
+
+        public void CreateGroundPlane(World world);
+
+        void DestroyGroundPlane(World world);
     }
 }

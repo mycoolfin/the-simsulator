@@ -3,13 +3,13 @@ using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
+using UnityEngine;
 
 namespace mycoolfin.TheSimsulator.UnityIntegration.Core.ECS.Systems.Presentation
 {
     using Core.ECS.Math;
     using Core.ECS.Rendering;
     using Sims.ECS.Components.Phenotype;
-    using UnityEngine;
 
     [UpdateInGroup(typeof(PresentationSystemGroup))]
     [UpdateAfter(typeof(ApplyWorldVisualOffsetSystem))]
@@ -94,15 +94,18 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.ECS.Systems.Presentation
                         postTransform.Value
                     );
 
-                    // Apply normalisation scaling based on phenotype bounding box.
-                    float3 size = boundingBox.MaxBounds - boundingBox.MinBounds;
-                    float maxDimension = math.max(math.max(size.x, size.y), size.z);
-                    
+                    float3 maxSize = boundingBox.MaxExtents * 2f;
+                    float maxDimension = math.max(math.max(maxSize.x, maxSize.y), maxSize.z);
                     float scalingFactor = maxDimension > math.EPSILON ? 1f / maxDimension : 1f;
 
-                    float4x4 normalisedTransform = math.mul(float4x4.Scale(scalingFactor), realTransform);
+                    float4x4 scaleThenCenter = math.mul(
+                        float4x4.Scale(scalingFactor),
+                        float4x4.Translate(-boundingBox.Center)
+                    );
 
-                    localToWorld.Value = math.mul(companionTransform, normalisedTransform);
+                    float4x4 phenotypeSpace = math.mul(scaleThenCenter, realTransform);
+
+                    localToWorld.Value = math.mul(companionTransform, phenotypeSpace);
                 }
             }
         }

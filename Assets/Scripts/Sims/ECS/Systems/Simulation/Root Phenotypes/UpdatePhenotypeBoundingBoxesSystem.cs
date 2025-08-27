@@ -119,40 +119,45 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Systems.Simulation.R
 
         public void Execute(Entity rootPhenotypeEntity, ref PhenotypeBoundingBox phenotypeBoundingBox)
         {
-            float3 minBounds = float3.zero;
-            float3 maxBounds = float3.zero;
+            float3 center = float3.zero;
+            float3 extents = float3.zero;
             bool hasLimbs = false;
 
             if (LimbBounds.TryGetFirstValue(rootPhenotypeEntity, out AABB firstAABB, out var iterator))
             {
-                // Initialize with the first limb's bounds
-                minBounds = firstAABB.Center - firstAABB.Extents;
-                maxBounds = firstAABB.Center + firstAABB.Extents;
+                // Initialize with the first limb's min/max bounds.
+                float3 minBounds = firstAABB.Center - firstAABB.Extents;
+                float3 maxBounds = firstAABB.Center + firstAABB.Extents;
                 hasLimbs = true;
 
-                // Combine with all other limbs
+                // Combine with all other limbs.
                 while (LimbBounds.TryGetNextValue(out AABB nextAABB, ref iterator))
                 {
-                    float3 limbMin = nextAABB.Center - nextAABB.Extents;
-                    float3 limbMax = nextAABB.Center + nextAABB.Extents;
-
-                    minBounds = math.min(minBounds, limbMin);
-                    maxBounds = math.max(maxBounds, limbMax);
+                    float3 nextMin = nextAABB.Center - nextAABB.Extents;
+                    float3 nextMax = nextAABB.Center + nextAABB.Extents;
+                    minBounds = math.min(minBounds, nextMin);
+                    maxBounds = math.max(maxBounds, nextMax);
                 }
+
+                // Calculate the combined center and extents.
+                center = (minBounds + maxBounds) * 0.5f;
+                extents = (maxBounds - minBounds) * 0.5f;
             }
 
-            // Only update if we found limbs
+            // Only update if we found limbs.
             if (hasLimbs)
             {
-                phenotypeBoundingBox.MinBounds = minBounds;
-                phenotypeBoundingBox.MaxBounds = maxBounds;
+                phenotypeBoundingBox.Center = center;
+                phenotypeBoundingBox.CurrentExtents = extents;
             }
             else
             {
-                // Default to zero bounds if no limbs
-                phenotypeBoundingBox.MinBounds = float3.zero;
-                phenotypeBoundingBox.MaxBounds = float3.zero;
+                // Default to zero bounds if no limbs.
+                phenotypeBoundingBox.Center = float3.zero;
+                phenotypeBoundingBox.CurrentExtents = float3.zero;
             }
+
+            phenotypeBoundingBox.MaxExtents = math.max(phenotypeBoundingBox.MaxExtents, phenotypeBoundingBox.CurrentExtents);
         }
     }
 }

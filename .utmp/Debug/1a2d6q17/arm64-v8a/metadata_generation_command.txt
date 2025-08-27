@@ -1,0 +1,21 @@
+                        -H/Users/michaelfinn/Projects/the-simsulator/Library/PramData/AndroidApplicationController/Cache/com.mycoolfin.thesimsulator/gradle-project/unityLibrary/src/main/cpp
+-DCMAKE_SYSTEM_NAME=Android
+-DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+-DCMAKE_SYSTEM_VERSION=29
+-DANDROID_PLATFORM=android-29
+-DANDROID_ABI=arm64-v8a
+-DCMAKE_ANDROID_ARCH_ABI=arm64-v8a
+-DANDROID_NDK=/Applications/Unity/Hub/Editor/6000.2.0b13/PlaybackEngines/AndroidPlayer/NDK
+-DCMAKE_ANDROID_NDK=/Applications/Unity/Hub/Editor/6000.2.0b13/PlaybackEngines/AndroidPlayer/NDK
+-DCMAKE_TOOLCHAIN_FILE=/Applications/Unity/Hub/Editor/6000.2.0b13/PlaybackEngines/AndroidPlayer/NDK/build/cmake/android.toolchain.cmake
+-DCMAKE_MAKE_PROGRAM=/Applications/Unity/Hub/Editor/6000.2.0b13/PlaybackEngines/AndroidPlayer/SDK/cmake/3.22.1/bin/ninja
+-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=/Users/michaelfinn/Projects/the-simsulator/Library/PramData/AndroidApplicationController/Cache/com.mycoolfin.thesimsulator/gradle-project/unityLibrary/build/intermediates/cxx/Debug/1a2d6q17/obj/arm64-v8a
+-DCMAKE_RUNTIME_OUTPUT_DIRECTORY=/Users/michaelfinn/Projects/the-simsulator/Library/PramData/AndroidApplicationController/Cache/com.mycoolfin.thesimsulator/gradle-project/unityLibrary/build/intermediates/cxx/Debug/1a2d6q17/obj/arm64-v8a
+-DCMAKE_BUILD_TYPE=Debug
+-DCMAKE_FIND_ROOT_PATH=/Users/michaelfinn/Projects/the-simsulator/.utmp/Debug/1a2d6q17/prefab/arm64-v8a/prefab
+-B/Users/michaelfinn/Projects/the-simsulator/.utmp/Debug/1a2d6q17/arm64-v8a
+-GNinja
+-DANDROID_STL=c++_shared
+-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON
+                        Build command args: []
+                        Version: 2

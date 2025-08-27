@@ -222,8 +222,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.Evolution
             IsRunning = true;
             CurrentGeneration = 0;
 
-            ecsWorld = ecsApi.World.GetOrCreateWorld("EvolutionWorld");
-            OnEcsWorldCreated?.Invoke(ecsWorld);
+            ecsWorld = ecsApi.World.GetOrCreateWorld("EvolutionWorld", (world) => OnEcsWorldCreated?.Invoke(world));
 
             bool runForever = maxGenerations <= 0;
             while ((runForever || CurrentGeneration <= maxGenerations) && IsRunning)

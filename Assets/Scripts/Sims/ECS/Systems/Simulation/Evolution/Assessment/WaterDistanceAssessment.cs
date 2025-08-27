@@ -30,7 +30,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Systems.Simulation.E
     {
         public void Execute(in PhenotypeBoundingBox boundingBox, ref Fitness fitness, ref WaterDistanceAssessmentData data)
         {
-            float3 currentPosition = (boundingBox.MinBounds + boundingBox.MaxBounds) * 0.5f; // Centroid.
+            float3 currentPosition = boundingBox.Center;
 
             if (fitness.Value < 0f) // Assessment hasn't started yet.
                 data.StartPosition = currentPosition;

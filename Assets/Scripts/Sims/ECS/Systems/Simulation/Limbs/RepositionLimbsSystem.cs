@@ -63,7 +63,8 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Systems.Simulation.L
         {
             // Calculate how much we need to move this phenotype's limbs by to ensure they are aligned with the ground.
             float smallOffset = 0.1f; // Prevent clipping.
-            float limbYTranslation = GroundY - boundingBox.MinBounds.y + smallOffset;
+            float bbMinBoundsY = boundingBox.Center.y - boundingBox.CurrentExtents.y;
+            float limbYTranslation = GroundY - bbMinBoundsY + smallOffset;
             limbYTranslations.TryAdd(rootPhenotypeEntity, limbYTranslation);
         }
     }

@@ -1,3 +1,4 @@
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
@@ -48,7 +49,9 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
             // Destroy socketed objects when the dock is disabled.
             if (current != null)
             {
-                Destroy((current as Component).gameObject);
+                GameObject toDestroy = (current as Component).gameObject;
+                if (toDestroy != null && !toDestroy.IsDestroyed())
+                    Destroy(toDestroy);
             }
         }
 
@@ -69,6 +72,6 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
                 rigidbody.isKinematic = false;
         }
 
-        // TODO: When a capsule docks or un-docks, save to state config.
+        // TODO: When a capsule docks or un-docks, trigger state config save.
     }
 }

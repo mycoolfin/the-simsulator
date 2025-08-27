@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Unity.Entities;
 
@@ -17,7 +18,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.ECS.API
             return null;
         }
 
-        public World GetOrCreateWorld(string worldName)
+        public World GetOrCreateWorld(string worldName, Action<World> onWorldCreated)
         {
             // If this world already exists, return it.
             World existingWorld = GetWorld(worldName);
@@ -28,13 +29,15 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.ECS.API
 
             // Discover all systems using the default filter.
             WorldSystemFilterFlags flags = WorldSystemFilterFlags.Default;
-            IReadOnlyList<System.Type> systems = DefaultWorldInitialization.GetAllSystems(flags);
+            IReadOnlyList<Type> systems = DefaultWorldInitialization.GetAllSystems(flags);
 
             // Add discovered systems to the world’s root-level system groups.
             DefaultWorldInitialization.AddSystemsToRootLevelSystemGroups(world, systems);
 
             // Register the world to Unity's PlayerLoop so it actually updates.
             ScriptBehaviourUpdateOrder.AppendWorldToCurrentPlayerLoop(world);
+
+            onWorldCreated?.Invoke(world);
 
             return world;
         }

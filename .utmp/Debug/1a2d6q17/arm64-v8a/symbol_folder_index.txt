@@ -1,0 +1,1 @@
+/Users/michaelfinn/Projects/the-simsulator/Library/PramData/AndroidApplicationController/Cache/com.mycoolfin.thesimsulator/gradle-project/unityLibrary/build/intermediates/cxx/Debug/1a2d6q17/obj/arm64-v8a
