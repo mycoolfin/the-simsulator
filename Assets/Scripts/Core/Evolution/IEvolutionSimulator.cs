@@ -30,6 +30,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.Evolution
         int CurrentGeneration { get; }
         float SettleProgress { get; }
         float AssessmentProgress { get; }
+        IReadOnlyList<IAssessableCreature> Population { get; }
         IReadOnlyList<EvolutionStatistics> Statistics { get; }
 
         // Events.
@@ -49,7 +50,6 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.Evolution
         void RealTimeSimulation();
         void FullSpeedSimulation();
         void HeadlessSimulation();
-        List<IAssessableCreature> GetBestCreatures(int count);
         ISimulationSettings GetSimulationSettingsAPI();
         IPresentationSettings GetPresentationSettingsAPI();
     }

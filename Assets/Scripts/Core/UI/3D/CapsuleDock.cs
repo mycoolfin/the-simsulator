@@ -11,6 +11,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
     {
         [SerializeField] private AudioClip enterSocketSound;
         [SerializeField] private XRSocketInteractor socket;
+        public XRSocketInteractor Socket => socket;
 
         public bool DisableFirstEnterSound = false;
 
@@ -47,12 +48,8 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
             socket.selectExited.RemoveListener(OnSelectExited);
 
             // Destroy socketed objects when the dock is disabled.
-            if (current != null)
-            {
-                GameObject toDestroy = (current as Component).gameObject;
-                if (toDestroy != null && !toDestroy.IsDestroyed())
-                    Destroy(toDestroy);
-            }
+            if (current != null && !(current as Component).IsDestroyed())
+                Destroy((current as Component).gameObject);
         }
 
         private void OnSelectEntered(SelectEnterEventArgs args)

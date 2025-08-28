@@ -1,3 +1,5 @@
+using System;
+using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -10,6 +12,8 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
         [SerializeField] private GameObject simulatorContainer;
         [SerializeField] private GameObject capsulePrefab;
         [SerializeField] private GameObject dockPrefab;
+        [SerializeField] private ButtonGroup choiceTypeGroup;
+        [SerializeField] private ButtonGroup fabricateCountGroup;
         [SerializeField] private HingedPanel fabricatorLeftGate;
         [SerializeField] private HingedPanel fabricatorRightGate;
         [SerializeField] private HingedPanel incineratorLeftGate;
@@ -20,10 +24,16 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
         [SerializeField] private int conveyorCapacity = 5;
         [SerializeField] private float conveyorSpeed = 1.0f;
         [SerializeField] private float generationStep = 1;
-        [SerializeField] private int fabricateCount = 1;
+        private enum ChoiceType
+        {
+            Best,
+            Random
+        }
 
+        private Queue<Func<CapsuleDock>> fabricationQueue = new();
         private List<CapsuleDock> docksOnConveyor = new();
         private IEvolutionSimulator simulator;
+
 
         private void Start()
         {
@@ -39,18 +49,22 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
                 int generation = stats.Count;
                 if (generation % generationStep != 0)
                     return;
-                List<IAssessableCreature> bestCreatures = simulator.GetBestCreatures(fabricateCount);
-                for (int i = 0; i < bestCreatures.Count; i++)
+
+                int fabCount = GetFabricateCount();
+                IReadOnlyList<IAssessableCreature> creatures = GetChoiceType() == ChoiceType.Random ? GetRandomCreatures(simulator, fabCount) : GetBestCreatures(simulator, fabCount);
+                for (int i = 0; i < creatures.Count; i++)
                 {
                     CapsuleEnvironment environment = simulator.TrialType == TrialType.WaterDistance ? CapsuleEnvironment.Aquatic : CapsuleEnvironment.Terrestrial;
-                    FabricateDockedCapsule(bestCreatures[i], environment);
+                    FabricateDockedCapsule(creatures[i], environment);
                 }
             };
+
+            ResetToDefaults();
         }
 
         private void Update()
         {
-            // Remove null docks from the queue.
+            // Remove null docks from the conveyor.
             docksOnConveyor.RemoveAll(dock => dock == null);
 
             // Calculate the maximum distance any dock needs to travel.
@@ -63,9 +77,10 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
                 maxDistance = Mathf.Max(maxDistance, distance);
             }
 
+            bool allDocksAtTarget = true;
             if (maxDistance > 0.001f)
             {
-                float movementThisFrame = conveyorSpeed * Time.deltaTime;
+                float movementThisFrame = conveyorSpeed * (fabricationQueue.Count + 1) * Time.deltaTime;
 
                 for (int i = 0; i < docksOnConveyor.Count; i++)
                 {
@@ -78,8 +93,14 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
                     float synchronizedSpeed = (distanceToTarget / maxDistance) * movementThisFrame;
 
                     dock.transform.position = Vector3.MoveTowards(currentPosition, targetPosition, synchronizedSpeed);
+
+                    if (distanceToTarget > 0.001f)
+                        allDocksAtTarget = false;
                 }
             }
+
+            if (allDocksAtTarget)
+                TryAddNextDockToConveyor();
 
             Vector3 newestDockPosition = docksOnConveyor.Count > 0 ? docksOnConveyor[0].transform.position : Vector3.zero;
             fabricatorLeftGate.SetOpen(ShouldGateOpen(fabricatorLeftGate.transform.position, newestDockPosition));
@@ -90,17 +111,44 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
             incineratorRightGate.SetOpen(ShouldGateOpen(incineratorRightGate.transform.position, oldestDockPosition));
         }
 
-        public void FabricateDockedCapsule(ICreature creature, CapsuleEnvironment environment)
+        private void ResetToDefaults()
         {
-            GameObject dockObject = Instantiate(dockPrefab, spawnPoint.position, spawnPoint.rotation);
-            CapsuleDock dock = dockObject.GetComponent<CapsuleDock>();
-            dock.DisableFirstEnterSound = true;
+            SetChoiceTypeToDefaultValue();
+            SetFabricateCountToDefaultValue();
+        }
 
-            GameObject capsuleObject = Instantiate(capsulePrefab, spawnPoint.position, spawnPoint.rotation);
-            ICreatureCapsule capsule = capsuleObject.GetComponent<ICreatureCapsule>();
-            capsule.InitialiseFromCreature(creature, environment);
+        private readonly ChoiceType[] ChoiceTypeOptions = { ChoiceType.Best, ChoiceType.Random };
+        private ChoiceType GetChoiceType() => ChoiceTypeOptions[choiceTypeGroup.ActiveButtonIndex];
+        private void SetChoiceTypeToDefaultValue() => choiceTypeGroup.SetActiveButton(0);
 
-            docksOnConveyor.Insert(0, dock);
+        private readonly int[] FabricateCountOptions = { 0, 1, 2, 5 };
+        private int GetFabricateCount() => FabricateCountOptions[fabricateCountGroup.ActiveButtonIndex];
+        private void SetFabricateCountToDefaultValue() => fabricateCountGroup.SetActiveButton(1);
+
+
+        private void FabricateDockedCapsule(ICreature creature, CapsuleEnvironment environment)
+        {
+            fabricationQueue.Enqueue(() =>
+            {
+                GameObject dockObject = Instantiate(dockPrefab, spawnPoint.position, spawnPoint.rotation);
+                CapsuleDock dock = dockObject.GetComponent<CapsuleDock>();
+                dock.DisableFirstEnterSound = true;
+
+                GameObject capsuleObject = Instantiate(capsulePrefab, dock.Socket.transform.position, dock.Socket.transform.rotation);
+                ICreatureCapsule capsule = capsuleObject.GetComponent<ICreatureCapsule>();
+                capsule.InitialiseFromCreature(creature, environment);
+
+                return dock;
+            });
+        }
+
+        private void TryAddNextDockToConveyor()
+        {
+            if (fabricationQueue.Count > 0 && docksOnConveyor.Count <= conveyorCapacity)
+            {
+                CapsuleDock nextDock = fabricationQueue.Dequeue()();
+                docksOnConveyor.Insert(0, nextDock);
+            }
         }
 
         private bool ShouldGateOpen(Vector3 gatePosition, Vector3 closestDockPosition)
@@ -115,6 +163,24 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
 
             float t = Mathf.Clamp01((float)waypointIndex / conveyorCapacity);
             return Vector3.Lerp(start, end, t);
+        }
+
+        private IReadOnlyList<IAssessableCreature> GetBestCreatures(IEvolutionSimulator simulator, int count)
+        {
+            return simulator.Population?
+                .OrderByDescending(i => i.Fitness)
+                .Take(count)
+                .Cast<IAssessableCreature>()
+                .ToList() ?? new();
+        }
+
+        private IReadOnlyList<IAssessableCreature> GetRandomCreatures(IEvolutionSimulator simulator, int count)
+        {
+            return simulator.Population?
+                .OrderBy(i => Guid.NewGuid())
+                .Take(count)
+                .Cast<IAssessableCreature>()
+                .ToList() ?? new();
         }
     }
 }

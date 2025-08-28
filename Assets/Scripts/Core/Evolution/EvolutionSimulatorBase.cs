@@ -98,6 +98,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.Evolution
         private Progress<float> settleProgressManager;
         public float AssessmentProgress { get; private set; }
         private Progress<float> assessmentProgressManager;
+        public IReadOnlyList<IAssessableCreature> Population => evolution?.Population.Cast<IAssessableCreature>().ToList();
         private readonly List<EvolutionStatistics> statistics = new();
         public IReadOnlyList<EvolutionStatistics> Statistics => statistics;
 
@@ -181,18 +182,6 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.Evolution
         public void RealTimeSimulation() => simulationRate = SimulationRateMode.RealTime;
         public void FullSpeedSimulation() => simulationRate = SimulationRateMode.FullSpeed;
         public void HeadlessSimulation() => simulationRate = SimulationRateMode.Headless;
-
-        public List<IAssessableCreature> GetBestCreatures(int count)
-        {
-            if (evolution == null || evolution.Population == null || evolution.Population.Count == 0)
-                return new List<IAssessableCreature>();
-
-            return evolution.Population
-                .OrderByDescending(i => i.Fitness)
-                .Take(count)
-                .Cast<IAssessableCreature>()
-                .ToList();
-        }
 
         public ECS.API.ISimulationSettings GetSimulationSettingsAPI() => ecsApi.Simulation;
         public ECS.API.IPresentationSettings GetPresentationSettingsAPI() => ecsApi.Presentation;

@@ -409,7 +409,11 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.UI.TwoD
             simulator.OnGenerationComplete += (stats) =>
             {
                 // Record the best individuals.
-                previousBestIndividuals = simulator.GetBestCreatures(FocusGrid.maxFrames);
+                previousBestIndividuals = simulator.Population?
+                    .OrderByDescending(i => i.Fitness)
+                    .Take(FocusGrid.maxFrames)
+                    .Cast<IAssessableCreature>()
+                    .ToList() ?? new();
             };
             void updateFocusGrid() => focusGrid.SetFrameTargets(previousBestIndividuals);
             simulator.OnGenerationStart += (generation) => updateFocusGrid();
