@@ -12,6 +12,8 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
         [SerializeField] private GameObject simulatorContainer;
         [SerializeField] private GameObject capsulePrefab;
         [SerializeField] private GameObject dockPrefab;
+        [SerializeField] private AudioClip conveyorSound;
+        [SerializeField] private AudioSource conveyorAudioSource;
         [SerializeField] private ButtonGroup choiceTypeGroup;
         [SerializeField] private ButtonGroup fabricateCountGroup;
         [SerializeField] private HingedPanel fabricatorLeftGate;
@@ -21,6 +23,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
         [SerializeField] private Transform spawnPoint;
         [SerializeField] private Transform conveyorStart;
         [SerializeField] private Transform conveyorEnd;
+        [SerializeField] private Transform destroyPoint;
         [SerializeField] private int conveyorCapacity = 5;
         [SerializeField] private float conveyorSpeed = 1.0f;
         [SerializeField] private float generationStep = 1;
@@ -60,6 +63,9 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
             };
 
             ResetToDefaults();
+
+            conveyorAudioSource.clip = conveyorSound;
+            conveyorAudioSource.loop = true;
         }
 
         private void Update()
@@ -80,7 +86,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
             bool allDocksAtTarget = true;
             if (maxDistance > 0.001f)
             {
-                float movementThisFrame = conveyorSpeed * (fabricationQueue.Count + 1) * Time.deltaTime;
+                float movementThisFrame = conveyorSpeed * (fabricationQueue.Count + 1f) * Time.deltaTime;
 
                 for (int i = 0; i < docksOnConveyor.Count; i++)
                 {
@@ -101,6 +107,11 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
 
             if (allDocksAtTarget)
                 TryAddNextDockToConveyor();
+
+            if (!allDocksAtTarget && !conveyorAudioSource.isPlaying)
+                conveyorAudioSource.Play();
+            else if (allDocksAtTarget && conveyorAudioSource.isPlaying)
+                conveyorAudioSource.Pause();
 
             Vector3 newestDockPosition = docksOnConveyor.Count > 0 ? docksOnConveyor[0].transform.position : Vector3.zero;
             fabricatorLeftGate.SetOpen(ShouldGateOpen(fabricatorLeftGate.transform.position, newestDockPosition));
@@ -153,15 +164,18 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
 
         private bool ShouldGateOpen(Vector3 gatePosition, Vector3 closestDockPosition)
         {
-            return Vector3.Distance(gatePosition, closestDockPosition) < 0.5f;
+            return Vector3.Distance(gatePosition, closestDockPosition) < 1f;
         }
 
         private Vector3 GetPositionOnConveyor(int waypointIndex)
         {
+            if (waypointIndex >= conveyorCapacity)
+                return destroyPoint.position;
+
             Vector3 start = conveyorStart.position;
             Vector3 end = conveyorEnd.position;
 
-            float t = Mathf.Clamp01((float)waypointIndex / conveyorCapacity);
+            float t = Mathf.Clamp01((float)waypointIndex / (conveyorCapacity - 1));
             return Vector3.Lerp(start, end, t);
         }
 

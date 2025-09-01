@@ -120,7 +120,7 @@ AudioSource:
     m_Curve:
     - serializedVersion: 3
       time: 0
-      value: 0
+      value: 1
       inSlope: 0
       outSlope: 0
       tangentMode: 0
@@ -275,7 +275,7 @@ GameObject:
   - component: {fileID: 4627979603622730765}
   - component: {fileID: 3449329596547911114}
   - component: {fileID: 3137578843336974045}
-  m_Layer: 0
+  m_Layer: 2
   m_Name: Socket
   m_TagString: Untagged
   m_Icon: {fileID: 0}
