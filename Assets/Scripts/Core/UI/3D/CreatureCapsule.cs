@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.IO;
 using TMPro;
@@ -32,8 +33,10 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
 
     public interface ICreatureCapsule
     {
+        ICreature Creature { get; }
         void InitialiseFromCreature(ICreature creature, CapsuleEnvironment environment);
         void InitialiseFromGenotypeFilePath(string filePath, CapsuleEnvironment environment);
+        void InitialiseFromGenotypeFilePathDialog(CapsuleEnvironment environment, Action<FileOperationResult> OnComplete);
     }
 
     [RequireComponent(typeof(XRGrabInteractable), typeof(Rigidbody), typeof(AudioSource))]
@@ -77,6 +80,9 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
         private TGenotype genotype;
         private TPhenotype phenotype;
 
+        private Creature<TGenotype, TPhenotype> creature;
+        public ICreature Creature => creature;
+
         private void Start()
         {
             environmentToggleButton.OnButtonPressed += (_) =>
@@ -118,16 +124,26 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
             GenotypeDiskOperations.LoadGenotypeFromFilePath<TGenotype>(filePath, (result, genotype) =>
             {
                 if (result == FileOperationResult.Success && genotype != null)
-                {
                     StartCoroutine(InitialiseFromGenotype(genotype, environment));
-                }
                 else
-                {
                     SetState(CapsuleState.FileMissingError);
-                }
             });
         }
 
+        public void InitialiseFromGenotypeFilePathDialog(CapsuleEnvironment environment, Action<FileOperationResult> OnComplete)
+        {
+            SetState(CapsuleState.Loading);
+
+            GenotypeDiskOperations.LoadGenotypeFromFilePathDialog<TGenotype>((result, genotype) =>
+            {
+                if (result == FileOperationResult.Success && genotype != null)
+                    StartCoroutine(InitialiseFromGenotype(genotype, environment));
+                else
+                    SetState(CapsuleState.FileMissingError);
+
+                OnComplete?.Invoke(result);
+            });
+        }
         private IEnumerator InitialiseFromGenotype(TGenotype genotype, CapsuleEnvironment environment)
         {
             this.genotype = genotype;
@@ -157,6 +173,12 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
             ECSAPI.Phenotype.SetPhenotypeCompanionObject(world, phenotype, companionObject);
 
             // TODO: Add tag to reset position if goes out of bounds.
+
+            creature = new()
+            {
+                Genotype = genotype,
+                Phenotype = phenotype
+            };
 
             SetState(CapsuleState.Loaded);
         }

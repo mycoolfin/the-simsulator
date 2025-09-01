@@ -1746,13 +1746,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1855627119}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.40821788, y: -0.23456968, z: 0.10938163, w: 0.8754261}
+  m_LocalRotation: {x: 0.41619772, y: 0.15737869, z: -0.07338688, w: 0.89253896}
   m_LocalPosition: {x: 0, y: 3, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 50, y: -30, z: 0}
+  m_LocalEulerAnglesHint: {x: 50, y: 20, z: 0}
 --- !u!114 &1855627122
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2167,6 +2167,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 6626344749340930009, guid: ecae4a455017a48cab72cc47bf9616f5, type: 3}
+      propertyPath: playerController
+      value: 
+      objectReference: {fileID: 1613917395}
     - target: {fileID: 7795270759974648811, guid: ecae4a455017a48cab72cc47bf9616f5, type: 3}
       propertyPath: m_Name
       value: Creature Save Station

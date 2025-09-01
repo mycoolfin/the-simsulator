@@ -92,7 +92,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
 
         private readonly TrialType[] TrialTypeOptions = { TrialType.GroundDistance, TrialType.WaterDistance, TrialType.GroundDistance, TrialType.WaterDistance }; // TODO: Return when light assessments are implemented.
         private TrialType GetTrialType() => TrialTypeOptions[trialTypeGroup.ActiveButtonIndex];
-        private void SetTrialTypeToDefaultValue() => trialTypeGroup.SetActiveButton(0);
+        private void SetTrialTypeToDefaultValue() => trialTypeGroup.SetActiveButton(1);
 
         private readonly int[] PopulationSizeOptions = { 50, 100, 200, 500, 1000, 5000 };
         private int GetPopulationSize() => PopulationSizeOptions[populationSizeGroup.ActiveButtonIndex];

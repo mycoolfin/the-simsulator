@@ -49,7 +49,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 02b3cb44476cd4ea9874f6a1858f3488, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  audioSource: {fileID: 5454999083088841666}
+  buttonPressedSound: {fileID: 8300000, guid: cc5cb9d6b8c944c5baec15bb84dc4c51, type: 3}
   animator: {fileID: 3670937462960823405}
   emitterController: {fileID: 3973824167124051897}
   buttonCollider: {fileID: 6737660649209509757}
@@ -82,9 +82,9 @@ AudioSource:
   m_GameObject: {fileID: 2937882948414319810}
   m_Enabled: 1
   serializedVersion: 4
-  OutputAudioMixerGroup: {fileID: 24300002, guid: 8996dd8160fe74c9b86fc5b02671859b, type: 2}
+  OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 0}
-  m_Resource: {fileID: 8300000, guid: 99158f6ab342f4db9a650541db12f5ba, type: 3}
+  m_Resource: {fileID: 0}
   m_PlayOnAwake: 0
   m_Volume: 1
   m_Pitch: 1

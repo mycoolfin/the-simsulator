@@ -3,7 +3,6 @@ using UnityEngine;
 namespace mycoolfin.TheSimsulator.UnityIntegration.Core
 {
     using System;
-    using System.Collections;
     using TheSimsulator.Core.Genotype;
     using TheSimsulator.Core.Phenotype;
     using UI;

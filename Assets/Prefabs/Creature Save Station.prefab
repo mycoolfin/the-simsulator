@@ -894,6 +894,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3912738918924380381}
+  - component: {fileID: 1411953901543005459}
+  - component: {fileID: 6626344749340930009}
   m_Layer: 0
   m_Name: Creature Save Station
   m_TagString: Untagged
@@ -922,6 +924,122 @@ Transform:
   - {fileID: 1456171408460085513}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 180, z: 0}
+--- !u!82 &1411953901543005459
+AudioSource:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7795270759974648811}
+  m_Enabled: 1
+  serializedVersion: 4
+  OutputAudioMixerGroup: {fileID: 0}
+  m_audioClip: {fileID: 0}
+  m_Resource: {fileID: 0}
+  m_PlayOnAwake: 1
+  m_Volume: 1
+  m_Pitch: 1
+  Loop: 0
+  Mute: 0
+  Spatialize: 0
+  SpatializePostEffects: 0
+  Priority: 128
+  DopplerLevel: 1
+  MinDistance: 1
+  MaxDistance: 500
+  Pan2D: 0
+  rolloffMode: 0
+  BypassEffects: 0
+  BypassListenerEffects: 0
+  BypassReverbZones: 0
+  rolloffCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  panLevelCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  spreadCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  reverbZoneMixCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+--- !u!114 &6626344749340930009
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7795270759974648811}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 515f3bb128ff34d5598bddca6065be46, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD.CreatureSaveStation
+  savedSound: {fileID: 8300000, guid: 30e8110e998774d398d62c19eb0ea435, type: 3}
+  loadedSound: {fileID: 8300000, guid: 0668d2b179b024e4caccd0c02112056a, type: 3}
+  capsulePrefab: {fileID: 5014879525742341797, guid: 5bc075e60c7974a25815e30d7ed73fb2, type: 3}
+  dock: {fileID: 8936498463566353620}
+  saveButton: {fileID: 8922105039273249711}
+  loadButton: {fileID: 149935239129066535}
+  playerController: {fileID: 0}
 --- !u!1 &8275912661816640425
 GameObject:
   m_ObjectHideFlags: 0
@@ -1051,6 +1169,18 @@ PrefabInstance:
       propertyPath: m_hasFontAssetChanged
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 5350502566921658742, guid: fcfca0d0d81224a27acd29bc714c1601, type: 3}
+      propertyPath: activeColor.b
+      value: 0.7254902
+      objectReference: {fileID: 0}
+    - target: {fileID: 5350502566921658742, guid: fcfca0d0d81224a27acd29bc714c1601, type: 3}
+      propertyPath: activeColor.g
+      value: 0.7254902
+      objectReference: {fileID: 0}
+    - target: {fileID: 5350502566921658742, guid: fcfca0d0d81224a27acd29bc714c1601, type: 3}
+      propertyPath: activeColor.r
+      value: 0.7254902
+      objectReference: {fileID: 0}
     - target: {fileID: 6054564104244227969, guid: fcfca0d0d81224a27acd29bc714c1601, type: 3}
       propertyPath: m_SizeDelta.x
       value: 0.7
@@ -1121,6 +1251,17 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 6567077633866227870, guid: fcfca0d0d81224a27acd29bc714c1601, type: 3}
   m_PrefabInstance: {fileID: 3571744829215124185}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &8922105039273249711 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 5350502566921658742, guid: fcfca0d0d81224a27acd29bc714c1601, type: 3}
+  m_PrefabInstance: {fileID: 3571744829215124185}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 02b3cb44476cd4ea9874f6a1858f3488, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &5211897264439004497
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1160,6 +1301,18 @@ PrefabInstance:
     - target: {fileID: 3873681283556065765, guid: fcfca0d0d81224a27acd29bc714c1601, type: 3}
       propertyPath: m_hasFontAssetChanged
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5350502566921658742, guid: fcfca0d0d81224a27acd29bc714c1601, type: 3}
+      propertyPath: activeColor.b
+      value: 0.7254902
+      objectReference: {fileID: 0}
+    - target: {fileID: 5350502566921658742, guid: fcfca0d0d81224a27acd29bc714c1601, type: 3}
+      propertyPath: activeColor.g
+      value: 0.7254902
+      objectReference: {fileID: 0}
+    - target: {fileID: 5350502566921658742, guid: fcfca0d0d81224a27acd29bc714c1601, type: 3}
+      propertyPath: activeColor.r
+      value: 0.7254902
       objectReference: {fileID: 0}
     - target: {fileID: 6054564104244227969, guid: fcfca0d0d81224a27acd29bc714c1601, type: 3}
       propertyPath: m_SizeDelta.x
@@ -1226,6 +1379,17 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: fcfca0d0d81224a27acd29bc714c1601, type: 3}
+--- !u!114 &149935239129066535 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 5350502566921658742, guid: fcfca0d0d81224a27acd29bc714c1601, type: 3}
+  m_PrefabInstance: {fileID: 5211897264439004497}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 02b3cb44476cd4ea9874f6a1858f3488, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!4 &1402469562073869775 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 6567077633866227870, guid: fcfca0d0d81224a27acd29bc714c1601, type: 3}
@@ -1297,3 +1461,14 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 5441021577346494343, guid: 66f48412c9f564257ad9001fba895b1d, type: 3}
   m_PrefabInstance: {fileID: 6238161560029180874}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &8936498463566353620 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3068839080830396190, guid: 66f48412c9f564257ad9001fba895b1d, type: 3}
+  m_PrefabInstance: {fileID: 6238161560029180874}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e2ba219c5406f4266a9f7a02d0d66355, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD.CapsuleDock

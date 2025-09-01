@@ -3,9 +3,10 @@ using UnityEngine;
 
 namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
 {
+    [RequireComponent(typeof(AudioSource))]
     public class PushButton : MonoBehaviour, ISelectable
     {
-        [SerializeField] private AudioSource audioSource;
+        [SerializeField] private AudioClip buttonPressedSound;
         [SerializeField] private Animator animator;
         [SerializeField] private EmitterController emitterController;
         [SerializeField] private Collider buttonCollider;
@@ -21,7 +22,15 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
         public bool debugIsActive;
         public bool debugIsDisabled;
 
+        private AudioSource audioSource;
+
         private float lastPushTime = 0f;
+
+        private void Awake()
+        {
+            audioSource = GetComponent<AudioSource>();
+            audioSource.clip = buttonPressedSound;
+        }
 
         private void Start()
         {
