@@ -40,6 +40,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
         void InitialiseFromCreature(ICreature creature, CapsuleEnvironment environment);
         void InitialiseFromGenotypeFilePath(string filePath, CapsuleEnvironment environment);
         void InitialiseFromGenotypeFilePathDialog(CapsuleEnvironment environment, Action<FileOperationResult> OnComplete);
+        void SetCompanionObjectOverride(PhenotypeCompanionObject companionObject);
     }
 
     [RequireComponent(typeof(XRGrabInteractable), typeof(Rigidbody), typeof(AudioSource))]
@@ -53,6 +54,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
         private const string AquaticCapsuleWorld = "AquaticCapsuleWorld";
 
         [SerializeField] private PhenotypeCompanionObject companionObject;
+        private PhenotypeCompanionObject companionObjectOverride;
         [SerializeField] private TextMeshPro fileMissingError;
         [SerializeField] private TextMeshPro invalidGenotypeError;
         [SerializeField] private PushButton environmentToggleButton;
@@ -159,10 +161,19 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
                 OnComplete?.Invoke(result);
             });
         }
+
+        public void SetCompanionObjectOverride(PhenotypeCompanionObject companionObject)
+        {
+            companionObjectOverride = companionObject;
+            StartCoroutine(InitialiseFromGenotype(genotype, Environment));
+        }
+
         private IEnumerator InitialiseFromGenotype(TGenotype genotype, CapsuleEnvironment environment)
         {
             this.genotype = genotype;
             Environment = environment;
+
+            if (genotype == null) yield break;
 
             World world = GetWorld(Environment);
 
@@ -185,7 +196,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
             };
             yield return ECSAPI.Phenotype.CreateEntitiesFromPhenotypes(world, new() { creationInfo });
 
-            ECSAPI.Phenotype.SetPhenotypeCompanionObject(world, phenotype, companionObject);
+            ECSAPI.Phenotype.SetPhenotypeCompanionObject(world, phenotype, companionObjectOverride != null ? companionObjectOverride : companionObject);
 
             // TODO: Add tag to reset position if goes out of bounds.
 

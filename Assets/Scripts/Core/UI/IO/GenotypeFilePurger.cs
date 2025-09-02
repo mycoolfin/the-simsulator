@@ -8,7 +8,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.IO
 {
     public static class GenotypeFilePurger
     {
-        public static void TryPurgeIfOverCap(string genotypeDir, int minFilesToKeep = 20, int maxFilesToKeep = 50)
+        public static void TryPurgeIfOverCap(string genotypeDir, int minFilesToKeep = 50, int maxFilesToKeep = 100)
         {
             try
             {

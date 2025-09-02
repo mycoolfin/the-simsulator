@@ -96,6 +96,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.ECS.Systems.Presentation
 
                     float3 maxSize = boundingBox.MaxExtents * 2f;
                     float maxDimension = math.max(math.max(maxSize.x, maxSize.y), maxSize.z);
+                    maxDimension = maxDimension > 0f ? maxDimension : math.INFINITY; // Prevent division by zero.
                     float scalingFactor = maxDimension > math.EPSILON ? 1f / maxDimension : 1f;
 
                     float4x4 scaleThenCenter = math.mul(
@@ -106,6 +107,10 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.ECS.Systems.Presentation
                     float4x4 phenotypeSpace = math.mul(scaleThenCenter, realTransform);
 
                     localToWorld.Value = math.mul(companionTransform, phenotypeSpace);
+                }
+                else
+                {
+                    localToWorld.Value = float4x4.zero;
                 }
             }
         }

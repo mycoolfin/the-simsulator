@@ -10,6 +10,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.Player
     {
         [Header("Rigs")]
         [SerializeField] private GameObject desktopRig;
+        [SerializeField] private CharacterController xrRigCharacterController;
         [SerializeField] private GameObject xrRigCameraOffset;
         [SerializeField] private TeleportationArea teleportationArea;
 
@@ -111,6 +112,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.Player
 
         private void SetXRActive(bool active)
         {
+            if (xrRigCharacterController) xrRigCharacterController.enabled = active;
             if (xrRigCameraOffset) xrRigCameraOffset.SetActive(active);
             ToggleAudioListener(xrRigCameraOffset, active);
             if (teleportationArea) teleportationArea.enabled = active;
