@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -7,13 +8,17 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
     {
         [SerializeField] private List<PushButton> buttons = new();
         public int ActiveButtonIndex { get; private set; } = -1;
+        public event Action<int> OnButtonPressed;
 
         private void Start()
         {
             for (int i = 0; i < buttons.Count; i++)
             {
                 int index = i;
-                buttons[i].OnButtonPressed += (isActive) => SetActiveButton(index);
+                buttons[i].OnButtonPressed += (isActive) => {
+                    SetActiveButton(index);
+                    OnButtonPressed?.Invoke(index);
+                };
             }
         }
 

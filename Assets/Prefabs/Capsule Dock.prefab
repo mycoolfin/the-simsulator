@@ -172,9 +172,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e2ba219c5406f4266a9f7a02d0d66355, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD.CapsuleDock
+  capsulePrefab: {fileID: 5014879525742341797, guid: 5bc075e60c7974a25815e30d7ed73fb2, type: 3}
   enterSocketSound: {fileID: 8300000, guid: a5e0693f71d714fe8a0a3ae8d1bce1af, type: 3}
   socket: {fileID: 3137578843336974045}
-  DisableFirstEnterSound: 0
 --- !u!1 &1971378555915253737
 GameObject:
   m_ObjectHideFlags: 0

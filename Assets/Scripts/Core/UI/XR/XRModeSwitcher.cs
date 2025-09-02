@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.XR;
+using UnityEngine.XR.Interaction.Toolkit.Locomotion.Teleportation;
 using UnityEngine.XR.Management;
 
 namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.Player
@@ -9,8 +10,8 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.Player
     {
         [Header("Rigs")]
         [SerializeField] private GameObject desktopRig;
-        [SerializeField] private GameObject xrRigCameraObject;
-        [SerializeField] private CharacterController xrRigCharacterController;
+        [SerializeField] private GameObject xrRigCameraOffset;
+        [SerializeField] private TeleportationArea teleportationArea;
 
         [Header("Optional")]
         [SerializeField] private bool startXRIfHmdPresentAtLaunch = true;
@@ -110,9 +111,9 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.Player
 
         private void SetXRActive(bool active)
         {
-            if (xrRigCameraObject) xrRigCameraObject.SetActive(active);
-            ToggleAudioListener(xrRigCameraObject, active);
-            if (xrRigCharacterController) xrRigCharacterController.enabled = active;
+            if (xrRigCameraOffset) xrRigCameraOffset.SetActive(active);
+            ToggleAudioListener(xrRigCameraOffset, active);
+            if (teleportationArea) teleportationArea.enabled = active;
         }
 
         private void ToggleAudioListener(GameObject root, bool active)

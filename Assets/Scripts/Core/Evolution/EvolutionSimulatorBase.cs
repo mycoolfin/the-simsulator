@@ -83,7 +83,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.Evolution
         // [SerializeField] private bool useSimulationSeed = false;
 
         [Header("Controls")]
-        [SerializeField] private SimulationRateMode simulationRate = SimulationRateMode.FullSpeed;
+        [SerializeField] private SimulationRateMode simulationRate = SimulationRateMode.RealTime;
         [SerializeField] private bool pauseEvolutionLoop = false;
 
         [Header("Runtime Status")]

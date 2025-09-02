@@ -2,15 +2,16 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
+using Newtonsoft.Json.Linq;
 
 namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
 {
     using Core.Evolution;
+    using IO;
 
-    public class CapsuleFabricator : MonoBehaviour
+    public class CapsuleFabricator : SaveableBehaviour
     {
         [SerializeField] private GameObject simulatorContainer;
-        [SerializeField] private GameObject capsulePrefab;
         [SerializeField] private GameObject dockPrefab;
         [SerializeField] private AudioClip conveyorSound;
         [SerializeField] private AudioSource conveyorAudioSource;
@@ -33,12 +34,40 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
             Random
         }
 
-        private Queue<Func<CapsuleDock>> fabricationQueue = new();
-        private List<CapsuleDock> docksOnConveyor = new();
+        private readonly Queue<Func<CapsuleDock>> fabricationQueue = new();
+        private readonly List<CapsuleDock> docksOnConveyor = new();
         private IEvolutionSimulator simulator;
 
+        public override string SaveId => "CapsuleFabricator";
+        public override int SaveVersion => 1;
+        [Serializable]
+        private class CapsuleFabricatorData
+        {
+            public int ChoiceTypeIndex;
+            public int FabricateCountIndex;
+        }
+        public override object CaptureState()
+        {
+            return new CapsuleFabricatorData
+            {
+                ChoiceTypeIndex = choiceTypeGroup.ActiveButtonIndex,
+                FabricateCountIndex = fabricateCountGroup.ActiveButtonIndex
+            };
+        }
+        public override void RestoreState(JObject payload, int version)
+        {
+            CapsuleFabricatorData data = payload.ToObject<CapsuleFabricatorData>();
+            if (data == null)
+            {
+                ResetToDefaults();
+                return;
+            }
 
-        private void Start()
+            choiceTypeGroup.SetActiveButton(data.ChoiceTypeIndex);
+            fabricateCountGroup.SetActiveButton(data.FabricateCountIndex);
+        }
+
+        private void Awake()
         {
             simulator = simulatorContainer.GetComponent<IEvolutionSimulator>();
             if (simulator == null)
@@ -62,10 +91,15 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
                 }
             };
 
-            ResetToDefaults();
-
             conveyorAudioSource.clip = conveyorSound;
             conveyorAudioSource.loop = true;
+
+            ResetToDefaults();
+        }
+
+        private void Start()
+        {
+            InitialiseButtons();
         }
 
         private void Update()
@@ -122,6 +156,12 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
             incineratorRightGate.SetOpen(ShouldGateOpen(incineratorRightGate.transform.position, oldestDockPosition));
         }
 
+        private void InitialiseButtons()
+        {
+            choiceTypeGroup.OnButtonPressed += (index) => NotifyChanged();
+            fabricateCountGroup.OnButtonPressed += (index) => NotifyChanged();
+        }
+
         private void ResetToDefaults()
         {
             SetChoiceTypeToDefaultValue();
@@ -136,18 +176,14 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
         private int GetFabricateCount() => FabricateCountOptions[fabricateCountGroup.ActiveButtonIndex];
         private void SetFabricateCountToDefaultValue() => fabricateCountGroup.SetActiveButton(1);
 
-
         private void FabricateDockedCapsule(ICreature creature, CapsuleEnvironment environment)
         {
             fabricationQueue.Enqueue(() =>
             {
                 GameObject dockObject = Instantiate(dockPrefab, spawnPoint.position, spawnPoint.rotation);
                 CapsuleDock dock = dockObject.GetComponent<CapsuleDock>();
-                dock.DisableFirstEnterSound = true;
-
-                GameObject capsuleObject = Instantiate(capsulePrefab, dock.Socket.transform.position, dock.Socket.transform.rotation);
-                ICreatureCapsule capsule = capsuleObject.GetComponent<ICreatureCapsule>();
-                capsule.InitialiseFromCreature(creature, environment);
+                dock.CreateAndDockEmptyCapsule(silent: true);
+                dock.DockedCapsule.InitialiseFromCreature(creature, environment);
 
                 return dock;
             });

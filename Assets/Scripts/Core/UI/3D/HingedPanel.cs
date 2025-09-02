@@ -18,7 +18,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
 
         private Animator animator;
 
-        private void Start()
+        private void Awake()
         {
             animator = GetComponent<Animator>();
             SetOpen(startOpen);

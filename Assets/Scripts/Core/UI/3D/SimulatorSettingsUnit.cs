@@ -1,10 +1,13 @@
+using System;
 using UnityEngine;
+using Newtonsoft.Json.Linq;
 
 namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
 {
     using Evolution;
+    using IO;
 
-    public class SimulatorSettingsUnit : MonoBehaviour
+    public class SimulatorSettingsUnit : SaveableBehaviour
     {
         [SerializeField] private PushButton advancedSettingsToggle;
         [SerializeField] private HingedPanel advancedSettingsBlock;
@@ -20,9 +23,60 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
         public delegate bool IsSimulatorRunningDelegate();
         public IsSimulatorRunningDelegate IsSimulatorRunning;
 
-        private void Start()
+        public override string SaveId => "SimulatorSettingsUnit";
+        public override int SaveVersion => 1;
+        [Serializable]
+        private class SimulatorSettingsData
+        {
+            public bool AdvancedSettingsOpen;
+            public int TrialTypeIndex;
+            public int PopulationSizeIndex;
+            public int MaxGenerationsIndex;
+            public int SurvivalRateIndex;
+            public int MutationRateIndex;
+            public int SettleSecondsIndex;
+            public int AssessmentSecondsIndex;
+        }
+        public override object CaptureState()
+        {
+            return new SimulatorSettingsData
+            {
+                AdvancedSettingsOpen = advancedSettingsBlock.IsOpen,
+                TrialTypeIndex = trialTypeGroup.ActiveButtonIndex,
+                PopulationSizeIndex = populationSizeGroup.ActiveButtonIndex,
+                MaxGenerationsIndex = maxGenerationsGroup.ActiveButtonIndex,
+                SurvivalRateIndex = survivalRateGroup.ActiveButtonIndex,
+                MutationRateIndex = mutationRateGroup.ActiveButtonIndex,
+                SettleSecondsIndex = settleSecondsGroup.ActiveButtonIndex,
+                AssessmentSecondsIndex = assessmentSecondsGroup.ActiveButtonIndex
+            };
+        }
+        public override void RestoreState(JObject payload, int version)
+        {
+            SimulatorSettingsData data = payload.ToObject<SimulatorSettingsData>();
+            if (data == null)
+            {
+                ResetToDefaults();
+                return;
+            }
+
+            advancedSettingsBlock.SetOpen(data.AdvancedSettingsOpen);
+            trialTypeGroup.SetActiveButton(data.TrialTypeIndex);
+            populationSizeGroup.SetActiveButton(data.PopulationSizeIndex);
+            maxGenerationsGroup.SetActiveButton(data.MaxGenerationsIndex);
+            survivalRateGroup.SetActiveButton(data.SurvivalRateIndex);
+            mutationRateGroup.SetActiveButton(data.MutationRateIndex);
+            settleSecondsGroup.SetActiveButton(data.SettleSecondsIndex);
+            assessmentSecondsGroup.SetActiveButton(data.AssessmentSecondsIndex);
+        }
+
+        private void Awake()
         {
             ResetToDefaults();
+        }
+
+        private void Start()
+        {
             InitialiseButtons();
         }
 
@@ -50,12 +104,22 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
             advancedSettingsToggle.OnButtonPressed += (isActive) =>
             {
                 advancedSettingsBlock.SetOpen(!isActive);
+                NotifyChanged();
             };
 
             resetToDefaultsButton.OnButtonPressed += (isActive) =>
             {
                 ResetToDefaults();
+                NotifyChanged();
             };
+
+            trialTypeGroup.OnButtonPressed += (index) => NotifyChanged();
+            populationSizeGroup.OnButtonPressed += (index) => NotifyChanged();
+            maxGenerationsGroup.OnButtonPressed += (index) => NotifyChanged();
+            survivalRateGroup.OnButtonPressed += (index) => NotifyChanged();
+            mutationRateGroup.OnButtonPressed += (index) => NotifyChanged();
+            settleSecondsGroup.OnButtonPressed += (index) => NotifyChanged();
+            assessmentSecondsGroup.OnButtonPressed += (index) => NotifyChanged();
         }
 
         private void UpdateButtons()
@@ -90,7 +154,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
             SetAssessmentSecondsToDefaultValue();
         }
 
-        private readonly TrialType[] TrialTypeOptions = { TrialType.GroundDistance, TrialType.WaterDistance, TrialType.GroundDistance, TrialType.WaterDistance }; // TODO: Return when light assessments are implemented.
+        private readonly TrialType[] TrialTypeOptions = { TrialType.GroundDistance, TrialType.WaterDistance };
         private TrialType GetTrialType() => TrialTypeOptions[trialTypeGroup.ActiveButtonIndex];
         private void SetTrialTypeToDefaultValue() => trialTypeGroup.SetActiveButton(1);
 

@@ -1,6 +1,4 @@
 using UnityEngine;
-using UnityEngine.XR.Interaction.Toolkit;
-using UnityEngine.XR.Interaction.Toolkit.Interactables;
 
 namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
 {
@@ -12,15 +10,12 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
     {
         [SerializeField] private AudioClip savedSound;
         [SerializeField] private AudioClip loadedSound;
-        [SerializeField] private GameObject capsulePrefab;
         [SerializeField] private CapsuleDock dock;
         [SerializeField] private PushButton saveButton;
         [SerializeField] private PushButton loadButton;
         [SerializeField] private FPSPlayerController playerController;
 
         private AudioSource audioSource;
-
-        private ICreatureCapsule dockedCapsule;
 
         private void Awake()
         {
@@ -29,9 +24,6 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
 
         private void Start()
         {
-            dock.Socket.selectEntered.AddListener(OnSelectEntered);
-            dock.Socket.selectExited.AddListener(OnSelectExited);
-
             saveButton.SetActive(true);
             loadButton.SetActive(true);
             saveButton.OnButtonPressed += (_) => SaveDockedCreature();
@@ -40,38 +32,18 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
 
         private void Update()
         {
-            saveButton.SetDisabled(dockedCapsule == null);
-            loadButton.SetDisabled(dockedCapsule != null);
-        }
-
-        private void OnDisable()
-        {
-            dock.Socket.selectEntered.RemoveListener(OnSelectEntered);
-            dock.Socket.selectExited.RemoveListener(OnSelectExited);
-        }
-
-        private void OnSelectEntered(SelectEnterEventArgs args)
-        {
-            if ((args.interactableObject as Component).TryGetComponent(out XRGrabInteractable grabInteractable))
-            {
-                if (grabInteractable.gameObject.TryGetComponent(out ICreatureCapsule capsule))
-                    dockedCapsule = capsule;
-            }
-        }
-
-        private void OnSelectExited(SelectExitEventArgs args)
-        {
-            if ((args.interactableObject as Component).TryGetComponent(out XRGrabInteractable grabInteractable))
-                if (grabInteractable.gameObject.TryGetComponent(out ICreatureCapsule capsule))
-                    dockedCapsule = null;
+            saveButton.SetDisabled(dock.DockedCapsule == null);
+            loadButton.SetDisabled(dock.DockedCapsule != null);
         }
 
         private void SaveDockedCreature()
         {
+            if (dock.DockedCapsule == null) return;
+
             if (playerController != null)
                 playerController.SetCursorLock(false);
 
-            dockedCapsule.Creature?.SaveGenotypeToFile((result) =>
+            dock.DockedCapsule.Creature?.SaveGenotypeToFile((result) =>
             {
                 if (result == FileOperationResult.Success)
                     audioSource.PlayOneShot(savedSound);
@@ -83,17 +55,22 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
 
         private void LoadDockedCreature()
         {
+            if (dock.DockedCapsule != null) return;
+
             if (playerController != null)
                 playerController.SetCursorLock(false);
 
-            GameObject capsuleObject = Instantiate(capsulePrefab, dock.Socket.transform.position, dock.Socket.transform.rotation);
-            ICreatureCapsule capsule = capsuleObject.GetComponent<ICreatureCapsule>();
-            capsule.InitialiseFromGenotypeFilePathDialog(CapsuleEnvironment.Aquatic, (result) =>
+            dock.CreateAndDockEmptyCapsule(silent: false);
+            dock.DockedCapsule.InitialiseFromGenotypeFilePathDialog(CapsuleEnvironment.Aquatic, (result) =>
             {
                 if (result == FileOperationResult.Success)
                     audioSource.PlayOneShot(loadedSound);
                 else
-                    Destroy(capsuleObject);
+                {
+                    ICreatureCapsule capsule = dock.DockedCapsule;
+                    dock.EjectCapsule();
+                    Destroy(capsule.GameObject);
+                }
 
                 if (playerController != null)
                     playerController.SetCursorLock(true);

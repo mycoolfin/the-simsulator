@@ -22,8 +22,8 @@ namespace mycoolfin.TheSimsulator.Sims.Genotype
 
         public SimsGenotype(List<Node> nodes, List<Connection> connections, List<NeuronDefinition> neuronDefinitions)
         {
-            Name = "<Unnamed>";
             Gid = SharedRandom.NextUInt64().ToString();
+            Name = Gid;
             Nodes = nodes ?? throw new ArgumentNullException(nameof(nodes), "Nodes cannot be null.");
             Connections = connections ?? throw new ArgumentNullException(nameof(connections), "Connections cannot be null.");
             NeuronDefinitions = neuronDefinitions ?? throw new ArgumentNullException(nameof(neuronDefinitions), "NeuronDefinitions cannot be null.");
