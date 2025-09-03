@@ -6,6 +6,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
 {
     using Evolution;
 
+    [RequireComponent(typeof(AudioSource))]
     public class WorldVisualiser : MonoBehaviour
     {
         [SerializeField] private GameObject simulatorContainer;
@@ -16,7 +17,12 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
         [SerializeField] private EmitterController outerEmitter;
         [SerializeField] private Color emitterColor = Color.white;
 
+        private AudioSource audioSource;
+
         private IEvolutionSimulator simulator;
+
+        private float soundBootUpPeriod = 1f;
+        private float simulatorStartedAt = -1f;
 
         public float DynamicScaleFactor = 1f;
         private float previousDynamicScaleFactor;
@@ -40,8 +46,10 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
 
         private World ecsWorld;
 
-        public void Start()
+        private void Awake()
         {
+            audioSource = GetComponent<AudioSource>();
+
             simulator = simulatorContainer.GetComponent<IEvolutionSimulator>();
             if (simulator == null)
             {
@@ -62,7 +70,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
             };
         }
 
-        public void Update()
+        private void Update()
         {
             if (previousDynamicScaleFactor != DynamicScaleFactor)
             {
@@ -72,6 +80,11 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
 
             if (simulator.IsRunning)
             {
+                if (simulatorStartedAt == -1f)
+                    simulatorStartedAt = Time.time;
+                if (!audioSource.isPlaying)
+                    audioSource.Play();
+                AnimateSound();
                 AnimateEmitters(simulator.IsSimulationRealTime, simulator.IsSimulationFullSpeed);
 
                 if (HasChanged)
@@ -94,6 +107,8 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
             }
             else
             {
+                simulatorStartedAt = -1f;
+                if (audioSource.isPlaying) audioSource.Stop();
                 SetEmitterIntensities(0f);
                 SetGroundEnabled(false);
                 SetWaterEnabled(false);
@@ -117,6 +132,13 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
                     SetWaterEnabled(true);
                     break;
             }
+        }
+
+        private void AnimateSound()
+        {
+            float timeSinceStarted = Time.time - simulatorStartedAt;
+            float volume = Mathf.Lerp(0f, 1f, timeSinceStarted / soundBootUpPeriod);
+            audioSource.volume = volume;
         }
 
         private void AnimateEmitters(bool isRealTime, bool isFullSpeed)

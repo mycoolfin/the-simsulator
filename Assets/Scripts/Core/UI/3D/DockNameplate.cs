@@ -16,6 +16,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
         {
             audioSource = GetComponent<AudioSource>();
             editableText.OnCommitted += RenameCreature;
+            AssignCreatureCapsule(null);
         }
 
         public void AssignCreatureCapsule(ICreatureCapsule capsule)
@@ -23,7 +24,10 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
             AssignCreature(capsule?.Creature);
 
             if (capsule == null)
-                currentCapsule.OnCreatureLoaded -= AssignCreature;
+            {
+                if (currentCapsule != null)
+                    currentCapsule.OnCreatureLoaded -= AssignCreature;
+            }
             else
                 capsule.OnCreatureLoaded += AssignCreature;
             currentCapsule = capsule;
