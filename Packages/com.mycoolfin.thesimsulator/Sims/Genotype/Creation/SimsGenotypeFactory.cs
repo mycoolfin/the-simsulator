@@ -104,7 +104,7 @@ namespace mycoolfin.TheSimsulator.Sims.Genotype
             bool copyFromParent1 = SharedRandom.Next(0, 2) == 0;
             Dictionary<ulong, ulong> parent1OriginalToCopiedNodeMap = new();
             Dictionary<ulong, ulong> parent2OriginalToCopiedNodeMap = new();
-            for (int i = 0; i < Math.Max(parent1.Nodes.Count, parent2.Nodes.Count); i++)
+            for (int i = 0; i < Math.Min(parent1.Nodes.Count, parent2.Nodes.Count); i++)
             {
                 if (i > 0 && i % CrossoverInterval == 0)
                     copyFromParent1 = !copyFromParent1;
@@ -176,7 +176,7 @@ namespace mycoolfin.TheSimsulator.Sims.Genotype
                 remainingNodeBudget--;
             }
 
-            CopyOverRelatedConnections(recipient, donor, offspringContext, parent1OriginalToCopiedNodeMap, parent2OriginalToCopiedNodeMap, recipientNodeIndex, recipientConnectionIndex, donor.Nodes[donorNodeIndex].Gid);
+            CopyOverRelatedConnections(recipient, donor, offspringContext, parent1OriginalToCopiedNodeMap, parent2OriginalToCopiedNodeMap, recipientConnectionIndex, donor.Nodes[donorNodeIndex].Gid);
             CopyOverRelatedNeuronDefinitions(recipient, donor, offspringContext, parent1OriginalToCopiedNodeMap, parent2OriginalToCopiedNodeMap);
 
             return offspringContext;
@@ -188,91 +188,100 @@ namespace mycoolfin.TheSimsulator.Sims.Genotype
             SimsGenotypeCreationContext offspringContext,
             Dictionary<ulong, ulong> parent1OriginalToCopiedNodeMap,
             Dictionary<ulong, ulong> parent2OriginalToCopiedNodeMap,
-            int recipientNodeIndex = -1,
             int recipientConnectionIndex = -1,
             ulong oldDonorNodeGid = 0UL
         )
         {
-            int donorOffset = recipientNodeIndex + 1; // Donor nodes start after all recipient nodes.
-            for (int i = 0; i < parent1.Connections.Count; i++)
+            // Precompute GID -> index maps.
+            Dictionary<ulong, int> p1IndexByGid = new(parent1.Nodes.Count);
+            for (int index = 0; index < parent1.Nodes.Count; index++)
+                p1IndexByGid[parent1.Nodes[index].Gid] = index;
+
+            Dictionary<ulong, int> p2IndexByGid = new(parent2.Nodes.Count);
+            for (int index = 0; index < parent2.Nodes.Count; index++)
+                p2IndexByGid[parent2.Nodes[index].Gid] = index;
+
+            Dictionary<ulong, int> childIndexByGid = new(offspringContext.Nodes.Count);
+            for (int index = 0; index < offspringContext.Nodes.Count; index++)
+                childIndexByGid[offspringContext.Nodes[index].Gid] = index;
+
+            static void Add(Connection src, ulong newParent, ulong newChild, SimsGenotypeCreationContext context)
+            {
+                context.Connections.Add(new Connection(
+                    newParent,
+                    newChild,
+                    src.ParentFace,
+                    src.Position,
+                    src.Orientation,
+                    src.Scale,
+                    src.ReflectionX,
+                    src.ReflectionY,
+                    src.ReflectionZ,
+                    src.TerminalOnly
+                ));
+            }
+
+            // Parent 1 pass.
+            for (int i = 0, n = parent1.Connections.Count; i < n; i++)
             {
                 Connection c = parent1.Connections[i];
 
-                // Does the copied version of my original parent node exist?
+                // Parent must exist in offspring via mapping.
                 if (!parent1OriginalToCopiedNodeMap.TryGetValue(c.ParentNodeGid, out ulong newParentGid))
-                    continue; // Parent node does not exist in the offspring context.
+                    continue;
 
-                // What child node are we now pointing to?
                 ulong newChildGid;
-                if (recipientConnectionIndex == i) // This is the connection we are grafting from the recipient.
+
+                if (recipientConnectionIndex == i) // Graft bridge special case.
                 {
                     if (!parent2OriginalToCopiedNodeMap.TryGetValue(oldDonorNodeGid, out newChildGid))
                         throw new InvalidOperationException($"Failed to find new child GID for donor connection. oldDonorNodeGid: {oldDonorNodeGid}");
                 }
                 else
                 {
-                    // What is the index of the child node relative to the parent (can be negative)?
-                    int oldAbsoluteParentNodeIndex = parent1.Nodes.FindIndex(n => n.Gid == c.ParentNodeGid);
-                    int oldAbsoluteChildNodeIndex = parent1.Nodes.FindIndex(n => n.Gid == c.ChildNodeGid);
-                    int relativeChildIndex = oldAbsoluteChildNodeIndex - oldAbsoluteParentNodeIndex;
+                    // Compute relative offset.
+                    if (!p1IndexByGid.TryGetValue(c.ParentNodeGid, out int oldAbsParentindex)) continue;
+                    if (!p1IndexByGid.TryGetValue(c.ChildNodeGid, out int oldAbsChildindex)) continue;
+                    int relChildindex = oldAbsChildindex - oldAbsParentindex;
 
-                    int newAbsoluteParentNodeIndex = offspringContext.Nodes.FindIndex(n => n.Gid == newParentGid);
-                    int newAbsoluteChildNodeIndex = newAbsoluteParentNodeIndex + relativeChildIndex;
-                    if (newAbsoluteChildNodeIndex < 0 || newAbsoluteChildNodeIndex >= offspringContext.Nodes.Count)
-                        continue; // Connection now points out of bounds.
-                    newChildGid = offspringContext.Nodes[newAbsoluteChildNodeIndex].Gid;
+                    if (!childIndexByGid.TryGetValue(newParentGid, out int newAbsParentindex)) continue;
+                    int newAbsChildindex = newAbsParentindex + relChildindex;
+
+                    if ((uint)newAbsChildindex >= (uint)offspringContext.Nodes.Count)
+                        continue; // Out of bounds after remap - skip.
+
+                    newChildGid = offspringContext.Nodes[newAbsChildindex].Gid;
                 }
 
-                Connection copiedConnection = new(
-                    newParentGid,
-                    newChildGid,
-                    c.ParentFace,
-                    c.Position,
-                    c.Orientation,
-                    c.Scale,
-                    c.ReflectionX,
-                    c.ReflectionY,
-                    c.ReflectionZ,
-                    c.TerminalOnly
-                );
-                offspringContext.Connections.Add(copiedConnection);
+                Add(c, newParentGid, newChildGid, offspringContext);
             }
 
-            for (int i = 0; i < parent2.Connections.Count; i++)
+            // Parent 2 pass.
+            for (int i = 0, n = parent2.Connections.Count; i < n; i++)
             {
                 Connection c = parent2.Connections[i];
 
-                // Does the copied version of my original parent node exist?
+                // Parent must exist in offspring via mapping.
                 if (!parent2OriginalToCopiedNodeMap.TryGetValue(c.ParentNodeGid, out ulong newParentGid))
-                    continue; // Parent node does not exist in the offspring context.
+                    continue;
 
-                // What child node are we now pointing to?
-                // What is the index of the child node relative to the parent (can be negative)?
-                int oldAbsoluteParentNodeIndex = parent2.Nodes.FindIndex(n => n.Gid == c.ParentNodeGid);
-                int oldAbsoluteChildNodeIndex = parent2.Nodes.FindIndex(n => n.Gid == c.ChildNodeGid);
-                int relativeChildIndex = oldAbsoluteChildNodeIndex - oldAbsoluteParentNodeIndex;
+                // Compute relative offset.
+                if (!p2IndexByGid.TryGetValue(c.ParentNodeGid, out int oldAbsParentindex)) continue;
+                if (!p2IndexByGid.TryGetValue(c.ChildNodeGid, out int oldAbsChildindex)) continue;
+                int relChildindex = oldAbsChildindex - oldAbsParentindex;
 
-                int newAbsoluteParentNodeIndex = offspringContext.Nodes.FindIndex(n => n.Gid == newParentGid);
-                int newAbsoluteChildNodeIndex = newAbsoluteParentNodeIndex + relativeChildIndex + donorOffset; // Adjust for any grafting offset.
-                if (newAbsoluteChildNodeIndex < 0 || newAbsoluteChildNodeIndex >= offspringContext.Nodes.Count)
-                    continue; // Connection now points out of bounds.
-                ulong newChildGid = offspringContext.Nodes[newAbsoluteChildNodeIndex].Gid;
+                if (!childIndexByGid.TryGetValue(newParentGid, out int newAbsParentindex)) continue;
+                int newAbsChildindex = newAbsParentindex + relChildindex;
 
-                Connection copiedConnection = new(
-                    newParentGid,
-                    newChildGid,
-                    c.ParentFace,
-                    c.Position,
-                    c.Orientation,
-                    c.Scale,
-                    c.ReflectionX,
-                    c.ReflectionY,
-                    c.ReflectionZ,
-                    c.TerminalOnly
-                );
-                offspringContext.Connections.Add(copiedConnection);
+                if ((uint)newAbsChildindex >= (uint)offspringContext.Nodes.Count)
+                    continue; // Out of bounds after remap - skip.
+
+                ulong newChildGid = offspringContext.Nodes[newAbsChildindex].Gid;
+
+                Add(c, newParentGid, newChildGid, offspringContext);
             }
         }
+
 
         private void CopyOverRelatedNeuronDefinitions(
             SimsGenotype parent1, SimsGenotype parent2,

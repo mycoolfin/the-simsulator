@@ -9,21 +9,33 @@ namespace mycoolfin.TheSimsulator.Core.Evolution
     using Genotype;
     using Phenotype;
 
-    public abstract class EvolutionConfigBase
+    public class SeedGenotype<TGenotype>
+        where TGenotype : IGenotype<TGenotype>
+    {
+        public TGenotype Genotype;
+        public SeedGenotype(TGenotype genotype = default)
+        {
+            Genotype = genotype;
+        }
+    }
+
+    public abstract class EvolutionConfigBase<TGenotype>
+        where TGenotype : IGenotype<TGenotype>
     {
         public int PopulationSize { get; set; } = 100;
         public float SurvivalRate { get; set; } = 0.2f;
         public float MutationRate { get; set; } = 0.1f;
+        public SeedGenotype<TGenotype> SeedGenotype { get; set; } = null;
         public int Seed { get; set; } = Environment.TickCount;
     }
 
     public abstract class EvolutionBase<TEvolutionConfig, TGenotype, TPhenotype, TIndividual> : IDisposable
-        where TEvolutionConfig : EvolutionConfigBase
+        where TEvolutionConfig : EvolutionConfigBase<TGenotype>
         where TGenotype : IGenotype<TGenotype>
         where TPhenotype : IPhenotype<TPhenotype>
         where TIndividual : IIndividual<TGenotype, TPhenotype>, new()
     {
-        private readonly EvolutionConfigBase config;
+        private readonly EvolutionConfigBase<TGenotype> config;
 
         protected IGenotypeFactory<TGenotype> genotypeFactory;
         protected IPhenotypeFactory<TGenotype, TPhenotype> phenotypeFactory;
@@ -106,12 +118,21 @@ namespace mycoolfin.TheSimsulator.Core.Evolution
             List<TGenotype> genotypes;
             if (IterationCount == 0) // First iteration - initialise the population.
             {
-                genotypes = await CreateInitialisedGenotypesAsync(
-                    genotypeFactory,
-                    config.PopulationSize,
-                    cancellationToken,
-                    new Progress<int>(progress => GenotypeCreationProgress = progress / (float)config.PopulationSize)
-                );
+                if (config.SeedGenotype != null) // Use the seed genotype if provided.
+                {
+                    genotypes = new();
+                    for (int i = 0; i < config.PopulationSize; i++)
+                        genotypes.Add(config.SeedGenotype.Genotype);
+                }
+                else // Use default genotype factory initialiser. 
+                {
+                    genotypes = await CreateInitialisedGenotypesAsync(
+                        genotypeFactory,
+                        config.PopulationSize,
+                        cancellationToken,
+                        new Progress<int>(progress => GenotypeCreationProgress = progress / (float)config.PopulationSize)
+                    );
+                }
             }
             else // Create the next population based on assessed fitnesses.
             {

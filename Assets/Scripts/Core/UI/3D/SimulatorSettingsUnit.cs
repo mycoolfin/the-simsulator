@@ -19,6 +19,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
         [SerializeField] private ButtonGroup mutationRateGroup;
         [SerializeField] private ButtonGroup settleSecondsGroup;
         [SerializeField] private ButtonGroup assessmentSecondsGroup;
+        [SerializeField] private CapsuleDock seedGenotypeDock;
 
         public delegate bool IsSimulatorRunningDelegate();
         public IsSimulatorRunningDelegate IsSimulatorRunning;
@@ -95,7 +96,8 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
                 SurvivalRate = GetSurvivalRate(),
                 MutationRate = GetMutationRate(),
                 SettleSeconds = GetSettleSeconds(),
-                AssessmentSeconds = GetAssessmentSeconds()
+                AssessmentSeconds = GetAssessmentSeconds(),
+                SeedGenotypePath = seedGenotypeDock.DockedCapsule?.GenotypeFilePath
             };
         }
 

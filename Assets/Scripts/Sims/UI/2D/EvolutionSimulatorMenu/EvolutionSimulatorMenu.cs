@@ -431,7 +431,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.UI.TwoD
 
         private void InitialiseSelectedIndividualMenu()
         {
-            selectedCreatureMenu.EnableSaveButton(() => selectedCreatureMenu.SelectedCreature.SaveGenotypeToFile((_) => { }));
+            selectedCreatureMenu.EnableSaveButton(() => selectedCreatureMenu.SelectedCreature.SaveGenotypeToFile((_, _) => { }));
             selectedCreatureMenu.EnableProtectButton(() =>
             {
                 IAssessableCreature individual = selectedCreatureMenu.SelectedCreature;

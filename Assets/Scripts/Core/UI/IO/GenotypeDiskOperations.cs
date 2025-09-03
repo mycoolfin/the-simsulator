@@ -51,17 +51,20 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.IO
             return newFilePath;
         }
 
-        public static void SaveGenotypeToFilePathDialog<TGenotype>(TGenotype genotype, Action<FileOperationResult> OnComplete) where TGenotype : IGenotype<TGenotype>
+        public static void SaveGenotypeToFilePathDialog<TGenotype>(TGenotype genotype, Action<FileOperationResult, string> OnComplete) where TGenotype : IGenotype<TGenotype>
         {
             string filePath = StandaloneFileBrowser.SaveFilePanel("Save Genotype", "", $"{genotype.Name}.genotype", "genotype");
 
             if (string.IsNullOrEmpty(filePath))
             {
-                OnComplete?.Invoke(FileOperationResult.Cancelled);
+                OnComplete?.Invoke(FileOperationResult.Cancelled, string.Empty);
                 return; // User cancelled the save dialog.
             }
 
-            SaveGenotypeToFilePath(genotype, filePath, OnComplete);
+            SaveGenotypeToFilePath(genotype, filePath, (result) =>
+            {
+                OnComplete?.Invoke(result, filePath);
+            });
         }
 
         public static void LoadGenotypeFromFilePathDialog<TGenotype>(Action<FileOperationResult, TGenotype, string> OnComplete) where TGenotype : IGenotype<TGenotype>
@@ -74,11 +77,10 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.IO
                 return; // User cancelled the load dialog.
             }
 
-            Action<FileOperationResult, TGenotype> callback = (result, genotype) =>
+            LoadGenotypeFromFilePath(filePath, (FileOperationResult result, TGenotype genotype) =>
             {
                 OnComplete?.Invoke(result, genotype, filePath);
-            };
-            LoadGenotypeFromFilePath(filePath, callback);
+            });
         }
 
         public static void SaveGenotypeToFilePath<TGenotype>(TGenotype genotype, string filePath, Action<FileOperationResult> OnComplete) where TGenotype : IGenotype<TGenotype>

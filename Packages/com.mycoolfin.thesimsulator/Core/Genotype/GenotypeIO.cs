@@ -9,43 +9,78 @@ namespace mycoolfin.TheSimsulator.Core.Genotype
 {
     public static class GenotypeIO
     {
-        public static async void SerializeAsync<TGenotype>(TGenotype genotype, string filePath, Action<bool> onSerialized) where TGenotype : IGenotype<TGenotype>
+        private static readonly JsonSerializerSettings Settings = new()
+        {
+            ContractResolver = new IgnoreNamePropertyResolver(),
+            Formatting = Formatting.Indented
+        };
+
+        public static async void SerializeAsync<TGenotype>(TGenotype genotype, string filePath, Action<bool> onSerialized) 
+            where TGenotype : IGenotype<TGenotype>
+        {
+            await ExecuteWithErrorHandlingAsync(async () =>
+            {
+                string json = JsonConvert.SerializeObject(genotype, Settings);
+                await File.WriteAllTextAsync(filePath, json);
+            }, onSerialized);
+        }
+
+        public static async void DeserializeAsync<TGenotype>(string filePath, Action<bool, TGenotype> onDeserialized) 
+            where TGenotype : IGenotype<TGenotype>
+        {
+            await ExecuteWithErrorHandlingAsync(async () =>
+            {
+                string json = await File.ReadAllTextAsync(filePath);
+                return DeserializeAndSetName<TGenotype>(json, filePath);
+            }, onDeserialized);
+        }
+
+        public static void Serialize<TGenotype>(TGenotype genotype, string filePath) 
+            where TGenotype : IGenotype<TGenotype>
+        {
+            string json = JsonConvert.SerializeObject(genotype, Settings);
+            File.WriteAllText(filePath, json);
+        }
+
+        public static TGenotype Deserialize<TGenotype>(string filePath) 
+            where TGenotype : IGenotype<TGenotype>
+        {
+            string json = File.ReadAllText(filePath);
+            return DeserializeAndSetName<TGenotype>(json, filePath);
+        }
+
+        private static TGenotype DeserializeAndSetName<TGenotype>(string json, string filePath) 
+            where TGenotype : IGenotype<TGenotype>
+        {
+            TGenotype result = JsonConvert.DeserializeObject<TGenotype>(json, Settings);
+            string fileName = Path.GetFileNameWithoutExtension(filePath);
+            result.Name = fileName;
+            return result;
+        }
+
+        private static async System.Threading.Tasks.Task ExecuteWithErrorHandlingAsync(Func<System.Threading.Tasks.Task> asyncAction, Action<bool> onCompleted)
         {
             try
             {
-                JsonSerializerSettings settings = new()
-                {
-                    ContractResolver = new IgnoreNamePropertyResolver(),
-                    Formatting = Formatting.Indented
-                };
-                string json = JsonConvert.SerializeObject(genotype, settings);
-                await File.WriteAllTextAsync(filePath, json);
-                onSerialized?.Invoke(true);
+                await asyncAction();
+                onCompleted?.Invoke(true);
             }
             catch
             {
-                onSerialized?.Invoke(false);
+                onCompleted?.Invoke(false);
             }
         }
 
-        public static async void DeserializeAsync<TGenotype>(string filePath, Action<bool, TGenotype> onDeserialized) where TGenotype : IGenotype<TGenotype>
+        private static async System.Threading.Tasks.Task ExecuteWithErrorHandlingAsync<T>(Func<System.Threading.Tasks.Task<T>> asyncFunc, Action<bool, T> onCompleted)
         {
             try
             {
-                JsonSerializerSettings settings = new()
-                {
-                    ContractResolver = new IgnoreNamePropertyResolver(),
-                    Formatting = Formatting.Indented
-                };
-                string json = await File.ReadAllTextAsync(filePath);
-                TGenotype result = JsonConvert.DeserializeObject<TGenotype>(json);
-                string fileName = Path.GetFileNameWithoutExtension(filePath);
-                result.Name = fileName;
-                onDeserialized?.Invoke(true, result);
+                T result = await asyncFunc();
+                onCompleted?.Invoke(true, result);
             }
             catch
             {
-                onDeserialized?.Invoke(false, default);
+                onCompleted?.Invoke(false, default);
             }
         }
 

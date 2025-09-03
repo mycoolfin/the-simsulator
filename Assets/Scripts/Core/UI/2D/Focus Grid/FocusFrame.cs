@@ -27,7 +27,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.TwoD
             Button protectButton = frameElement.Q<Button>("protect");
             Button cullButton = frameElement.Q<Button>("cull");
 
-            saveButton.clicked += () => focusedIndividual.SaveGenotypeToFile((_) => { });
+            saveButton.clicked += () => focusedIndividual.SaveGenotypeToFile((_, _) => { });
             protectButton.clicked += () => focusedIndividual.Protect(!focusedIndividual.IsProtected);
             cullButton.clicked += () => focusedIndividual.Cull();
 

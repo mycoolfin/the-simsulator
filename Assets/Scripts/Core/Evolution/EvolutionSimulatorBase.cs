@@ -44,7 +44,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.Evolution
         where TGenotype : IGenotype<TGenotype>
         where TPhenotype : IPhenotype<TPhenotype>
         where TEvolution : EvolutionBase<TEvolutionConfig, TGenotype, TPhenotype, AssessableCreature<TGenotype, TPhenotype>>
-        where TEvolutionConfig : EvolutionConfigBase, new()
+        where TEvolutionConfig : EvolutionConfigBase<TGenotype>, new()
         where TECSAPI : ECS.API.IECSAPI<TPhenotype>, new()
     {
         public delegate TEvolution EvolutionFactoryDelegate(
@@ -73,12 +73,13 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.Evolution
         public float AssessmentSeconds => assessmentSeconds;
         [SerializeField] private TrialType trialType = TrialType.GroundDistance;
         public TrialType TrialType => trialType;
-        [SerializeField] private TGenotype seedGenotype; // TODO: Rig up
+        [SerializeField] private string SeedGenotypePath = string.Empty;
+        private SeedGenotype<TGenotype> seedGenotype = null;
         public string SeedGenotypeName => seedGenotype?.ToString();
         [SerializeField] private bool lockMorphologies = false; // TODO: Rig up
         public bool LockMorphologies => lockMorphologies;
 
-        // Seeding isn't working yet on the ECS side.
+        // Seeding randomness isn't working yet on the ECS side.
         // [SerializeField] private int simulationSeed = 0;
         // [SerializeField] private bool useSimulationSeed = false;
 
@@ -135,15 +136,23 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.Evolution
             settleSeconds = parameters.SettleSeconds ?? settleSeconds;
             assessmentSeconds = parameters.AssessmentSeconds ?? assessmentSeconds;
             trialType = parameters.TrialType ?? trialType;
-            if (parameters.SeedGenotypePath != null)
+            string path = parameters.SeedGenotypePath ?? SeedGenotypePath;
+            if (!string.IsNullOrEmpty(path))
             {
-                GenotypeIO.DeserializeAsync<TGenotype>(parameters.SeedGenotypePath, (success, genotype) =>
+                try
                 {
-                    if (success)
-                        seedGenotype = genotype;
-                    else
-                        Debug.LogError($"Failed to deserialize seed genotype from {parameters.SeedGenotypePath}");
-                });
+                    TGenotype loadedGenotype = GenotypeIO.Deserialize<TGenotype>(path);
+                    if (loadedGenotype != null)
+                        seedGenotype = new(loadedGenotype);
+                }
+                catch
+                {
+                    Debug.LogError($"Failed to deserialize seed genotype from {path}");
+                }
+            }
+            else
+            {
+                seedGenotype = null;
             }
             lockMorphologies = parameters.LockMorphologies ?? lockMorphologies;
         }
@@ -196,6 +205,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.Evolution
                 PopulationSize = populationSize,
                 SurvivalRate = survivalRate,
                 MutationRate = mutationRate,
+                SeedGenotype = seedGenotype
             };
             // if (useSimulationSeed) config.Seed = simulationSeed;
             evolution = evolutionFactory(

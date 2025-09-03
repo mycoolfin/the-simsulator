@@ -43,10 +43,15 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
             if (playerController != null)
                 playerController.SetCursorLock(false);
 
-            dock.DockedCapsule.Creature?.SaveGenotypeToFile((result) =>
+            dock.DockedCapsule.Creature?.SaveGenotypeToFile((result, filePath) =>
             {
                 if (result == FileOperationResult.Success)
+                {
                     audioSource.PlayOneShot(savedSound);
+
+                    // Reload from saved file path.
+                    dock.DockedCapsule.InitialiseFromGenotypeFilePath(filePath, CapsuleEnvironment.Aquatic);
+                }
 
                 if (playerController != null)
                     playerController.SetCursorLock(true);

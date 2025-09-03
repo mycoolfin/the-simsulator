@@ -70,8 +70,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
                 if ((args.interactableObject as Component).TryGetComponent(out ICreatureCapsule capsule))
                 {
                     DockedCapsule = capsule;
-                    nameplate.AssignCreatureCapsule(capsule);
-                    NotifyChanged();
+                    Refresh();
                 }
             });
             socket.selectExited.AddListener(args =>
@@ -79,10 +78,15 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
                 if (DockedCapsule == (args.interactableObject as Component).GetComponent<ICreatureCapsule>())
                 {
                     DockedCapsule = null;
-                    nameplate.AssignCreatureCapsule(null);
-                    NotifyChanged();
+                    Refresh();
                 }
             });
+        }
+
+        private void Refresh()
+        {
+            nameplate.AssignCreatureCapsule(DockedCapsule);
+            NotifyChanged();
         }
 
         public void CreateAndDockEmptyCapsule(bool silent = true)

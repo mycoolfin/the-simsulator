@@ -6033,6 +6033,7 @@ MonoBehaviour:
   mutationRateGroup: {fileID: 1730977516140307213}
   settleSecondsGroup: {fileID: 6835719092181140181}
   assessmentSecondsGroup: {fileID: 1724503566826613203}
+  seedGenotypeDock: {fileID: 6493738952154855692}
 --- !u!1 &3926112208599572331
 GameObject:
   m_ObjectHideFlags: 0
@@ -7629,7 +7630,6 @@ MonoBehaviour:
   innerEmitter: {fileID: 8728027219847066811}
   outerEmitter: {fileID: 7865314247540726597}
   emitterColor: {r: 0.41960785, g: 1, b: 0.95686275, a: 1}
-  simulatorActiveSound: {fileID: 8300000, guid: ebe40d38580d545e3a7cf0e5c4abe8ba, type: 3}
   DynamicScaleFactor: 10
   ColorByFitness: 0
   FilterBySurvivors: 0
@@ -24287,6 +24287,17 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 5441021577346494343, guid: 66f48412c9f564257ad9001fba895b1d, type: 3}
   m_PrefabInstance: {fileID: 8108961792563469842}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &6493738952154855692 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3068839080830396190, guid: 66f48412c9f564257ad9001fba895b1d, type: 3}
+  m_PrefabInstance: {fileID: 8108961792563469842}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e2ba219c5406f4266a9f7a02d0d66355, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD.CapsuleDock
 --- !u!1001 &8120467925283564239
 PrefabInstance:
   m_ObjectHideFlags: 0

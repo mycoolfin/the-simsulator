@@ -106,11 +106,11 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
         {
             // Save creature genotype to application data storage.
             GenotypeFilePath = GenotypeDiskOperations.PrepareGenotypeSavePathInDefaultStorage(creature.Name);
-            creature.SaveGenotypeToFile((result) =>
+            creature.SaveGenotypeToFile((result, filePath) =>
             {
                 if (result == FileOperationResult.Success)
                 {
-                    InitialiseFromGenotypeFilePath(GenotypeFilePath, environment);
+                    InitialiseFromGenotypeFilePath(filePath, environment);
                 }
                 else
                 {

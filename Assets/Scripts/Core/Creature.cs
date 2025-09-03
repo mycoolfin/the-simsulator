@@ -23,7 +23,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core
         OnCullDelegate OnCull { get; set; }
         void Cull();
 
-        void SaveGenotypeToFile(Action<FileOperationResult> OnComplete, string filePath = null);
+        void SaveGenotypeToFile(Action<FileOperationResult, string> OnComplete, string filePath = null);
 
         ICreature Breed(ICreature other);
     }
@@ -49,7 +49,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core
             OnCull?.Invoke();
         }
 
-        public void SaveGenotypeToFile(Action<FileOperationResult> OnComplete, string filePath = null)
+        public void SaveGenotypeToFile(Action<FileOperationResult, string> OnComplete, string filePath = null)
         {
             if (filePath == null) // Prompt user for file path.
             {
@@ -57,7 +57,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core
             }
             else
             {
-                GenotypeDiskOperations.SaveGenotypeToFilePath(Genotype, filePath, OnComplete);
+                GenotypeDiskOperations.SaveGenotypeToFilePath(Genotype, filePath, (result) => OnComplete(result, filePath));
             }
         }
 

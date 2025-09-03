@@ -4,7 +4,7 @@ namespace mycoolfin.TheSimsulator.Sims.Evolution
     using Genotype;
     using Phenotype;
 
-    public class SimsEvolutionConfig : EvolutionConfigBase
+    public class SimsEvolutionConfig : EvolutionConfigBase<SimsGenotype>
     {
     }
 
