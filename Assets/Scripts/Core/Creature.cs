@@ -17,7 +17,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core
 
     public interface ICreature : ISelectable
     {
-        string Name { get; }
+        string Name { get; set; }
 
         delegate void OnCullDelegate();
         OnCullDelegate OnCull { get; set; }
@@ -35,7 +35,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core
         public TGenotype Genotype { get; set; }
         public TPhenotype Phenotype { get; set; }
 
-        public string Name => Genotype.Name;
+        public string Name { get => Genotype.Name; set { Genotype.Name = value; } }
 
         public delegate PhenotypeTransformData GetPhenotypeTransformDataDelegate();
         public GetPhenotypeTransformDataDelegate GetPhenotypeTransformData { get; set; }

@@ -34,6 +34,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
     public interface ICreatureCapsule
     {
         ICreature Creature { get; }
+        event Action<ICreature> OnCreatureLoaded;
         CapsuleEnvironment Environment { get; }
         string GenotypeFilePath { get; }
         GameObject GameObject { get; }
@@ -41,6 +42,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
         void InitialiseFromGenotypeFilePath(string filePath, CapsuleEnvironment environment);
         void InitialiseFromGenotypeFilePathDialog(CapsuleEnvironment environment, Action<FileOperationResult> OnComplete);
         void SetCompanionObjectOverride(PhenotypeCompanionObject companionObject);
+        bool RenameCreature(string newName);
     }
 
     [RequireComponent(typeof(XRGrabInteractable), typeof(Rigidbody), typeof(AudioSource))]
@@ -85,6 +87,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
 
         private Creature<TGenotype, TPhenotype> creature;
         public ICreature Creature => creature;
+        public event Action<ICreature> OnCreatureLoaded;
 
         public GameObject GameObject => gameObject;
 
@@ -168,6 +171,21 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
             StartCoroutine(InitialiseFromGenotype(genotype, Environment));
         }
 
+        public bool RenameCreature(string newName)
+        {
+            if (creature != null)
+            {
+                string newFilePath = GenotypeDiskOperations.RenameGenotypeFile(GenotypeFilePath, newName);
+                if (newFilePath != null)
+                {
+                    GenotypeFilePath = newFilePath;
+                    creature.Name = newName;
+                    return true;
+                }
+            }
+            return false;
+        }
+
         private IEnumerator InitialiseFromGenotype(TGenotype genotype, CapsuleEnvironment environment)
         {
             this.genotype = genotype;
@@ -205,6 +223,8 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
                 Genotype = genotype,
                 Phenotype = phenotype
             };
+
+            OnCreatureLoaded?.Invoke(creature);
 
             SetState(CapsuleState.Loaded);
         }

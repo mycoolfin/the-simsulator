@@ -36,6 +36,21 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.IO
             return name.Trim();
         }
 
+        public static string RenameGenotypeFile(string oldFilePath, string newName)
+        {
+            if (string.IsNullOrEmpty(oldFilePath) || string.IsNullOrEmpty(newName))
+                return null;
+
+            string newFilePath = Path.Combine(Path.GetDirectoryName(oldFilePath), $"{SanitizeFileName(newName)}.genotype");
+
+            if (File.Exists(newFilePath))
+                return null;
+
+            File.Move(oldFilePath, newFilePath);
+
+            return newFilePath;
+        }
+
         public static void SaveGenotypeToFilePathDialog<TGenotype>(TGenotype genotype, Action<FileOperationResult> OnComplete) where TGenotype : IGenotype<TGenotype>
         {
             string filePath = StandaloneFileBrowser.SaveFilePanel("Save Genotype", "", $"{genotype.Name}.genotype", "genotype");

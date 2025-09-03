@@ -18,7 +18,9 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
             dock.Socket.selectEntered.AddListener((_) => SetCapsule(dock.DockedCapsule));
             dock.Socket.selectExited.AddListener((_) => SetCapsule(dock.DockedCapsule));
 
+            hologram.SetActive(currentCapsule != null);
             emitter.SetEmissiveColor(Color.white);
+            emitter.SetEmissiveIntensity(0f);
         }
 
         private void SetCapsule(ICreatureCapsule capsule)

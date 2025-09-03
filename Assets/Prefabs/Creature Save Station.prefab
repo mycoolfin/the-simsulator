@@ -1033,7 +1033,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 515f3bb128ff34d5598bddca6065be46, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD.CreatureSaveStation
-  savedSound: {fileID: 8300000, guid: 30e8110e998774d398d62c19eb0ea435, type: 3}
+  savedSound: {fileID: 8300000, guid: 3029e16b809a04a8dba817070129fae2, type: 3}
   loadedSound: {fileID: 8300000, guid: 0668d2b179b024e4caccd0c02112056a, type: 3}
   dock: {fileID: 8936498463566353620}
   saveButton: {fileID: 8922105039273249711}

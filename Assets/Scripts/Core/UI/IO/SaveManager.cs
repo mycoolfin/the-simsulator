@@ -14,6 +14,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.IO
         [SerializeField, Min(0f)] private float debounceSeconds = 0.2f;
         [SerializeField] private bool loadOnStart = true;
         [SerializeField] private bool saveOnQuit = true;
+        [SerializeField] private bool verboseLogging = false;
 
         public string SaveGraphPath => Path.Combine(Application.persistentDataPath, saveGraphFileName);
 
@@ -114,7 +115,8 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.IO
             {
                 SaveFile file = BuildSaveFile();
                 WriteAtomicJson(SaveGraphPath, file);
-                Debug.Log($"[SaveManager] Saved {file.nodes.Count} nodes → {SaveGraphPath}");
+                if (verboseLogging)
+                    Debug.Log($"[SaveManager] Saved {file.nodes.Count} nodes → {SaveGraphPath}");
             }
             catch (Exception ex)
             {
@@ -164,7 +166,8 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.IO
                     applied++;
                 }
 
-                Debug.Log($"[SaveManager] Loaded {applied}/{file.nodes.Count} nodes from {SaveGraphPath}");
+                if (verboseLogging)
+                    Debug.Log($"[SaveManager] Loaded {applied}/{file.nodes.Count} nodes from {SaveGraphPath}");
             }
             catch (Exception ex)
             {

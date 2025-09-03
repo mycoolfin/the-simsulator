@@ -718,7 +718,10 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 8397489701729784729, guid: 66f48412c9f564257ad9001fba895b1d, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 0}
   m_SourcePrefab: {fileID: 100100000, guid: 66f48412c9f564257ad9001fba895b1d, type: 3}
 --- !u!4 &560659484 stripped
 Transform:
@@ -1139,6 +1142,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 1104062555412547773, guid: 9faa4f5c3073d42289e96a9bf999e769, type: 3}
       insertIndex: -1
       addedObject: {fileID: 0}
+    - targetCorrespondingSourceObject: {fileID: 288566473758018955, guid: 9faa4f5c3073d42289e96a9bf999e769, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 0}
   m_SourcePrefab: {fileID: 100100000, guid: 9faa4f5c3073d42289e96a9bf999e769, type: 3}
 --- !u!1 &712666287
 GameObject:
@@ -1173,6 +1179,7 @@ MonoBehaviour:
   debounceSeconds: 0.2
   loadOnStart: 1
   saveOnQuit: 1
+  verboseLogging: 0
 --- !u!4 &712666289
 Transform:
   m_ObjectHideFlags: 0
@@ -2155,6 +2162,9 @@ MonoBehaviour:
   playerCamera: {fileID: 1733528765}
   characterController: {fileID: 1613917391}
   movementSpeed: 5
+  sprintMultiplier: 2
+  jumpHeight: 2
+  gravity: -9.81
   mouseSensitivity: 0.8
   minLookAngle: -90
   maxLookAngle: 90
@@ -2311,6 +2321,40 @@ MonoBehaviour:
       m_Calls: []
     m_ActionId: ea279c64-170a-4bde-ac14-d0d577152345
     m_ActionName: UI/TrackedDeviceOrientation
+  - m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 1613917395}
+        m_TargetAssemblyTypeName: mycoolfin.TheSimsulator.UnityIntegration.Core.UI.Player.FPSPlayerController,
+          Assembly-CSharp
+        m_MethodName: OnJump
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+    m_ActionId: 16d75374-cea7-4ad8-a587-ec7245e22343
+    m_ActionName: 'Player/Jump[/Keyboard/space]'
+  - m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 1613917395}
+        m_TargetAssemblyTypeName: mycoolfin.TheSimsulator.UnityIntegration.Core.UI.Player.FPSPlayerController,
+          Assembly-CSharp
+        m_MethodName: OnSprint
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+    m_ActionId: 1831fea8-ec11-4c38-b554-24b659a69acd
+    m_ActionName: 'Player/Sprint[/Keyboard/shift]'
   m_NeverAutoSwitchControlSchemes: 0
   m_DefaultControlScheme: 
   m_DefaultActionMap: Player
@@ -3469,6 +3513,9 @@ PrefabInstance:
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 2457705937810743379, guid: ecae4a455017a48cab72cc47bf9616f5, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 0}
     - targetCorrespondingSourceObject: {fileID: 982252719472186370, guid: ecae4a455017a48cab72cc47bf9616f5, type: 3}
       insertIndex: -1
       addedObject: {fileID: 0}
@@ -3607,7 +3654,94 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 1766002875779990954, guid: 5df2a087b57ea45d8bb4b66f7354aace, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 0}
+    - targetCorrespondingSourceObject: {fileID: 8605938255927004014, guid: 5df2a087b57ea45d8bb4b66f7354aace, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 0}
+    - targetCorrespondingSourceObject: {fileID: 8306977306419181945, guid: 5df2a087b57ea45d8bb4b66f7354aace, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 0}
+    - targetCorrespondingSourceObject: {fileID: 3612571394379783917, guid: 5df2a087b57ea45d8bb4b66f7354aace, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 0}
+    - targetCorrespondingSourceObject: {fileID: 7696763176334882160, guid: 5df2a087b57ea45d8bb4b66f7354aace, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 0}
+    - targetCorrespondingSourceObject: {fileID: 6962921691752699930, guid: 5df2a087b57ea45d8bb4b66f7354aace, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 0}
+    - targetCorrespondingSourceObject: {fileID: 9093459114722555351, guid: 5df2a087b57ea45d8bb4b66f7354aace, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 0}
+    - targetCorrespondingSourceObject: {fileID: 8508119841000052876, guid: 5df2a087b57ea45d8bb4b66f7354aace, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 0}
+    - targetCorrespondingSourceObject: {fileID: 1464628319896369748, guid: 5df2a087b57ea45d8bb4b66f7354aace, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 0}
+    - targetCorrespondingSourceObject: {fileID: 720221805577809042, guid: 5df2a087b57ea45d8bb4b66f7354aace, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 0}
+    - targetCorrespondingSourceObject: {fileID: 7355161694674526806, guid: 5df2a087b57ea45d8bb4b66f7354aace, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 0}
+    - targetCorrespondingSourceObject: {fileID: 7076536489781448769, guid: 5df2a087b57ea45d8bb4b66f7354aace, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 0}
+    - targetCorrespondingSourceObject: {fileID: 2548695587749197781, guid: 5df2a087b57ea45d8bb4b66f7354aace, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 0}
+    - targetCorrespondingSourceObject: {fileID: 8911712153306963016, guid: 5df2a087b57ea45d8bb4b66f7354aace, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 0}
+    - targetCorrespondingSourceObject: {fileID: 8204964560916181282, guid: 5df2a087b57ea45d8bb4b66f7354aace, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 0}
+    - targetCorrespondingSourceObject: {fileID: 8020580302974393583, guid: 5df2a087b57ea45d8bb4b66f7354aace, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 0}
+    - targetCorrespondingSourceObject: {fileID: 7452980478964478388, guid: 5df2a087b57ea45d8bb4b66f7354aace, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 0}
+    - targetCorrespondingSourceObject: {fileID: 373728515163263852, guid: 5df2a087b57ea45d8bb4b66f7354aace, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 0}
+    - targetCorrespondingSourceObject: {fileID: 8363976001058984505, guid: 5df2a087b57ea45d8bb4b66f7354aace, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 0}
+    - targetCorrespondingSourceObject: {fileID: 2017254908613713149, guid: 5df2a087b57ea45d8bb4b66f7354aace, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 0}
+    - targetCorrespondingSourceObject: {fileID: 2294753612036091626, guid: 5df2a087b57ea45d8bb4b66f7354aace, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 0}
+    - targetCorrespondingSourceObject: {fileID: 6823722077469706622, guid: 5df2a087b57ea45d8bb4b66f7354aace, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 0}
+    - targetCorrespondingSourceObject: {fileID: 450554361338356451, guid: 5df2a087b57ea45d8bb4b66f7354aace, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 0}
+    - targetCorrespondingSourceObject: {fileID: 878643908024995721, guid: 5df2a087b57ea45d8bb4b66f7354aace, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 0}
+    - targetCorrespondingSourceObject: {fileID: 1342813189347172932, guid: 5df2a087b57ea45d8bb4b66f7354aace, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 0}
+    - targetCorrespondingSourceObject: {fileID: 1910155657842970399, guid: 5df2a087b57ea45d8bb4b66f7354aace, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 0}
+    - targetCorrespondingSourceObject: {fileID: 8701994806945672647, guid: 5df2a087b57ea45d8bb4b66f7354aace, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 0}
+    - targetCorrespondingSourceObject: {fileID: 6452911196382241045, guid: 5df2a087b57ea45d8bb4b66f7354aace, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 0}
+    - targetCorrespondingSourceObject: {fileID: 8841187947887127660, guid: 5df2a087b57ea45d8bb4b66f7354aace, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 0}
   m_SourcePrefab: {fileID: 100100000, guid: 5df2a087b57ea45d8bb4b66f7354aace, type: 3}
 --- !u!4 &5655667408347113684
 Transform:

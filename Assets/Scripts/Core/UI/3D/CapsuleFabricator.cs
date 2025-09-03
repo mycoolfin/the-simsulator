@@ -182,6 +182,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
             {
                 GameObject dockObject = Instantiate(dockPrefab, spawnPoint.position, spawnPoint.rotation);
                 CapsuleDock dock = dockObject.GetComponent<CapsuleDock>();
+                dock.SetNameplateEnabled(false);
                 dock.CreateAndDockEmptyCapsule(silent: true);
                 dock.DockedCapsule.InitialiseFromCreature(creature, environment);
 

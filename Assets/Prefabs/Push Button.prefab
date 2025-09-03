@@ -58,7 +58,7 @@ MonoBehaviour:
   inactiveEmissivity: 1
   activeColor: {r: 0.754717, g: 0.74314654, b: 0, a: 1}
   activeEmissivity: 1
-  disabledEmissivity: 0.5
+  disabledEmissivity: 0.2
   debugIsActive: 0
   debugIsDisabled: 0
 --- !u!114 &3973824167124051897

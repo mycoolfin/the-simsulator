@@ -18,6 +18,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
         [SerializeField] private AudioClip enterSocketSound;
         [SerializeField] private XRSocketInteractor socket;
         public XRSocketInteractor Socket => socket;
+        [SerializeField] private DockNameplate nameplate;
 
         private bool disableFirstEnterSound = false;
 
@@ -69,6 +70,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
                 if ((args.interactableObject as Component).TryGetComponent(out ICreatureCapsule capsule))
                 {
                     DockedCapsule = capsule;
+                    nameplate.AssignCreatureCapsule(capsule);
                     NotifyChanged();
                 }
             });
@@ -77,6 +79,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
                 if (DockedCapsule == (args.interactableObject as Component).GetComponent<ICreatureCapsule>())
                 {
                     DockedCapsule = null;
+                    nameplate.AssignCreatureCapsule(null);
                     NotifyChanged();
                 }
             });
@@ -111,6 +114,11 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
                 rb.linearVelocity = socket.transform.forward * pushVelocity;
                 rb.angularVelocity = UnityEngine.Random.insideUnitSphere * randomSpin;
             }
+        }
+
+        public void SetNameplateEnabled(bool enabled)
+        {
+            nameplate.gameObject.SetActive(enabled);
         }
 
         protected override void OnEnable()
