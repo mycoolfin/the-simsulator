@@ -15,7 +15,6 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
         [SerializeField] private GameObject dockPrefab;
         [SerializeField] private AudioClip conveyorSound;
         [SerializeField] private AudioSource conveyorAudioSource;
-        [SerializeField] private ButtonGroup choiceTypeGroup;
         [SerializeField] private ButtonGroup fabricateCountGroup;
         [SerializeField] private HingedPanel fabricatorLeftGate;
         [SerializeField] private HingedPanel fabricatorRightGate;
@@ -28,11 +27,6 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
         [SerializeField] private int conveyorCapacity = 5;
         [SerializeField] private float conveyorSpeed = 1.0f;
         [SerializeField] private float generationStep = 1;
-        private enum ChoiceType
-        {
-            Best,
-            Random
-        }
 
         private readonly Queue<Func<CapsuleDock>> fabricationQueue = new();
         private readonly List<CapsuleDock> docksOnConveyor = new();
@@ -43,14 +37,12 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
         [Serializable]
         private class CapsuleFabricatorData
         {
-            public int ChoiceTypeIndex;
             public int FabricateCountIndex;
         }
         public override object CaptureState()
         {
             return new CapsuleFabricatorData
             {
-                ChoiceTypeIndex = choiceTypeGroup.ActiveButtonIndex,
                 FabricateCountIndex = fabricateCountGroup.ActiveButtonIndex
             };
         }
@@ -63,7 +55,6 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
                 return;
             }
 
-            choiceTypeGroup.SetActiveButton(data.ChoiceTypeIndex);
             fabricateCountGroup.SetActiveButton(data.FabricateCountIndex);
         }
 
@@ -83,7 +74,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
                     return;
 
                 int fabCount = GetFabricateCount();
-                IReadOnlyList<IAssessableCreature> creatures = GetChoiceType() == ChoiceType.Random ? GetRandomCreatures(simulator, fabCount) : GetBestCreatures(simulator, fabCount);
+                IReadOnlyList<IAssessableCreature> creatures = GetBestCreatures(simulator, fabCount);
                 for (int i = 0; i < creatures.Count; i++)
                 {
                     CapsuleEnvironment environment = simulator.TrialType == TrialType.WaterDistance ? CapsuleEnvironment.Aquatic : CapsuleEnvironment.Terrestrial;
@@ -158,19 +149,13 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
 
         private void InitialiseButtons()
         {
-            choiceTypeGroup.OnButtonPressed += (index) => NotifyChanged();
             fabricateCountGroup.OnButtonPressed += (index) => NotifyChanged();
         }
 
         private void ResetToDefaults()
         {
-            SetChoiceTypeToDefaultValue();
             SetFabricateCountToDefaultValue();
         }
-
-        private readonly ChoiceType[] ChoiceTypeOptions = { ChoiceType.Best, ChoiceType.Random };
-        private ChoiceType GetChoiceType() => ChoiceTypeOptions[choiceTypeGroup.ActiveButtonIndex];
-        private void SetChoiceTypeToDefaultValue() => choiceTypeGroup.SetActiveButton(0);
 
         private readonly int[] FabricateCountOptions = { 0, 1, 2, 5 };
         private int GetFabricateCount() => FabricateCountOptions[fabricateCountGroup.ActiveButtonIndex];
@@ -220,15 +205,6 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
         {
             return simulator.Population?
                 .OrderByDescending(i => i.Fitness)
-                .Take(count)
-                .Cast<IAssessableCreature>()
-                .ToList() ?? new();
-        }
-
-        private IReadOnlyList<IAssessableCreature> GetRandomCreatures(IEvolutionSimulator simulator, int count)
-        {
-            return simulator.Population?
-                .OrderBy(i => Guid.NewGuid())
                 .Take(count)
                 .Cast<IAssessableCreature>()
                 .ToList() ?? new();

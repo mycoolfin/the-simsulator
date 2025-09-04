@@ -70,9 +70,11 @@ namespace mycoolfin.TheSimsulator.Sims.Genotype
             return context.CreateGenotypeFromContext(false); // No need to prune if 'add' mutations worked correctly.
         }
 
-        public SimsGenotype Recombine(SimsGenotype parent1, SimsGenotype parent2, float mutationRate)
+        public SimsGenotype Recombine(SimsGenotype parent1, SimsGenotype parent2, float mutationRate, bool lockMorphology)
         {
-            double randomValue = SharedRandom.NextDouble();
+            float totalProbability = AsexualProbability + CrossoverProbability + GraftingProbability;
+            float lockedProbability = AsexualProbability + CrossoverProbability; // Grafting is disabled when morphology is locked.
+            double randomValue = SharedRandom.NextDouble() * (lockMorphology ? lockedProbability : totalProbability);
             SimsGenotypeCreationContext offspringContext;
             if (randomValue < AsexualProbability)
                 offspringContext = AsexualRecombination(parent1);
@@ -83,7 +85,7 @@ namespace mycoolfin.TheSimsulator.Sims.Genotype
             else
                 throw new InvalidOperationException("Recombination probabilities do not sum to 1.0");
 
-            offspringContext.Mutate(mutationRate);
+            offspringContext.Mutate(mutationRate, lockMorphology);
 
             return offspringContext.CreateGenotypeFromContext(true);
         }

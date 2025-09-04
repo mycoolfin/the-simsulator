@@ -13,10 +13,21 @@ namespace mycoolfin.TheSimsulator.Sims.Genotype
             { MutateNeuronDefinitions, 1f }
         };
 
+        private static readonly WeightedChoiceList<Action<SimsGenotypeCreationContext>> LockedMorphologyGenotypeMutations = new()
+        {
+            { MutateNodes, 1f },
+            { MutateNeuronDefinitions, 1f }
+        };
+
         private static readonly WeightedChoiceList<Action<SimsGenotypeCreationContext>> NodeMutations = new()
         {
             { AddNode, 1f },
             { RemoveNode, 1f },
+            { MutateRandomNode, 1f }
+        };
+
+        private static readonly WeightedChoiceList<Action<SimsGenotypeCreationContext>> LockedMorphologyNodeMutations = new()
+        {
             { MutateRandomNode, 1f }
         };
 
@@ -38,12 +49,18 @@ namespace mycoolfin.TheSimsulator.Sims.Genotype
         {
             if (context == null) throw new ArgumentNullException(nameof(context));
 
-            GenotypeMutations.Choose().Invoke(context);
+            if (context.LockMorphology)
+                LockedMorphologyGenotypeMutations.Choose().Invoke(context);
+            else
+                GenotypeMutations.Choose().Invoke(context);
         }
 
         public static void MutateNodes(SimsGenotypeCreationContext context)
         {
-            NodeMutations.Choose().Invoke(context);
+            if (context.LockMorphology)
+                LockedMorphologyNodeMutations.Choose().Invoke(context);
+            else
+                NodeMutations.Choose().Invoke(context);
         }
 
         public static void AddNode(SimsGenotypeCreationContext context)

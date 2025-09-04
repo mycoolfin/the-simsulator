@@ -20,6 +20,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
         [SerializeField] private ButtonGroup settleSecondsGroup;
         [SerializeField] private ButtonGroup assessmentSecondsGroup;
         [SerializeField] private CapsuleDock seedGenotypeDock;
+        [SerializeField] private ButtonGroup lockMorphologiesGroup;
 
         public delegate bool IsSimulatorRunningDelegate();
         public IsSimulatorRunningDelegate IsSimulatorRunning;
@@ -37,6 +38,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
             public int MutationRateIndex;
             public int SettleSecondsIndex;
             public int AssessmentSecondsIndex;
+            public int LockMorphologiesIndex;
         }
         public override object CaptureState()
         {
@@ -49,7 +51,8 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
                 SurvivalRateIndex = survivalRateGroup.ActiveButtonIndex,
                 MutationRateIndex = mutationRateGroup.ActiveButtonIndex,
                 SettleSecondsIndex = settleSecondsGroup.ActiveButtonIndex,
-                AssessmentSecondsIndex = assessmentSecondsGroup.ActiveButtonIndex
+                AssessmentSecondsIndex = assessmentSecondsGroup.ActiveButtonIndex,
+                LockMorphologiesIndex = lockMorphologiesGroup.ActiveButtonIndex
             };
         }
         public override void RestoreState(JObject payload, int version)
@@ -69,6 +72,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
             mutationRateGroup.SetActiveButton(data.MutationRateIndex);
             settleSecondsGroup.SetActiveButton(data.SettleSecondsIndex);
             assessmentSecondsGroup.SetActiveButton(data.AssessmentSecondsIndex);
+            lockMorphologiesGroup.SetActiveButton(data.LockMorphologiesIndex);
         }
 
         private void Awake()
@@ -97,7 +101,8 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
                 MutationRate = GetMutationRate(),
                 SettleSeconds = GetSettleSeconds(),
                 AssessmentSeconds = GetAssessmentSeconds(),
-                SeedGenotypePath = seedGenotypeDock.DockedCapsule?.GenotypeFilePath
+                SeedGenotypePath = seedGenotypeDock.DockedCapsule?.GenotypeFilePath,
+                LockMorphologies = GetLockMorphologies()
             };
         }
 
@@ -122,6 +127,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
             mutationRateGroup.OnButtonPressed += (index) => NotifyChanged();
             settleSecondsGroup.OnButtonPressed += (index) => NotifyChanged();
             assessmentSecondsGroup.OnButtonPressed += (index) => NotifyChanged();
+            lockMorphologiesGroup.OnButtonPressed += (index) => NotifyChanged();
         }
 
         private void UpdateButtons()
@@ -129,7 +135,9 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
             advancedSettingsToggle.SetActive(advancedSettingsBlock.IsOpen);
             resetToDefaultsButton.SetActive(true);
 
-            SetButtonsDisabled(IsSimulatorRunning == null || IsSimulatorRunning());
+            bool simulatorRunning = IsSimulatorRunning == null || IsSimulatorRunning();
+            SetButtonsDisabled(simulatorRunning);
+            lockMorphologiesGroup.SetGroupDisabled(simulatorRunning || seedGenotypeDock.DockedCapsule == null);
         }
 
         private void SetButtonsDisabled(bool disabled)
@@ -143,6 +151,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
             mutationRateGroup.SetGroupDisabled(disabled);
             settleSecondsGroup.SetGroupDisabled(disabled);
             assessmentSecondsGroup.SetGroupDisabled(disabled);
+            lockMorphologiesGroup.SetGroupDisabled(disabled);
         }
 
         private void ResetToDefaults()
@@ -154,6 +163,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
             SetMutationRateToDefaultValue();
             SetSettleSecondsToDefaultValue();
             SetAssessmentSecondsToDefaultValue();
+            SetLockMorphologiesToDefaultValue();
         }
 
         private readonly TrialType[] TrialTypeOptions = { TrialType.GroundDistance, TrialType.WaterDistance };
@@ -183,5 +193,9 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
         private readonly float[] AssessmentSecondsOptions = { 1f, 2f, 5f, 10f, 20f, 30f };
         private float GetAssessmentSeconds() => AssessmentSecondsOptions[assessmentSecondsGroup.ActiveButtonIndex];
         private void SetAssessmentSecondsToDefaultValue() => assessmentSecondsGroup.SetActiveButton(3);
+
+        private readonly int[] LockMorphologiesOptions = { 0, 1 };
+        private bool GetLockMorphologies() => seedGenotypeDock.DockedCapsule != null && LockMorphologiesOptions[lockMorphologiesGroup.ActiveButtonIndex] == 1;
+        private void SetLockMorphologiesToDefaultValue() => lockMorphologiesGroup.SetActiveButton(0);
     }
 }

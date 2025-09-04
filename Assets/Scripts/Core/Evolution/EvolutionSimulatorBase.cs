@@ -197,7 +197,12 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.Evolution
 
         private IEnumerator EvolutionLoop()
         {
-            Debug.Log($"Beginning evolution. Parameters: Population Size = {populationSize}, Max Generations = {maxGenerations}, Survival Rate = {survivalRate}, Mutation Rate = {mutationRate}, Settle Seconds = {settleSeconds}, Assessment Seconds = {assessmentSeconds}, Trial Type = {trialType}");
+            Debug.Log($"Beginning evolution. Parameters: Population Size = {populationSize}, "
+                + $"Max Generations = {maxGenerations}, Survival Rate = {survivalRate}, "
+                + $"Mutation Rate = {mutationRate}, Settle Seconds = {settleSeconds}, "
+                + $"Assessment Seconds = {assessmentSeconds}, Trial Type = {trialType}, "
+                + $"Seed Genotype = {(seedGenotype != null ? seedGenotype.Genotype.Name : "None")}, "
+                + $"Lock Morphologies = {lockMorphologies}.");
             OnEvolutionStart?.Invoke();
 
             TEvolutionConfig config = new()
@@ -205,7 +210,8 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.Evolution
                 PopulationSize = populationSize,
                 SurvivalRate = survivalRate,
                 MutationRate = mutationRate,
-                SeedGenotype = seedGenotype
+                SeedGenotype = seedGenotype,
+                LockMorphologies = lockMorphologies
             };
             // if (useSimulationSeed) config.Seed = simulationSeed;
             evolution = evolutionFactory(

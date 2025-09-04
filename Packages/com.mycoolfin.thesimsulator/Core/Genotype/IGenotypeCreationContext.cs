@@ -10,8 +10,10 @@ namespace mycoolfin.TheSimsulator.Core.Genotype
 
         /// <summary>
         /// Mutates the genotype creation context in place based on the provided mutation rate.
+        /// If lockMorphology is true, mutations that would alter the morphology of the phenotype are disabled.
         /// </summary>
         /// <param name="mutationRate"></param>
-        public void Mutate(float mutationRate);
+        /// <param name="lockMorphology"></param>
+        public void Mutate(float mutationRate, bool lockMorphology = false);
     }
 }

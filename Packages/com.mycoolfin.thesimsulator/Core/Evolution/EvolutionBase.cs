@@ -26,6 +26,7 @@ namespace mycoolfin.TheSimsulator.Core.Evolution
         public float SurvivalRate { get; set; } = 0.2f;
         public float MutationRate { get; set; } = 0.1f;
         public SeedGenotype<TGenotype> SeedGenotype { get; set; } = null;
+        public bool LockMorphologies { get; set; } = false;
         public int Seed { get; set; } = Environment.TickCount;
     }
 
@@ -118,21 +119,13 @@ namespace mycoolfin.TheSimsulator.Core.Evolution
             List<TGenotype> genotypes;
             if (IterationCount == 0) // First iteration - initialise the population.
             {
-                if (config.SeedGenotype != null) // Use the seed genotype if provided.
-                {
-                    genotypes = new();
-                    for (int i = 0; i < config.PopulationSize; i++)
-                        genotypes.Add(config.SeedGenotype.Genotype);
-                }
-                else // Use default genotype factory initialiser. 
-                {
-                    genotypes = await CreateInitialisedGenotypesAsync(
-                        genotypeFactory,
-                        config.PopulationSize,
-                        cancellationToken,
-                        new Progress<int>(progress => GenotypeCreationProgress = progress / (float)config.PopulationSize)
-                    );
-                }
+                genotypes = await CreateInitialisedGenotypesAsync(
+                    genotypeFactory,
+                    config.PopulationSize,
+                    config.SeedGenotype,
+                    cancellationToken,
+                    new Progress<int>(progress => GenotypeCreationProgress = progress / (float)config.PopulationSize)
+                );
             }
             else // Create the next population based on assessed fitnesses.
             {
@@ -149,6 +142,7 @@ namespace mycoolfin.TheSimsulator.Core.Evolution
                         genotypeFactory,
                         parentPairs,
                         config.MutationRate,
+                        config.LockMorphologies,
                         cancellationToken,
                         new Progress<int>(progress => GenotypeCreationProgress = progress / (float)offspringNeeded)
                     ));
@@ -160,6 +154,7 @@ namespace mycoolfin.TheSimsulator.Core.Evolution
                         List<TGenotype> paddingGenotypes = await CreateInitialisedGenotypesAsync(
                             genotypeFactory,
                             padCount,
+                            config.SeedGenotype,
                             cancellationToken,
                             new Progress<int>(progress => GenotypeCreationProgress = (progress + parentPairs.Count) / (float)offspringNeeded)
                         );
@@ -314,24 +309,33 @@ namespace mycoolfin.TheSimsulator.Core.Evolution
             return result;
         }
 
-        private static Task<List<TGenotype>> CreateInitialisedGenotypesAsync(IGenotypeFactory<TGenotype> genotypeFactory, int count, CancellationToken token, IProgress<int> progress = null)
+        private static Task<List<TGenotype>> CreateInitialisedGenotypesAsync(IGenotypeFactory<TGenotype> genotypeFactory, int count, SeedGenotype<TGenotype> seedGenotype, CancellationToken token, IProgress<int> progress = null)
         {
             return Task.Run(() =>
             {
                 List<TGenotype> genotypes = new(count);
-                for (int i = 0; i < count; i++)
+
+                if (seedGenotype != null) // Use the seed genotype if provided.
                 {
-                    token.ThrowIfCancellationRequested();
+                    for (int i = 0; i < count; i++)
+                        genotypes.Add(seedGenotype.Genotype);
+                }
+                else // Use default genotype factory initialiser. 
+                {
+                    for (int i = 0; i < count; i++)
+                    {
+                        token.ThrowIfCancellationRequested();
 
-                    genotypes.Add(genotypeFactory.CreateInitialisedGenotype());
+                        genotypes.Add(genotypeFactory.CreateInitialisedGenotype());
 
-                    progress?.Report(i + 1);
+                        progress?.Report(i + 1);
+                    }
                 }
                 return genotypes;
             });
         }
 
-        private static Task<List<TGenotype>> RecombineAllAsync(IGenotypeFactory<TGenotype> genotypeFactory, IReadOnlyList<(TGenotype parent1, TGenotype parent2)> parents, float mutationRate, CancellationToken token, IProgress<int> progress = null)
+        private static Task<List<TGenotype>> RecombineAllAsync(IGenotypeFactory<TGenotype> genotypeFactory, IReadOnlyList<(TGenotype parent1, TGenotype parent2)> parents, float mutationRate, bool lockMorphologies, CancellationToken token, IProgress<int> progress = null)
         {
             return Task.Run(() =>
             {
@@ -340,7 +344,7 @@ namespace mycoolfin.TheSimsulator.Core.Evolution
                 {
                     token.ThrowIfCancellationRequested();
 
-                    offspring.Add(genotypeFactory.Recombine(parents[i].parent1, parents[i].parent2, mutationRate));
+                    offspring.Add(genotypeFactory.Recombine(parents[i].parent1, parents[i].parent2, mutationRate, lockMorphologies));
 
                     progress?.Report(i + 1);
                 }

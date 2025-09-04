@@ -12,9 +12,17 @@ namespace mycoolfin.TheSimsulator.Sims.Genotype
             { MutateRecursiveLimit, 1f }
         };
 
+        private static readonly WeightedChoiceList<Action<SimsGenotypeCreationContext, int>> LockedMorphologyNodeMutations = new()
+        {
+            { MutateJointDefinition, 1f }
+        };
+
         public static void MutateNode(SimsGenotypeCreationContext context, int nodeIndex)
         {
-            NodeMutations.Choose().Invoke(context, nodeIndex);
+            if (context.LockMorphology)
+                LockedMorphologyNodeMutations.Choose().Invoke(context, nodeIndex);
+            else
+                NodeMutations.Choose().Invoke(context, nodeIndex);
         }
 
         public static void MutateDimensions(SimsGenotypeCreationContext context, int nodeIndex)

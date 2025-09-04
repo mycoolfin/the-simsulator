@@ -11,6 +11,8 @@ namespace mycoolfin.TheSimsulator.Sims.Genotype
         public List<Connection> Connections { get; }
         public List<NeuronDefinition> NeuronDefinitions { get; }
 
+        public bool LockMorphology { get; private set; } = false;
+
         public SimsGenotypeCreationContext(IReadOnlyList<Node> nodes, IReadOnlyList<Connection> connections, IReadOnlyList<NeuronDefinition> neuronDefinitions)
         {
             Nodes = nodes?.ToList() ?? throw new System.ArgumentNullException(nameof(nodes), "Nodes cannot be null.");
@@ -32,8 +34,10 @@ namespace mycoolfin.TheSimsulator.Sims.Genotype
         /// For each mutation, the decision tree is traversed to select a mutation based on defined probabilities.
         /// </summary>
         /// <param name="mutationRate"></param>
-        public void Mutate(float mutationRate)
+        /// <param name="lockMorphology">If true, mutations that would alter the morphology of the phenotype are disabled.</param>
+        public void Mutate(float mutationRate, bool lockMorphology = false)
         {
+            LockMorphology = lockMorphology;
             int mutationCount = SharedRandom.DrawPoisson(mutationRate);
             for (int i = 0; i < mutationCount; i++)
                 SimsGenotypeMutator.MutateGenotype(this);
