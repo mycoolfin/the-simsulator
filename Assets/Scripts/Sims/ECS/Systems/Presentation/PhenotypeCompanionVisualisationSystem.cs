@@ -9,6 +9,8 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.ECS.Systems.Presentation
 {
     using Core.ECS.Math;
     using Core.ECS.Rendering;
+    using Core.ECS.Components.Shared;
+    using Core.ECS.Components.Phenotype;
     using Sims.ECS.Components.Phenotype;
 
     [UpdateInGroup(typeof(PresentationSystemGroup))]

@@ -3,6 +3,7 @@ using Unity.Mathematics;
 
 namespace mycoolfin.TheSimsulator.UnityIntegration.Core.ECS.API
 {
+    using Systems.Simulation.Phenotypes;
     using Systems.Simulation.SimulationRate;
 
     public struct SimulationRateInfo
@@ -24,5 +25,11 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.ECS.API
         public void CreateGroundPlane(World world);
 
         void DestroyGroundPlane(World world);
+
+        void SetPhenotypeRepositionerSettings(World world, PhenotypeRepositionerSettings settings);
+
+        void SetToTerrestrialDefaults(World world);
+
+        void SetToAquaticDefaults(World world);
     }
 }

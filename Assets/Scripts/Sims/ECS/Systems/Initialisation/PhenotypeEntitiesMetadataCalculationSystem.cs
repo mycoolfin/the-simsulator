@@ -2,6 +2,8 @@ using Unity.Entities;
 
 namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Systems.Initialisation
 {
+    using Core.ECS.Components.Shared;
+    using Core.ECS.Components.Phenotype;
     using Components.Phenotype;
 
     [UpdateInGroup(typeof(InitializationSystemGroup))]

@@ -1,6 +1,6 @@
 using Unity.Entities;
 
-namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Components.Phenotype
+namespace mycoolfin.TheSimsulator.UnityIntegration.Core.ECS.Components.Shared
 {
     public struct RootPhenotypeEntity : IComponentData
     {

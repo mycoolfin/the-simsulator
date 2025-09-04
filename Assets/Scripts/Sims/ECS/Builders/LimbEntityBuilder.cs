@@ -10,6 +10,7 @@ using Unity.Rendering;
 namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Builders
 {
     using Core.ECS.Caching;
+    using Core.ECS.Components.Shared;
     using Components.Phenotype;
     using Systems.Initialisation;
 

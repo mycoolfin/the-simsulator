@@ -9,6 +9,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Builders
 {
     using TheSimsulator.Sims.Genotype;
     using TheSimsulator.Sims.Phenotype;
+    using Core.ECS.Components.Shared;
     using Components.Phenotype;
     using NeuralNetwork;
     using Systems.Initialisation;

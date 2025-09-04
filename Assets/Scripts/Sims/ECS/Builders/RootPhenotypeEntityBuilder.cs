@@ -5,6 +5,7 @@ using Unity.Jobs;
 
 namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Builders
 {
+    using Core.ECS.Components.Phenotype;
     using Components.Phenotype;
     using Systems.Initialisation;
 

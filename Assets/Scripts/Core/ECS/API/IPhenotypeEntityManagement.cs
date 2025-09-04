@@ -6,7 +6,7 @@ using UnityEngine;
 namespace mycoolfin.TheSimsulator.UnityIntegration.Core.ECS.API
 {
     using TheSimsulator.Core.Phenotype;
-    using Core.ECS.Rendering;
+    using Rendering;
 
     public struct PhenotypeEntityCreationInfo<TPhenotype>
         where TPhenotype : IPhenotype<TPhenotype>

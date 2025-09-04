@@ -5,6 +5,7 @@ using Unity.Transforms;
 
 namespace mycoolfin.TheSimsulator.UnityIntegration.Core.ECS.API
 {
+    using Systems.Simulation.Phenotypes;
     using Systems.Simulation.Physics;
     using Systems.Simulation.SimulationRate;
 
@@ -65,6 +66,10 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.ECS.API
 
             EntityManager entityManager = world.EntityManager;
 
+            EntityQuery groundPlaneQuery = entityManager.CreateEntityQuery(ComponentType.ReadOnly<GroundPlaneTag>());
+            if (!groundPlaneQuery.IsEmptyIgnoreFilter)
+                return; // Ground plane already exists.
+
             Entity groundPlane = entityManager.CreateEntity();
 
             entityManager.AddComponentData(groundPlane, new GroundPlaneTag());
@@ -108,6 +113,48 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.ECS.API
                 Entity groundPlane = groundPlaneQuery.GetSingletonEntity();
                 entityManager.DestroyEntity(groundPlane);
             }
+        }
+
+        public void SetPhenotypeRepositionerSettings(World world, PhenotypeRepositionerSettings settings)
+        {
+            if (!world.IsCreated)
+                return;
+
+            EntityManager entityManager = world.EntityManager;
+            EntityQuery query = entityManager.CreateEntityQuery(typeof(PhenotypeRepositionerSettings));
+            PhenotypeRepositionerSettings newSettings = settings;
+            if (query.IsEmptyIgnoreFilter) entityManager.CreateSingleton(newSettings);
+            else query.SetSingleton(newSettings);
+        }
+
+        public void SetToTerrestrialDefaults(World world)
+        {
+            SetGravity(world, PhysicsStep.Default.Gravity);
+            CreateGroundPlane(world);
+            SetPhenotypeRepositionerSettings(world, new PhenotypeRepositionerSettings
+            {
+                Enabled = true,
+                Pivot = RepositionPivot.BoundingBoxCenterYMin, // Bottom of the bounding box.
+                AllowedZone = new() { Center = new float3(0f, 500f, 0f), Extents = new float3(500f, 500f, 500f) }, // 1000^3 m box sitting at ground level (y=0).
+                Margin = 0.1f,
+                TargetPosition = new float3(0f, 0.01f, 0f), // Just above ground level.
+                ZeroVelocitiesOnReposition = true
+            });
+        }
+
+        public void SetToAquaticDefaults(World world)
+        {
+            SetGravity(world, float3.zero);
+            DestroyGroundPlane(world);
+            SetPhenotypeRepositionerSettings(world, new PhenotypeRepositionerSettings
+            {
+                Enabled = true,
+                Pivot = RepositionPivot.BoundingBoxCenter, // Center of the bounding box.
+                AllowedZone = new() { Center = new float3(0f, 0f, 0f), Extents = new float3(500f, 500f, 500f) }, // 1000^3 m box centered at origin.
+                Margin = 0.1f,
+                TargetPosition = float3.zero, // Dead center.
+                ZeroVelocitiesOnReposition = true
+            });
         }
     }
 }

@@ -7,6 +7,7 @@ using Unity.Transforms;
 
 namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Systems.Simulation.Sensors
 {
+    using Core.ECS.Components.Shared;
     using Components.Phenotype;
 
     [BurstCompile]

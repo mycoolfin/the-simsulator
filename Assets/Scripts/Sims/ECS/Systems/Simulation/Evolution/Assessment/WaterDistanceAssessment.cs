@@ -4,8 +4,8 @@ using Unity.Mathematics;
 
 namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Systems.Simulation.Evolution.Assessment
 {
+    using Core.ECS.Components.Phenotype;
     using Components.Evolution;
-    using Components.Phenotype;
 
     [UpdateInGroup(typeof(AssessmentSystemGroup))]
     [UpdateAfter(typeof(BeginAssessmentSystem))]

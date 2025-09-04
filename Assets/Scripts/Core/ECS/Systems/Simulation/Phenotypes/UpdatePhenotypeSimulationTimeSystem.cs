@@ -1,11 +1,12 @@
 using Unity.Burst;
 using Unity.Entities;
 
-namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Systems.Simulation.RootPhenotypes
+namespace mycoolfin.TheSimsulator.UnityIntegration.Core.ECS.Systems.Simulation.Phenotypes
 {
     using Components.Phenotype;
+    using Components.Shared;
 
-    [UpdateInGroup(typeof(RootPhenotypeSystemGroup))]
+    [UpdateInGroup(typeof(PhenotypeSystemGroup))]
     public partial struct UpdatePhenotypeSimulationTimeSystem : ISystem
     {
         public void OnCreate(ref SystemState state)

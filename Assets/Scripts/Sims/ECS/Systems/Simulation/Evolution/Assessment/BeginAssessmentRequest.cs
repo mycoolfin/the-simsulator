@@ -5,8 +5,8 @@ using Unity.Entities;
 namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Systems.Simulation.Evolution.Assessment
 {
     using UnityIntegration.Core.Evolution;
+    using Core.ECS.Components.Phenotype;
     using Components.Evolution;
-    using Components.Phenotype;
 
     public struct BeginAssessmentRequest : IComponentData
     {

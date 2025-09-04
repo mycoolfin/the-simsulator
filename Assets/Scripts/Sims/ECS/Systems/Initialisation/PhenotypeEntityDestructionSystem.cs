@@ -5,6 +5,8 @@ using Unity.Entities;
 namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Systems.Initialisation
 {
     using Core.ECS.Math;
+    using Core.ECS.Components.Shared;
+    using Core.ECS.Components.Phenotype;
     using Components.Phenotype;
 
     public struct DestroyPhenotypeEntitiesRequest : IComponentData

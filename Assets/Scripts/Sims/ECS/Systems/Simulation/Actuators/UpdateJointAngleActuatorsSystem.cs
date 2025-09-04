@@ -6,6 +6,7 @@ using Unity.Physics;
 
 namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Systems.Simulation.Actuators
 {
+    using Core.ECS.Components.Shared;
     using Components.Phenotype;
 
     [BurstCompile]

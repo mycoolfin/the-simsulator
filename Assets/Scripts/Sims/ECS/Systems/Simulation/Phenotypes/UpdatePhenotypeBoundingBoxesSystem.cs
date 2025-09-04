@@ -5,12 +5,15 @@ using Unity.Jobs;
 using Unity.Mathematics;
 using Unity.Transforms;
 
-namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Systems.Simulation.RootPhenotypes
+namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Systems.Simulation.Phenotypes
 {
     using Core.ECS.Math;
+    using Core.ECS.Systems.Simulation.Phenotypes;
+    using Core.ECS.Components.Phenotype;
+    using Core.ECS.Components.Shared;
     using Components.Phenotype;
 
-    [UpdateInGroup(typeof(RootPhenotypeSystemGroup))]
+    [UpdateInGroup(typeof(PhenotypeSystemGroup))]
     public partial struct UpdatePhenotypeBoundingBoxesSystem : ISystem
     {
         private ComponentLookup<LocalTransform> localTransformLookup;

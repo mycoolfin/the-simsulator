@@ -6,6 +6,7 @@ using Unity.Jobs;
 namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Systems.Simulation.Joints
 {
     using TheSimsulator.Sims.Phenotype;
+    using Core.ECS.Components.Shared;
     using Components.Phenotype;
     using NeuralNetwork;
 

@@ -7,6 +7,7 @@ using Unity.Mathematics;
 namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Systems.Simulation.Neurons
 {
     using TheSimsulator.Sims.Genotype;
+    using Core.ECS.Components.Phenotype;
     using Components.Phenotype;
     using Sensors;
     using Actuators;

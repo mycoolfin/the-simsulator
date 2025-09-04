@@ -8,6 +8,7 @@ using Unity.Transforms;
 
 namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Systems.Simulation.Joints
 {
+    using Core.ECS.Components.Shared;
     using Components.Phenotype;
 
     public struct JointBreakSystemSettings : IComponentData

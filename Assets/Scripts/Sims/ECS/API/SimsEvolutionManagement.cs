@@ -12,12 +12,14 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.API
 {
     using Core.ECS.API;
     using Core.Evolution;
+    using Core.ECS.Systems.Simulation;
+    using Core.ECS.Systems.Simulation.Phenotypes;
+    using Core.ECS.Systems.Simulation.SimulationRate;
+    using Core.ECS.Components.Phenotype;
     using Components.Evolution;
     using Components.Phenotype;
-    using Core.ECS.Systems.Simulation;
     using Systems.Simulation.Evolution.Assessment;
     using Systems.Simulation.Limbs;
-    using Core.ECS.Systems.Simulation.SimulationRate;
 
     public class SimsEvolutionManagement : IEvolutionManagement
     {
@@ -41,28 +43,18 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.API
             simulationSettings.DestroyGroundPlane(world);
 
             yield return SettleJoints(world, 2f, GetSimulationRateModeCallback); // Necessary as long as the joint flip bug exists.
-            
+
             if (!world.IsCreated)
                 yield break;
 
             // Set trial-specific environment settings.
             if (trialType == TrialType.GroundDistance)
             {
-                simulationSettings.SetGravity(world, PhysicsStep.Default.Gravity);
-                // Create ground plane.
-                simulationSettings.CreateGroundPlane(world);
+                simulationSettings.SetToTerrestrialDefaults(world);
             }
             else if (trialType == TrialType.WaterDistance)
             {
-                simulationSettings.SetGravity(world, float3.zero);
-                simulationSettings.SetFluidSimulation(world, true, 1f);
-            }
-
-            // Reposition phenotype entities if necessary.
-            if (trialType == TrialType.GroundDistance)
-            {
-                entityManager.CreateSingleton(new RepositionLimbsRequest() { GroundY = 0f });
-                world.GetExistingSystem<RepositionLimbsSystem>().Update(world.Unmanaged);
+                simulationSettings.SetToAquaticDefaults(world);
             }
         }
 

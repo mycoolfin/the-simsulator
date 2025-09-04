@@ -14,6 +14,8 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.API
     using Core.ECS.API;
     using Core.ECS.Math;
     using Core.ECS.Rendering;
+    using Core.ECS.Components.Shared;
+    using Core.ECS.Components.Phenotype;
     using NeuralNetwork;
     using Builders;
     using Systems.Initialisation;

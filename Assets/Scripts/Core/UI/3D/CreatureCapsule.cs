@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using Unity.Entities;
-using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
 
@@ -60,8 +59,8 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
         [SerializeField] private TextMeshPro fileMissingError;
         [SerializeField] private TextMeshPro invalidGenotypeError;
         [SerializeField] private PushButton environmentToggleButton;
-        [SerializeField] private GameObject groundEnvironment;
-        [SerializeField] private GameObject aquaticEnvironment;
+        [SerializeField] private GameObject terrestrialDisplay;
+        [SerializeField] private GameObject aquaticDisplay;
 
         protected abstract TPhenotypeFactory PhenotypeFactory { get; }
         protected abstract TECSAPI ECSAPI { get; }
@@ -76,8 +75,8 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
 
                 // Toggle display gameobjects.
                 environmentToggleButton.SetActive(value == CapsuleEnvironment.Aquatic);
-                groundEnvironment.SetActive(value == CapsuleEnvironment.Terrestrial);
-                aquaticEnvironment.SetActive(value == CapsuleEnvironment.Aquatic);
+                terrestrialDisplay.SetActive(value == CapsuleEnvironment.Terrestrial);
+                aquaticDisplay.SetActive(value == CapsuleEnvironment.Aquatic);
             }
         }
 
@@ -216,8 +215,6 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
 
             ECSAPI.Phenotype.SetPhenotypeCompanionObject(world, phenotype, companionObjectOverride != null ? companionObjectOverride : companionObject);
 
-            // TODO: Add tag to reset position if goes out of bounds.
-
             creature = new()
             {
                 Genotype = genotype,
@@ -258,17 +255,9 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
                 ECSAPI.Simulation.SetSimulationRateControllerMode(world, SimulationRateMode.RealTime);
 
                 if (environment == CapsuleEnvironment.Terrestrial)
-                {
-                    ECSAPI.Simulation.SetGravity(world, float3.zero);
-                    ECSAPI.Simulation.SetFluidSimulation(world, false);
-                    ECSAPI.Simulation.CreateGroundPlane(world);
-                }
-
-                if (environment == CapsuleEnvironment.Aquatic)
-                {
-                    ECSAPI.Simulation.SetGravity(world, Physics.gravity);
-                    ECSAPI.Simulation.SetFluidSimulation(world, true, 1f);
-                }
+                    ECSAPI.Simulation.SetToTerrestrialDefaults(world);
+                else if (environment == CapsuleEnvironment.Aquatic)
+                    ECSAPI.Simulation.SetToAquaticDefaults(world);
             });
             return world;
         }

@@ -9,6 +9,7 @@ using Unity.Rendering;
 namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Systems.Presentation
 {
     using Core.ECS.Math;
+    using Core.ECS.Components.Shared;
     using Components.Evolution;
     using Components.Phenotype;
 
