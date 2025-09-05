@@ -11,6 +11,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
     using TheSimsulator.Core.Genotype;
     using TheSimsulator.Core.Phenotype;
     using ECS.API;
+    using ECS.Components.Phenotype;
     using ECS.Rendering;
     using ECS.Systems.Simulation.SimulationRate;
     using UI.IO;
@@ -54,7 +55,8 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
         private const string TerrestrialCapsuleWorld = "TerrestrialCapsuleWorld";
         private const string AquaticCapsuleWorld = "AquaticCapsuleWorld";
 
-        [SerializeField] private PhenotypeCompanionObject companionObject;
+        [SerializeField] private PhenotypeCompanionObject terrestrialCompanionObject;
+        [SerializeField] private PhenotypeCompanionObject aquaticCompanionObject;
         private PhenotypeCompanionObject companionObjectOverride;
         [SerializeField] private TextMeshPro fileMissingError;
         [SerializeField] private TextMeshPro invalidGenotypeError;
@@ -92,12 +94,13 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
 
         public IEnumerable<string> GetReferencedGenotypePaths() => GenotypeFilePath == null ? Array.Empty<string>() : new[] { GenotypeFilePath };
 
+        private bool isInitialised = true;
+
         private void Start()
         {
             environmentToggleButton.OnButtonPressed += (_) =>
             {
                 ToggleEnvironment();
-                environmentToggleButton.SetActive(environment == CapsuleEnvironment.Aquatic);
             };
         }
 
@@ -187,6 +190,9 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
 
         private IEnumerator InitialiseFromGenotype(TGenotype genotype, CapsuleEnvironment environment)
         {
+            if (!isInitialised)
+                yield break; // Still initializing from a previous call.
+
             this.genotype = genotype;
             Environment = environment;
 
@@ -206,6 +212,8 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
                 SetState(CapsuleState.InvalidGenotypeError);
                 yield break;
             }
+
+            isInitialised = false;
             PhenotypeEntityCreationInfo<TPhenotype> creationInfo = new()
             {
                 Phenotype = phenotype,
@@ -213,7 +221,9 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
             };
             yield return ECSAPI.Phenotype.CreateEntitiesFromPhenotypes(world, new() { creationInfo });
 
-            ECSAPI.Phenotype.SetPhenotypeCompanionObject(world, phenotype, companionObjectOverride != null ? companionObjectOverride : companionObject);
+            PhenotypeCompanionObject companionObject = companionObjectOverride != null ? companionObjectOverride
+                : Environment == CapsuleEnvironment.Terrestrial ? terrestrialCompanionObject : aquaticCompanionObject;
+            ECSAPI.Phenotype.SetPhenotypeCompanionObject(world, phenotype, companionObject);
 
             creature = new()
             {
@@ -221,6 +231,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
                 Phenotype = phenotype
             };
 
+            isInitialised = true;
             OnCreatureLoaded?.Invoke(creature);
 
             SetState(CapsuleState.Loaded);
@@ -231,10 +242,10 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
             // Destroy current phenotype entities.
             DestroyPhenotype(GetWorld(Environment));
 
-            CapsuleEnvironment newEnvironment = Environment == CapsuleEnvironment.Terrestrial ? CapsuleEnvironment.Aquatic : CapsuleEnvironment.Terrestrial;
+            Environment = Environment == CapsuleEnvironment.Terrestrial ? CapsuleEnvironment.Aquatic : CapsuleEnvironment.Terrestrial;
 
             // Recreate entities in selected environment world.
-            StartCoroutine(InitialiseFromGenotype(genotype, newEnvironment));
+            StartCoroutine(InitialiseFromGenotype(genotype, Environment));
         }
 
         private void DestroyPhenotype(World world)

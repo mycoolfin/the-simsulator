@@ -6,7 +6,8 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
 
     public class CreatureVisualiser : MonoBehaviour
     {
-        [SerializeField] private PhenotypeCompanionObject phenotypeCompanionObject;
+        [SerializeField] private PhenotypeCompanionObject terrestrialPhenotypeCompanionObject;
+        [SerializeField] private PhenotypeCompanionObject aquaticPhenotypeCompanionObject;
         [SerializeField] private CapsuleDock dock;
         [SerializeField] private GameObject hologram;
         [SerializeField] private EmitterController emitter;
@@ -33,7 +34,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
             else
             {
                 currentCapsule = capsule;
-                currentCapsule.SetCompanionObjectOverride(phenotypeCompanionObject);
+                currentCapsule.SetCompanionObjectOverride(currentCapsule.Environment == CapsuleEnvironment.Terrestrial ? terrestrialPhenotypeCompanionObject : aquaticPhenotypeCompanionObject);
             }
 
             hologram.SetActive(currentCapsule != null);

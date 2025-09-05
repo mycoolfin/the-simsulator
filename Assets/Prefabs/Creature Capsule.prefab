@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 7470167187756891325}
   - component: {fileID: 5158305777509884818}
   m_Layer: 0
-  m_Name: Phenotype Companion Object
+  m_Name: Terrestrial Phenotype Companion Object
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -26,7 +26,7 @@ Transform:
   m_GameObject: {fileID: 309553934296827870}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: -1, z: 0}
   m_LocalScale: {x: 1.4, y: 1.4, z: 1.4}
   m_ConstrainProportionsScale: 1
   m_Children: []
@@ -44,6 +44,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3a4a443ce7aa84583ab2179b96168ec0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::mycoolfin.TheSimsulator.UnityIntegration.Core.ECS.Rendering.PhenotypeCompanionObject
+  Pivot: 1
 --- !u!1 &1230672138582353206
 GameObject:
   m_ObjectHideFlags: 0
@@ -571,6 +572,51 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!1 &4747002870539679773
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6204630939187174437}
+  - component: {fileID: 8101202021364451409}
+  m_Layer: 0
+  m_Name: Aquatic Phenotype Companion Object
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &6204630939187174437
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4747002870539679773}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1.4, y: 1.4, z: 1.4}
+  m_ConstrainProportionsScale: 1
+  m_Children: []
+  m_Father: {fileID: 8673221745354334387}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &8101202021364451409
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4747002870539679773}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3a4a443ce7aa84583ab2179b96168ec0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::mycoolfin.TheSimsulator.UnityIntegration.Core.ECS.Rendering.PhenotypeCompanionObject
+  Pivot: 0
 --- !u!1 &5014879525742341797
 GameObject:
   m_ObjectHideFlags: 0
@@ -873,7 +919,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 412010afd8e20462d9c7c1e0fbe80ac4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::mycoolfin.TheSimsulator.UnityIntegration.Sims.UI.ThreeD.SimsCreatureCapsule
-  companionObject: {fileID: 5158305777509884818}
+  terrestrialCompanionObject: {fileID: 5158305777509884818}
+  aquaticCompanionObject: {fileID: 8101202021364451409}
   fileMissingError: {fileID: 6722703559173933823}
   invalidGenotypeError: {fileID: 8437970631039781403}
   environmentToggleButton: {fileID: 885786506915736469}
@@ -909,6 +956,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 7470167187756891325}
+  - {fileID: 6204630939187174437}
   - {fileID: 7237771866918617029}
   - {fileID: 2530537010409910162}
   - {fileID: 4896681469250573726}

@@ -7,17 +7,11 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.ECS.Systems.Simulation.P
 {
     using Components.Phenotype;
 
-    public enum RepositionPivot
-    {
-        BoundingBoxCenter,
-        BoundingBoxCenterYMin
-    }
-
     public struct PhenotypeRepositionerSettings : IComponentData
     {
         public bool Enabled;
         public AABB AllowedZone;
-        public RepositionPivot Pivot;
+        public BoundingBoxPivot Pivot;
         public float3 TargetPosition;
         public float Margin;
         public bool ZeroVelocitiesOnReposition;
@@ -63,7 +57,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.ECS.Systems.Simulation.P
 
         public void Execute([ChunkIndexInQuery] int index, Entity entity, in PhenotypeBoundingBox boundingBox)
         {
-            float3 currentPosition = Settings.Pivot == RepositionPivot.BoundingBoxCenterYMin
+            float3 currentPosition = Settings.Pivot == BoundingBoxPivot.BoundingBoxCenterYMin
                 ? new(boundingBox.Center.x, boundingBox.Center.y - boundingBox.CurrentExtents.y, boundingBox.Center.z)
                 : boundingBox.Center;
             if (!IsWithinAllowedZone(currentPosition))

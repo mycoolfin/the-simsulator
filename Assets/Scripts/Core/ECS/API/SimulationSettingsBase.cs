@@ -5,6 +5,7 @@ using Unity.Transforms;
 
 namespace mycoolfin.TheSimsulator.UnityIntegration.Core.ECS.API
 {
+    using Components.Phenotype;
     using Systems.Simulation.Phenotypes;
     using Systems.Simulation.Physics;
     using Systems.Simulation.SimulationRate;
@@ -134,7 +135,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.ECS.API
             SetPhenotypeRepositionerSettings(world, new PhenotypeRepositionerSettings
             {
                 Enabled = true,
-                Pivot = RepositionPivot.BoundingBoxCenterYMin, // Bottom of the bounding box.
+                Pivot = BoundingBoxPivot.BoundingBoxCenterYMin, // Bottom of the bounding box.
                 AllowedZone = new() { Center = new float3(0f, 500f, 0f), Extents = new float3(500f, 500f, 500f) }, // 1000^3 m box sitting at ground level (y=0).
                 Margin = 0.1f,
                 TargetPosition = new float3(0f, 0.01f, 0f), // Just above ground level.
@@ -149,7 +150,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.ECS.API
             SetPhenotypeRepositionerSettings(world, new PhenotypeRepositionerSettings
             {
                 Enabled = true,
-                Pivot = RepositionPivot.BoundingBoxCenter, // Center of the bounding box.
+                Pivot = BoundingBoxPivot.BoundingBoxCenter, // Center of the bounding box.
                 AllowedZone = new() { Center = new float3(0f, 0f, 0f), Extents = new float3(500f, 500f, 500f) }, // 1000^3 m box centered at origin.
                 Margin = 0.1f,
                 TargetPosition = float3.zero, // Dead center.

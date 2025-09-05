@@ -13,17 +13,23 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.ECS.Systems.Presentation
     using Core.ECS.Components.Phenotype;
     using Sims.ECS.Components.Phenotype;
 
+    public struct CompanionTransformData
+    {
+        public float4x4 TransformMatrix;
+        public BoundingBoxPivot Pivot;
+    }
+
     [UpdateInGroup(typeof(PresentationSystemGroup))]
     [UpdateAfter(typeof(ApplyWorldVisualOffsetSystem))]
     public partial struct PhenotypeCompanionVisualisationSystem : ISystem
     {
         private ComponentLookup<PhenotypeBoundingBox> phenotypeBoundingBoxLookup;
-        private NativeParallelHashMap<Entity, float4x4> phenotypeCompanionTransformsMap;
+        private NativeParallelHashMap<Entity, CompanionTransformData> phenotypeCompanionTransformDataMap;
 
         public void OnCreate(ref SystemState state)
         {
             phenotypeBoundingBoxLookup = state.GetComponentLookup<PhenotypeBoundingBox>(isReadOnly: true);
-            phenotypeCompanionTransformsMap = new NativeParallelHashMap<Entity, float4x4>(128, Allocator.Persistent);
+            phenotypeCompanionTransformDataMap = new NativeParallelHashMap<Entity, CompanionTransformData>(128, Allocator.Persistent);
 
             state.RequireForUpdate<PhenotypeEntitiesMetadata>();
             state.RequireForUpdate<LocalTransform>();
@@ -42,14 +48,14 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.ECS.Systems.Presentation
             new UpdatePhenotypeSubEntitiesLocalToWorldsJob
             {
                 PhenotypeBoundingBoxLookup = phenotypeBoundingBoxLookup,
-                PhenotypeCompanionTransformsMap = phenotypeCompanionTransformsMap.AsReadOnly()
+                PhenotypeCompanionTransformDataMap = phenotypeCompanionTransformDataMap.AsReadOnly()
             }.ScheduleParallel(state.Dependency).Complete();
         }
 
         public void OnDestroy()
         {
-            if (phenotypeCompanionTransformsMap.IsCreated)
-                phenotypeCompanionTransformsMap.Dispose();
+            if (phenotypeCompanionTransformDataMap.IsCreated)
+                phenotypeCompanionTransformDataMap.Dispose();
         }
 
         private void UpdateTransformsMap(ref SystemState state)
@@ -58,23 +64,27 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.ECS.Systems.Presentation
             PhenotypeEntitiesMetadata metadata = SystemAPI.GetSingleton<PhenotypeEntitiesMetadata>();
             int requiredCapacity = metadata.TotalRootPhenotypeCount.NextPowerOfTwo();
             // Expand capacity to accommodate new keys with some headroom.
-            int newCapacity = math.max(requiredCapacity * 2, phenotypeCompanionTransformsMap.Capacity * 2);
-            if (requiredCapacity > phenotypeCompanionTransformsMap.Capacity)
+            int newCapacity = math.max(requiredCapacity * 2, phenotypeCompanionTransformDataMap.Capacity * 2);
+            if (requiredCapacity > phenotypeCompanionTransformDataMap.Capacity)
             {
-                phenotypeCompanionTransformsMap.Dispose();
-                phenotypeCompanionTransformsMap = new(newCapacity, Allocator.Persistent);
+                phenotypeCompanionTransformDataMap.Dispose();
+                phenotypeCompanionTransformDataMap = new(newCapacity, Allocator.Persistent);
             }
 
             // Update phenotype entity / companion object transform pairs.
             // Managed query — main thread only.
-            phenotypeCompanionTransformsMap.Clear();
+            phenotypeCompanionTransformDataMap.Clear();
             foreach (var (companionObjectTag, rootPhenotypeEntity) in SystemAPI.Query<
                         SystemAPI.ManagedAPI.UnityEngineComponent<PhenotypeCompanionObject>
                     >().WithEntityAccess())
             {
                 PhenotypeCompanionObject companionObject = companionObjectTag.Value;
-                Matrix4x4 companionTransform = companionObject != null ? companionObject.transform.localToWorldMatrix : Matrix4x4.zero;
-                phenotypeCompanionTransformsMap.TryAdd(rootPhenotypeEntity, companionTransform);
+                CompanionTransformData companionTransform = new()
+                {
+                    TransformMatrix = companionObject != null ? companionObject.transform.localToWorldMatrix : Matrix4x4.zero,
+                    Pivot = companionObject != null ? companionObject.Pivot : BoundingBoxPivot.BoundingBoxCenter
+                };
+                phenotypeCompanionTransformDataMap.TryAdd(rootPhenotypeEntity, companionTransform);
             }
         }
     }
@@ -83,11 +93,11 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.ECS.Systems.Presentation
     public partial struct UpdatePhenotypeSubEntitiesLocalToWorldsJob : IJobEntity
     {
         [ReadOnly] public ComponentLookup<PhenotypeBoundingBox> PhenotypeBoundingBoxLookup;
-        [ReadOnly] public NativeParallelHashMap<Entity, float4x4>.ReadOnly PhenotypeCompanionTransformsMap;
+        [ReadOnly] public NativeParallelHashMap<Entity, CompanionTransformData>.ReadOnly PhenotypeCompanionTransformDataMap;
 
         public void Execute(in RootPhenotypeEntity rootPhenotypeEntity, in LocalTransform localTransform, in PostTransformMatrix postTransform, ref LocalToWorld localToWorld)
         {
-            if (PhenotypeCompanionTransformsMap.TryGetValue(rootPhenotypeEntity.Value, out float4x4 companionTransform))
+            if (PhenotypeCompanionTransformDataMap.TryGetValue(rootPhenotypeEntity.Value, out CompanionTransformData companionTransformData))
             {
                 if (PhenotypeBoundingBoxLookup.TryGetComponent(rootPhenotypeEntity.Value, out PhenotypeBoundingBox boundingBox))
                 {
@@ -101,14 +111,18 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.ECS.Systems.Presentation
                     maxDimension = maxDimension > 0f ? maxDimension : math.INFINITY; // Prevent division by zero.
                     float scalingFactor = maxDimension > math.EPSILON ? 1f / maxDimension : 1f;
 
+                    float3 center = companionTransformData.Pivot == BoundingBoxPivot.BoundingBoxCenterYMin
+                        ? new float3(boundingBox.Center.x, boundingBox.Center.y - boundingBox.CurrentExtents.y, boundingBox.Center.z)
+                        : boundingBox.Center;
+
                     float4x4 scaleThenCenter = math.mul(
                         float4x4.Scale(scalingFactor),
-                        float4x4.Translate(-boundingBox.Center)
+                        float4x4.Translate(-center)
                     );
 
                     float4x4 phenotypeSpace = math.mul(scaleThenCenter, realTransform);
 
-                    localToWorld.Value = math.mul(companionTransform, phenotypeSpace);
+                    localToWorld.Value = math.mul(companionTransformData.TransformMatrix, phenotypeSpace);
                 }
                 else
                 {

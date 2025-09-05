@@ -19,4 +19,10 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.ECS.Components.Phenotype
         public float3 CurrentExtents;
         public float3 MaxExtents;
     }
+
+    public enum BoundingBoxPivot
+    {
+        BoundingBoxCenter,
+        BoundingBoxCenterYMin
+    }
 }

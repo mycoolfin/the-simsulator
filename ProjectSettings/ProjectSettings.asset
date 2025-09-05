@@ -13,7 +13,7 @@ PlayerSettings:
   useOnDemandResources: 0
   accelerometerFrequency: 60
   companyName: mycoolfin
-  productName: the-simsulator
+  productName: The Simsulator
   defaultCursor: {fileID: 0}
   cursorHotspot: {x: 0, y: 0}
   m_SplashScreenBackgroundColor: {r: 0.13725491, g: 0.12156863, b: 0.1254902, a: 1}
@@ -141,7 +141,7 @@ PlayerSettings:
   loadStoreDebugModeEnabled: 0
   visionOSBundleVersion: 1.0
   tvOSBundleVersion: 1.0
-  bundleVersion: 0.2.1
+  bundleVersion: 0.3.0
   preloadedAssets:
   - {fileID: -944628639613478452, guid: 2836cc9fa3f2c48e3a38a619add0c67d, type: 3}
   metroInputSource: 0
@@ -166,7 +166,7 @@ PlayerSettings:
   androidMinAspectRatio: 1
   applicationIdentifier:
     Android: com.mycoolfin.thesimsulator
-    Standalone: com.mycoolfin.the-simsulator
+    Standalone: com.mycoolfin.The-Simsulator
     iPhone: com.mycoolfin.evc-sim
   buildNumber:
     Standalone: 0

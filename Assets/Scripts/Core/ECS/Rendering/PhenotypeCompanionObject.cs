@@ -2,5 +2,10 @@ using UnityEngine;
 
 namespace mycoolfin.TheSimsulator.UnityIntegration.Core.ECS.Rendering
 {
-    public class PhenotypeCompanionObject : MonoBehaviour { }
+    using Components.Phenotype;
+
+    public class PhenotypeCompanionObject : MonoBehaviour
+    {
+        public BoundingBoxPivot Pivot = BoundingBoxPivot.BoundingBoxCenter;
+    }
 }

@@ -160,10 +160,9 @@ namespace mycoolfin.TheSimsulator.Core.Evolution
                         );
                         genotypes.AddRange(paddingGenotypes);
                     }
-
-                    GenotypeCreationProgress = 1f;
                 }
             }
+            GenotypeCreationProgress = 1f;
 
             if (genotypes.Count != config.PopulationSize)
                 throw new InvalidOperationException($"Expected {config.PopulationSize} genotypes, but got {genotypes.Count}.");
