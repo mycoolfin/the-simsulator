@@ -13,7 +13,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Systems.Simulation.L
     using Components.Phenotype;
 
     [UpdateInGroup(typeof(PhenotypeSystemGroup))]
-    [UpdateAfter(typeof(RepositionPhenotypeEntitiesSystem))]
+    [UpdateAfter(typeof(PhenotypeRepositionerSystem))]
     public partial struct RepositionPhenotypeEntitiesSystem : ISystem
     {
         private ComponentLookup<RepositionPhenotypeEntitiesRequest> repositionRequestLookup;

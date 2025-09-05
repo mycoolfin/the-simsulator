@@ -2,29 +2,28 @@ using UnityEngine;
 using UnityEngine.UIElements;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
 
-namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.TwoD
+namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.Player.FPS
 {
-    using Player;
-    using UnityEngine.XR.Interaction.Toolkit.Interactors;
+    using ThreeD;
 
     [RequireComponent(typeof(UIDocument))]
-    [RequireComponent(typeof(FPSPlayerController))]
     public class ReticleUIController : MonoBehaviour
     {
+        [SerializeField] private FPSPlayerController playerController;
+
         [Header("Reticle Settings")]
         public Color reticleColor = Color.white;
         public Color interactableColor = Color.blue;
         public Color grabbableColor = Color.purple;
-        public float reticleSize = 4f;
+        public Color tooltipColor = Color.yellowNice;
+        public float reticleSize = 10f;
         public bool showReticle = true;
 
         private VisualElement reticle;
         private UIDocument uiDocument;
-        private FPSPlayerController playerController;
 
         private void Start()
         {
-            playerController = GetComponent<FPSPlayerController>();
             uiDocument = GetComponent<UIDocument>();
 
             CreateReticle();
@@ -71,22 +70,19 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.TwoD
         private void UpdateReticleColor()
         {
             Color targetColor = reticleColor;
-            if (playerController.playerCamera != null)
+            if (playerController.LookingAtSomething)
             {
-                Ray ray = playerController.playerCamera.ScreenPointToRay(new Vector3(Screen.width / 2f, Screen.height / 2f, 0f));
-                if (Physics.Raycast(ray, out RaycastHit hit, playerController.interactionRange, playerController.interactionLayerMask))
+                if (playerController.RaycastHit.collider.GetComponent<ISelectable>() != null)
                 {
-                    bool lookingAtInteractable = hit.collider.GetComponent<ISelectable>() != null;
-                    bool lookingAtGrabbable = hit.collider.GetComponentInParent<XRGrabInteractable>() != null;
-
-                    if (lookingAtInteractable)
-                    {
-                        targetColor = interactableColor;
-                    }
-                    else if (lookingAtGrabbable)
-                    {
-                        targetColor = grabbableColor;
-                    }
+                    targetColor = interactableColor;
+                }
+                else if (playerController.RaycastHit.collider.GetComponentInParent<XRGrabInteractable>() != null)
+                {
+                    targetColor = grabbableColor;
+                }
+                else if (playerController.RaycastHit.collider.GetComponent<Tooltip>() != null)
+                {
+                    targetColor = tooltipColor;
                 }
             }
 

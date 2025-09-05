@@ -320,16 +320,23 @@ namespace mycoolfin.TheSimsulator.Core.Evolution
                     for (int i = 0; i < count; i++)
                         genotypes.Add(seedGenotype.Genotype);
                 }
-                else // Use default genotype factory initialiser. 
+                else // Use default genotype factory initialiser with parallel execution.
                 {
-                    for (int i = 0; i < count; i++)
+                    TGenotype[] genotypeArray = new TGenotype[count];
+                    int completed = 0;
+
+                    Parallel.For(0, count, new ParallelOptions
                     {
-                        token.ThrowIfCancellationRequested();
+                        CancellationToken = token,
+                        MaxDegreeOfParallelism = Environment.ProcessorCount
+                    }, i =>
+                    {
+                        genotypeArray[i] = genotypeFactory.CreateInitialisedGenotype();
 
-                        genotypes.Add(genotypeFactory.CreateInitialisedGenotype());
+                        progress?.Report(Interlocked.Increment(ref completed));
+                    });
 
-                        progress?.Report(i + 1);
-                    }
+                    genotypes.AddRange(genotypeArray);
                 }
                 return genotypes;
             });
@@ -339,16 +346,21 @@ namespace mycoolfin.TheSimsulator.Core.Evolution
         {
             return Task.Run(() =>
             {
-                List<TGenotype> offspring = new(parents.Count);
-                for (int i = 0; i < parents.Count; i++)
+                TGenotype[] offspring = new TGenotype[parents.Count];
+                int completed = 0;
+
+                Parallel.For(0, parents.Count, new ParallelOptions
                 {
-                    token.ThrowIfCancellationRequested();
+                    CancellationToken = token,
+                    MaxDegreeOfParallelism = Environment.ProcessorCount
+                }, i =>
+                {
+                    offspring[i] = genotypeFactory.Recombine(parents[i].parent1, parents[i].parent2, mutationRate, lockMorphologies);
 
-                    offspring.Add(genotypeFactory.Recombine(parents[i].parent1, parents[i].parent2, mutationRate, lockMorphologies));
+                    progress?.Report(Interlocked.Increment(ref completed));
+                });
 
-                    progress?.Report(i + 1);
-                }
-                return offspring;
+                return offspring.ToList();
             });
         }
 
@@ -356,16 +368,23 @@ namespace mycoolfin.TheSimsulator.Core.Evolution
         {
             return Task.Run(() =>
             {
-                List<TPhenotype> phenotypes = new(genotypes.Count);
-                for (int i = 0; i < genotypes.Count; i++)
+                TPhenotype[] phenotypes = new TPhenotype[genotypes.Count];
+                int completed = 0;
+
+                Parallel.For(0, genotypes.Count, new ParallelOptions
+                {
+                    CancellationToken = token,
+                    MaxDegreeOfParallelism = Environment.ProcessorCount
+                }, i =>
                 {
                     token.ThrowIfCancellationRequested();
 
-                    phenotypes.Add(phenotypeFactory.ConstructPhenotype(genotypes[i]));
+                    phenotypes[i] = phenotypeFactory.ConstructPhenotype(genotypes[i]);
 
-                    progress?.Report(i + 1);
-                }
-                return phenotypes;
+                    progress?.Report(Interlocked.Increment(ref completed));
+                });
+
+                return phenotypes.ToList();
             });
         }
     }

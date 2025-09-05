@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.Player
+namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.Player.FPS
 {
     public class FPSPlayerController : MonoBehaviour
     {
@@ -25,6 +25,10 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.Player
         public float interactionRange = 5f;
         public LayerMask interactionLayerMask = -1;
 
+        public bool LookingAtSomething { get; private set; }
+        private RaycastHit raycastHit;
+        public RaycastHit RaycastHit => raycastHit;
+
         private Vector2 horizontalMovement;
         private Vector2 lookDeltas;
         private float currentPitch = 0f;
@@ -43,8 +47,15 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.Player
 
         private void Update()
         {
+            UpdateRaycastHit();
             HandleMovement();
             HandleLook();
+        }
+
+        private void UpdateRaycastHit()
+        {
+            Ray ray = playerCamera.ScreenPointToRay(new Vector3(Screen.width / 2f, Screen.height / 2f, 0f));
+            LookingAtSomething = Physics.Raycast(ray, out raycastHit, interactionRange, interactionLayerMask);
         }
 
         private void HandleMovement()
@@ -60,7 +71,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.Player
             Vector3 movement = Vector3.zero;
             movement += transform.forward * horizontalMovement.y;
             movement += transform.right * horizontalMovement.x;
-            
+
             // Apply sprint multiplier if sprinting
             float currentSpeed = isSprinting ? movementSpeed * sprintMultiplier : movementSpeed;
             movement *= currentSpeed;
@@ -150,20 +161,8 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.Player
                 }
                 else
                 {
-                    TryInteract();
-                }
-            }
-        }
-
-        private void TryInteract()
-        {
-            Ray ray = playerCamera.ScreenPointToRay(new Vector3(UnityEngine.Screen.width / 2f, UnityEngine.Screen.height / 2f, 0f));
-
-            if (Physics.Raycast(ray, out RaycastHit hit, interactionRange, interactionLayerMask))
-            {
-                if (hit.collider.TryGetComponent<ISelectable>(out var selectable))
-                {
-                    selectable.Select();
+                    if (LookingAtSomething && RaycastHit.collider.TryGetComponent<ISelectable>(out var selectable))
+                        selectable.Select();
                 }
             }
         }

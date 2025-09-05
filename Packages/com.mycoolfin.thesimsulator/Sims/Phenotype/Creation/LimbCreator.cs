@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Numerics;
 using System.Runtime.CompilerServices;
@@ -43,27 +44,19 @@ namespace mycoolfin.TheSimsulator.Sims.Phenotype
         };
 
         // Memory pool for frequent allocations (static to persist across calls).
-        private static readonly Lazy<Stack<List<Neuron>>> _neuronListPoolLazy = new(() => new Stack<List<Neuron>>());
-        private static Stack<List<Neuron>> NeuronListPool => _neuronListPoolLazy.Value;
-        private static readonly Lazy<Stack<List<(bool, bool, bool)>>> _reflectionVariantsPoolLazy = new(() => new Stack<List<(bool, bool, bool)>>());
-        private static Stack<List<(bool, bool, bool)>> ReflectionVariantsPool => _reflectionVariantsPoolLazy.Value;
-        private static readonly Lazy<Stack<Dictionary<ulong, Node>>> _nodeMapPoolLazy = new(() => new Stack<Dictionary<ulong, Node>>());
-        private static Stack<Dictionary<ulong, Node>> NodeMapPool => _nodeMapPoolLazy.Value;
-        private static readonly Lazy<Stack<Dictionary<ulong, List<Connection>>>> _connectionMapPoolLazy = new(() => new Stack<Dictionary<ulong, List<Connection>>>());
-        private static Stack<Dictionary<ulong, List<Connection>>> ConnectionMapPool => _connectionMapPoolLazy.Value;
-        private static readonly Lazy<Stack<Dictionary<ulong, List<NeuronDefinition>>>> _neuronDefinitionMapPoolLazy = new(() => new Stack<Dictionary<ulong, List<NeuronDefinition>>>());
-        private static Stack<Dictionary<ulong, List<NeuronDefinition>>> NeuronDefinitionMapPool => _neuronDefinitionMapPoolLazy.Value;
-        private static readonly Lazy<Stack<List<Connection>>> _connectionListPoolLazy = new(() => new Stack<List<Connection>>());
-        private static Stack<List<Connection>> ConnectionListPool => _connectionListPoolLazy.Value;
-        private static readonly Lazy<Stack<List<NeuronDefinition>>> _neuronDefinitionListPoolLazy = new(() => new Stack<List<NeuronDefinition>>());
-        private static Stack<List<NeuronDefinition>> NeuronDefinitionListPool => _neuronDefinitionListPoolLazy.Value;
+        private static readonly ConcurrentStack<List<Neuron>> NeuronListPool = new();
+        private static readonly ConcurrentStack<List<(bool, bool, bool)>> ReflectionVariantsPool = new();
+        private static readonly ConcurrentStack<Dictionary<ulong, Node>> NodeMapPool = new();
+        private static readonly ConcurrentStack<Dictionary<ulong, List<Connection>>> ConnectionMapPool = new();
+        private static readonly ConcurrentStack<Dictionary<ulong, List<NeuronDefinition>>> NeuronDefinitionMapPool = new();
+        private static readonly ConcurrentStack<List<Connection>> ConnectionListPool = new();
+        private static readonly ConcurrentStack<List<NeuronDefinition>> NeuronDefinitionListPool = new();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static List<Neuron> GetPooledNeuronList()
         {
-            if (NeuronListPool != null && NeuronListPool.Count > 0)
+            if (NeuronListPool.TryPop(out List<Neuron> list))
             {
-                List<Neuron> list = NeuronListPool.Pop();
                 list.Clear();
                 return list;
             }
@@ -73,16 +66,15 @@ namespace mycoolfin.TheSimsulator.Sims.Phenotype
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void ReturnPooledNeuronList(List<Neuron> list)
         {
-            if (NeuronListPool != null && NeuronListPool.Count < SimsPhenotype.MAX_LIMBS) // One pooled list per potential limb.
+            if (list != null && NeuronListPool.Count < SimsPhenotype.MAX_LIMBS)
                 NeuronListPool.Push(list);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static List<(bool, bool, bool)> GetPooledReflectionList()
         {
-            if (ReflectionVariantsPool != null && ReflectionVariantsPool.Count > 0)
+            if (ReflectionVariantsPool.TryPop(out List<(bool, bool, bool)> list))
             {
-                List<(bool, bool, bool)> list = ReflectionVariantsPool.Pop();
                 list.Clear();
                 return list;
             }
@@ -92,16 +84,15 @@ namespace mycoolfin.TheSimsulator.Sims.Phenotype
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void ReturnPooledReflectionList(List<(bool, bool, bool)> list)
         {
-            if (ReflectionVariantsPool != null && ReflectionVariantsPool.Count < SimsPhenotype.MAX_LIMBS) // One pooled list per potential limb.
+            if (list != null && ReflectionVariantsPool.Count < SimsPhenotype.MAX_LIMBS)
                 ReflectionVariantsPool.Push(list);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static Dictionary<ulong, Node> GetPooledNodeMap()
         {
-            if (NodeMapPool != null && NodeMapPool.Count > 0)
+            if (NodeMapPool.TryPop(out Dictionary<ulong, Node> map))
             {
-                Dictionary<ulong, Node> map = NodeMapPool.Pop();
                 map.Clear();
                 return map;
             }
@@ -111,16 +102,15 @@ namespace mycoolfin.TheSimsulator.Sims.Phenotype
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void ReturnPooledNodeMap(Dictionary<ulong, Node> map)
         {
-            if (NodeMapPool != null && NodeMapPool.Count < SimsPhenotype.MAX_LIMBS / 4) // Conservative pool size for expensive dictionaries.
+            if (map != null && NodeMapPool.Count < SimsPhenotype.MAX_LIMBS)
                 NodeMapPool.Push(map);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static Dictionary<ulong, List<Connection>> GetPooledConnectionMap()
         {
-            if (ConnectionMapPool != null && ConnectionMapPool.Count > 0)
+            if (ConnectionMapPool.TryPop(out Dictionary<ulong, List<Connection>> map))
             {
-                Dictionary<ulong, List<Connection>> map = ConnectionMapPool.Pop();
                 map.Clear();
                 return map;
             }
@@ -130,16 +120,15 @@ namespace mycoolfin.TheSimsulator.Sims.Phenotype
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void ReturnPooledConnectionMap(Dictionary<ulong, List<Connection>> map)
         {
-            if (ConnectionMapPool != null && ConnectionMapPool.Count < SimsPhenotype.MAX_LIMBS / 4) // Conservative pool size for expensive dictionaries.
+            if (map != null && ConnectionMapPool.Count < SimsPhenotype.MAX_LIMBS)
                 ConnectionMapPool.Push(map);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static Dictionary<ulong, List<NeuronDefinition>> GetPooledNeuronDefinitionMap()
         {
-            if (NeuronDefinitionMapPool != null && NeuronDefinitionMapPool.Count > 0)
+            if (NeuronDefinitionMapPool.TryPop(out Dictionary<ulong, List<NeuronDefinition>> map))
             {
-                Dictionary<ulong, List<NeuronDefinition>> map = NeuronDefinitionMapPool.Pop();
                 map.Clear();
                 return map;
             }
@@ -149,35 +138,33 @@ namespace mycoolfin.TheSimsulator.Sims.Phenotype
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void ReturnPooledNeuronDefinitionMap(Dictionary<ulong, List<NeuronDefinition>> map)
         {
-            if (NeuronDefinitionMapPool != null && NeuronDefinitionMapPool.Count < SimsPhenotype.MAX_LIMBS / 4) // Conservative pool size for expensive dictionaries.
+            if (map != null && NeuronDefinitionMapPool.Count < SimsPhenotype.MAX_LIMBS)
                 NeuronDefinitionMapPool.Push(map);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static List<Connection> GetPooledConnectionList()
         {
-            if (ConnectionListPool != null && ConnectionListPool.Count > 0)
+            if (ConnectionListPool.TryPop(out List<Connection> list))
             {
-                List<Connection> list = ConnectionListPool.Pop();
                 list.Clear();
                 return list;
             }
-            return new List<Connection>(Node.MAX_CONNECTIONS); // Most nodes have few connections.
+            return new List<Connection>(Node.MAX_CONNECTIONS);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void ReturnPooledConnectionList(List<Connection> list)
         {
-            if (ConnectionListPool != null && ConnectionListPool.Count < SimsPhenotype.MAX_LIMBS * Node.MAX_CONNECTIONS) // Allow many connection lists in pool.
+            if (list != null && ConnectionListPool.Count < SimsPhenotype.MAX_LIMBS * 4)
                 ConnectionListPool.Push(list);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static List<NeuronDefinition> GetPooledNeuronDefinitionList()
         {
-            if (NeuronDefinitionListPool != null && NeuronDefinitionListPool.Count > 0)
+            if (NeuronDefinitionListPool.TryPop(out List<NeuronDefinition> list))
             {
-                List<NeuronDefinition> list = NeuronDefinitionListPool.Pop();
                 list.Clear();
                 return list;
             }
@@ -187,7 +174,7 @@ namespace mycoolfin.TheSimsulator.Sims.Phenotype
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void ReturnPooledNeuronDefinitionList(List<NeuronDefinition> list)
         {
-            if (NeuronDefinitionListPool != null && NeuronDefinitionListPool.Count < SimsPhenotype.MAX_LIMBS * Node.MAX_NEURON_DEFINITIONS) // Allow many neuron definition lists in pool.
+            if (list != null && NeuronDefinitionListPool.Count < SimsPhenotype.MAX_LIMBS * 4)
                 NeuronDefinitionListPool.Push(list);
         }
         private readonly struct CreatedLimbData
@@ -315,7 +302,7 @@ namespace mycoolfin.TheSimsulator.Sims.Phenotype
                     reflectionVariantsWorkList, neuronCreationWorkList);
 
                 // Use queue-based processing to maintain breadth-first order (same as original).
-                Queue<LimbBuildTask> processingQueue = new(SimsPhenotype.MAX_LIMBS * 4); // Reasonable initial capacity.
+                Queue<LimbBuildTask> processingQueue = new(SimsPhenotype.MAX_LIMBS);
 
                 // Start with root node.
                 LimbBuildTask rootTask = new(
@@ -333,8 +320,6 @@ namespace mycoolfin.TheSimsulator.Sims.Phenotype
                 ReturnConnectionMapToPool(connectionMap);
                 ReturnNeuronDefinitionMapToPool(neuronDefinitionMap);
                 ReturnPooledNodeMap(nodeMap);
-                ReturnPooledConnectionMap(connectionMap);
-                ReturnPooledNeuronDefinitionMap(neuronDefinitionMap);
 
                 // Also return workspace pooled resources.
                 ReturnPooledReflectionList(reflectionVariantsWorkList);
@@ -627,8 +612,8 @@ namespace mycoolfin.TheSimsulator.Sims.Phenotype
                 (faceNormal.Z * parentHalfZ) + (faceRight.Z * parentHalfZ * connection.Position.X) + (faceUp.Z * parentHalfZ * connection.Position.Y)
             );
 
-            // Calculate joint orientation.
-            float parity = (mirrorRight ? -1f : 1f) * (mirrorUp ? -1f : 1f) * (mirrorForward ? -1f : 1f) * (parentData.SwapX ? -1f : 1f);
+            // Calculate joint orientation with simplified parity calculation.
+            float parity = (mirrorRight ^ mirrorUp ^ mirrorForward ^ parentData.SwapX) ? -1f : 1f;
             Quaternion jointRotation = QuaternionHelper.AngleAxis(connection.Orientation.Z * parity, faceNormal);
             jointRotation *= QuaternionHelper.AngleAxis(connection.Orientation.Y * parity, faceUp);
             jointRotation *= QuaternionHelper.AngleAxis(connection.Orientation.X * parity, faceRight);

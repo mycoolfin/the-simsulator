@@ -22,8 +22,8 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.ECS.Systems.Simulation
 
             if (request.TimerSeconds > 0f)
             {
-                // Decrease the timer.
-                request.TimerSeconds -= SystemAPI.Time.DeltaTime;
+                FixedStepSimulationSystemGroup fixedStepGroup = state.World.GetExistingSystemManaged<FixedStepSimulationSystemGroup>();
+                request.TimerSeconds -= fixedStepGroup.World.Time.DeltaTime;
                 SystemAPI.SetSingleton(request);
             }
             else // Timer has expired.

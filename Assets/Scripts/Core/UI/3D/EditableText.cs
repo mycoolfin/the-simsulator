@@ -6,7 +6,7 @@ using UnityEngine.InputSystem;
 
 namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
 {
-    using Player;
+    using Player.FPS;
 
     public sealed class EditableText : MonoBehaviour, ISelectable
     {
