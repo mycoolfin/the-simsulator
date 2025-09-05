@@ -25,7 +25,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.Player.FPS
         public float interactionRange = 5f;
         public LayerMask interactionLayerMask = -1;
 
-        public bool LookingAtSomething { get; private set; }
+        public bool LookingAtSomething => raycastHit.collider != null;
         private RaycastHit raycastHit;
         public RaycastHit RaycastHit => raycastHit;
 
@@ -55,7 +55,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.Player.FPS
         private void UpdateRaycastHit()
         {
             Ray ray = playerCamera.ScreenPointToRay(new Vector3(Screen.width / 2f, Screen.height / 2f, 0f));
-            LookingAtSomething = Physics.Raycast(ray, out raycastHit, interactionRange, interactionLayerMask);
+            Physics.Raycast(ray, out raycastHit, interactionRange, interactionLayerMask);
         }
 
         private void HandleMovement()
