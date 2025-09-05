@@ -317,8 +317,10 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.UI.TwoD
             averageFitness = statusTab.Q<Label>("average-fitness");
             VisualElement bestFitnessGraphContainer = statusTab.Q<VisualElement>("best-fitness-graph");
             VisualElement averageFitnessGraphContainer = statusTab.Q<VisualElement>("average-fitness-graph");
-            bestFitnessGraph = new LineGraph(bestFitnessGraphContainer, Color.cyan);
-            averageFitnessGraph = new LineGraph(averageFitnessGraphContainer, Color.yellow);
+            bestFitnessGraph = new LineGraph(bestFitnessGraphContainer);
+            averageFitnessGraph = new LineGraph(averageFitnessGraphContainer);
+            bestFitnessGraph.AddSeries("Best Fitness", Color.cyan);
+            averageFitnessGraph.AddSeries("Average Fitness", Color.yellow);
 
             simulator.OnGenerationStart += (generation) => UpdateStatus(false);
             simulator.OnGenerationComplete += (generation) => generationProgress.title += " (Loading...)";
@@ -500,8 +502,8 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.UI.TwoD
             bestFitness.text = simulator.Statistics.Count == 0 ? "?" : simulator.Statistics[simulator.Statistics.Count - 1].BestFitness.ToString("0.000");
             averageFitness.text = simulator.Statistics.Count == 0 ? "?" : simulator.Statistics[simulator.Statistics.Count - 1].AverageFitness.ToString("0.000");
 
-            bestFitnessGraph.SetPoints(simulator.Statistics.Select(s => s.BestFitness).ToList());
-            averageFitnessGraph.SetPoints(simulator.Statistics.Select(s => s.AverageFitness).ToList());
+            bestFitnessGraph.SetSeriesPoints("Best Fitness", simulator.Statistics.Select(s => s.BestFitness).ToList());
+            averageFitnessGraph.SetSeriesPoints("Average Fitness", simulator.Statistics.Select(s => s.AverageFitness).ToList());
         }
 
         private void SetColourByFitness(bool enabled)

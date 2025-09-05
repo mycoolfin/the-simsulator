@@ -160,6 +160,8 @@ namespace mycoolfin.TheSimsulator.Core.Evolution
                         );
                         genotypes.AddRange(paddingGenotypes);
                     }
+
+                    GenotypeCreationProgress = 1f;
                 }
             }
 
@@ -176,6 +178,7 @@ namespace mycoolfin.TheSimsulator.Core.Evolution
                 cancellationToken,
                 new Progress<int>(progress => PhenotypeCreationProgress = progress / (float)config.PopulationSize)
             );
+            PhenotypeCreationProgress = 1f;
 
             if (phenotypes.Count != config.PopulationSize)
                 throw new InvalidOperationException($"Expected {config.PopulationSize} phenotypes, but got {phenotypes.Count}.");

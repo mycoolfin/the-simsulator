@@ -28,6 +28,8 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.Evolution
         bool IsSimulationFullSpeed { get; }
         bool IsSimulationHeadless { get; }
         int CurrentGeneration { get; }
+        float GenotypeCreationProgress { get; }
+        float PhenotypeCreationProgress { get; }
         float SettleProgress { get; }
         float AssessmentProgress { get; }
         IReadOnlyList<IAssessableCreature> Population { get; }

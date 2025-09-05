@@ -828,6 +828,21 @@ PrefabInstance:
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 2824393812644922528, guid: 9faa4f5c3073d42289e96a9bf999e769, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 0}
+    - targetCorrespondingSourceObject: {fileID: 8193419276841520429, guid: 9faa4f5c3073d42289e96a9bf999e769, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 0}
+    - targetCorrespondingSourceObject: {fileID: 8440297921076097029, guid: 9faa4f5c3073d42289e96a9bf999e769, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 0}
+    - targetCorrespondingSourceObject: {fileID: 7707319946945752521, guid: 9faa4f5c3073d42289e96a9bf999e769, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 0}
+    - targetCorrespondingSourceObject: {fileID: 4568351798615672114, guid: 9faa4f5c3073d42289e96a9bf999e769, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 0}
     - targetCorrespondingSourceObject: {fileID: 7440039161537931051, guid: 9faa4f5c3073d42289e96a9bf999e769, type: 3}
       insertIndex: -1
       addedObject: {fileID: 0}
@@ -849,6 +864,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 523503852398601825, guid: 9faa4f5c3073d42289e96a9bf999e769, type: 3}
       insertIndex: -1
       addedObject: {fileID: 0}
+    - targetCorrespondingSourceObject: {fileID: 6140248207416872744, guid: 9faa4f5c3073d42289e96a9bf999e769, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 0}
     - targetCorrespondingSourceObject: {fileID: 394137973139753964, guid: 9faa4f5c3073d42289e96a9bf999e769, type: 3}
       insertIndex: -1
       addedObject: {fileID: 0}
@@ -864,6 +882,12 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 3440801063110455394, guid: 9faa4f5c3073d42289e96a9bf999e769, type: 3}
       insertIndex: -1
       addedObject: {fileID: 0}
+    - targetCorrespondingSourceObject: {fileID: 3440801063110455394, guid: 9faa4f5c3073d42289e96a9bf999e769, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 684159091}
+    - targetCorrespondingSourceObject: {fileID: 3440801063110455394, guid: 9faa4f5c3073d42289e96a9bf999e769, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 684159090}
     - targetCorrespondingSourceObject: {fileID: 2926049425898345667, guid: 9faa4f5c3073d42289e96a9bf999e769, type: 3}
       insertIndex: -1
       addedObject: {fileID: 0}
@@ -1033,6 +1057,45 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 0}
   m_SourcePrefab: {fileID: 100100000, guid: 9faa4f5c3073d42289e96a9bf999e769, type: 3}
+--- !u!1 &684159086 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 3440801063110455394, guid: 9faa4f5c3073d42289e96a9bf999e769, type: 3}
+  m_PrefabInstance: {fileID: 661811070}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &684159090
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 684159086}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 55bbcbc0d91514cbcb9d93576b78ce68, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD.Tooltip
+  text: 'Caution: hot.'
+--- !u!65 &684159091
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 684159086}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 4.7963977, y: 2.1713943, z: 5.0552553e-15}
+  m_Center: {x: -0.051192082, y: 0.06646639, z: -0.0000038146973}
 --- !u!1 &712666287
 GameObject:
   m_ObjectHideFlags: 0

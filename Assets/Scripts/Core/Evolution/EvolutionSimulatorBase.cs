@@ -95,6 +95,8 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.Evolution
         public bool IsSimulationFullSpeed => simulationRate == SimulationRateMode.FullSpeed;
         public bool IsSimulationHeadless => simulationRate == SimulationRateMode.Headless;
         public int CurrentGeneration { get; private set; }
+        public float GenotypeCreationProgress => evolution?.GenotypeCreationProgress ?? 0f;
+        public float PhenotypeCreationProgress => evolution?.PhenotypeCreationProgress ?? 0f; 
         public float SettleProgress { get; private set; }
         private Progress<float> settleProgressManager;
         public float AssessmentProgress { get; private set; }
@@ -291,9 +293,11 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.Evolution
 
             // Let entities settle.
             yield return ecsApi.Evolution.SettlePhenotypes(ecsWorld, settleSeconds, () => simulationRate, settleProgressManager);
+            SettleProgress = 1f;
 
             // Start assessment.
             yield return ecsApi.Evolution.AssessPhenotypes(ecsWorld, trialType, assessmentSeconds, () => simulationRate, assessmentProgressManager);
+            AssessmentProgress = 1f;
 
             // Read back fitness values and assign to matching individuals.
             Dictionary<ulong, float> phenotypeFitnesses = ecsApi.Evolution.GetAssessmentResults(ecsWorld);

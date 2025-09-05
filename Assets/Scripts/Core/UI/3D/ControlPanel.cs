@@ -31,12 +31,14 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
         [SerializeField] private PushButton filterByFitnessButton;
         [Header("Meters")]
         [SerializeField] private BarMeter generationProgressMeter;
+        [SerializeField] private BarMeter genotypeCreationProgressMeter;
+        [SerializeField] private BarMeter phenotypeCreationProgressMeter;
+        [SerializeField] private BarMeter settlingProgressMeter;
+        [SerializeField] private BarMeter assessmentProgressMeter;
         [SerializeField] private BarMeter zoomMeter;
         [Header("Graphs")]
-        [SerializeField] private UIDocument bestFitnessGraphDocument;
-        private LineGraph bestFitnessGraph;
-        [SerializeField] private UIDocument averageFitnessGraphDocument;
-        private LineGraph averageFitnessGraph;
+        [SerializeField] private UIDocument fitnessGraphDocument;
+        private LineGraph fitnessGraph;
 
         private IEvolutionSimulator simulator;
 
@@ -123,18 +125,18 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
 
         private void InitialiseGraphs()
         {
-            bestFitnessGraph = new LineGraph(bestFitnessGraphDocument.rootVisualElement, Color.cyan);
-            averageFitnessGraph = new LineGraph(averageFitnessGraphDocument.rootVisualElement, Color.orange);
+            fitnessGraph = new LineGraph(fitnessGraphDocument.rootVisualElement);
+            fitnessGraph.AddSeries("Best Fitness", Color.cyan);
+            fitnessGraph.AddSeries("Average Fitness", Color.orange);
 
             simulator.OnGenerationComplete += (stats) =>
             {
-                bestFitnessGraph.SetPoints(stats.Select(s => s.BestFitness).ToList());
-                averageFitnessGraph.SetPoints(stats.Select(s => s.AverageFitness).ToList());
+                fitnessGraph.SetSeriesPoints("Best Fitness", stats.Select(s => s.BestFitness).ToList());
+                fitnessGraph.SetSeriesPoints("Average Fitness", stats.Select(s => s.AverageFitness).ToList());
             };
             simulator.OnEvolutionStop += () =>
             {
-                bestFitnessGraph.ClearPoints();
-                averageFitnessGraph.ClearPoints();
+                fitnessGraph.ClearAllSeriesPoints();
             };
         }
 
@@ -163,12 +165,33 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
             if (!simulator.IsRunning)
             {
                 generationProgressMeter.SetProgress(0f);
+                genotypeCreationProgressMeter.SetProgress(0f);
+                phenotypeCreationProgressMeter.SetProgress(0f);
+                settlingProgressMeter.SetProgress(0f);
+                assessmentProgressMeter.SetProgress(0f);
                 zoomMeter.SetProgress(0f);
+
+                fitnessGraph.ClearAllSeriesPoints();
             }
             else
             {
+                float lerpSpeed = Time.deltaTime * 10f;
+
                 float generationProgress = simulator.MaxGenerations <= 0 ? 0f : (float)simulator.CurrentGeneration / simulator.MaxGenerations;
-                generationProgressMeter.SetProgress(Mathf.Lerp(generationProgressMeter.CurrentProgress, generationProgress, Time.deltaTime * 2f));
+                generationProgressMeter.SetProgress(Mathf.Lerp(generationProgressMeter.CurrentProgress, generationProgress, lerpSpeed));
+
+                float gLerp = Mathf.Lerp(genotypeCreationProgressMeter.CurrentProgress, simulator.GenotypeCreationProgress, lerpSpeed);
+                genotypeCreationProgressMeter.SetProgress(simulator.PhenotypeCreationProgress > 0f ? 1f : gLerp);
+
+                float pLerp = Mathf.Lerp(phenotypeCreationProgressMeter.CurrentProgress, simulator.PhenotypeCreationProgress, lerpSpeed);
+                phenotypeCreationProgressMeter.SetProgress(simulator.GenotypeCreationProgress < 1f ? 0f : simulator.SettleProgress > 0f ? 1f : pLerp);
+
+                float sLerp = Mathf.Lerp(settlingProgressMeter.CurrentProgress, simulator.SettleProgress, lerpSpeed);
+                settlingProgressMeter.SetProgress(simulator.PhenotypeCreationProgress < 1f ? 0f : simulator.AssessmentProgress > 0f ? 1f : sLerp);
+
+                float aLerp = Mathf.Lerp(assessmentProgressMeter.CurrentProgress, simulator.AssessmentProgress, lerpSpeed);
+                assessmentProgressMeter.SetProgress(simulator.SettleProgress < 1f ? 0f : aLerp);
+
                 float zoomLevel = (worldVisualiser.DynamicScaleFactor - minZoom) / (maxZoom - minZoom);
                 zoomMeter.SetProgress(zoomLevel);
             }
