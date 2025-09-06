@@ -13,7 +13,7 @@ namespace mycoolfin.TheSimsulator.Sims.Genotype
         public const float MAX_POSITION = 1.0f;
         public const float MIN_ORIENTATION = (float)-Math.PI / 4;
         public const float MAX_ORIENTATION = (float)Math.PI / 4;
-        public const float MIN_SCALE = 0.1f;
+        public const float MIN_SCALE = 0.5f;
         public const float MAX_SCALE = 2.0f;
 
         public ulong Gid { get; set; }

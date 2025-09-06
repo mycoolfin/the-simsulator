@@ -36,7 +36,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Builders
     {
         private const float SPRING_FREQUENCY = 10f;
         private const float DAMPING_RATIO = 0.9f;
-        private const float BASE_MAX_MOTOR_IMPULSE = 10f;
+        private const float BASE_MAX_MOTOR_IMPULSE = 2f;
 
         public EntityCommandBuffer.ParallelWriter Ecb;
         public EntityArchetype JointArchetype;
@@ -262,7 +262,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Builders
             ecb.SetComponent(sortKey, jointEntity1, new RootPhenotypeEntity { Value = rootPhenotypeEntity });
             ecb.SetSharedComponent(sortKey, jointEntity1, new PhysicsWorldIndex(0));
             ecb.SetComponent(sortKey, jointEntity1, new PhysicsConstrainedBodyPair(referenceLimbEntity, attachedLimbEntity, false));
-            JointBreakDistance breakDistance = new() { DistanceSquared = request.MinCrossSectionalArea * request.MinCrossSectionalArea };
+            JointBreakDistance breakDistance = new() { DistanceSquared = request.MinCrossSectionalArea };
             ecb.SetComponent(sortKey, jointEntity1, breakDistance);
             if (jointEntity2 != Entity.Null)
             {

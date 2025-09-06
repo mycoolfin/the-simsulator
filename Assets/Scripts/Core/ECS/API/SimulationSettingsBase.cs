@@ -146,6 +146,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.ECS.API
         public void SetToAquaticDefaults(World world)
         {
             SetGravity(world, float3.zero);
+            SetFluidSimulation(world, true, 1f);
             DestroyGroundPlane(world);
             SetPhenotypeRepositionerSettings(world, new PhenotypeRepositionerSettings
             {

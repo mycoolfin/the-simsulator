@@ -41,7 +41,7 @@ namespace mycoolfin.TheSimsulator.Sims.Genotype
 
         public static void MutatePosition(SimsGenotypeCreationContext context, int connectionIndex)
         {
-            float sigma = 0.1f;
+            float sigma = (Connection.MAX_POSITION - Connection.MIN_POSITION) / 20f;
             Connection connection = context.Connections[connectionIndex];
             Vector2 newPosition = new(
                 Math.Clamp(connection.Position.X + SharedRandom.DrawGaussian(sigma), Connection.MIN_POSITION, Connection.MAX_POSITION),
@@ -69,9 +69,9 @@ namespace mycoolfin.TheSimsulator.Sims.Genotype
             float sigma = 0.1f;
             Connection connection = context.Connections[connectionIndex];
             Vector3 newScale = new(
-                Math.Clamp(connection.Scale.X + SharedRandom.DrawGaussian(sigma), Connection.MIN_SCALE, Connection.MAX_SCALE),
-                Math.Clamp(connection.Scale.Y + SharedRandom.DrawGaussian(sigma), Connection.MIN_SCALE, Connection.MAX_SCALE),
-                Math.Clamp(connection.Scale.Z + SharedRandom.DrawGaussian(sigma), Connection.MIN_SCALE, Connection.MAX_SCALE)
+                Math.Clamp(connection.Scale.X * (1.0f + SharedRandom.DrawGaussian(sigma)), Connection.MIN_SCALE, Connection.MAX_SCALE),
+                Math.Clamp(connection.Scale.Y * (1.0f + SharedRandom.DrawGaussian(sigma)), Connection.MIN_SCALE, Connection.MAX_SCALE),
+                Math.Clamp(connection.Scale.Z * (1.0f + SharedRandom.DrawGaussian(sigma)), Connection.MIN_SCALE, Connection.MAX_SCALE)
             );
             Connection newConnection = new(connection.ParentNodeGid, connection.ChildNodeGid, connection.ParentFace, connection.Position, connection.Orientation, newScale, connection.ReflectionX, connection.ReflectionY, connection.ReflectionZ, connection.TerminalOnly);
             context.Connections[connectionIndex] = newConnection;
