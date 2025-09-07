@@ -61,6 +61,9 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.IO
                 return; // User cancelled the save dialog.
             }
 
+            // Normalize the path from the file dialog to ensure consistent separators.
+            filePath = Path.GetFullPath(filePath);
+
             SaveGenotypeToFilePath(genotype, filePath, (result) =>
             {
                 OnComplete?.Invoke(result, filePath);
@@ -76,6 +79,9 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.IO
                 OnComplete?.Invoke(FileOperationResult.Cancelled, default, string.Empty);
                 return; // User cancelled the load dialog.
             }
+
+            // Normalize the path from the file dialog to ensure consistent separators.
+            filePath = Path.GetFullPath(filePath);
 
             LoadGenotypeFromFilePath(filePath, (FileOperationResult result, TGenotype genotype) =>
             {

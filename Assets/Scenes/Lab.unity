@@ -967,7 +967,7 @@ GameObject:
   - component: {fileID: 492081069}
   - component: {fileID: 492081070}
   - component: {fileID: 492081071}
-  m_Layer: 0
+  m_Layer: 2
   m_Name: Reticle UI Controller
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1657,6 +1657,9 @@ PrefabInstance:
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 1005240740366907183, guid: 9faa4f5c3073d42289e96a9bf999e769, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 0}
     - targetCorrespondingSourceObject: {fileID: 2824393812644922528, guid: 9faa4f5c3073d42289e96a9bf999e769, type: 3}
       insertIndex: -1
       addedObject: {fileID: 0}
@@ -2476,7 +2479,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1084964706}
   - component: {fileID: 1084964710}
-  m_Layer: 0
+  m_Layer: 2
   m_Name: Desktop Hand
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2492,7 +2495,7 @@ Transform:
   m_GameObject: {fileID: 1084964705}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0.5}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -2632,7 +2635,7 @@ MonoBehaviour:
   m_AllowHoverHapticsWhileSelecting: 1
   m_LineType: 0
   m_BlendVisualLinePoints: 1
-  m_MaxRaycastDistance: 30
+  m_MaxRaycastDistance: 5
   m_RayOriginTransform: {fileID: 0}
   m_ReferenceFrame: {fileID: 0}
   m_Velocity: 16
@@ -2650,8 +2653,8 @@ MonoBehaviour:
   m_LiveConeCastDebugVisuals: 0
   m_RaycastMask:
     serializedVersion: 2
-    m_Bits: 4294967295
-  m_RaycastTriggerInteraction: 1
+    m_Bits: 8387187
+  m_RaycastTriggerInteraction: 2
   m_RaycastSnapVolumeInteraction: 1
   m_HitClosestOnly: 1
   m_HoverToSelect: 0
@@ -3083,7 +3086,7 @@ GameObject:
   - component: {fileID: 1613917391}
   - component: {fileID: 1613917395}
   - component: {fileID: 1613917396}
-  m_Layer: 0
+  m_Layer: 2
   m_Name: Player
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -3226,17 +3229,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   playerCamera: {fileID: 1733528765}
   characterController: {fileID: 1613917391}
+  desktopHandInteractor: {fileID: 1084964710}
   movementSpeed: 5
   sprintMultiplier: 2
   jumpHeight: 2
   gravity: -9.81
-  mouseSensitivity: 0.8
+  mouseSensitivity: 0.5
+  degreesPerScreenHeight: 240
   minLookAngle: -90
   maxLookAngle: 90
-  interactionRange: 5
-  interactionLayerMask:
-    serializedVersion: 2
-    m_Bits: 8387187
 --- !u!114 &1613917396
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3616,7 +3617,7 @@ GameObject:
   - component: {fileID: 1733528765}
   - component: {fileID: 1733528764}
   - component: {fileID: 1733528767}
-  m_Layer: 0
+  m_Layer: 2
   m_Name: Player Camera
   m_TagString: MainCamera
   m_Icon: {fileID: 0}
@@ -4081,7 +4082,7 @@ GameObject:
   - component: {fileID: 1915397809}
   - component: {fileID: 1915397812}
   - component: {fileID: 1915397811}
-  m_Layer: 0
+  m_Layer: 2
   m_Name: Visor
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -4411,7 +4412,7 @@ GameObject:
   - component: {fileID: 2072243365}
   - component: {fileID: 2072243367}
   - component: {fileID: 2072243366}
-  m_Layer: 0
+  m_Layer: 2
   m_Name: Tooltip UI Controller
   m_TagString: Untagged
   m_Icon: {fileID: 0}

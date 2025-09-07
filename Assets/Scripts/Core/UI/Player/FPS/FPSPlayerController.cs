@@ -1,33 +1,32 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.XR.Interaction.Toolkit.Interactors;
 
 namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.Player.FPS
 {
     public class FPSPlayerController : MonoBehaviour
     {
-        public UnityEngine.Camera playerCamera;
-        public CharacterController characterController;
+        [SerializeField] private UnityEngine.Camera playerCamera;
+        [SerializeField] private CharacterController characterController;
+        [SerializeField] private XRRayInteractor desktopHandInteractor;
 
         [Header("Movement Settings")]
-        public float movementSpeed = 5f;
-        public float sprintMultiplier = 2f;
-        public float jumpHeight = 2f;
-        public float gravity = -9.81f;
+        [SerializeField] private float movementSpeed = 5f;
+        [SerializeField] private float sprintMultiplier = 2f;
+        [SerializeField] private float jumpHeight = 2f;
+        [SerializeField] private float gravity = -9.81f;
 
         [Header("Look Settings")]
-        public float mouseSensitivity = 2f;
+        [SerializeField] private float mouseSensitivity = 1f;
+        [SerializeField] private float degreesPerScreenHeight = 240f;
 
         [Header("Look Constraints")]
-        public float minLookAngle = -90f;
-        public float maxLookAngle = 90f;
+        [SerializeField] private float minLookAngle = -90f;
+        [SerializeField] private float maxLookAngle = 90f;
 
-        [Header("Interaction")]
-        public float interactionRange = 5f;
-        public LayerMask interactionLayerMask = -1;
-
-        public bool LookingAtSomething => raycastHit.collider != null;
         private RaycastHit raycastHit;
         public RaycastHit RaycastHit => raycastHit;
+        public bool LookingAtSomething => raycastHit.collider != null;
 
         private Vector2 horizontalMovement;
         private Vector2 lookDeltas;
@@ -54,8 +53,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.Player.FPS
 
         private void UpdateRaycastHit()
         {
-            Ray ray = playerCamera.ScreenPointToRay(new Vector3(Screen.width / 2f, Screen.height / 2f, 0f));
-            Physics.Raycast(ray, out raycastHit, interactionRange, interactionLayerMask);
+            desktopHandInteractor.TryGetCurrent3DRaycastHit(out raycastHit);
         }
 
         private void HandleMovement()
@@ -86,18 +84,43 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.Player.FPS
         private void HandleLook()
         {
             if (!isCursorLocked || lookDeltas.sqrMagnitude < 0.01f) return;
-            if (cursorSwitchedToLocked)
-            {
-                cursorSwitchedToLocked = false;
-                return; // Skip first frame after locking cursor.
-            }
+            if (cursorSwitchedToLocked) { cursorSwitchedToLocked = false; return; }
 
-            float horizontalRotation = lookDeltas.x * mouseSensitivity;
-            transform.Rotate(Vector3.up, horizontalRotation);
+            float yawDeg = NormaliseLookDelta(lookDeltas.x) * mouseSensitivity;
+            float pitchDeg = NormaliseLookDelta(-lookDeltas.y) * mouseSensitivity;
 
-            currentPitch -= lookDeltas.y * mouseSensitivity;
-            currentPitch = Mathf.Clamp(currentPitch, minLookAngle, maxLookAngle);
+            transform.Rotate(0f, yawDeg, 0f, Space.World);
+
+            currentPitch = Mathf.Clamp(currentPitch + pitchDeg, minLookAngle, maxLookAngle);
             playerCamera.transform.localRotation = Quaternion.Euler(currentPitch, 0f, 0f);
+        }
+
+        private float NormaliseLookDelta(float delta)
+        {
+#if UNITY_STANDALONE_OSX || UNITY_EDITOR_OSX
+            return delta; // macOS seems to report normalised deltas already.
+#else
+            // Normalise to current rendering height so a full screen-height swipe
+            // always maps to the same degrees, regardless of resolution.
+            float renderH = Mathf.Max(1f, GetRenderingDisplayHeight());
+            float pxToDeg = degreesPerScreenHeight / renderH;
+            float gain = 0.5f;
+            return delta * pxToDeg * gain;
+#endif
+        }
+
+        private int GetActiveDisplayIndex()
+        {
+            var p = Display.RelativeMouseAt(new Vector3(Screen.width * 0.5f, Screen.height * 0.5f, 0f));
+            int idx = (int)p.z;
+            return (idx >= 0 && idx < Display.displays.Length) ? idx : 0;
+        }
+
+        private int GetRenderingDisplayHeight()
+        {
+            int di = GetActiveDisplayIndex();
+            int rh = (di >= 0 && di < Display.displays.Length) ? Display.displays[di].renderingHeight : 0;
+            return (rh > 0) ? rh : Screen.height;
         }
 
         public void SetCursorLock(bool lockCursor)

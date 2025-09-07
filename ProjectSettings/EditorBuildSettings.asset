@@ -18,6 +18,7 @@ EditorBuildSettings:
     path: Assets/Scenes/CreatureEditor.unity
     guid: ad02abc142d4d4b10bb6ce65ae3cf4a8
   m_configObjects:
+    com.unity.input.settings: {fileID: 11400000, guid: 11dac649acd5e466eb39a15bc8f4a738, type: 2}
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 2836cc9fa3f2c48e3a38a619add0c67d, type: 3}
     com.unity.xr.management.loader_settings: {fileID: 11400000, guid: 80f8ab25001ef43b3ac5f3714f91a405, type: 2}
     com.unity.xr.openxr.settings4: {fileID: 11400000, guid: d863a415bed104eabbbd92e8ddda7ce0, type: 2}

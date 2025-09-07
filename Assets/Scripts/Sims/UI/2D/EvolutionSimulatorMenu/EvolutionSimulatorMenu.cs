@@ -200,6 +200,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.UI.TwoD
 
             seedGenotypeButton.clicked += () =>
             {
+                // TODO: Go through IO class.
                 string seedGenotypePath = StandaloneFileBrowser.OpenFilePanel(
                     "Load Genotype",
                     Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
