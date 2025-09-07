@@ -441,6 +441,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD.WebLinkButton
   button: {fileID: 158884189}
   url: https://discord.gg/y2D43q8Y
+  playerController: {fileID: 1613917395}
 --- !u!1 &175211205 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 657184242118504722, guid: d6878e1999eb4b44a9f5a263af86c185, type: 3}
@@ -669,6 +670,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD.WebLinkButton
   button: {fileID: 282650429}
   url: https://docs.google.com/forms/d/e/1FAIpQLSf2xDSmlQIl7bP6JBlyniXqpCXgtNvGhgbTCYCudzU7iDZZ3Q/viewform
+  playerController: {fileID: 1613917395}
 --- !u!1001 &301554706
 PrefabInstance:
   m_ObjectHideFlags: 0
