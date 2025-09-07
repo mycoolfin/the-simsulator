@@ -104,8 +104,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.Player.FPS
             // always maps to the same degrees, regardless of resolution.
             float renderH = Mathf.Max(1f, GetRenderingDisplayHeight());
             float pxToDeg = degreesPerScreenHeight / renderH;
-            float gain = 0.5f;
-            return delta * pxToDeg * gain;
+            return delta * pxToDeg;
 #endif
         }
 
