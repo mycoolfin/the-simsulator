@@ -694,7 +694,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Unity.XR.Interaction.Toolkit::UnityEngine.XR.Interaction.Toolkit.Interactables.XRGrabInteractable
   m_InteractionManager: {fileID: 0}
   m_Colliders:
-  - {fileID: 3596728143016119347}
+  - {fileID: 8837189314822838455}
   - {fileID: 674614593230430089}
   - {fileID: 909126446550092068}
   m_InteractionLayers:
@@ -1155,6 +1155,7 @@ GameObject:
   - component: {fileID: 521481456252091758}
   - component: {fileID: 3920546191514418167}
   - component: {fileID: 6629352437900875400}
+  - component: {fileID: 4414366866362895085}
   m_Layer: 0
   m_Name: Water
   m_TagString: Untagged
@@ -1233,6 +1234,19 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!114 &4414366866362895085
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6502657988690439347}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d62dea87e7ccf4f90b36802c02746d42, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::mycoolfin.TheSimsulator.UnityIntegration.Core.UI.Player.XRRendererDisabler
+  rendererToDisable: {fileID: 6629352437900875400}
 --- !u!1 &6699112325903051438
 GameObject:
   m_ObjectHideFlags: 0
@@ -1244,7 +1258,7 @@ GameObject:
   - component: {fileID: 4971030860507176174}
   - component: {fileID: 8959162222554706604}
   - component: {fileID: 4725496395746578079}
-  - component: {fileID: 3596728143016119347}
+  - component: {fileID: 8837189314822838455}
   m_Layer: 0
   m_Name: Viewing Chamber
   m_TagString: Untagged
@@ -1323,8 +1337,8 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!136 &3596728143016119347
-CapsuleCollider:
+--- !u!64 &8837189314822838455
+MeshCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -1341,11 +1355,10 @@ CapsuleCollider:
   m_IsTrigger: 0
   m_ProvidesContacts: 0
   m_Enabled: 1
-  serializedVersion: 2
-  m_Radius: 0.5000001
-  m_Height: 2
-  m_Direction: 1
-  m_Center: {x: 0.000000059604645, y: 0, z: -0.00000008940697}
+  serializedVersion: 5
+  m_Convex: 1
+  m_CookingOptions: 30
+  m_Mesh: {fileID: 10206, guid: 0000000000000000e000000000000000, type: 0}
 --- !u!1 &8408699542272412391
 GameObject:
   m_ObjectHideFlags: 0
@@ -1479,6 +1492,7 @@ GameObject:
   - component: {fileID: 8019971446980889469}
   - component: {fileID: 7373956214156588871}
   - component: {fileID: 1485235659434194363}
+  - component: {fileID: 5194922065266579764}
   m_Layer: 0
   m_Name: Ground
   m_TagString: Untagged
@@ -1557,6 +1571,19 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!114 &5194922065266579764
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9093278732475014728}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d62dea87e7ccf4f90b36802c02746d42, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::mycoolfin.TheSimsulator.UnityIntegration.Core.UI.Player.XRRendererDisabler
+  rendererToDisable: {fileID: 1485235659434194363}
 --- !u!1001 &5046916280471620323
 PrefabInstance:
   m_ObjectHideFlags: 0

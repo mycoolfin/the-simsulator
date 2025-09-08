@@ -329,6 +329,7 @@ GameObject:
   - component: {fileID: 8951235696631728737}
   - component: {fileID: 8019106625109578818}
   - component: {fileID: 4090581466316061584}
+  - component: {fileID: 1923506215237504480}
   m_Layer: 0
   m_Name: Activation Mist
   m_TagString: Untagged
@@ -407,6 +408,19 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!114 &1923506215237504480
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3296516286899605265}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d62dea87e7ccf4f90b36802c02746d42, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::mycoolfin.TheSimsulator.UnityIntegration.Core.UI.Player.XRRendererDisabler
+  rendererToDisable: {fileID: 4090581466316061584}
 --- !u!1 &4186107513625563031
 GameObject:
   m_ObjectHideFlags: 0

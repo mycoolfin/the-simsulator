@@ -1,5 +1,0 @@
-/Users/michaelfinn/Projects/the-simsulator/.utmp/RelWithDebInfo/1m614pgt/arm64-v8a/CMakeFiles/edit_cache.dir
-/Users/michaelfinn/Projects/the-simsulator/.utmp/RelWithDebInfo/1m614pgt/arm64-v8a/CMakeFiles/rebuild_cache.dir
-/Users/michaelfinn/Projects/the-simsulator/.utmp/RelWithDebInfo/1m614pgt/arm64-v8a/FramePacing/CMakeFiles/swappywrapper.dir
-/Users/michaelfinn/Projects/the-simsulator/.utmp/RelWithDebInfo/1m614pgt/arm64-v8a/FramePacing/CMakeFiles/edit_cache.dir
-/Users/michaelfinn/Projects/the-simsulator/.utmp/RelWithDebInfo/1m614pgt/arm64-v8a/FramePacing/CMakeFiles/rebuild_cache.dir
