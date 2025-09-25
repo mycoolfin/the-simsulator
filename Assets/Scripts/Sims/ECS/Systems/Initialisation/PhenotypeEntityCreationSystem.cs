@@ -130,6 +130,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Systems.Initialisati
                 limbCreationRequestQuery,
                 limbCreationRequests,
                 rootPhenotypeEntityLookup.AsReadOnly(),
+                neuralGraphLookup.AsReadOnly(),
                 limbEntityLookup,
                 limbLocalTransformLookup
             );

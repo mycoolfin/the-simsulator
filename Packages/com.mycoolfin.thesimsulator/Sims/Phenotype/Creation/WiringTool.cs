@@ -80,7 +80,7 @@ namespace mycoolfin.TheSimsulator.Sims.Phenotype
                         break;
                     int childLimbIndex = childLimbIndices[MapToRange(limbInstance, (uint)childLimbIndices.Count)];
                     Limb childLimb = limbs[childLimbIndex];
-                    slot = MapToRange(slot, (uint)(childLimb.Sensors.Count + childLimb.Neurons.Count));
+                    slot = MapToRange(slot, (uint)(childLimb.Sensors.Count() + childLimb.Neurons.Count()));
                     if (!IsValidLimbIndex(childLimbIndex, limbs) || !IsValidSlotIndex(slot, limbs[childLimbIndex]))
                         break;
                     absolutePort = AbsoluteSignalPort.Limb;
@@ -92,7 +92,7 @@ namespace mycoolfin.TheSimsulator.Sims.Phenotype
                     if (chosenLimbIndex < 0 || chosenLimbIndex >= limbs.Count)
                         break;
                     Limb chosenLimb = limbs[chosenLimbIndex];
-                    slot = MapToRange(slot, (uint)(chosenLimb.Sensors.Count + chosenLimb.Neurons.Count));
+                    slot = MapToRange(slot, (uint)(chosenLimb.Sensors.Count() + chosenLimb.Neurons.Count()));
                     if (!IsValidLimbIndex(chosenLimbIndex, limbs) || !IsValidSlotIndex(slot, limbs[chosenLimbIndex]))
                         break;
                     absolutePort = AbsoluteSignalPort.Limb;
@@ -119,12 +119,12 @@ namespace mycoolfin.TheSimsulator.Sims.Phenotype
 
         private static bool IsValidSlotIndex(int index, Limb limb)
         {
-            return index >= 0 && index < (limb.Sensors.Count + limb.Neurons.Count);
+            return index >= 0 && index < (limb.Sensors.Count() + limb.Neurons.Count());
         }
 
         private static bool IsValidSlotIndex(int index, Brain brain)
         {
-            return index >= 0 && index < brain.Neurons.Count;
+            return index >= 0 && index < brain.Neurons.Count();
         }
 
         private static byte MapToRange(byte value, uint maxExclusive)

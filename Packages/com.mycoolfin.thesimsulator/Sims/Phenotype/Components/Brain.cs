@@ -3,15 +3,16 @@ using System.Collections.Generic;
 
 namespace mycoolfin.TheSimsulator.Sims.Phenotype
 {
-    public class Brain
+    public class Brain : INeuronContainer
     {
         public const int MAX_NEURONS = 10;
 
-        public readonly List<Neuron> Neurons;
+        private readonly List<Neuron> neurons = new();
+        public IEnumerable<Neuron> Neurons => neurons;
 
         public Brain(List<Neuron> neurons)
         {
-            Neurons = neurons ?? throw new ArgumentNullException(nameof(neurons), "Neurons cannot be null.");
+            this.neurons = neurons ?? throw new ArgumentNullException(nameof(neurons), "Neurons cannot be null.");
         }
     }
 }

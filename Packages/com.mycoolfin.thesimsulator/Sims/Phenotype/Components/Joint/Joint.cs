@@ -6,7 +6,7 @@ namespace mycoolfin.TheSimsulator.Sims.Phenotype
 {
     using Genotype;
 
-    public class Joint
+    public class Joint : ISensorContainer, IActuatorContainer
     {
         public readonly JointType Type;
 
@@ -22,8 +22,10 @@ namespace mycoolfin.TheSimsulator.Sims.Phenotype
 
         public readonly float MinCrossSectionalArea;
 
-        public readonly List<JointAngleSensor> Sensors;
-        public readonly List<JointAngleActuator> Actuators;
+        private readonly List<Sensor> sensors;
+        public IEnumerable<Sensor> Sensors => sensors;
+        private readonly List<Actuator> actuators;
+        public IEnumerable<Actuator> Actuators => actuators;
 
         public Joint(
             JointType type,
@@ -51,45 +53,45 @@ namespace mycoolfin.TheSimsulator.Sims.Phenotype
 
             MinCrossSectionalArea = minCrossSectionalArea;
 
-            Sensors = new(type.DegreesOfFreedom());
-            Actuators = new(type.DegreesOfFreedom());
+            sensors = new(type.DegreesOfFreedom());
+            actuators = new(type.DegreesOfFreedom());
             switch (type)
             {
                 case JointType.Rigid:
                     break; // No sensors or actuators for rigid joints.
                 case JointType.Revolute:
-                    Sensors.Add(new(Vector3.UnitX));
-                    Actuators.Add(new(Vector3.UnitX));
+                    sensors.Add(new JointAngleSensor(Vector3.UnitX));
+                    actuators.Add(new JointAngleActuator(Vector3.UnitX));
                     break;
                 case JointType.Twist:
-                    Sensors.Add(new(Vector3.UnitZ));
-                    Actuators.Add(new(Vector3.UnitZ));
+                    sensors.Add(new JointAngleSensor(Vector3.UnitZ));
+                    actuators.Add(new JointAngleActuator(Vector3.UnitZ));
                     break;
                 case JointType.BendTwist:
-                    Sensors.Add(new(Vector3.UnitX));
-                    Sensors.Add(new(Vector3.UnitZ));
-                    Actuators.Add(new(Vector3.UnitX));
-                    Actuators.Add(new(Vector3.UnitZ));
+                    sensors.Add(new JointAngleSensor(Vector3.UnitX));
+                    sensors.Add(new JointAngleSensor(Vector3.UnitZ));
+                    actuators.Add(new JointAngleActuator(Vector3.UnitX));
+                    actuators.Add(new JointAngleActuator(Vector3.UnitZ));
                     break;
                 case JointType.TwistBend:
-                    Sensors.Add(new(Vector3.UnitZ));
-                    Sensors.Add(new(Vector3.UnitX));
-                    Actuators.Add(new(Vector3.UnitZ));
-                    Actuators.Add(new(Vector3.UnitX));
+                    sensors.Add(new JointAngleSensor(Vector3.UnitZ));
+                    sensors.Add(new JointAngleSensor(Vector3.UnitX));
+                    actuators.Add(new JointAngleActuator(Vector3.UnitZ));
+                    actuators.Add(new JointAngleActuator(Vector3.UnitX));
                     break;
                 case JointType.Universal:
-                    Sensors.Add(new(Vector3.UnitX));
-                    Sensors.Add(new(Vector3.UnitY));
-                    Actuators.Add(new(Vector3.UnitX));
-                    Actuators.Add(new(Vector3.UnitY));
+                    sensors.Add(new JointAngleSensor(Vector3.UnitX));
+                    sensors.Add(new JointAngleSensor(Vector3.UnitY));
+                    actuators.Add(new JointAngleActuator(Vector3.UnitX));
+                    actuators.Add(new JointAngleActuator(Vector3.UnitY));
                     break;
                 case JointType.Spherical:
-                    Sensors.Add(new(Vector3.UnitX));
-                    Sensors.Add(new(Vector3.UnitY));
-                    Sensors.Add(new(Vector3.UnitZ));
-                    Actuators.Add(new(Vector3.UnitX));
-                    Actuators.Add(new(Vector3.UnitY));
-                    Actuators.Add(new(Vector3.UnitZ));
+                    sensors.Add(new JointAngleSensor(Vector3.UnitX));
+                    sensors.Add(new JointAngleSensor(Vector3.UnitY));
+                    sensors.Add(new JointAngleSensor(Vector3.UnitZ));
+                    actuators.Add(new JointAngleActuator(Vector3.UnitX));
+                    actuators.Add(new JointAngleActuator(Vector3.UnitY));
+                    actuators.Add(new JointAngleActuator(Vector3.UnitZ));
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(type), type, "Unsupported joint type.");

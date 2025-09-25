@@ -2,7 +2,11 @@ namespace mycoolfin.TheSimsulator.Sims.Phenotype
 {
     public enum SensorType : byte
     {
-        JointAngle
+        JointAngle,
+        Light,
+        ContactTotalLoad,
+        ContactDirectionalLoad,
+        ContactSlip
     }
 
     public class Sensor : ISignalEmitter
