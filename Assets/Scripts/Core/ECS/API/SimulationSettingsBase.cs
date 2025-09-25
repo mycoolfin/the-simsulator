@@ -5,12 +5,11 @@ using Unity.Transforms;
 
 namespace mycoolfin.TheSimsulator.UnityIntegration.Core.ECS.API
 {
+    using Components.WorldObject;
     using Components.Phenotype;
     using Systems.Simulation.Phenotypes;
     using Systems.Simulation.Physics;
     using Systems.Simulation.SimulationRate;
-
-    public struct GroundPlaneTag : IComponentData { }
 
     public abstract class SimulationSettingsBase : ISimulationSettings
     {

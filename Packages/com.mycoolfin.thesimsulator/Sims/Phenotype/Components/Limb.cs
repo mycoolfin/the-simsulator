@@ -1,21 +1,25 @@
 using System;
 using System.Numerics;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace mycoolfin.TheSimsulator.Sims.Phenotype
 {
-    public class Limb
+    public class Limb : INeuronContainer, ISensorContainer, IActuatorContainer
     {
         public Vector3 Dimensions { get; private set; }
         public Vector3 Position { get; private set; }
         public Quaternion Rotation { get; private set; }
         public Joint Joint { get; private set; }
-        public List<Neuron> Neurons { get; private set; }
+        public ContactSensorArray ContactSensors { get; private set; }
+        public LightSensorArray LightSensors { get; private set; }
 
         public float Mass => Dimensions.X * Dimensions.Y * Dimensions.Z; // Mass is proportional to volume.
 
-        public List<Sensor> Sensors { get; private set; }
-        public List<Actuator> Actuators { get; private set; }
+        private readonly List<Neuron> neurons;
+        public IEnumerable<Neuron> Neurons => neurons;
+        public IEnumerable<Sensor> Sensors => ContactSensors.Sensors.Concat(LightSensors.Sensors).Concat(Joint != null ? Joint.Sensors : Enumerable.Empty<Sensor>());
+        public IEnumerable<Actuator> Actuators => Joint != null ? Joint.Actuators : Enumerable.Empty<Actuator>();
 
         public Vector4 Color { get; private set; }
 
@@ -27,32 +31,22 @@ namespace mycoolfin.TheSimsulator.Sims.Phenotype
             Position = Vector3.Zero;
             Rotation = Quaternion.Identity;
             Joint = null;
+            ContactSensors = new();
+            LightSensors = new();
 
-            Neurons = new();
-            Sensors = new();
-            Actuators = new();
+            neurons = new();
         }
 
         public void SetJoint(Joint joint)
         {
             Joint = joint;
-            if (joint != null)
-            {
-                Sensors.AddRange(joint.Sensors);
-                Actuators.AddRange(joint.Actuators);
-            }
-            else
-            {
-                Sensors.Clear();
-                Actuators.Clear();
-            }
         }
 
         public void SetNeurons(List<Neuron> neurons)
         {
-            Neurons.Clear();
+            this.neurons.Clear();
             if (neurons != null)
-                Neurons.AddRange(neurons);
+                this.neurons.AddRange(neurons);
         }
 
         public void SetPositionAndRotation(Vector3 position, Quaternion rotation)

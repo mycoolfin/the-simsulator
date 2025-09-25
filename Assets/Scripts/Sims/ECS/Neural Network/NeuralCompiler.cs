@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using Unity.Collections;
 using Unity.Entities;
 
@@ -25,9 +26,9 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.NeuralNetwork
             for (int i = 0; i < limbCount; i++)
             {
                 Limb limb = phenotype.Limbs[i];
-                ushort sensorCount = (ushort)limb.Sensors.Count;
-                ushort actuatorCount = (ushort)limb.Actuators.Count;
-                ushort limbNeuronCount = (ushort)limb.Neurons.Count;
+                ushort sensorCount = (ushort)limb.Sensors.Count();
+                ushort actuatorCount = (ushort)limb.Actuators.Count();
+                ushort limbNeuronCount = (ushort)limb.Neurons.Count();
                 sensorSlices[i] = new()
                 {
                     startIndex = sensorSliceStartIndex,
@@ -51,7 +52,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.NeuralNetwork
             ushort totalSensorCount = sensorSlices.Length == 0 ? (ushort)0 : (ushort)(sensorSlices[^1].startIndex + sensorSlices[^1].count);
             ushort totalActuatorCount = actuatorSlices.Length == 0 ? (ushort)0 : (ushort)(actuatorSlices[^1].startIndex + actuatorSlices[^1].count);
             ushort totalLimbNeuronCount = limbNeuronSlices.Length == 0 ? (ushort)0 : (ushort)(limbNeuronSlices[^1].startIndex + limbNeuronSlices[^1].count);
-            ushort totalBrainNeuronCount = (ushort)phenotype.Brain.Neurons.Count;
+            ushort totalBrainNeuronCount = (ushort)phenotype.Brain.Neurons.Count();
             ushort totalReceiverCount = (ushort)(totalActuatorCount + totalLimbNeuronCount + totalBrainNeuronCount);
             ushort maxInputCount = (ushort)(totalReceiverCount * MAX_INPUTS_PER_NEURON);
 
