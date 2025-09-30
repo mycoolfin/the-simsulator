@@ -2,6 +2,7 @@ using UnityEngine;
 
 namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
 {
+    using System.Collections;
     using ECS.Rendering;
 
     public class CreatureVisualiser : MonoBehaviour
@@ -34,11 +35,20 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
             else
             {
                 currentCapsule = capsule;
-                currentCapsule.SetCompanionObjectOverride(currentCapsule.Environment == CapsuleEnvironment.Terrestrial ? terrestrialPhenotypeCompanionObject : aquaticPhenotypeCompanionObject);
+                StartCoroutine(RunAfterInitialised(() =>
+                {
+                    currentCapsule.SetCompanionObjectOverride(currentCapsule.Environment == CapsuleEnvironment.Terrestrial ? terrestrialPhenotypeCompanionObject : aquaticPhenotypeCompanionObject);
+                }));
             }
 
             hologram.SetActive(currentCapsule != null);
             emitter.SetEmissiveIntensity(currentCapsule != null ? 10f : 0f);
+        }
+
+        private IEnumerator RunAfterInitialised(System.Action action)
+        {
+            yield return new WaitUntil(() => currentCapsule != null && currentCapsule.IsInitialised);
+            action();
         }
     }
 }

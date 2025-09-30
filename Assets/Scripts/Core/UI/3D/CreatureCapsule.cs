@@ -33,6 +33,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
 
     public interface ICreatureCapsule
     {
+        bool IsInitialised { get; }
         ICreature Creature { get; }
         event Action<ICreature> OnCreatureLoaded;
         CapsuleEnvironment Environment { get; }
@@ -45,7 +46,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
         bool RenameCreature(string newName);
     }
 
-    [RequireComponent(typeof(XRGrabInteractable), typeof(Rigidbody), typeof(AudioSource))]
+    [RequireComponent(typeof(Rigidbody), typeof(AudioSource), typeof(XRGrabInteractable))]
     public abstract class CreatureCapsule<TGenotype, TPhenotype, TPhenotypeFactory, TECSAPI> : MonoBehaviour, ICreatureCapsule, IGenotypeFileReferenceProvider
         where TGenotype : IGenotype<TGenotype>
         where TPhenotype : IPhenotype<TPhenotype>
@@ -63,6 +64,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
         [SerializeField] private PushButton environmentToggleButton;
         [SerializeField] private GameObject terrestrialDisplay;
         [SerializeField] private GameObject aquaticDisplay;
+        [SerializeField] private AudioClip collideSound;
 
         protected abstract TPhenotypeFactory PhenotypeFactory { get; }
         protected abstract TECSAPI ECSAPI { get; }
@@ -94,10 +96,15 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
 
         public IEnumerable<string> GetReferencedGenotypePaths() => GenotypeFilePath == null ? Array.Empty<string>() : new[] { GenotypeFilePath };
 
-        private bool isInitialised = true;
+        public bool IsInitialised { get; private set; } = true;
+
+        private AudioSource audioSource;
+        private XRGrabInteractable grabInteractable;
 
         private void Start()
         {
+            audioSource = GetComponent<AudioSource>();
+            grabInteractable = GetComponent<XRGrabInteractable>();
             environmentToggleButton.OnButtonPressed += (_) =>
             {
                 ToggleEnvironment();
@@ -190,7 +197,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
 
         private IEnumerator InitialiseFromGenotype(TGenotype genotype, CapsuleEnvironment environment)
         {
-            if (!isInitialised)
+            if (!IsInitialised)
                 yield break; // Still initializing from a previous call.
 
             this.genotype = genotype;
@@ -213,7 +220,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
                 yield break;
             }
 
-            isInitialised = false;
+            IsInitialised = false;
             PhenotypeEntityCreationInfo<TPhenotype> creationInfo = new()
             {
                 Phenotype = phenotype,
@@ -231,7 +238,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
                 Phenotype = phenotype
             };
 
-            isInitialised = true;
+            IsInitialised = true;
             OnCreatureLoaded?.Invoke(creature);
 
             SetState(CapsuleState.Loaded);
@@ -283,6 +290,16 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
             World world = ECSAPI.World.GetWorld(GetWorldName(environment));
             if (world != null && world.IsCreated)
                 DestroyPhenotype(world);
+        }
+
+        private void OnCollisionEnter(Collision collision)
+        {
+            if (collideSound != null && audioSource != null && !grabInteractable.isSelected)
+            {
+                float impact = collision.relativeVelocity.magnitude;
+                float volume = Mathf.Clamp01(impact / 10f);
+                audioSource.PlayOneShot(collideSound, volume);
+            }
         }
     }
 }

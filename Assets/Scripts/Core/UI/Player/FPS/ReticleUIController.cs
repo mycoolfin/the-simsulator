@@ -70,17 +70,17 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.Player.FPS
         private void UpdateReticleColor()
         {
             Color targetColor = reticleColor;
-            if (playerController.LookingAtSomething)
+            if (playerController.rayEndTransform != null)
             {
-                if (playerController.RaycastHit.collider.GetComponent<ISelectable>() != null)
+                if (playerController.rayEndTransform.GetComponent<ISelectable>() != null)
                 {
                     targetColor = interactableColor;
                 }
-                else if (playerController.RaycastHit.collider.GetComponentInParent<XRGrabInteractable>() != null)
+                else if (playerController.rayEndTransform.GetComponentInParent<XRGrabInteractable>() != null)
                 {
                     targetColor = grabbableColor;
                 }
-                else if (playerController.RaycastHit.collider.GetComponent<Tooltip>() != null)
+                else if (playerController.rayEndTransform.GetComponent<Tooltip>() != null)
                 {
                     targetColor = tooltipColor;
                 }

@@ -28,6 +28,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
 
         private void UpdateMaterials()
         {
+            if (!gameObject.activeInHierarchy) return;
             foreach (var renderer in renderers)
             {
                 if (renderer.material != null)

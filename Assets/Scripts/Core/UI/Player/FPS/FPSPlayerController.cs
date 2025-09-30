@@ -4,7 +4,7 @@ using UnityEngine.XR.Interaction.Toolkit.Interactors;
 
 namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.Player.FPS
 {
-    public class FPSPlayerController : MonoBehaviour
+    public class FPSPlayerController : MonoBehaviour, IXRRayProvider
     {
         [SerializeField] private UnityEngine.Camera playerCamera;
         [SerializeField] private CharacterController characterController;
@@ -25,8 +25,10 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.Player.FPS
         [SerializeField] private float maxLookAngle = 90f;
 
         private RaycastHit raycastHit;
-        public RaycastHit RaycastHit => raycastHit;
-        public bool LookingAtSomething => raycastHit.collider != null;
+
+        // IXRRayProvider implementation
+        public Transform rayEndTransform => raycastHit.collider != null ? raycastHit.collider.transform : null;
+        public Vector3 rayEndPoint => raycastHit.point;
 
         private Vector2 horizontalMovement;
         private Vector2 lookDeltas;
@@ -183,7 +185,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.Player.FPS
                 }
                 else
                 {
-                    if (LookingAtSomething && RaycastHit.collider.TryGetComponent<ISelectable>(out var selectable))
+                    if (rayEndTransform != null && rayEndTransform.TryGetComponent<ISelectable>(out var selectable))
                         selectable.Select();
                 }
             }
@@ -224,6 +226,31 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.Player.FPS
             {
                 ToggleCursorLock();
             }
+        }
+
+        // IXRRayProvider method implementations
+        public Transform GetOrCreateAttachTransform()
+        {
+            // Return the XRRayInteractor's attach transform
+            return desktopHandInteractor.attachTransform;
+        }
+
+        public void SetAttachTransform(Transform newAttach)
+        {
+            // Set the XRRayInteractor's attach transform
+            desktopHandInteractor.attachTransform = newAttach;
+        }
+
+        public Transform GetOrCreateRayOrigin()
+        {
+            // Return the camera transform as the ray origin for FPS controller
+            return playerCamera.transform;
+        }
+
+        public void SetRayOrigin(Transform newOrigin)
+        {
+            // For FPS controller, the ray origin should always be the camera
+            Debug.LogWarning("SetRayOrigin called on FPSPlayerController - ray origin should remain as the player camera.");
         }
     }
 }

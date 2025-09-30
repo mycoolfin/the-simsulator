@@ -822,7 +822,7 @@ AudioSource:
   OutputAudioMixerGroup: {fileID: 24300002, guid: 8996dd8160fe74c9b86fc5b02671859b, type: 2}
   m_audioClip: {fileID: 0}
   m_Resource: {fileID: 0}
-  m_PlayOnAwake: 1
+  m_PlayOnAwake: 0
   m_Volume: 1
   m_Pitch: 1
   Loop: 0
@@ -867,7 +867,7 @@ AudioSource:
     m_Curve:
     - serializedVersion: 3
       time: 0
-      value: 0
+      value: 1
       inSlope: 0
       outSlope: 0
       tangentMode: 0
@@ -926,6 +926,7 @@ MonoBehaviour:
   environmentToggleButton: {fileID: 885786506915736469}
   terrestrialDisplay: {fileID: 9093278732475014728}
   aquaticDisplay: {fileID: 6502657988690439347}
+  collideSound: {fileID: 8300000, guid: f0c6a382f200646ed8a524125467fdf1, type: 3}
 --- !u!1 &5103868130789986918
 GameObject:
   m_ObjectHideFlags: 0
