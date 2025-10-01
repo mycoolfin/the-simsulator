@@ -83,7 +83,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
             });
         }
 
-        private void Refresh()
+        public void Refresh()
         {
             nameplate.AssignCreatureCapsule(DockedCapsule);
             NotifyChanged();

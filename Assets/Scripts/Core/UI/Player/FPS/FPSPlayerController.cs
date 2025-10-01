@@ -4,6 +4,8 @@ using UnityEngine.XR.Interaction.Toolkit.Interactors;
 
 namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.Player.FPS
 {
+    using ThreeD;
+
     public class FPSPlayerController : MonoBehaviour, IXRRayProvider
     {
         [SerializeField] private UnityEngine.Camera playerCamera;
@@ -39,7 +41,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.Player.FPS
         private bool isGrounded;
         private bool isSprinting = false;
 
-        public static bool KeyboardControlOverridden = false;
+        public static bool KeyboardControlOverridden => EditableText.AnyEditing;
 
         private void Start()
         {

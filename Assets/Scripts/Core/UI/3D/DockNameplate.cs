@@ -10,11 +10,13 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
         [SerializeField] private EditableText editableText;
 
         private AudioSource audioSource;
+        private CapsuleDock parentDock;
         private ICreatureCapsule currentCapsule;
 
         private void Awake()
         {
             audioSource = GetComponent<AudioSource>();
+            parentDock = GetComponentInParent<CapsuleDock>();
             editableText.OnCommitted += RenameCreature;
             AssignCreatureCapsule(null);
         }
@@ -55,6 +57,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
                 if (success)
                 {
                     currentCapsule.Creature.Name = newName;
+                    parentDock.Refresh();
                     audioSource.PlayOneShot(renameSuccessSound);
                 }
                 else
