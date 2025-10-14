@@ -1,16 +1,10 @@
 # The Simsulator
 
-The Simsulator is an open-source platform for evolving, breeding and experimenting on virtual creatures, based on the work of [Karl Sims](https://karlsims.com).
+The Simsulator is an open-source platform designed to introduce users of all skill levels to evolving virtual creatures, based on the work of [Karl Sims](https://karlsims.com).
 
-![Ground Trial](Media/ground_trial.gif)
-![Underwater](Media/underwater.gif)
+**No coding required** - just [install](#installation) and go. Have fun!
 
-## Features
-
-- Evolve virtual creatures to run, swim and follow lights in the Evolution Simulator.
-- Play with and selectively breed creatures in the Zoo.
-- Tweak the DNA of existing creatures in the Creature Editor.
-- Save your favourite creatures and share them with your friends.
+<img src="Media/evolution_simulator.gif" width="45%"/> <img src="Media/conveyor_fire.gif" width="45%"/> 
 
 ## Installation
 
