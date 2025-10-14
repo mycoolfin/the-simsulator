@@ -18,7 +18,7 @@ MonoBehaviour:
   m_PlatformId: cb423bfea44b4d658edb8bc5d91a3024
   m_PlatformBuildProfile:
     rid: 62816342310125648
-  m_OverrideGlobalSceneList: 0
+  m_OverrideGlobalSceneList: 1
   m_Scenes:
   - m_enabled: 1
     m_path: Assets/Scenes/Lab.unity
