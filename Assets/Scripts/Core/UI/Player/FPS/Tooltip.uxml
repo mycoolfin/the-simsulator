@@ -1,0 +1,11 @@
+<ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <ui:VisualElement style="flex-grow: 1; flex-shrink: 0; justify-content: center; align-self: center; align-content: center; align-items: center;">
+        <ui:VisualElement style="min-width: 300px; align-items: center;">
+            <ui:VisualElement style="flex-grow: 1; position: absolute; top: 20px; left: 0; right: 0; align-items: center;">
+                <ui:VisualElement style="flex-grow: 1; background-color: rgb(49, 137, 159); border-top-width: 2px; border-right-width: 2px; border-bottom-width: 2px; border-left-width: 2px; border-left-color: rgba(0, 0, 0, 0.5); border-right-color: rgba(0, 0, 0, 0.5); border-top-color: rgba(0, 0, 0, 0.5); border-bottom-color: rgba(0, 0, 0, 0.5); border-top-left-radius: 2px; border-top-right-radius: 2px; border-bottom-right-radius: 2px; border-bottom-left-radius: 2px; max-width: 200px; opacity: 1; display: flex;">
+                    <ui:Label text="Tooltip information goes here." style="color: rgb(255, 255, 255); font-size: 16px; -unity-font-style: normal; flex-wrap: wrap; flex-grow: 1; flex-shrink: 1; white-space: normal; align-self: flex-start;" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>
