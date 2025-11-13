@@ -186,44 +186,44 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Builders
                     math.normalize(requestData.Rotation),
                     1f
                 );
-        Ecb.SetComponent(index, limbEntity, localTransform);
+                Ecb.SetComponent(index, limbEntity, localTransform);
                 Ecb.SetComponent(index, limbEntity, new PostTransformMatrix
                 {
                     Value = float4x4.Scale(requestData.Dimensions)
-    });
+                });
 
                 // Rendering.
                 Ecb.SetComponent(index, limbEntity, new LimbColor
                 {
                     Value = requestData.Color
-});
-Ecb.SetComponent(index, limbEntity, new URPMaterialPropertyBaseColor
-{
-    Value = requestData.Color
-});
-Ecb.SetComponent(index, limbEntity, new RenderBounds
-{
-    Value = new AABB
-    {
-        Center = float3.zero,
-        Extents = requestData.Dimensions * 0.5f
-    }
-});
+                });
+                Ecb.SetComponent(index, limbEntity, new URPMaterialPropertyBaseColor
+                {
+                    Value = requestData.Color
+                });
+                Ecb.SetComponent(index, limbEntity, new RenderBounds
+                {
+                    Value = new AABB
+                    {
+                        Center = float3.zero,
+                        Extents = requestData.Dimensions * 0.5f
+                    }
+                });
 
-// Physics.
-GetCollisionFilter(requestData, out CollisionFilter collisionFilter);
-ColliderMap.TryGetValue(new(requestData.Dimensions, collisionFilter), out BlobAssetReference<Collider> collider);
-Ecb.SetComponent(index, limbEntity, new PhysicsCollider { Value = collider });
-Ecb.SetComponent(index, limbEntity, PhysicsMass.CreateDynamic(collider.Value.MassProperties, requestData.Mass));
+                // Physics.
+                GetCollisionFilter(requestData, out CollisionFilter collisionFilter);
+                ColliderMap.TryGetValue(new(requestData.Dimensions, collisionFilter), out BlobAssetReference<Collider> collider);
+                Ecb.SetComponent(index, limbEntity, new PhysicsCollider { Value = collider });
+                Ecb.SetComponent(index, limbEntity, PhysicsMass.CreateDynamic(collider.Value.MassProperties, requestData.Mass));
 
-// Add to lookups.
-PhenotypeLimbKey key = new(requestData.PhenotypeGid, requestData.LimbIndex);
-LimbEntityLookup.TryAdd(key, limbEntity);
-LimbLocalTransformLookup.TryAdd(key, localTransform);
+                // Add to lookups.
+                PhenotypeLimbKey key = new(requestData.PhenotypeGid, requestData.LimbIndex);
+                LimbEntityLookup.TryAdd(key, limbEntity);
+                LimbLocalTransformLookup.TryAdd(key, localTransform);
 
-// Destroy the request entity.
-int disposalOffsetIndex = RequestEntities.Length;
-Ecb.DestroyEntity(index + disposalOffsetIndex, RequestEntities[index]);
+                // Destroy the request entity.
+                int disposalOffsetIndex = RequestEntities.Length;
+                Ecb.DestroyEntity(index + disposalOffsetIndex, RequestEntities[index]);
             }
         }
     }

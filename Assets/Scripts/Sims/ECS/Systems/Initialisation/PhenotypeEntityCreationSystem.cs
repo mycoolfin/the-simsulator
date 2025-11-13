@@ -14,9 +14,6 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Systems.Initialisati
     using Builders;
     using NeuralNetwork;
 
-    /// <summary>
-    /// Request component to trigger metadata recalculation.
-    /// </summary>
     public struct RecalculatePhenotypeMetadataRequest : IComponentData { }
 
     public struct RootPhenotypeEntityCreationRequest : IComponentData
