@@ -99,7 +99,9 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.ECS.Caching
                 Size = dimensions,
                 Orientation = quaternion.identity
             };
-            return BoxCollider.Create(boxGeometry, collisionFilter, Material.Default);
+            Material material = Material.Default;
+            material.CollisionResponse = CollisionResponsePolicy.CollideRaiseCollisionEvents;
+            return BoxCollider.Create(boxGeometry, collisionFilter, material);
         }
 
         public void Dispose()
