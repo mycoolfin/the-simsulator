@@ -8,7 +8,7 @@ namespace mycoolfin.TheSimsulator.Sims.Genotype
     public class SimsGenotype : IGenotype<SimsGenotype>
     {
         public const int MIN_NODES = 1;
-        public const int MAX_NODES = 10;
+        public const int MAX_NODES = 5;
         public const int MIN_BRAIN_NEURON_DEFINITIONS = 0;
         public const int MAX_BRAIN_NEURON_DEFINITIONS = 10;
 

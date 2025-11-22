@@ -13,7 +13,6 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.API
     using Core.ECS.API;
     using Core.Evolution;
     using Core.ECS.Systems.Simulation;
-    using Core.ECS.Systems.Simulation.Phenotypes;
     using Core.ECS.Systems.Simulation.SimulationRate;
     using Core.ECS.Components.Phenotype;
     using Components.Evolution;
@@ -24,10 +23,12 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.API
     public class SimsEvolutionManagement : IEvolutionManagement
     {
         private SimsSimulationSettings simulationSettings;
+        private ObjectEntityManagement objectEntityManagement;
 
-        public SimsEvolutionManagement(SimsSimulationSettings simulationSettings)
+        public SimsEvolutionManagement(SimsSimulationSettings simulationSettings, ObjectEntityManagement objectEntityManagement)
         {
             this.simulationSettings = simulationSettings;
+            this.objectEntityManagement = objectEntityManagement;
         }
 
         public IEnumerator InitialiseTrial(World world, TrialType trialType, Func<SimulationRateMode> GetSimulationRateModeCallback)
@@ -40,7 +41,8 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.API
             // Reset the physical world.
             simulationSettings.SetGravity(world, float3.zero);
             simulationSettings.SetFluidSimulation(world, false, 1f);
-            simulationSettings.DestroyGroundPlane(world);
+            objectEntityManagement.DestroyGroundPlane(world);
+            objectEntityManagement.DestroyLightSource(world);
 
             yield return SettleJoints(world, 2f, GetSimulationRateModeCallback); // Necessary as long as the joint flip bug exists.
 
@@ -48,14 +50,21 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.API
                 yield break;
 
             // Set trial-specific environment settings.
-            if (trialType == TrialType.GroundDistance)
+            if (trialType == TrialType.GroundDistance || trialType == TrialType.GroundLightFollowing)
             {
                 simulationSettings.SetToTerrestrialDefaults(world);
+                objectEntityManagement.CreateGroundPlane(world);
             }
-            else if (trialType == TrialType.WaterDistance)
+            else if (trialType == TrialType.WaterDistance || trialType == TrialType.WaterLightFollowing)
             {
                 simulationSettings.SetToAquaticDefaults(world);
+                objectEntityManagement.DestroyGroundPlane(world);
             }
+
+            if (trialType == TrialType.GroundLightFollowing || trialType == TrialType.WaterLightFollowing)
+                objectEntityManagement.CreateLightSource(world);
+            else
+                objectEntityManagement.DestroyLightSource(world);
         }
 
         private IEnumerator SettleJoints(World world, float settleSeconds, Func<SimulationRateMode> GetSimulationRateModeCallback, IProgress<float> progress = null)

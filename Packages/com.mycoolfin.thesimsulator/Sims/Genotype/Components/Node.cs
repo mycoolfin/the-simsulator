@@ -7,7 +7,7 @@ namespace mycoolfin.TheSimsulator.Sims.Genotype
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
     public struct Node
     {
-        public const float MIN_DIMENSION = 0.1f;
+        public const float MIN_DIMENSION = 0.2f;
         public const float MAX_DIMENSION = 2.0f;
         public const int MIN_RECURSIVE_LIMIT = 1;
         public const int MAX_RECURSIVE_LIMIT = 10;

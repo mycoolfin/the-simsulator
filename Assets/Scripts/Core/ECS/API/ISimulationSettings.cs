@@ -22,10 +22,6 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.ECS.API
 
         void SetFluidSimulation(World world, bool enabled, float fluidDensity = 1000f);
 
-        public void CreateGroundPlane(World world);
-
-        void DestroyGroundPlane(World world);
-
         void SetPhenotypeRepositionerSettings(World world, PhenotypeRepositionerSettings settings);
 
         void SetToTerrestrialDefaults(World world);

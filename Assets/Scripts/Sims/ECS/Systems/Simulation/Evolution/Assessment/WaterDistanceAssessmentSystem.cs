@@ -35,11 +35,12 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Systems.Simulation.E
             if (fitness.Value < 0f) // Assessment hasn't started yet.
                 data.StartPosition = currentPosition;
 
-            float displacement = math.length(new float3(currentPosition.x - data.StartPosition.x,
-                                                            currentPosition.y - data.StartPosition.y,
-                                                            currentPosition.z - data.StartPosition.z));
+            float displacement = math.distance(currentPosition, data.StartPosition);
 
-            fitness.Value = displacement;
+            float volume = boundingBox.MaxExtents.x * boundingBox.MaxExtents.y * boundingBox.MaxExtents.z;
+            float volumePenalty = math.max(volume, 5f * 5f * 5f);
+
+            fitness.Value = displacement / volumePenalty;
         }
     }
 }

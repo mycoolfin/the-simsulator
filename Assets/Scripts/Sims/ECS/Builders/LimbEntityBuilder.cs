@@ -15,11 +15,12 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Builders
     using Components.Phenotype;
     using Systems.Initialisation;
     using NeuralNetwork;
+    using Rendering;
 
     [BurstCompile]
     public static class LimbEntityBuilder
     {
-        public static RenderMeshArray RenderMeshArray;
+        public static SimsRenderMeshArrayCreator RenderMeshArrayCreator;
 
         public const uint PHENOTYPE_LAYER = 1u << 9;
         public const uint ALL_LAYERS = ~0u;
@@ -28,8 +29,9 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Builders
 
         public static bool IsReady()
         {
-            return RenderMeshArray.MaterialReferences != null && RenderMeshArray.MaterialReferences.Length != 0
-                && RenderMeshArray.MeshReferences != null && RenderMeshArray.MeshReferences.Length != 0;
+            RenderMeshArray renderMeshArray = RenderMeshArrayCreator.RenderMeshArray;
+            return renderMeshArray.MaterialReferences != null && renderMeshArray.MaterialReferences.Length != 0
+                && renderMeshArray.MeshReferences != null && renderMeshArray.MeshReferences.Length != 0;
         }
 
         public static void CreateLimbEntities(
@@ -43,7 +45,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Builders
         )
         {
             using NativeArray<Entity> limbEntities = new(limbCreationRequests.Length, Allocator.TempJob);
-            Entity limbPrototype = CreateLimbPrototype(ref state, RenderMeshArray);
+            Entity limbPrototype = CreateLimbPrototype(ref state, RenderMeshArrayCreator.RenderMeshArray);
             state.EntityManager.Instantiate(limbPrototype, limbEntities);
             state.EntityManager.DestroyEntity(limbPrototype);
 
@@ -85,7 +87,6 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Builders
             // Rendering.
             state.EntityManager.AddComponentData(limbPrototype, new LimbColor());
             state.EntityManager.AddComponentData(limbPrototype, new URPMaterialPropertyBaseColor());
-            state.EntityManager.AddComponentData(limbPrototype, new RenderBounds());
             RenderMeshUtility.AddComponents(
                 limbPrototype,
                 state.EntityManager,
@@ -94,7 +95,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Builders
                     receiveShadows: false
                 ),
                 renderMeshArray,
-                MaterialMeshInfo.FromRenderMeshArrayIndices(0, 0)
+                MaterialMeshInfo.FromRenderMeshArrayIndices(RenderMeshArrayCreator.LimbIndex, RenderMeshArrayCreator.LimbIndex)
             );
 
             // Physics.

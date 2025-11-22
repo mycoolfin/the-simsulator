@@ -17,4 +17,16 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Components.Evolution
     {
         public float3 StartPosition;
     }
+
+    public struct GroundLightFollowingAssessmentData : IComponentData
+    {
+        public float3 StartPosition;
+        public float AccumulatedFitness;
+    }
+
+    public struct WaterLightFollowingAssessmentData : IComponentData
+    {
+        public float3 StartPosition;
+        public float AccumulatedFitness;
+    }
 }

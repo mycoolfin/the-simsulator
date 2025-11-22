@@ -1166,6 +1166,18 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 4689870479734910758, guid: 9faa4f5c3073d42289e96a9bf999e769, type: 3}
       insertIndex: -1
       addedObject: {fileID: 0}
+    - targetCorrespondingSourceObject: {fileID: 2691673893166435539, guid: 9faa4f5c3073d42289e96a9bf999e769, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 0}
+    - targetCorrespondingSourceObject: {fileID: 807263999164979619, guid: 9faa4f5c3073d42289e96a9bf999e769, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 0}
+    - targetCorrespondingSourceObject: {fileID: 1708785933048149459, guid: 9faa4f5c3073d42289e96a9bf999e769, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 0}
+    - targetCorrespondingSourceObject: {fileID: 4055111623656266435, guid: 9faa4f5c3073d42289e96a9bf999e769, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 0}
     - targetCorrespondingSourceObject: {fileID: 8448068634108256523, guid: 9faa4f5c3073d42289e96a9bf999e769, type: 3}
       insertIndex: -1
       addedObject: {fileID: 0}
@@ -1510,10 +1522,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9a643368f53a04efaa04e102277b89ca, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Meshes:
-  - {fileID: -2432090755550338912, guid: 5df1d9871964442b299e60076cbe8689, type: 3}
-  Materials:
-  - {fileID: 2100000, guid: 6be4307b9be694f76b739e7bef6469ed, type: 2}
+  lightSourceMesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+  lightSourceMaterial: {fileID: 2100000, guid: 0a5bd94703c29412ab5a3937318bc970, type: 2}
+  limbMesh: {fileID: -2432090755550338912, guid: 5df1d9871964442b299e60076cbe8689, type: 3}
+  limbMaterial: {fileID: 2100000, guid: 6be4307b9be694f76b739e7bef6469ed, type: 2}
 --- !u!1 &966655666 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 8103703143137404302, guid: d6878e1999eb4b44a9f5a263af86c185, type: 3}

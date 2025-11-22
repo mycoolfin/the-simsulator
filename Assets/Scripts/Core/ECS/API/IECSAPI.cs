@@ -8,6 +8,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.ECS.API
         IWorldManagement World { get; }
         ISimulationSettings Simulation { get; }
         IPresentationSettings Presentation { get; }
+        IObjectEntityManagement Object { get; }
         IPhenotypeEntityManagement<TPhenotype> Phenotype { get; }
         IEvolutionManagement Evolution { get; }
     }

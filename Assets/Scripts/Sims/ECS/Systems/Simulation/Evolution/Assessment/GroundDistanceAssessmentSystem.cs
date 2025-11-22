@@ -45,7 +45,10 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Systems.Simulation.E
             float xzDisplacement = math.length(new float2(currentPosition.x - data.StartPosition.x,
                                                             currentPosition.z - data.StartPosition.z));
 
-            fitness.Value = xzDisplacement;
+            float volume = boundingBox.MaxExtents.x * boundingBox.MaxExtents.y * boundingBox.MaxExtents.z;
+            float volumePenalty = math.max(volume, 5f * 5f * 5f);
+
+            fitness.Value = xzDisplacement / volumePenalty;
         }
     }
 }
