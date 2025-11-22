@@ -121,17 +121,9 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
             outerEmitter.SetEmissiveColor(emitterColor);
             SetEmitterIntensities(0f);
 
-            switch (trialType)
-            {
-                case TrialType.GroundDistance:
-                    SetGroundEnabled(true);
-                    SetWaterEnabled(false);
-                    break;
-                case TrialType.WaterDistance:
-                    SetGroundEnabled(false);
-                    SetWaterEnabled(true);
-                    break;
-            }
+            bool isGround = trialType == TrialType.GroundDistance || trialType == TrialType.GroundLightFollowing;
+            SetGroundEnabled(isGround);
+            SetWaterEnabled(!isGround);
         }
 
         private void AnimateSound()

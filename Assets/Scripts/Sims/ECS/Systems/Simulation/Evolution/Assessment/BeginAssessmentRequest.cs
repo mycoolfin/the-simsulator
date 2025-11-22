@@ -57,6 +57,12 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Systems.Simulation.E
                 case TrialType.WaterDistance:
                     Ecb.AddComponent(chunkIndex, rootPhenotypeEntity, new WaterDistanceAssessmentData());
                     break;
+                case TrialType.GroundLightFollowing:
+                    Ecb.AddComponent(chunkIndex, rootPhenotypeEntity, new GroundLightFollowingAssessmentData());
+                    break;
+                case TrialType.WaterLightFollowing:
+                    Ecb.AddComponent(chunkIndex, rootPhenotypeEntity, new WaterLightFollowingAssessmentData());
+                    break;
             }
         }
     }

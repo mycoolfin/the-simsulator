@@ -77,7 +77,8 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
                 IReadOnlyList<IAssessableCreature> creatures = GetBestCreatures(simulator, fabCount);
                 for (int i = 0; i < creatures.Count; i++)
                 {
-                    CapsuleEnvironment environment = simulator.TrialType == TrialType.WaterDistance ? CapsuleEnvironment.Aquatic : CapsuleEnvironment.Terrestrial;
+                    bool isAquatic = simulator.TrialType == TrialType.WaterDistance || simulator.TrialType == TrialType.WaterLightFollowing;
+                    CapsuleEnvironment environment = isAquatic ? CapsuleEnvironment.Aquatic : CapsuleEnvironment.Terrestrial;
                     FabricateDockedCapsule(creatures[i], environment);
                 }
             };

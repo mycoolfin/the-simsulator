@@ -16,7 +16,9 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.Evolution
     public enum TrialType : byte
     {
         GroundDistance,
-        WaterDistance
+        WaterDistance,
+        GroundLightFollowing,
+        WaterLightFollowing
     };
 
     public struct EvolutionParameters

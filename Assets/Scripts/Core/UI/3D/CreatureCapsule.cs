@@ -273,9 +273,15 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
                 ECSAPI.Simulation.SetSimulationRateControllerMode(world, SimulationRateMode.RealTime);
 
                 if (environment == CapsuleEnvironment.Terrestrial)
+                {
                     ECSAPI.Simulation.SetToTerrestrialDefaults(world);
+                    ECSAPI.Object.CreateGroundPlane(world);
+                }
                 else if (environment == CapsuleEnvironment.Aquatic)
+                {
                     ECSAPI.Simulation.SetToAquaticDefaults(world);
+                    ECSAPI.Object.DestroyGroundPlane(world);
+                }
             });
             return world;
         }

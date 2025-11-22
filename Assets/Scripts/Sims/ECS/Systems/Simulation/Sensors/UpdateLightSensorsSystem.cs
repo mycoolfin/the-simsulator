@@ -9,6 +9,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Systems.Simulation.S
     using Core.ECS.Components.WorldObject;
     using Core.ECS.Components.Shared;
     using Components.Phenotype;
+    using UnityEditor.ShaderGraph.Internal;
 
     [BurstCompile]
     [UpdateInGroup(typeof(UpdateSensorsSystemGroup))]
@@ -49,30 +50,37 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Systems.Simulation.S
         [ReadOnly] public NativeArray<LocalTransform> LightSourceTransforms;
         [NativeDisableParallelForRestriction] public BufferLookup<EmitterState> EmitterStateBuffers;
 
-        public void Execute(in LocalTransform localTransform, in LightSensors lightSensors, in RootPhenotypeEntity rootPhenotypeEntity)
+        public void Execute(in LocalTransform localTransform, ref LightSensors lightSensors, in RootPhenotypeEntity rootPhenotypeEntity)
         {
             if (!EmitterStateBuffers.HasBuffer(rootPhenotypeEntity.Value))
                 return;
 
             DynamicBuffer<EmitterState> buffer = EmitterStateBuffers[rootPhenotypeEntity.Value];
 
+            float3 intensities = new(0f, 0f, 0f);
+
             if (lightSensors.XAxisSensorEmitterIndex < (ushort)buffer.Length)
             {
                 float intensity = GetLightIntensityAtSensor(localTransform, new float3(1, 0, 0));
+                intensities.x = intensity;
                 buffer[lightSensors.XAxisSensorEmitterIndex] = new EmitterState { Value = intensity };
             }
 
             if (lightSensors.YAxisSensorEmitterIndex < (ushort)buffer.Length)
             {
                 float intensity = GetLightIntensityAtSensor(localTransform, new float3(0, 1, 0));
+                intensities.y = intensity;
                 buffer[lightSensors.YAxisSensorEmitterIndex] = new EmitterState { Value = intensity };
             }
 
             if (lightSensors.ZAxisSensorEmitterIndex < (ushort)buffer.Length)
             {
                 float intensity = GetLightIntensityAtSensor(localTransform, new float3(0, 0, 1));
+                intensities.z = intensity;
                 buffer[lightSensors.ZAxisSensorEmitterIndex] = new EmitterState { Value = intensity };
             }
+
+            lightSensors.Intensities = intensities;
         }
 
         [BurstCompile]
@@ -97,7 +105,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Systems.Simulation.S
 
                 // Exponential falloff: intensity decreases exponentially with distance
                 // and is modulated by the angle factor.
-                float distanceFalloff = math.exp(-distance * 0.3f);
+                float distanceFalloff = math.exp(-distance * 0.1f);
                 float intensity = distanceFalloff * angleFactor;
 
                 totalIntensity += intensity;

@@ -166,7 +166,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
             SetLockMorphologiesToDefaultValue();
         }
 
-        private readonly TrialType[] TrialTypeOptions = { TrialType.GroundDistance, TrialType.WaterDistance };
+        private readonly TrialType[] TrialTypeOptions = (TrialType[])Enum.GetValues(typeof(TrialType));
         private TrialType GetTrialType() => TrialTypeOptions[trialTypeGroup.ActiveButtonIndex];
         private void SetTrialTypeToDefaultValue() => trialTypeGroup.SetActiveButton(0);
 
