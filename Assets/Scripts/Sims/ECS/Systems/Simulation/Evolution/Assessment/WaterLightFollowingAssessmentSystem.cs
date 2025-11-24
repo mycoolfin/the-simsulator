@@ -100,7 +100,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Systems.Simulation.E
             float volume = boundingBox.MaxExtents.x * boundingBox.MaxExtents.y * boundingBox.MaxExtents.z;
             float volumePenalty = math.max(volume, 5f * 5f * 5f);
 
-            fitness.Value = math.max(data.AccumulatedFitness + progress, 0f) / volumePenalty;
+            fitness.Value = (data.AccumulatedFitness + progress) / volumePenalty;
         }
     }
 }
