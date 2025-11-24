@@ -46,7 +46,6 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Systems.Initialisati
         public float3 ReferenceLimbSpaceXAxis;
         public float3 ReferenceLimbSpaceYAxis;
         public float3 ReferenceLimbSpaceZAxis;
-        public byte FlippedHandedness;
         public float3 AngleLimits;
         public float MinCrossSectionalArea;
     }
