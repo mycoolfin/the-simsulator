@@ -668,16 +668,16 @@ namespace mycoolfin.TheSimsulator.Sims.Phenotype
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static InputSetDefinition GetInputsForActuatorAxis(Vector3 axis, JointDefinition jointDefinition)
+        private static InputSetDefinition GetInputsForActuatorAxis(JointAxis axis, JointDefinition jointDefinition)
         {
-            if (axis == Vector3.UnitX)
-                return jointDefinition.XAxisInputs;
-            else if (axis == Vector3.UnitY)
-                return jointDefinition.YAxisInputs;
-            else if (axis == Vector3.UnitZ)
-                return jointDefinition.ZAxisInputs;
+            if (axis == JointAxis.Primary)
+                return jointDefinition.PrimaryAxisInputs;
+            else if (axis == JointAxis.Secondary)
+                return jointDefinition.SecondaryAxisInputs;
+            else if (axis == JointAxis.Tertiary)
+                return jointDefinition.TertiaryAxisInputs;
             else
-                throw new ArgumentException($"Invalid actuator axis: {axis}. Must be UnitX, UnitY, or UnitZ.");
+                throw new ArgumentException($"Invalid actuator axis: {axis}. Must be Primary, Secondary, or Tertiary.");
         }
 
         private static void ProcessNeuronCreation(

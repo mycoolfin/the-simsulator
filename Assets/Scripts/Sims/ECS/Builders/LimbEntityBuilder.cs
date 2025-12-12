@@ -182,13 +182,13 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Builders
                 });
 
                 // Transform.
-                quaternion rotation = requestData.Rotation;
-                if (rotation.value.w < 0f) // Canonicalise rotation: ensure W >= 0 for consistent physics behavior.
-                    rotation.value = -rotation.value;
+                // quaternion rotation = requestData.Rotation;
+                // if (rotation.value.w < 0f) // Canonicalise rotation: ensure W >= 0 for consistent physics behavior.
+                //     rotation.value = -rotation.value;
                 
                 LocalTransform localTransform = LocalTransform.FromPositionRotationScale(
                     requestData.Position + requestData.PhysicsPositionOffset,
-                    rotation,
+                    requestData.Rotation,
                     1f
                 );
                 Ecb.SetComponent(index, limbEntity, localTransform);

@@ -24,7 +24,7 @@ namespace mycoolfin.TheSimsulator.Sims.Genotype
 
         private readonly int ContactSensorCount => 5; // Total load, slip, and one for each axis.
         private readonly int LightSensorCount => 3; // One for each axis.
-        private readonly int JointSensorCount => JointDefinition.JointType.DegreesOfFreedom();
+        private readonly int JointSensorCount => 3;
         public readonly int SensorCount => ContactSensorCount + LightSensorCount + JointSensorCount;
 
         public Node(Vector3 dimensions, JointDefinition jointDefinition, int recursiveLimit, NodeColor color)
