@@ -1,28 +1,26 @@
 using Unity.Entities;
+using Unity.Mathematics;
 
 namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Components.Phenotype
 {
-    public struct JointAxisX : IComponentData
+    public struct JointAngleSensors : IComponentData
     {
-        public ushort SensorEmitterIndex;
-        public ushort ActuatorNeuronEmitterIndex;
-        public float AngleLimit;
-        public byte SwapXZ;
+        public float3 Angles;
+        public float3 AngleLimits;
+        public ushort PrimarySensorEmitterIndex;
+        public ushort SecondarySensorEmitterIndex;
+        public ushort TertiarySensorEmitterIndex;
     }
 
-    public struct JointAxisY : IComponentData
+    public struct JointAngleActuators : IComponentData
     {
-        public ushort SensorEmitterIndex;
-        public ushort ActuatorNeuronEmitterIndex;
-        public float AngleLimit;
-    }
-
-    public struct JointAxisZ : IComponentData
-    {
-        public ushort SensorEmitterIndex;
-        public ushort ActuatorNeuronEmitterIndex;
-        public float AngleLimit;
-        public byte SwapXZ;
+        public float3 TargetAngularVelocities;
+        public sbyte PrimaryMotorConstraintIndex;
+        public sbyte SecondaryMotorConstraintIndex;
+        public sbyte TertiaryMotorConstraintIndex;
+        public ushort PrimaryActuatorNeuronEmitterIndex;
+        public ushort SecondaryActuatorNeuronEmitterIndex;
+        public ushort TertiaryActuatorNeuronEmitterIndex;
     }
 
     public struct JointBreakDistance : IComponentData

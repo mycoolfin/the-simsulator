@@ -24,7 +24,7 @@ namespace mycoolfin.TheSimsulator.Sims.Genotype
             Node node = context.Nodes[nodeIndex];
             JointType newJointType = JointDefinition.AllJointTypes[SharedRandom.Next(JointDefinition.AllJointTypes.Length)];
             JointDefinition newJointDefinition = new(newJointType, node.JointDefinition.AngleLimits,
-                node.JointDefinition.XAxisInputs, node.JointDefinition.YAxisInputs, node.JointDefinition.ZAxisInputs);
+                node.JointDefinition.PrimaryAxisInputs, node.JointDefinition.SecondaryAxisInputs, node.JointDefinition.TertiaryAxisInputs);
             Node newNode = node.CopyWithNewJoint(newJointDefinition);
             context.Nodes[nodeIndex] = newNode;
         }
@@ -39,7 +39,7 @@ namespace mycoolfin.TheSimsulator.Sims.Genotype
                 Math.Clamp(node.JointDefinition.AngleLimits.Z + SharedRandom.DrawGaussian(sigma), JointDefinition.MIN_ANGLE_LIMIT, JointDefinition.MAX_ANGLE_LIMIT)
             );
             JointDefinition newJointDefinition = new(node.JointDefinition.JointType, newAngleLimits,
-                node.JointDefinition.XAxisInputs, node.JointDefinition.YAxisInputs, node.JointDefinition.ZAxisInputs);
+                node.JointDefinition.PrimaryAxisInputs, node.JointDefinition.SecondaryAxisInputs, node.JointDefinition.TertiaryAxisInputs);
             Node newNode = node.CopyWithNewJoint(newJointDefinition);
             context.Nodes[nodeIndex] = newNode;
         }
@@ -48,9 +48,9 @@ namespace mycoolfin.TheSimsulator.Sims.Genotype
         {
             Node node = context.Nodes[nodeIndex];
             InputSetDefinition newXAxisInputs = new();
-            InputSetDefinitionMutator.MutateInputSetDefinition(context, node.Gid, node.JointDefinition.XAxisInputs, newInputs => newXAxisInputs = newInputs);
+            InputSetDefinitionMutator.MutateInputSetDefinition(context, node.Gid, node.JointDefinition.PrimaryAxisInputs, newInputs => newXAxisInputs = newInputs);
             JointDefinition newJointDefinition = new(node.JointDefinition.JointType, node.JointDefinition.AngleLimits,
-                newXAxisInputs, node.JointDefinition.YAxisInputs, node.JointDefinition.ZAxisInputs);
+                newXAxisInputs, node.JointDefinition.SecondaryAxisInputs, node.JointDefinition.TertiaryAxisInputs);
             Node newNode = node.CopyWithNewJoint(newJointDefinition);
             context.Nodes[nodeIndex] = newNode;
         }
@@ -59,9 +59,9 @@ namespace mycoolfin.TheSimsulator.Sims.Genotype
         {
             Node node = context.Nodes[nodeIndex];
             InputSetDefinition newYAxisInputs = new();
-            InputSetDefinitionMutator.MutateInputSetDefinition(context, node.Gid, node.JointDefinition.YAxisInputs, newInputs => newYAxisInputs = newInputs);
+            InputSetDefinitionMutator.MutateInputSetDefinition(context, node.Gid, node.JointDefinition.SecondaryAxisInputs, newInputs => newYAxisInputs = newInputs);
             JointDefinition newJointDefinition = new(node.JointDefinition.JointType, node.JointDefinition.AngleLimits,
-                node.JointDefinition.XAxisInputs, newYAxisInputs, node.JointDefinition.ZAxisInputs);
+                node.JointDefinition.PrimaryAxisInputs, newYAxisInputs, node.JointDefinition.TertiaryAxisInputs);
             Node newNode = node.CopyWithNewJoint(newJointDefinition);
             context.Nodes[nodeIndex] = newNode;
         }
@@ -70,9 +70,9 @@ namespace mycoolfin.TheSimsulator.Sims.Genotype
         {
             Node node = context.Nodes[nodeIndex];
             InputSetDefinition newZAxisInputs = new();
-            InputSetDefinitionMutator.MutateInputSetDefinition(context, node.Gid, node.JointDefinition.ZAxisInputs, newInputs => newZAxisInputs = newInputs);
+            InputSetDefinitionMutator.MutateInputSetDefinition(context, node.Gid, node.JointDefinition.TertiaryAxisInputs, newInputs => newZAxisInputs = newInputs);
             JointDefinition newJointDefinition = new(node.JointDefinition.JointType, node.JointDefinition.AngleLimits,
-                node.JointDefinition.XAxisInputs, node.JointDefinition.YAxisInputs, newZAxisInputs);
+                node.JointDefinition.PrimaryAxisInputs, node.JointDefinition.SecondaryAxisInputs, newZAxisInputs);
             Node newNode = node.CopyWithNewJoint(newJointDefinition);
             context.Nodes[nodeIndex] = newNode;
         }

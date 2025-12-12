@@ -16,24 +16,6 @@ namespace mycoolfin.TheSimsulator.Sims.Genotype
         Spherical
     }
 
-    public static class JointTypeExtensions
-    {
-        public static byte DegreesOfFreedom(this JointType self)
-        {
-            return self switch
-            {
-                JointType.Rigid => 0,
-                JointType.Revolute => 1,
-                JointType.Twist => 1,
-                JointType.Universal => 2,
-                JointType.BendTwist => 2,
-                JointType.TwistBend => 2,
-                JointType.Spherical => 3,
-                _ => 0,
-            };
-        }
-    }
-
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
     public struct JointDefinition
     {
@@ -44,19 +26,19 @@ namespace mycoolfin.TheSimsulator.Sims.Genotype
 
         public JointType JointType { get; set; }
         public Vector3 AngleLimits { get; set; } // Radians.
-        public InputSetDefinition XAxisInputs { get; set; }
-        public InputSetDefinition YAxisInputs { get; set; }
-        public InputSetDefinition ZAxisInputs { get; set; }
+        public InputSetDefinition PrimaryAxisInputs { get; set; }
+        public InputSetDefinition SecondaryAxisInputs { get; set; }
+        public InputSetDefinition TertiaryAxisInputs { get; set; }
 
         public static readonly JointType[] AllJointTypes = (JointType[])Enum.GetValues(typeof(JointType));
 
-        public JointDefinition(JointType jointType, Vector3 angleLimits, InputSetDefinition xAxisInputs, InputSetDefinition yAxisInputs, InputSetDefinition zAxisInputs)
+        public JointDefinition(JointType jointType, Vector3 angleLimits, InputSetDefinition primaryAxisInputs, InputSetDefinition secondaryAxisInputs, InputSetDefinition tertiaryAxisInputs)
         {
             JointType = jointType;
             AngleLimits = angleLimits;
-            XAxisInputs = xAxisInputs;
-            YAxisInputs = yAxisInputs;
-            ZAxisInputs = zAxisInputs;
+            PrimaryAxisInputs = primaryAxisInputs;
+            SecondaryAxisInputs = secondaryAxisInputs;
+            TertiaryAxisInputs = tertiaryAxisInputs;
         }
 
         public static JointDefinition CreateRandom(ulong containerId, IReadOnlyList<Node> nodes, IReadOnlyList<Connection> connections, IReadOnlyList<NeuronDefinition> neuronDefinitions)
