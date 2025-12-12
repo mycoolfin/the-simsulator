@@ -9,7 +9,6 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Systems.Simulation.S
     using Core.ECS.Components.WorldObject;
     using Core.ECS.Components.Shared;
     using Components.Phenotype;
-    using UnityEditor.ShaderGraph.Internal;
 
     [BurstCompile]
     [UpdateInGroup(typeof(UpdateSensorsSystemGroup))]

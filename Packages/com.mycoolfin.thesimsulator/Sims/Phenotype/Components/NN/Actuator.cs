@@ -2,7 +2,7 @@ namespace mycoolfin.TheSimsulator.Sims.Phenotype
 {
     public enum ActuatorType : byte
     {
-        JointAngle,
+        JointAngle
     }
 
     public class Actuator : ISignalReceiver
