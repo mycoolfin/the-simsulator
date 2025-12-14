@@ -96,6 +96,11 @@ namespace UnityEngine.XR.Hands.Samples.VisualizerSample
                 if (info.material == null)
                     continue;
 
+                // Store original color before shader change
+                Color originalColor = info.material.GetColor("_Color");
+                if (!info.material.HasProperty("_Color"))
+                    originalColor = info.material.GetColor("_BaseColor"); // URP uses _BaseColor
+
                 // Find the appropriate shaders based on the toggle
                 Shader birpShader = info.useBuiltinShaderName ? Shader.Find(info.builtInPipelineShaderName) : info.builtInPipelineShader;
                 Shader srpShader = info.useSRPShaderName ? Shader.Find(info.scriptableRenderPipelineShaderName) : info.scriptableRenderPipelineShader;
@@ -107,11 +112,13 @@ namespace UnityEngine.XR.Hands.Samples.VisualizerSample
                 if (isBuiltinRenderPipeline && birpShader != null && currentShader != birpShader)
                 {
                     info.material.shader = birpShader;
+                    info.material.SetColor("_Color", originalColor);
                     MarkMaterialModified(info.material);
                 }
                 else if (!isBuiltinRenderPipeline && srpShader != null && currentShader != srpShader)
                 {
                     info.material.shader = srpShader;
+                    info.material.SetColor("_BaseColor", originalColor);
                     MarkMaterialModified(info.material);
                 }
             }
