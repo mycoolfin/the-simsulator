@@ -77,8 +77,9 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Builders
             Ecb.DestroyEntity(DISPOSAL_KEY, requestEntity);
         }
 
-        // NOTE: DOTS Physics currently supports up to three constraints per joint.
-        // For more complex joints we create multiple joint entities.
+        // BUG: There is a bug when using RotationMotor constraints where the jointed body may do a 360deg flip on startup.
+        // I currently have no idea why this happens and suspect that it may be a bug in DOTS Physics.
+        // AngularVelocityMotor constraints do not exhibit this bug, but have other issues (can create angular momentum out of nothing).
         [BurstCompile]
         public static void CreateJointEntity(
             ref EntityCommandBuffer.ParallelWriter ecb,
@@ -98,14 +99,13 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Builders
 
             Entity jointEntity1 = ecb.CreateEntity(sortKey, jointArchetype);
             Entity jointEntity2 = Entity.Null;
-            Entity jointEntity3 = Entity.Null;
 
-            PhysicsJoint physicsJoint1, physicsJoint2, physicsJoint3;
+            PhysicsJoint physicsJoint1, physicsJoint2;
             float3 primaryAxis, secondaryAxis, tertiaryAxis;
             float primaryAxisLimit = 0f;
             float secondaryAxisLimit = 0f;
             float tertiaryAxisLimit = 0f;
-            Constraint primaryAngularConstraint, secondaryAngularConstraint, tertiaryAngularConstraint;
+            Constraint primaryAngularConstraint, secondaryAngularConstraint;
             Constraint primaryMotorConstraint, secondaryMotorConstraint, tertiaryMotorConstraint;
             sbyte primaryMotorConstraintIndex = -1;
             sbyte secondaryMotorConstraintIndex = -1;
@@ -153,11 +153,8 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Builders
                     secondaryAxisLimit = 0f;
                     tertiaryAxisLimit = isRevolute ? request.AngleLimits.x : request.AngleLimits.z;
 
-                    CreateStaticConstraint(request, ConstraintType.Angular, new bool3(true, false, false), primaryAxisLimit, out primaryAngularConstraint);
-                    CreateStaticConstraint(request, ConstraintType.Angular, new bool3(false, true, false), secondaryAxisLimit, out secondaryAngularConstraint);
-                    CreateStaticConstraint(request, ConstraintType.Angular, new bool3(false, false, true), tertiaryAxisLimit, out tertiaryAngularConstraint);
-
-                    CreateMotorConstraint(request, ConstraintType.AngularVelocityMotor, new bool3(false, false, true), tertiaryAxisLimit, out tertiaryMotorConstraint);
+                    CreateStaticConstraint(request, ConstraintType.Angular, new bool3(true, true, false), 0f, out Constraint primarySecondaryAngularConstraint);
+                    CreateMotorConstraint(request, ConstraintType.RotationMotor, new bool3(false, false, true), tertiaryAxisLimit, out tertiaryMotorConstraint);
 
                     CreatePhysicsJoint(
                         request.ReferenceLimbSpaceAnchor,
@@ -169,24 +166,11 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Builders
                         out physicsJoint1
                     );
 
-                    jointEntity2 = ecb.CreateEntity(sortKey, jointArchetype);
-                    CreatePhysicsJoint(
-                        request.ReferenceLimbSpaceAnchor,
-                        primaryAxis,
-                        secondaryAxis,
-                        tertiaryAxis,
-                        referenceLimbLocalTransform,
-                        attachedLimbLocalTransform,
-                        out physicsJoint2
-                    );
-
-                    physicsJoint1.SetConstraints(new() { tertiaryMotorConstraint, linearConstraint });
-                    physicsJoint2.SetConstraints(new() { primaryAngularConstraint, secondaryAngularConstraint, tertiaryAngularConstraint, });
+                    physicsJoint1.SetConstraints(new() { tertiaryMotorConstraint, primarySecondaryAngularConstraint, linearConstraint });
 
                     tertiaryMotorConstraintIndex = 0;
 
                     ecb.SetComponent(sortKey, jointEntity1, physicsJoint1);
-                    ecb.SetComponent(sortKey, jointEntity2, physicsJoint2);
                     break;
                 case JointType.BendTwist:
                 case JointType.TwistBend:
@@ -201,12 +185,10 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Builders
                     secondaryAxisLimit = 0f;
                     tertiaryAxisLimit = isBendTwist ? request.AngleLimits.x : request.AngleLimits.z;
 
-                    CreateStaticConstraint(request, ConstraintType.Angular, new bool3(true, false, false), primaryAxisLimit, out primaryAngularConstraint);
                     CreateStaticConstraint(request, ConstraintType.Angular, new bool3(false, true, false), secondaryAxisLimit, out secondaryAngularConstraint);
-                    CreateStaticConstraint(request, ConstraintType.Angular, new bool3(false, false, true), tertiaryAxisLimit, out tertiaryAngularConstraint);
 
-                    CreateMotorConstraint(request, ConstraintType.AngularVelocityMotor, new bool3(true, false, false), primaryAxisLimit, out primaryMotorConstraint);
-                    CreateMotorConstraint(request, ConstraintType.AngularVelocityMotor, new bool3(false, false, true), tertiaryAxisLimit, out tertiaryMotorConstraint);
+                    CreateMotorConstraint(request, ConstraintType.RotationMotor, new bool3(true, false, false), primaryAxisLimit, out primaryMotorConstraint);
+                    CreateMotorConstraint(request, ConstraintType.RotationMotor, new bool3(false, false, true), tertiaryAxisLimit, out tertiaryMotorConstraint);
 
                     CreatePhysicsJoint(
                         request.ReferenceLimbSpaceAnchor,
@@ -229,8 +211,8 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Builders
                         out physicsJoint2
                     );
 
-                    physicsJoint1.SetConstraints(new() { primaryMotorConstraint, tertiaryMotorConstraint, linearConstraint });
-                    physicsJoint2.SetConstraints(new() { tertiaryAngularConstraint, primaryAngularConstraint, secondaryAngularConstraint });
+                    physicsJoint1.SetConstraints(new() { primaryMotorConstraint, tertiaryMotorConstraint  });
+                    physicsJoint2.SetConstraints(new() { linearConstraint, secondaryAngularConstraint });
 
                     primaryMotorConstraintIndex = 0;
                     tertiaryMotorConstraintIndex = 1;
@@ -249,11 +231,9 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Builders
                     tertiaryAxisLimit = request.AngleLimits.x;
 
                     CreateStaticConstraint(request, ConstraintType.Angular, new bool3(true, false, false), primaryAxisLimit, out primaryAngularConstraint);
-                    CreateStaticConstraint(request, ConstraintType.Angular, new bool3(false, true, false), secondaryAxisLimit, out secondaryAngularConstraint);
-                    CreateStaticConstraint(request, ConstraintType.Angular, new bool3(false, false, true), tertiaryAxisLimit, out tertiaryAngularConstraint);
 
-                    CreateMotorConstraint(request, ConstraintType.AngularVelocityMotor, new bool3(false, true, false), secondaryAxisLimit, out secondaryMotorConstraint);
-                    CreateMotorConstraint(request, ConstraintType.AngularVelocityMotor, new bool3(false, false, true), tertiaryAxisLimit, out tertiaryMotorConstraint);
+                    CreateMotorConstraint(request, ConstraintType.RotationMotor, new bool3(false, true, false), secondaryAxisLimit, out secondaryMotorConstraint);
+                    CreateMotorConstraint(request, ConstraintType.RotationMotor, new bool3(false, false, true), tertiaryAxisLimit, out tertiaryMotorConstraint);
 
                     CreatePhysicsJoint(
                         request.ReferenceLimbSpaceAnchor,
@@ -277,7 +257,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Builders
                     );
 
                     physicsJoint1.SetConstraints(new() { secondaryMotorConstraint, tertiaryMotorConstraint, linearConstraint });
-                    physicsJoint2.SetConstraints(new() { tertiaryAngularConstraint, primaryAngularConstraint, secondaryAngularConstraint });
+                    physicsJoint2.SetConstraints(new() { linearConstraint, primaryAngularConstraint });
 
                     secondaryMotorConstraintIndex = 0;
                     tertiaryMotorConstraintIndex = 1;
@@ -295,13 +275,9 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Builders
                     secondaryAxisLimit = request.AngleLimits.y;
                     tertiaryAxisLimit = request.AngleLimits.x;
 
-                    CreateStaticConstraint(request, ConstraintType.Angular, new bool3(true, false, false), primaryAxisLimit, out primaryAngularConstraint);
-                    CreateStaticConstraint(request, ConstraintType.Angular, new bool3(false, true, false), secondaryAxisLimit, out secondaryAngularConstraint);
-                    CreateStaticConstraint(request, ConstraintType.Angular, new bool3(false, false, true), tertiaryAxisLimit, out tertiaryAngularConstraint);
-
-                    CreateMotorConstraint(request, ConstraintType.AngularVelocityMotor, new bool3(true, false, false), primaryAxisLimit, out primaryMotorConstraint);
-                    CreateMotorConstraint(request, ConstraintType.AngularVelocityMotor, new bool3(false, true, false), secondaryAxisLimit, out secondaryMotorConstraint);
-                    CreateMotorConstraint(request, ConstraintType.AngularVelocityMotor, new bool3(false, false, true), tertiaryAxisLimit, out tertiaryMotorConstraint);
+                    CreateMotorConstraint(request, ConstraintType.RotationMotor, new bool3(true, false, false), primaryAxisLimit, out primaryMotorConstraint);
+                    CreateMotorConstraint(request, ConstraintType.RotationMotor, new bool3(false, true, false), secondaryAxisLimit, out secondaryMotorConstraint);
+                    CreateMotorConstraint(request, ConstraintType.RotationMotor, new bool3(false, false, true), tertiaryAxisLimit, out tertiaryMotorConstraint);
 
                     CreatePhysicsJoint(
                         request.ReferenceLimbSpaceAnchor,
@@ -324,20 +300,8 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Builders
                         out physicsJoint2
                     );
 
-                    jointEntity3 = ecb.CreateEntity(sortKey, jointArchetype);
-                    CreatePhysicsJoint(
-                        request.ReferenceLimbSpaceAnchor,
-                        primaryAxis,
-                        secondaryAxis,
-                        tertiaryAxis,
-                        referenceLimbLocalTransform,
-                        attachedLimbLocalTransform,
-                        out physicsJoint3
-                    );
-
                     physicsJoint1.SetConstraints(new() { primaryMotorConstraint, secondaryMotorConstraint, tertiaryMotorConstraint });
-                    physicsJoint2.SetConstraints(new() { primaryAngularConstraint, secondaryAngularConstraint, tertiaryAngularConstraint });
-                    physicsJoint3.SetConstraints(new() { linearConstraint });
+                    physicsJoint2.SetConstraints(new() { linearConstraint });
 
                     primaryMotorConstraintIndex = 0;
                     secondaryMotorConstraintIndex = 1;
@@ -345,7 +309,6 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Builders
 
                     ecb.SetComponent(sortKey, jointEntity1, physicsJoint1);
                     ecb.SetComponent(sortKey, jointEntity2, physicsJoint2);
-                    ecb.SetComponent(sortKey, jointEntity3, physicsJoint3);
                     break;
                 default:
                     break;
@@ -367,6 +330,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Builders
             });
             ecb.AddComponent(sortKey, jointEntity1, new JointAngleActuators
             {
+                AngleLimits = new float3(primaryAxisLimit, secondaryAxisLimit, tertiaryAxisLimit),
                 TargetAngularVelocities = float3.zero,
                 PrimaryMotorConstraintIndex = primaryMotorConstraintIndex,
                 SecondaryMotorConstraintIndex = secondaryMotorConstraintIndex,
@@ -384,18 +348,6 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Builders
                 ecb.SetComponent(sortKey, jointEntity2, breakDistance);
                 ecb.AppendToBuffer(sortKey, jointEntity1, new PhysicsJointCompanion { JointEntity = jointEntity2 });
                 ecb.AppendToBuffer(sortKey, jointEntity2, new PhysicsJointCompanion { JointEntity = jointEntity1 });
-            }
-
-            if (jointEntity3 != Entity.Null)
-            {
-                ecb.SetComponent(sortKey, jointEntity3, new RootPhenotypeEntity { Value = rootPhenotypeEntity });
-                ecb.SetSharedComponent(sortKey, jointEntity3, new PhysicsWorldIndex(0));
-                ecb.SetComponent(sortKey, jointEntity3, new PhysicsConstrainedBodyPair(referenceLimbEntity, attachedLimbEntity, false));
-                ecb.SetComponent(sortKey, jointEntity3, breakDistance);
-                ecb.AppendToBuffer(sortKey, jointEntity1, new PhysicsJointCompanion { JointEntity = jointEntity3 });
-                ecb.AppendToBuffer(sortKey, jointEntity2, new PhysicsJointCompanion { JointEntity = jointEntity3 });
-                ecb.AppendToBuffer(sortKey, jointEntity3, new PhysicsJointCompanion { JointEntity = jointEntity1 });
-                ecb.AppendToBuffer(sortKey, jointEntity3, new PhysicsJointCompanion { JointEntity = jointEntity2 });
             }
 
             ecb.SetComponent(sortKey, attachedLimbEntity, new ParentLimb { Value = referenceLimbEntity });
@@ -421,13 +373,15 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Builders
                 PerpendicularAxis = secondaryAxis * (flippedHandedness ? -1f : 1f)
             };
 
-            float4x4 T_B_from_A = math.mul(math.inverse(attachedLimbLocalTransform), referenceLimbLocalTransform);
+            RigidTransform worldFromA = new(referenceLimbLocalTransform);
+            RigidTransform worldFromB = new(attachedLimbLocalTransform);
+            RigidTransform bFromA = math.mul(math.inverse(worldFromB), worldFromA);
 
             BodyFrame bodyBFromJoint = new()
             {
-                Position = math.transform(T_B_from_A, bodyAFromJoint.Position),
-                Axis = math.normalize(math.mul(T_B_from_A, new float4(bodyAFromJoint.Axis, 0f)).xyz),
-                PerpendicularAxis = math.normalize(math.mul(T_B_from_A, new float4(bodyAFromJoint.PerpendicularAxis, 0f)).xyz)
+                Position = math.transform(bFromA, bodyAFromJoint.Position),
+                Axis = math.normalize(math.mul(bFromA, new float4(bodyAFromJoint.Axis, 0f)).xyz),
+                PerpendicularAxis = math.normalize(math.mul(bFromA, new float4(bodyAFromJoint.PerpendicularAxis, 0f)).xyz)
             };
 
             joint = new PhysicsJoint

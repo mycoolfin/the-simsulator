@@ -151,7 +151,7 @@ MonoBehaviour:
   m_SimulationType: 1
   m_Gravity:
     x: -0
-    y: 0
+    y: -9.81
     z: -0
   m_SubstepCount: 1
   m_SolverIterationCount: 4
