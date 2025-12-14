@@ -8,7 +8,6 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Systems.Simulation.A
 {
     using Core.ECS.Components.Shared;
     using Components.Phenotype;
-    using UnityEngine;
 
     [BurstCompile]
     [UpdateInGroup(typeof(UpdateActuatorsSystemGroup))]
@@ -27,10 +26,14 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Systems.Simulation.A
 
         public void OnUpdate(ref SystemState state)
         {
+            FixedStepSimulationSystemGroup fixedStepGroup = state.World.GetExistingSystemManaged<FixedStepSimulationSystemGroup>();
+            float deltaTime = fixedStepGroup.World.Time.DeltaTime;
+
             emitterStatesLookup.Update(ref state);
 
             state.Dependency = new UpdateJointAngleActuatorsJob()
             {
+                DeltaTime = deltaTime,
                 EmitterStateBuffers = emitterStatesLookup
             }.ScheduleParallel(state.Dependency);
         }
@@ -39,9 +42,11 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Systems.Simulation.A
     [BurstCompile]
     public partial struct UpdateJointAngleActuatorsJob : IJobEntity
     {
+        [ReadOnly] public float DeltaTime;
         [ReadOnly] public BufferLookup<EmitterState> EmitterStateBuffers;
 
-        private const float MAX_ANGULAR_VELOCITY = 2 * Mathf.PI;
+        private const float MAX_ANGULAR_VELOCITY = 15.0f; // Radians per second.
+        private const float FILTER_ALPHA = 0.8f; // Low-pass filter coefficient (higher = more responsive).
 
         public void Execute(ref PhysicsJoint joint, in RootPhenotypeEntity rootPhenotypeEntity, ref JointAngleActuators a)
         {
@@ -51,45 +56,56 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Systems.Simulation.A
             DynamicBuffer<EmitterState> buffer = EmitterStateBuffers[rootPhenotypeEntity.Value];
             FixedList512Bytes<Constraint> constraints = joint.GetConstraints();
 
-            float primaryTargetVelocity = 0f;
-            float secondaryTargetVelocity = 0f;
-            float tertiaryTargetVelocity = 0f;
+            float primaryTargetAngle = 0f;
+            float secondaryTargetAngle = 0f;
+            float tertiaryTargetAngle = 0f;
             if (a.PrimaryMotorConstraintIndex >= 0)
             {
-                CalculateTargetVelocity(ref buffer, a.PrimaryActuatorNeuronEmitterIndex, out primaryTargetVelocity);
                 ref Constraint c = ref constraints.ElementAt(a.PrimaryMotorConstraintIndex);
-                c.Target = primaryTargetVelocity;
+                CalculateTargetAngle(ref buffer, a.PrimaryActuatorNeuronEmitterIndex, DeltaTime, a.AngleLimits.x, c.Target.x, out primaryTargetAngle);
+                c.Target = primaryTargetAngle;
             }
             if (a.SecondaryMotorConstraintIndex >= 0)
             {
-                CalculateTargetVelocity(ref buffer, a.SecondaryActuatorNeuronEmitterIndex, out secondaryTargetVelocity);
                 ref Constraint c = ref constraints.ElementAt(a.SecondaryMotorConstraintIndex);
-                c.Target = secondaryTargetVelocity;
+                CalculateTargetAngle(ref buffer, a.SecondaryActuatorNeuronEmitterIndex, DeltaTime, a.AngleLimits.y, c.Target.y, out secondaryTargetAngle);
+                c.Target = secondaryTargetAngle;
             }
             if (a.TertiaryMotorConstraintIndex >= 0)
             {
-                CalculateTargetVelocity(ref buffer, a.TertiaryActuatorNeuronEmitterIndex, out tertiaryTargetVelocity);
                 ref Constraint c = ref constraints.ElementAt(a.TertiaryMotorConstraintIndex);
-                c.Target = tertiaryTargetVelocity;
+                CalculateTargetAngle(ref buffer, a.TertiaryActuatorNeuronEmitterIndex, DeltaTime, a.AngleLimits.z, c.Target.z, out tertiaryTargetAngle);
+                c.Target = tertiaryTargetAngle;
             }
             
-            a.TargetAngularVelocities = new(primaryTargetVelocity, secondaryTargetVelocity, tertiaryTargetVelocity);
+            a.TargetAngularVelocities = new(primaryTargetAngle, secondaryTargetAngle, tertiaryTargetAngle);
 
             joint.SetConstraints(constraints);
         }
 
         [BurstCompile]
-        public static void CalculateTargetVelocity(ref DynamicBuffer<EmitterState> buffer, ushort emitterIndex, out float targetVelocity)
+        public static void CalculateTargetAngle(ref DynamicBuffer<EmitterState> buffer, ushort emitterIndex, in float deltaTime, in float angleLimit, in float currentTargetAngle, out float targetAngle)
         {
             if (emitterIndex >= (ushort)buffer.Length)
             {
-                targetVelocity = 0f;
+                targetAngle = 0f;
                 return;
             }
 
             // Get the raw neural signal and convert to target angle.
             float rawSignal = math.clamp(buffer[emitterIndex].Value, -1f, 1f);
-            targetVelocity = rawSignal * MAX_ANGULAR_VELOCITY;
+            float desiredTargetAngle = rawSignal * angleLimit;
+
+            // Apply rate limiting - prevent changes faster than MAX_ANGULAR_VELOCITY.
+            float maxAngleChange = MAX_ANGULAR_VELOCITY * deltaTime;
+            float angleDifference = desiredTargetAngle - currentTargetAngle;
+            float rateLimitedAngleDifference = math.clamp(angleDifference, -maxAngleChange, maxAngleChange);
+            float rateLimitedTarget = currentTargetAngle + rateLimitedAngleDifference;
+
+            // Apply low-pass filter to smooth out remaining high-frequency components.
+            float filteredTarget = math.lerp(currentTargetAngle, rateLimitedTarget, FILTER_ALPHA);
+
+            targetAngle = filteredTarget;
         }
     }
 }
