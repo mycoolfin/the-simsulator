@@ -78,7 +78,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.Evolution
         [SerializeField] private string SeedGenotypePath = string.Empty;
         private SeedGenotype<TGenotype> seedGenotype = null;
         public string SeedGenotypeName => seedGenotype?.ToString();
-        [SerializeField] private bool lockMorphologies = false; // TODO: Rig up
+        [SerializeField] private bool lockMorphologies = false;
         public bool LockMorphologies => lockMorphologies;
 
         // Seeding randomness isn't working yet on the ECS side.
