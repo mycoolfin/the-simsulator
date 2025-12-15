@@ -6,6 +6,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Systems.Simulation.E
 {
     using Core.ECS.Components.Phenotype;
     using Components.Evolution;
+    using Components.Phenotype;
 
     [UpdateInGroup(typeof(AssessmentSystemGroup))]
     [UpdateAfter(typeof(BeginAssessmentSystem))]
@@ -28,19 +29,24 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Systems.Simulation.E
     [BurstCompile]
     public partial struct WaterDistanceAssessmentJob : IJobEntity
     {
-        public void Execute(in PhenotypeBoundingBox boundingBox, ref Fitness fitness, ref WaterDistanceAssessmentData data)
+        private const float MaxVolume = 5f * 5f * 5f;
+
+        public void Execute(in PhenotypeBoundingBox boundingBox, in DynamicBuffer<LimbStatus> limbStatuses, ref Fitness fitness, ref WaterDistanceAssessmentData data)
         {
             float3 currentPosition = boundingBox.Center;
 
-            if (fitness.Value < 0f) // Assessment hasn't started yet.
+            if (!data.IsInitialised)
+            {
                 data.StartPosition = currentPosition;
+                data.IsInitialised = true;
+            }
 
             float displacement = math.distance(currentPosition, data.StartPosition);
 
             float volume = boundingBox.MaxExtents.x * boundingBox.MaxExtents.y * boundingBox.MaxExtents.z;
-            float volumePenalty = math.max(volume, 5f * 5f * 5f);
+            float volumePenalty = 1f / math.max(volume - MaxVolume, 1f);
 
-            fitness.Value = displacement / volumePenalty;
+            fitness.Value = displacement * volumePenalty;
         }
     }
 }

@@ -48,7 +48,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Systems.Simulation.E
 
         public void Execute([ChunkIndexInQuery] int chunkIndex, Entity rootPhenotypeEntity)
         {
-            Ecb.AddComponent(chunkIndex, rootPhenotypeEntity, new Fitness() { Value = -1f }); // -1 indicates that assessment hasn't started yet.
+            Ecb.AddComponent(chunkIndex, rootPhenotypeEntity, new Fitness() { Value = 0f });
             switch (trialType)
             {
                 case TrialType.GroundDistance:

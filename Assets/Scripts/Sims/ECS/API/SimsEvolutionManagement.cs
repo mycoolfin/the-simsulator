@@ -6,7 +6,6 @@ using Unity.Burst.Intrinsics;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
-using Unity.Physics;
 
 namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.API
 {
@@ -16,7 +15,6 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.API
     using Core.ECS.Systems.Simulation.SimulationRate;
     using Core.ECS.Components.Phenotype;
     using Components.Evolution;
-    using Components.Phenotype;
     using Systems.Simulation.Evolution.Assessment;
     using Systems.Simulation.Limbs;
 
@@ -107,6 +105,8 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.API
             yield return SimulateForSeconds(world, settleSeconds, GetSimulationRateModeCallback, progress);
 
             entityManager.CreateSingleton<ZeroAllLimbVelocitiesRequest>();
+            // Simulate one extra physics frame to ensure the zero velocity request is processed.
+            world.GetExistingSystemManaged<FixedStepSimulationSystemGroup>().Update();
         }
 
         public IEnumerator AssessPhenotypes(World world, TrialType trialType, float assessmentSeconds, Func<SimulationRateMode> GetSimulationRateModeCallback, IProgress<float> progress = null)
@@ -125,7 +125,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.API
                 return new Dictionary<ulong, float>();
 
             EntityManager entityManager = world.EntityManager;
-            EntityQuery query = entityManager.CreateEntityQuery(typeof(PhenotypeGid), typeof(Fitness), typeof(LimbStatus));
+            EntityQuery query = entityManager.CreateEntityQuery(typeof(PhenotypeGid), typeof(Fitness));
 
             if (query.IsEmptyIgnoreFilter)
                 return new Dictionary<ulong, float>();
@@ -137,7 +137,6 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.API
                 Results = resultsMap.AsParallelWriter(),
                 GidHandle = entityManager.GetComponentTypeHandle<PhenotypeGid>(isReadOnly: true),
                 FitnessHandle = entityManager.GetComponentTypeHandle<Fitness>(isReadOnly: true),
-                LimbStatusHandle = entityManager.GetBufferTypeHandle<LimbStatus>(isReadOnly: true)
             };
             job.ScheduleParallel(query, default).Complete();
 
@@ -186,7 +185,6 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.API
     {
         [ReadOnly] public ComponentTypeHandle<PhenotypeGid> GidHandle;
         [ReadOnly] public ComponentTypeHandle<Fitness> FitnessHandle;
-        [ReadOnly] public BufferTypeHandle<LimbStatus> LimbStatusHandle;
 
         public NativeParallelHashMap<ulong, float>.ParallelWriter Results;
 
@@ -194,25 +192,13 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.API
         {
             NativeArray<PhenotypeGid> phenotypeGids = chunk.GetNativeArray(ref GidHandle);
             NativeArray<Fitness> fitnesses = chunk.GetNativeArray(ref FitnessHandle);
-            BufferAccessor<LimbStatus> limbStatusBuffers = chunk.GetBufferAccessor(ref LimbStatusHandle);
 
             for (int i = 0; i < chunk.Count; i++)
             {
                 PhenotypeGid phenotypeGid = phenotypeGids[i];
                 Fitness fitness = fitnesses[i];
-                DynamicBuffer<LimbStatus> limbStatuses = limbStatusBuffers[i];
 
-                bool detached = false;
-                for (int j = 0; j < limbStatuses.Length; j++)
-                {
-                    if (limbStatuses[j].AttachmentState == AttachmentState.Detached)
-                    {
-                        detached = true;
-                        break;
-                    }
-                }
-
-                Results.TryAdd(phenotypeGid.Value, detached ? 0f : fitness.Value);
+                Results.TryAdd(phenotypeGid.Value, fitness.Value);
             }
         }
     }
