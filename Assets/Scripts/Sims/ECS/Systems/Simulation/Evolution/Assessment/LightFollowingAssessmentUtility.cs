@@ -16,8 +16,8 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Systems.Simulation.E
             in DynamicBuffer<LimbStatus> limbStatuses,
             ref Fitness fitness,
             ref TData data,
-            bool lightSourceMoved,
-            float3 lightSourcePosition)
+            float3 lightSourcePosition
+        )
             where TData : unmanaged, ILightFollowingData
         {
             // If any limb is detached set fitness to 0.
@@ -34,25 +34,34 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Systems.Simulation.E
 
             if (!data.IsInitialised)
             {
-                data.StartPosition = currentPosition;
-                data.AccumulatedFitness = 0f;
+                data.PreviousPosition = currentPosition;
                 data.IsInitialised = true;
+                return; // Skip first frame, no displacement to measure yet.
             }
 
-            if (lightSourceMoved)
+            // Calculate displacement (movement) this frame.
+            float3 displacement = currentPosition - data.PreviousPosition;
+            
+            // Calculate desired direction toward light
+            float3 toLightDirection = lightSourcePosition - currentPosition;
+            float distanceToLight = math.length(toLightDirection);
+            
+            if (distanceToLight > 0.01f)
             {
-                data.StartPosition = currentPosition;
-                data.AccumulatedFitness = fitness.Value;
+                toLightDirection /= distanceToLight; // Normalize.
+                
+                // Reward movement aligned with direction to light.
+                float displacementTowardLight = math.dot(displacement, toLightDirection);
+                
+                float volume = boundingBox.MaxExtents.x * boundingBox.MaxExtents.y * boundingBox.MaxExtents.z;
+                float volumePenalty = 1f / math.max(volume - MaxVolume, 1f);
+
+                // Positive fitness for moving toward light, negative for moving away.
+                fitness.Value += displacementTowardLight * volumePenalty;
             }
 
-            float distanceFromStartToLight = math.distance(data.StartPosition, lightSourcePosition);
-            float distanceFromCurrentToLight = math.distance(currentPosition, lightSourcePosition);
-            float progress = distanceFromStartToLight - distanceFromCurrentToLight;
-
-            float volume = boundingBox.MaxExtents.x * boundingBox.MaxExtents.y * boundingBox.MaxExtents.z;
-            float volumePenalty = 1f / math.max(volume - MaxVolume, 1f);
-
-            fitness.Value = data.AccumulatedFitness + progress * volumePenalty;
+            // Store current position for next frame.
+            data.PreviousPosition = currentPosition;
         }
     }
 }

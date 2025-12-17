@@ -8,40 +8,39 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Components.Evolution
         public float Value;
     }
 
-    public interface IAssessmentData : IComponentData
+    public interface IDistanceData : IComponentData
     {
         bool IsInitialised { get; set; }
         float3 StartPosition { get; set; }
     }
 
-    public struct GroundDistanceAssessmentData : IAssessmentData
+    public struct GroundDistanceAssessmentData : IDistanceData
     {
         public bool IsInitialised { get; set; }
         public float3 StartPosition { get; set; }
     }
 
-    public struct WaterDistanceAssessmentData : IAssessmentData
+    public struct WaterDistanceAssessmentData : IDistanceData
     {
         public bool IsInitialised { get; set; }
         public float3 StartPosition { get; set; }
     }
 
-    public interface ILightFollowingData : IAssessmentData
+    public interface ILightFollowingData : IComponentData
     {
-        float AccumulatedFitness { get; set; }
+        bool IsInitialised { get; set; }
+        float3 PreviousPosition { get; set; }
     }
 
     public struct GroundLightFollowingAssessmentData : ILightFollowingData
     {
         public bool IsInitialised { get; set; }
-        public float3 StartPosition { get; set; }
-        public float AccumulatedFitness { get; set; }
+        public float3 PreviousPosition { get; set; }
     }
 
     public struct WaterLightFollowingAssessmentData : ILightFollowingData
     {
         public bool IsInitialised { get; set; }
-        public float3 StartPosition { get; set; }
-        public float AccumulatedFitness { get; set; }
+        public float3 PreviousPosition { get; set; }
     }
 }
