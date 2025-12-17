@@ -14,15 +14,16 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Systems.Simulation.E
     [UpdateAfter(typeof(BeginAssessmentSystem))]
     public partial struct WaterLightFollowingAssessmentSystem : ISystem
     {
-        private const float SphereInnerRadius = 2f;
-        private const float SphereOuterRadius = 20f;
-        private const float LightMoveIntervalSecondsMin = 4f;
-        private const float LightMoveIntervalSecondsMax = 10f;
-        private float timeSinceLastMove;
+        private const float MovementAreaRadius = 20f;
+
+        private float3 radii;
+        private float3 center;
+        private float timeSinceLastTargetSelection;
         private float3 lightSourcePosition;
+        private float3 lightTargetPosition;
+        private float3 lightVelocity;
+        private float3 positionAtLastTargetSelection;
         private Random random;
-        private float LightMoveIntervalSeconds;
-        private float GetNewLightMoveInterval() => random.NextFloat(LightMoveIntervalSecondsMin, LightMoveIntervalSecondsMax);
 
         public void OnCreate(ref SystemState state)
         {
@@ -32,61 +33,44 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Systems.Simulation.E
             state.RequireForUpdate<WaterLightFollowingAssessmentData>();
             state.RequireForUpdate<LightSourceTag>();
 
-            LightMoveIntervalSeconds = GetNewLightMoveInterval();
-            timeSinceLastMove = LightMoveIntervalSeconds + float.Epsilon; // Force immediate move on first update.
+            // Initialize light at random position within the sphere.
+            radii = new(MovementAreaRadius, MovementAreaRadius, MovementAreaRadius);
+            center = float3.zero;
+            lightSourcePosition = LightMovementUtility.GetRandomPositionInBounds(ref random, radii);
+            lightTargetPosition = lightSourcePosition;
+            lightVelocity = float3.zero;
+            positionAtLastTargetSelection = lightSourcePosition;
+            timeSinceLastTargetSelection = 0f;
         }
 
         public void OnUpdate(ref SystemState state)
         {
-            bool moved = MoveLightSourceIfNeeded(ref state);
+            FixedStepSimulationSystemGroup fixedStepGroup = state.World.GetExistingSystemManaged<FixedStepSimulationSystemGroup>();
+            float deltaTime = fixedStepGroup.World.Time.DeltaTime;
+
+            LightMovementUtility.UpdateLightPosition(
+                ref state,
+                ref random,
+                ref timeSinceLastTargetSelection,
+                ref lightSourcePosition,
+                ref lightTargetPosition,
+                ref lightVelocity,
+                ref positionAtLastTargetSelection,
+                deltaTime,
+                radii,
+                center
+            );
 
             new WaterLightFollowingAssessmentJob
             {
-                LightSourceMoved = moved,
-                LightSourcePosition = lightSourcePosition
+                LightSourcePosition = lightSourcePosition,
             }.ScheduleParallel(state.Dependency).Complete();
-        }
-
-        private bool MoveLightSourceIfNeeded(ref SystemState state)
-        {
-            FixedStepSimulationSystemGroup fixedStepGroup = state.World.GetExistingSystemManaged<FixedStepSimulationSystemGroup>();
-            Entity lightSourceEntity = SystemAPI.GetSingletonEntity<LightSourceTag>();
-
-            // Move light source to new random position in hollow sphere after every interval.
-            bool moved = false;
-            timeSinceLastMove += fixedStepGroup.World.Time.DeltaTime;
-            if (timeSinceLastMove >= LightMoveIntervalSeconds)
-            {
-                // Sample random point in hollow sphere (spherical shell) using spherical coordinates.
-                float theta = random.NextFloat(0f, math.PI * 2f);  // Azimuthal angle.
-                float phi = math.acos(random.NextFloat(-1f, 1f));  // Polar angle (uniform distribution).
-                float radius = random.NextFloat(SphereInnerRadius, SphereOuterRadius);  // Random radius in shell.
-
-                float x = radius * math.sin(phi) * math.cos(theta);
-                float y = radius * math.sin(phi) * math.sin(theta);
-                float z = radius * math.cos(phi);
-
-                float3 newPosition = new(x, y, z);
-                state.EntityManager.SetComponentData(lightSourceEntity, new LocalTransform
-                {
-                    Position = newPosition,
-                    Rotation = quaternion.identity,
-                    Scale = 1f
-                });
-                timeSinceLastMove = 0f;
-                LightMoveIntervalSeconds = GetNewLightMoveInterval();
-                lightSourcePosition = newPosition;
-                moved = true;
-            }
-
-            return moved;
         }
     }
 
     [BurstCompile]
     public partial struct WaterLightFollowingAssessmentJob : IJobEntity
     {
-        public bool LightSourceMoved;
         public float3 LightSourcePosition;
 
         public void Execute(in PhenotypeBoundingBox boundingBox, in DynamicBuffer<LimbStatus> limbStatuses, ref Fitness fitness, ref WaterLightFollowingAssessmentData data)
@@ -96,8 +80,8 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Systems.Simulation.E
                 in limbStatuses,
                 ref fitness,
                 ref data,
-                LightSourceMoved,
-                LightSourcePosition);
+                LightSourcePosition
+            );
         }
     }
 }

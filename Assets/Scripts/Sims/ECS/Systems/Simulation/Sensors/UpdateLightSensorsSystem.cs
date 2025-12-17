@@ -16,11 +16,14 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Systems.Simulation.S
     {
         private ComponentLookup<LocalTransform> localTransformLookup;
         private BufferLookup<EmitterState> emitterStatesLookup;
+        private EntityQuery lightSourceQuery;
 
         public void OnCreate(ref SystemState state)
         {
             localTransformLookup = state.GetComponentLookup<LocalTransform>(isReadOnly: true);
             emitterStatesLookup = state.GetBufferLookup<EmitterState>(isReadOnly: false);
+
+            lightSourceQuery = state.GetEntityQuery(typeof(LightSourceTag), typeof(LocalTransform));
 
             state.RequireForUpdate<LocalTransform>();
             state.RequireForUpdate<LightSourceTag>();
@@ -32,7 +35,6 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Systems.Simulation.S
             localTransformLookup.Update(ref state);
             emitterStatesLookup.Update(ref state);
 
-            EntityQuery lightSourceQuery = state.GetEntityQuery(typeof(LightSourceTag), typeof(LocalTransform));
             using NativeArray<LocalTransform> lightSourceTransforms = lightSourceQuery.ToComponentDataArray<LocalTransform>(Allocator.TempJob);
 
             new UpdateLightSensorsJob
