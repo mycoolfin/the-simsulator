@@ -560,8 +560,8 @@ namespace mycoolfin.TheSimsulator.Sims.Phenotype
                 node.Dimensions.Z * currentScale.Z
             );
 
-            // Create new limb with absolute dimensions.
-            Limb newLimb = new(dimensions);
+            // Create new limb with absolute dimensions and node GID.
+            Limb newLimb = new(dimensions, node.Gid);
             newLimb.SetColor(node.Color.ToRGBA(nodeRecursionDepth));
 
             bool swapX = false;

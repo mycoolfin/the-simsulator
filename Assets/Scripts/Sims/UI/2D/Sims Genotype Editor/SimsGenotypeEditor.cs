@@ -24,6 +24,8 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.UI.TwoD
         private NodeEditor nodeEditor;
         private ConnectionEditor connectionEditor;
 
+        public event Action<ulong> OnNodeSelectedByUser; // Event for when user selects a node (fires with Node GID).
+
         public SimsGenotypeEditor(UIDocument uiDocument, Action<SimsGenotype> onGenotypeChanged) : base(uiDocument, onGenotypeChanged)
         {
             nodes = new();
@@ -40,6 +42,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.UI.TwoD
             genotypeGraph = new GenotypeGraph(graphCanvas, connectionOverlay);
             genotypeGraph.OnNodeSelected += OnNodeClicked;
             genotypeGraph.OnConnectionSelected += OnConnectionClicked;
+            genotypeGraph.OnEmptySpaceClicked += OnEmptySpaceClicked;
 
             InitializeNodeEditor();
             InitializeConnectionEditor();
@@ -99,11 +102,21 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.UI.TwoD
         private void OnNodeClicked(int nodeIndex)
         {
             ShowNodeEditor(nodes[nodeIndex], nodeIndex);
+
+            // Fire event for external systems.
+            OnNodeSelectedByUser?.Invoke(nodes[nodeIndex].Gid);
         }
 
         private void OnConnectionClicked(int connectionIndex)
         {
             ShowConnectionEditor(connections[connectionIndex], connectionIndex);
+        }
+
+        private void OnEmptySpaceClicked()
+        {
+            ShowEmptyState();
+            // Fire event with 0 to signal deselection to external systems.
+            OnNodeSelectedByUser?.Invoke(0);
         }
 
         private void ShowEmptyState()
@@ -237,6 +250,32 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.UI.TwoD
                 currentGenotype.NeuronDefinitions
             );
             onGenotypeChanged?.Invoke(updatedGenotype);
+        }
+
+        /// <summary>
+        /// Select a node in the graph by its GID. Called from external systems (e.g., creature visualizer clicks).
+        /// </summary>
+        public void SelectNodeByGid(ulong nodeGid)
+        {
+            int nodeIndex = nodes.FindIndex(n => n.Gid == nodeGid);
+            if (nodeIndex >= 0)
+            {
+                genotypeGraph.SetSelectedNode(nodeIndex);
+                ShowNodeEditor(nodes[nodeIndex], nodeIndex);
+                // Fire event to notify external systems.
+                OnNodeSelectedByUser?.Invoke(nodeGid);
+            }
+        }
+
+        /// <summary>
+        /// Clear the current selection and hide editor panels.
+        /// </summary>
+        public void ClearSelection()
+        {
+            genotypeGraph.ClearSelection();
+            ShowEmptyState();
+            // Fire event with 0 to signal deselection to external systems.
+            OnNodeSelectedByUser?.Invoke(0);
         }
     }
 }

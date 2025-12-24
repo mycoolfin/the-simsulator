@@ -5,7 +5,7 @@
                 <ui:Label tabindex="-1" text="Node ?" display-tooltip-when-elided="true" name="node-name" style="-unity-font-style: bold; flex-shrink: 1; align-self: center;"/>
                 <ui:Button text="Delete Node" display-tooltip-when-elided="true" name="delete-node" style="margin-left: 20px;"/>
             </ui:VisualElement>
-            <ui:VisualElement style="background-color: rgba(0, 0, 0, 0); flex-grow: 1; max-width: 500px;">
+            <ui:VisualElement style="background-color: rgba(0, 0, 0, 0); flex-grow: 1; max-width: 90%;">
                 <ui:Foldout text="Dimensions" name="dimensions" value="false">
                     <ui:Slider picking-mode="Ignore" label="X" value="42" high-value="100" direction="Horizontal" show-input-field="true" name="x" inverted="false" style="align-items: center;"/>
                     <ui:Slider picking-mode="Ignore" label="Y" value="42" high-value="100" direction="Horizontal" show-input-field="true" name="y" style="align-items: center;"/>

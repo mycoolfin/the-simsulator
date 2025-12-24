@@ -24,6 +24,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.UI.TwoD
 
         public event Action<int> OnNodeSelected;
         public event Action<int> OnConnectionSelected;
+        public event Action OnEmptySpaceClicked;
 
         private const float NODE_WIDTH = 200f;
         private const float NODE_HEIGHT = 160f;
@@ -78,6 +79,16 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.UI.TwoD
         {
             selectedConnectionIndex = connectionIndex;
             selectedNodeIndex = null;
+            RefreshGraph();
+        }
+
+        /// <summary>
+        /// Clear all selections.
+        /// </summary>
+        public void ClearSelection()
+        {
+            selectedNodeIndex = null;
+            selectedConnectionIndex = null;
             RefreshGraph();
         }
 
@@ -184,7 +195,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.UI.TwoD
 
             // Register click handler.
             int capturedIndex = nodeIndex;
-            nodeVisual.RegisterCallback<ClickEvent>(evt =>
+            nodeVisual.RegisterCallback<PointerDownEvent>(evt =>
             {
                 OnNodeClicked(capturedIndex);
                 evt.StopPropagation();
@@ -456,9 +467,10 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.UI.TwoD
                 }
             }
 
-            // Clicked on empty space - deselect everything
+            // Clicked on empty space - deselect everything.
             selectedNodeIndex = null;
             selectedConnectionIndex = null;
+            OnEmptySpaceClicked?.Invoke(); // Notify external systems.
             RefreshGraph();
         }
 

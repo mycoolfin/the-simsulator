@@ -75,6 +75,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Builders
             state.EntityManager.AddComponentData(limbPrototype, new RootPhenotypeEntity());
             state.EntityManager.AddComponentData(limbPrototype, new LimbIndex());
             state.EntityManager.AddComponentData(limbPrototype, new ParentLimb() { Value = Entity.Null });
+            state.EntityManager.AddComponentData(limbPrototype, new NodeGid());
 
             // Limb sensors.
             state.EntityManager.AddComponentData(limbPrototype, new ContactSensors());
@@ -87,6 +88,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Builders
             // Rendering.
             state.EntityManager.AddComponentData(limbPrototype, new LimbColor());
             state.EntityManager.AddComponentData(limbPrototype, new URPMaterialPropertyBaseColor());
+            state.EntityManager.AddComponentData(limbPrototype, new LimbOutline());
             RenderMeshUtility.AddComponents(
                 limbPrototype,
                 state.EntityManager,
@@ -162,6 +164,12 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Builders
                 Ecb.SetComponent(index, limbEntity, new LimbIndex
                 {
                     Value = requestData.LimbIndex
+                });
+
+                // Node Gid.
+                Ecb.SetComponent(index, limbEntity, new NodeGid
+                {
+                    Value = requestData.NodeGid
                 });
 
                 // Sensor neural emitter indices.

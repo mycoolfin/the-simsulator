@@ -12,12 +12,13 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
         where TGenotype : IGenotype<TGenotype>
         where TPhenotype : IPhenotype<TPhenotype>
     {
-        [SerializeField] private FPSPlayerController playerController;
+        [SerializeField] protected FPSPlayerController playerController;
         [SerializeField] private CapsuleDock dock;
         [SerializeField] private CapsuleDock workingCopyDock;
         [SerializeField] private WorldUIScreen worldUIScreen;
-        [SerializeField] private CreatureVisualiser creatureVisualiser;
+        [SerializeField] protected CreatureVisualiser creatureVisualiser;
         [SerializeField] private HingedPanel consolePanel;
+        [SerializeField] protected Collider genotypeEditorCollider;
         [SerializeField] protected UIDocument genotypeEditorDocument;
         [SerializeField] private PushButton startEditingButton;
         [SerializeField] private PushButton commitChangesButton;
@@ -34,6 +35,8 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
         private bool IsEditing => workingCopyDock.DockedCapsule != null;
 
         protected GenotypeEditor<TGenotype> genotypeEditor;
+
+        protected ICreatureCapsule WorkingCopyCapsule => workingCopyDock.DockedCapsule;
 
         protected virtual void Awake()
         {
@@ -87,13 +90,20 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
                 // Create working copy.
                 workingCopyDock.DestroyCapsule();
                 workingCopyDock.CreateAndDockEmptyCapsule(silent: true);
-                workingCopyDock.DockedCapsule.InitialiseFromCreature(dock.DockedCapsule.Creature, dock.DockedCapsule.Environment);
 
-                // Load genotype into editor.
-                if (dock.DockedCapsule.Creature is Creature<TGenotype, TPhenotype> typedCreature)
-                    genotypeEditor.LoadGenotype(typedCreature.Genotype);
-                else
-                    Debug.LogError("Creature in docked capsule is not of the expected type.");
+                void onCreatureLoaded(ICreature creature)
+                {
+                    workingCopyDock.DockedCapsule.OnCreatureLoaded -= onCreatureLoaded;
+
+                    // Load genotype into editor after creature is loaded.
+                    if (dock.DockedCapsule.Creature is Creature<TGenotype, TPhenotype> typedCreature)
+                        genotypeEditor.LoadGenotype(typedCreature.Genotype);
+                    else
+                        Debug.LogError("Creature in docked capsule is not of the expected type.");
+                }
+
+                workingCopyDock.DockedCapsule.OnCreatureLoaded += onCreatureLoaded;
+                workingCopyDock.DockedCapsule.InitialiseFromCreature(dock.DockedCapsule.Creature, dock.DockedCapsule.Environment);
             }
         }
 
@@ -158,5 +168,9 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
         }
 
         protected abstract void ExportCreatureModel(ICreatureCapsule dockedCapsule);
+
+        protected virtual void OnDestroy()
+        {
+        }
     }
 }

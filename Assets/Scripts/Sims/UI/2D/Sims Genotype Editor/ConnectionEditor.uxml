@@ -5,7 +5,7 @@
                 <ui:Label tabindex="-1" text="Connection ?" display-tooltip-when-elided="true" enable-rich-text="true" style="-unity-font-style: bold; flex-shrink: 1; align-self: center;"/>
                 <ui:Button text="Delete Connection" display-tooltip-when-elided="true" name="delete-connection" style="margin-left: 20px;"/>
             </ui:VisualElement>
-            <ui:VisualElement style="background-color: rgba(0, 0, 0, 0); flex-grow: 1; max-width: 500px;">
+            <ui:VisualElement style="background-color: rgba(0, 0, 0, 0); flex-grow: 1; max-width: 90%;">
                 <ui:DropdownField label="Source Node" index="-1" name="parent-node-id"/>
                 <ui:SliderInt picking-mode="Ignore" label="Parent Face" value="1" high-value="6" low-value="1" show-input-field="true" name="parent-face"/>
                 <ui:DropdownField label="Connects to" index="-1" name="child-node-id"/>
