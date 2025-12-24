@@ -34,10 +34,9 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Builders
     [BurstCompile]
     public partial struct CreateJointEntityJob : IJobEntity
     {
-        // These are only used for motor-type constraints.
-        private const float SPRING_FREQUENCY = 10f;
-        private const float DAMPING_RATIO = 0.9f;
-        private const float BASE_MAX_MOTOR_IMPULSE = 2f;
+        private const float MOTOR_SPRING_FREQUENCY = 10f;
+        private const float MOTOR_DAMPING_RATIO = 0.9f;
+        private const float BASE_MAX_IMPULSE = 2f;
 
         public EntityCommandBuffer.ParallelWriter Ecb;
         public EntityArchetype JointArchetype;
@@ -408,7 +407,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Builders
                 Max = limit,
                 SpringFrequency = 50f,
                 DampingRatio = 1f,
-                MaxImpulse = new float3(BASE_MAX_MOTOR_IMPULSE * request.MinCrossSectionalArea),
+                MaxImpulse = new float3(BASE_MAX_IMPULSE * request.MinCrossSectionalArea),
                 Target = float3.zero
             };
         }
@@ -428,9 +427,9 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Builders
                 Type = type,
                 Min = -angleLimit,
                 Max = angleLimit,
-                SpringFrequency = SPRING_FREQUENCY,
-                DampingRatio = DAMPING_RATIO,
-                MaxImpulse = new float3(BASE_MAX_MOTOR_IMPULSE * request.MinCrossSectionalArea),
+                SpringFrequency = MOTOR_SPRING_FREQUENCY,
+                DampingRatio = MOTOR_DAMPING_RATIO,
+                MaxImpulse = new float3(BASE_MAX_IMPULSE * request.MinCrossSectionalArea),
                 Target = float3.zero
             };
         }

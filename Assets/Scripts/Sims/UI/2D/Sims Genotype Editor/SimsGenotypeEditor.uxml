@@ -1,0 +1,20 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <ui:Template name="ConnectionEditor" src="project://database/Assets/Scripts/Sims/UI/2D/Sims%20Genotype%20Editor/ConnectionEditor.uxml?fileID=9197481963319205126&amp;guid=9ae7fac0324fc44bfaf31776c804ce4b&amp;type=3#ConnectionEditor"/>
+    <ui:Template name="GenotypeGraph" src="project://database/Assets/Scripts/Sims/UI/2D/Sims%20Genotype%20Editor/GenotypeGraph.uxml?fileID=9197481963319205126&amp;guid=e21905a5df8f14c6d8a33591975bd01c&amp;type=3#GenotypeGraph"/>
+    <ui:Template name="NodeEditor" src="project://database/Assets/Scripts/Sims/UI/2D/Sims%20Genotype%20Editor/NodeEditor.uxml?fileID=9197481963319205126&amp;guid=e5355bd842618453dba94dab23c5d539&amp;type=3#NodeEditor"/>
+    <Style src="project://database/Assets/Scripts/Sims/UI/2D/Sims%20Genotype%20Editor/SimsGenotypeEditor.uss?fileID=7433441132597879392&amp;guid=3a584f1bb72254c21b63f3c5907af090&amp;type=3#SimsGenotypeEditor"/>
+    <ui:VisualElement name="creature-editor" style="flex-grow: 1; flex-direction: column; font-size: 26px;">
+        <ui:Instance template="GenotypeGraph" name="genotype-graph-instance" style="height: 50%;"/>
+        <ui:VisualElement name="inspector-panel" style="height: 50%; background-color: rgb(60, 60, 60);">
+            <ui:VisualElement name="empty-state" style="flex-grow: 1; align-items: center; justify-content: center;">
+                <ui:Label text="Select a node or connection to edit..." style="color: rgb(150, 150, 150);"/>
+            </ui:VisualElement>
+            <ui:VisualElement name="node-editor-container" style="flex-grow: 1; display: none;">
+                <ui:Instance template="NodeEditor" name="node-editor-instance" style="flex-grow: 1;"/>
+            </ui:VisualElement>
+            <ui:VisualElement name="connection-editor-container" style="flex-grow: 1; display: none;">
+                <ui:Instance template="ConnectionEditor" name="connection-editor-instance" style="flex-grow: 1;"/>
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

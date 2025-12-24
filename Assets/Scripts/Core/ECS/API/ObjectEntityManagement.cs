@@ -52,7 +52,16 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.ECS.API
                 GroupIndex = 0
             };
 
-            BlobAssetReference<Collider> groundCollider = BoxCollider.Create(boxGeometry, groundFilter);
+            // Physics material analogous to a grass field.
+            Material physicsMaterial = new()
+            {
+                Friction = 0.8f,
+                Restitution = 0.0f,
+                FrictionCombinePolicy = Material.CombinePolicy.Maximum,
+                RestitutionCombinePolicy = Material.CombinePolicy.GeometricMean
+            };
+
+            BlobAssetReference<Collider> groundCollider = BoxCollider.Create(boxGeometry, groundFilter, physicsMaterial);
 
             entityManager.SetComponentData(groundPlane, new PhysicsCollider { Value = groundCollider });
             entityManager.SetSharedComponent(groundPlane, new PhysicsWorldIndex(0));

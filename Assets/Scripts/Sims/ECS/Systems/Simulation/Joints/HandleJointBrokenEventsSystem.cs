@@ -47,8 +47,12 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Systems.Simulation.J
             }.ScheduleParallel(state.Dependency);
 
             // Handle events.
+            // Calculate capacity: each event can detach up to MAX_LIMBS limbs in the worst case.
+            // Use 4x multiplier to account for: 1) multiple events affecting same creature,
+            // 2) hash map performance, and 3) safety margin for parallel writes.
             int maxDetachedLimbCount = eventBuffer.Length * SimsPhenotype.MAX_LIMBS;
-            using NativeParallelMultiHashMap<Entity, byte> RootPhenotypeToDetachedLimbIndicesLookup = new(maxDetachedLimbCount * 2, Allocator.TempJob);
+            int hashMapCapacity = maxDetachedLimbCount * 4;
+            using NativeParallelMultiHashMap<Entity, byte> RootPhenotypeToDetachedLimbIndicesLookup = new(hashMapCapacity, Allocator.TempJob);
 
             // Pre-allocate buffer with enough space for each parallel execution to have its own slice.
             // We need MAX_LIMBS + 1 to handle the worst case where we have MAX_LIMBS limbs in a chain

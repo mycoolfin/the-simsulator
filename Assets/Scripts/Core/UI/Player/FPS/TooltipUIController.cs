@@ -78,6 +78,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.Player.FPS
             }
             else
             {
+                hoverTimer = 0f;
                 Hide();
             }
         }

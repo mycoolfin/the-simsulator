@@ -68,7 +68,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.TwoD
                 mgc.painter2D.strokeColor = mutedColor;
                 mgc.painter2D.lineJoin = LineJoin.Round;
                 mgc.painter2D.lineCap = LineCap.Round;
-                mgc.painter2D.lineWidth = 1f;
+                mgc.painter2D.lineWidth = 5f;
                 mgc.painter2D.BeginPath();
                 mgc.painter2D.MoveTo(start);
                 mgc.painter2D.LineTo(end);
@@ -84,7 +84,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.TwoD
                 mgc.painter2D.strokeColor = seriesData.Color;
                 mgc.painter2D.lineJoin = LineJoin.Round;
                 mgc.painter2D.lineCap = LineCap.Round;
-                mgc.painter2D.lineWidth = 2f;
+                mgc.painter2D.lineWidth = 10f;
                 mgc.painter2D.BeginPath();
                 mgc.painter2D.MoveTo(GetGraphPosition(0, 0, xMax, yMax));
                 for (int i = 0; i < seriesData.Points.Count; i++)

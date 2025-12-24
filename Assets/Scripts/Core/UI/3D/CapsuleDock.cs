@@ -120,6 +120,15 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
             }
         }
 
+        public void DestroyCapsule()
+        {
+            if (DockedCapsule != null && DockedCapsule.GameObject != null && !DockedCapsule.GameObject.IsDestroyed())
+            {
+                Destroy(DockedCapsule.GameObject);
+                DockedCapsule = null;
+            }
+        }
+
         public void SetNameplateEnabled(bool enabled)
         {
             nameplate.gameObject.SetActive(enabled);

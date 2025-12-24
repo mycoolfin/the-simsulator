@@ -53,7 +53,7 @@ MonoBehaviour:
   animator: {fileID: 3670937462960823405}
   emitterController: {fileID: 3973824167124051897}
   buttonCollider: {fileID: 6737660649209509757}
-  pushCooldown: 0.5
+  pushCooldown: 0.2
   inactiveColor: {r: 0.7264151, g: 0.7264151, b: 0.7264151, a: 1}
   inactiveEmissivity: 1
   activeColor: {r: 0.754717, g: 0.74314654, b: 0, a: 1}
@@ -276,6 +276,8 @@ MonoBehaviour:
   m_StartingHoverFilters: []
   m_StartingSelectFilters: []
   m_StartingInteractionStrengthFilters: []
+  m_AutoFindParentInteractableInHierarchy: 0
+  m_ParentInteractableObject: {fileID: 0}
 --- !u!1 &4337190034646613723
 GameObject:
   m_ObjectHideFlags: 0
@@ -360,6 +362,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!114 &3873681283556065765
 MonoBehaviour:
@@ -419,6 +422,7 @@ MonoBehaviour:
   m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0
+  m_characterHorizontalScale: 1
   m_wordSpacing: 0
   m_lineSpacing: 0
   m_lineSpacingMax: 0
@@ -543,6 +547,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!1 &6274787849997889321
 GameObject:

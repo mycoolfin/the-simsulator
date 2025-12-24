@@ -27,9 +27,14 @@ namespace mycoolfin.TheSimsulator.Sims.Genotype
 
         public static void MutateDimensions(SimsGenotypeCreationContext context, int nodeIndex)
         {
-            float sigma = 0.1f;
-            float RandomDimension(float currentDimension) =>
-                Math.Clamp(currentDimension + SharedRandom.DrawGaussian(sigma), Node.MIN_DIMENSION, Node.MAX_DIMENSION);
+            // Uses proportional sigma so small nodes mutate by small amounts and large nodes by large amounts.
+            // This prevents small creatures from being immediately sized up by fixed mutations.
+            const float relativeStdDev = 0.1f; // 10% of current dimension.
+            static float RandomDimension(float currentDimension)
+            {
+                float sigma = currentDimension * relativeStdDev;
+                return Math.Clamp(currentDimension + SharedRandom.DrawGaussian(sigma), Node.MIN_DIMENSION, Node.MAX_DIMENSION);
+            }
 
             Node node = context.Nodes[nodeIndex];
             Vector3 newDimensions = new(RandomDimension(node.Dimensions.X), RandomDimension(node.Dimensions.Y), RandomDimension(node.Dimensions.Z));

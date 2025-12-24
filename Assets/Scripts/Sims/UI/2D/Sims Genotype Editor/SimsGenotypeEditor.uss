@@ -1,0 +1,92 @@
+#creature-editor {
+    flex-grow: 1;
+}
+
+#graph-panel {
+    border-bottom-width: 2px;
+    border-bottom-color: rgb(30, 30, 30);
+}
+
+#graph-toolbar {
+    border-bottom-width: 1px;
+    border-bottom-color: rgb(30, 30, 30);
+}
+
+#add-node-btn,
+#add-connection-btn {
+    background-color: rgb(70, 130, 180);
+    color: white;
+    border-radius: 3px;
+    padding: 5px 10px;
+}
+
+#add-node-btn:hover,
+#add-connection-btn:hover {
+    background-color: rgb(90, 150, 200);
+}
+
+#graph-canvas {
+    background-color: rgb(47, 58, 72);
+    flex-direction: row;
+    align-items: center;
+    padding: 50px;
+}
+
+#graph-scroll #unity-content-container {
+    height: 100%;
+}
+
+.graph-node {
+    width: 240px;
+    min-height: 160px;
+    background-color: rgb(255, 183, 107);
+    border-radius: 16px;
+    border-width: 4px;
+    border-color: rgba(0, 0, 0, 0.3);
+    padding: 20px;
+    margin: 20px;
+    align-items: center;
+    justify-content: center;
+    transition-property: background-color, border-color, scale;
+    transition-duration: 0.2s;
+}
+
+.graph-node:hover {
+    background-color: rgb(253, 203, 151);
+    border-color: rgb(255, 150, 50);
+    scale: 1.05 1.05;
+}
+
+.graph-node.selected {
+    border-color: rgb(0, 255, 247);
+    border-width: 6px;
+}
+
+.graph-node .node-label {
+    -unity-font-style: bold;
+    font-size: 28px;
+    color: rgb(50, 50, 50);
+}
+
+.graph-node .node-info {
+    font-size: 20px;
+    color: rgb(80, 80, 80);
+    margin-top: 10px;
+}
+
+.connection-point {
+    visibility: hidden;
+}
+
+#inspector-panel {
+    border-top-width: 2px;
+    border-top-color: rgb(30, 30, 30);
+}
+
+#empty-state {
+    background-color: rgb(60, 60, 60);
+}
+
+.unity-base-slider__input {
+    min-width: 120px;
+}

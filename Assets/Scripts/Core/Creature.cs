@@ -1,8 +1,9 @@
+using System;
+using Unity.Entities;
 using UnityEngine;
 
 namespace mycoolfin.TheSimsulator.UnityIntegration.Core
 {
-    using System;
     using TheSimsulator.Core.Genotype;
     using TheSimsulator.Core.Phenotype;
     using UI;
@@ -24,6 +25,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core
         void Cull();
 
         void SaveGenotypeToFile(Action<FileOperationResult, string> OnComplete, string filePath = null);
+        void SavePhenotypeModelToFile(World world, Func<Mesh> getBaseMesh, float scaleFactor, Action<FileOperationResult, string> OnComplete, string filePath = null);
 
         ICreature Breed(ICreature other);
     }
@@ -51,14 +53,12 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core
 
         public void SaveGenotypeToFile(Action<FileOperationResult, string> OnComplete, string filePath = null)
         {
-            if (filePath == null) // Prompt user for file path.
-            {
-                GenotypeDiskOperations.SaveGenotypeToFilePathDialog(Genotype, OnComplete);
-            }
-            else
-            {
-                GenotypeDiskOperations.SaveGenotypeToFilePath(Genotype, filePath, (result) => OnComplete(result, filePath));
-            }
+            GenotypeDiskOperations.SaveGenotypeToFilePath(Genotype, (result, fp) => OnComplete(result, fp), filePath);
+        }
+
+        public void SavePhenotypeModelToFile(World world, Func<Mesh> getBaseMesh, float scaleFactor, Action<FileOperationResult, string> OnComplete, string filePath = null)
+        {
+            PhenotypeMeshExporter.SavePhenotypeModelToFilePath(Genotype.Name, world, getBaseMesh, Phenotype, scaleFactor, (result, fp) => OnComplete(result, fp), filePath);
         }
 
         public Creature<TGenotype, TPhenotype> Breed(ICreature other)
