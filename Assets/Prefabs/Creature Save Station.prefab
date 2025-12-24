@@ -89,6 +89,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!65 &4541442990742392643
 BoxCollider:
@@ -199,6 +200,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!1 &3298613748674051546
 GameObject:
@@ -289,6 +291,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!64 &4946284112212816957
 MeshCollider:
@@ -401,6 +404,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!135 &9051589536748483529
 SphereCollider:
@@ -511,6 +515,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!1 &5413847201625368091
 GameObject:
@@ -638,6 +643,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!65 &2204450774557332879
 BoxCollider:
@@ -750,6 +756,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!65 &955175411369750713
 BoxCollider:
@@ -861,6 +868,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!136 &1970562837750179013
 CapsuleCollider:
@@ -896,7 +904,6 @@ GameObject:
   - component: {fileID: 3912738918924380381}
   - component: {fileID: 1411953901543005459}
   - component: {fileID: 6626344749340930009}
-  - component: {fileID: 4619253494909622614}
   m_Layer: 0
   m_Name: Creature Save Station
   m_TagString: Untagged
@@ -1040,19 +1047,6 @@ MonoBehaviour:
   saveButton: {fileID: 8922105039273249711}
   loadButton: {fileID: 149935239129066535}
   playerController: {fileID: 0}
---- !u!114 &4619253494909622614
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7795270759974648811}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b5e3616b7fe354394907572a209415bb, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::mycoolfin.TheSimsulator.UnityIntegration.Core.UI.Player.XRGameObjectDisabler
-  objectToDisable: {fileID: 7795270759974648811}
 --- !u!1 &8275912661816640425
 GameObject:
   m_ObjectHideFlags: 0
@@ -1141,6 +1135,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!1001 &3571744829215124185
 PrefabInstance:

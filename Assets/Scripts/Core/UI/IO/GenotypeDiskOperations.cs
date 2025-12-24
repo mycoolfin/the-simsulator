@@ -51,9 +51,19 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.IO
             return newFilePath;
         }
 
-        public static void SaveGenotypeToFilePathDialog<TGenotype>(TGenotype genotype, Action<FileOperationResult, string> OnComplete) where TGenotype : IGenotype<TGenotype>
+        /// <summary>
+        /// Saves a genotype to a file. If no file path is provided, prompts the user with a save file dialog.
+        /// </summary>
+        /// <typeparam name="TGenotype"></typeparam>
+        /// <param name="genotype">The genotype to save.</param>
+        /// <param name="OnComplete">Callback invoked upon completion with the result and file path.</param>
+        /// <param name="filePath">Optional file path to save to. If null, a save file dialog is shown.</param>
+        public static void SaveGenotypeToFilePath<TGenotype>(TGenotype genotype, Action<FileOperationResult, string> OnComplete, string filePath = null) where TGenotype : IGenotype<TGenotype>
         {
-            string filePath = StandaloneFileBrowser.SaveFilePanel("Save Genotype", "", $"{genotype.Name}.genotype", "genotype");
+            if (string.IsNullOrEmpty(filePath))
+            {
+                filePath = StandaloneFileBrowser.SaveFilePanel("Save Genotype", "", $"{genotype.Name}.genotype", "genotype");
+            }
 
             if (string.IsNullOrEmpty(filePath))
             {
@@ -61,18 +71,44 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.IO
                 return; // User cancelled the save dialog.
             }
 
-            // Normalize the path from the file dialog to ensure consistent separators.
-            filePath = Path.GetFullPath(filePath);
-
-            SaveGenotypeToFilePath(genotype, filePath, (result) =>
+            try
             {
-                OnComplete?.Invoke(result, filePath);
+                // Normalize the path from the file dialog to ensure consistent separators.
+                filePath = Path.GetFullPath(filePath);
+            }
+            catch (Exception)
+            {
+                OnComplete?.Invoke(FileOperationResult.Failure, string.Empty);
+                return;
+            }
+
+            if (genotype == null)
+            {
+                OnComplete?.Invoke(FileOperationResult.Failure, string.Empty);
+                return;
+            }
+
+            GenotypeIO.SerializeAsync(genotype, filePath, (success) =>
+            {
+                if (success)
+                    OnComplete?.Invoke(FileOperationResult.Success, filePath);
+                else
+                    OnComplete?.Invoke(FileOperationResult.Failure, string.Empty);
             });
         }
 
-        public static void LoadGenotypeFromFilePathDialog<TGenotype>(Action<FileOperationResult, TGenotype, string> OnComplete) where TGenotype : IGenotype<TGenotype>
+        /// <summary>
+        /// Loads a genotype from a file. If no file path is provided, prompts the user with an open file dialog.
+        /// </summary>
+        /// <typeparam name="TGenotype"></typeparam>
+        /// <param name="OnComplete">Callback invoked upon completion with the result, loaded genotype, and file path.</param>
+        /// <param name="filePath">Optional file path to load from. If null, an open file dialog is shown.</param>
+        public static void LoadGenotypeFromFilePath<TGenotype>(Action<FileOperationResult, TGenotype, string> OnComplete, string filePath = null) where TGenotype : IGenotype<TGenotype>
         {
-            string filePath = StandaloneFileBrowser.OpenFilePanel("Load Genotype", "", "genotype", false).FirstOrDefault();
+            if (string.IsNullOrEmpty(filePath))
+            {
+                filePath = StandaloneFileBrowser.OpenFilePanel("Load Genotype", "", "genotype", false).FirstOrDefault();
+            }
 
             if (string.IsNullOrEmpty(filePath))
             {
@@ -80,46 +116,23 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.IO
                 return; // User cancelled the load dialog.
             }
 
-            // Normalize the path from the file dialog to ensure consistent separators.
-            filePath = Path.GetFullPath(filePath);
-
-            LoadGenotypeFromFilePath(filePath, (FileOperationResult result, TGenotype genotype) =>
+            try
             {
-                OnComplete?.Invoke(result, genotype, filePath);
-            });
-        }
-
-        public static void SaveGenotypeToFilePath<TGenotype>(TGenotype genotype, string filePath, Action<FileOperationResult> OnComplete) where TGenotype : IGenotype<TGenotype>
-        {
-            if (genotype == null)
-            {
-                OnComplete?.Invoke(FileOperationResult.Failure);
-                return;
+                // Normalize the path from the file dialog to ensure consistent separators.
+                filePath = Path.GetFullPath(filePath);
             }
-
-            GenotypeIO.SerializeAsync(genotype, filePath, (success) =>
+            catch (Exception)
             {
-                if (success)
-                    OnComplete?.Invoke(FileOperationResult.Success);
-                else
-                    OnComplete?.Invoke(FileOperationResult.Failure);
-            });
-        }
-
-        public static void LoadGenotypeFromFilePath<TGenotype>(string filePath, Action<FileOperationResult, TGenotype> OnComplete) where TGenotype : IGenotype<TGenotype>
-        {
-            if (string.IsNullOrEmpty(filePath))
-            {
-                OnComplete?.Invoke(FileOperationResult.Cancelled, default);
+                OnComplete?.Invoke(FileOperationResult.Failure, default, string.Empty);
                 return;
             }
 
             GenotypeIO.DeserializeAsync<TGenotype>(filePath, (success, genotype) =>
             {
                 if (success)
-                    OnComplete?.Invoke(FileOperationResult.Success, genotype);
+                    OnComplete?.Invoke(FileOperationResult.Success, genotype, filePath);
                 else
-                    OnComplete?.Invoke(FileOperationResult.Failure, default);
+                    OnComplete?.Invoke(FileOperationResult.Failure, default, string.Empty);
             });
         }
     }

@@ -20,8 +20,8 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.API
 
     public class SimsEvolutionManagement : IEvolutionManagement
     {
-        private SimsSimulationSettings simulationSettings;
-        private ObjectEntityManagement objectEntityManagement;
+        private readonly SimsSimulationSettings simulationSettings;
+        private readonly ObjectEntityManagement objectEntityManagement;
 
         public SimsEvolutionManagement(SimsSimulationSettings simulationSettings, ObjectEntityManagement objectEntityManagement)
         {

@@ -11,7 +11,6 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
     using TheSimsulator.Core.Genotype;
     using TheSimsulator.Core.Phenotype;
     using ECS.API;
-    using ECS.Components.Phenotype;
     using ECS.Rendering;
     using ECS.Systems.Simulation.SimulationRate;
     using UI.IO;
@@ -36,6 +35,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
         bool IsInitialised { get; }
         ICreature Creature { get; }
         event Action<ICreature> OnCreatureLoaded;
+        World ECSWorld { get; }
         CapsuleEnvironment Environment { get; }
         string GenotypeFilePath { get; }
         GameObject GameObject { get; }
@@ -44,6 +44,8 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
         void InitialiseFromGenotypeFilePathDialog(CapsuleEnvironment environment, Action<FileOperationResult> OnComplete);
         void SetCompanionObjectOverride(PhenotypeCompanionObject companionObject);
         bool RenameCreature(string newName);
+        void PauseCapsuleWorldTime();
+        void ResumeCapsuleWorldTime();
     }
 
     [RequireComponent(typeof(Rigidbody), typeof(AudioSource), typeof(XRGrabInteractable))]
@@ -69,6 +71,8 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
         protected abstract TPhenotypeFactory PhenotypeFactory { get; }
         protected abstract TECSAPI ECSAPI { get; }
 
+        public World ECSWorld => GetWorld(Environment);
+
         private CapsuleEnvironment environment = CapsuleEnvironment.Aquatic;
         public CapsuleEnvironment Environment
         {
@@ -85,9 +89,6 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
         }
 
         public string GenotypeFilePath { get; private set; } = string.Empty;
-        private TGenotype genotype;
-        private TPhenotype phenotype;
-
         private Creature<TGenotype, TPhenotype> creature;
         public ICreature Creature => creature;
         public event Action<ICreature> OnCreatureLoaded;
@@ -140,8 +141,10 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
 
             SetState(CapsuleState.Loading);
 
-            GenotypeDiskOperations.LoadGenotypeFromFilePath<TGenotype>(GenotypeFilePath, (result, genotype) =>
+            GenotypeDiskOperations.LoadGenotypeFromFilePath<TGenotype>((result, genotype, filePath) =>
             {
+                GenotypeFilePath = filePath;
+
                 if (result == FileOperationResult.Success && genotype != null)
                 {
                     StartCoroutine(InitialiseFromGenotype(genotype, environment));
@@ -150,14 +153,14 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
                 {
                     SetState(CapsuleState.FileMissingError);
                 }
-            });
+            }, GenotypeFilePath);
         }
 
         public void InitialiseFromGenotypeFilePathDialog(CapsuleEnvironment environment, Action<FileOperationResult> OnComplete)
         {
             SetState(CapsuleState.Loading);
 
-            GenotypeDiskOperations.LoadGenotypeFromFilePathDialog<TGenotype>((result, genotype, filePath) =>
+            GenotypeDiskOperations.LoadGenotypeFromFilePath<TGenotype>((result, genotype, filePath) =>
             {
                 GenotypeFilePath = filePath;
 
@@ -177,7 +180,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
         public void SetCompanionObjectOverride(PhenotypeCompanionObject companionObject)
         {
             companionObjectOverride = companionObject;
-            StartCoroutine(InitialiseFromGenotype(genotype, Environment));
+            RefreshCompanionObject();
         }
 
         public bool RenameCreature(string newName)
@@ -195,21 +198,33 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
             return false;
         }
 
+        public void PauseCapsuleWorldTime()
+        {
+            ECSAPI.Simulation.SetSimulationRateControllerMode(GetWorld(CapsuleEnvironment.Terrestrial), SimulationRateMode.Paused);
+            ECSAPI.Simulation.SetSimulationRateControllerMode(GetWorld(CapsuleEnvironment.Aquatic), SimulationRateMode.Paused);
+        }
+
+        public void ResumeCapsuleWorldTime()
+        {
+            ECSAPI.Simulation.SetSimulationRateControllerMode(GetWorld(CapsuleEnvironment.Terrestrial), SimulationRateMode.RealTime);
+            ECSAPI.Simulation.SetSimulationRateControllerMode(GetWorld(CapsuleEnvironment.Aquatic), SimulationRateMode.RealTime);
+        }
+
         private IEnumerator InitialiseFromGenotype(TGenotype genotype, CapsuleEnvironment environment)
         {
             if (!IsInitialised)
                 yield break; // Still initializing from a previous call.
 
-            this.genotype = genotype;
             Environment = environment;
 
             if (genotype == null) yield break;
 
             World world = GetWorld(Environment);
 
-            if (phenotype != null)
+            if (creature != null && creature.Phenotype != null)
                 DestroyPhenotype(world);
 
+            TPhenotype phenotype;
             try
             {
                 phenotype = PhenotypeFactory.ConstructPhenotype(genotype);
@@ -228,20 +243,30 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
             };
             yield return ECSAPI.Phenotype.CreateEntitiesFromPhenotypes(world, new() { creationInfo });
 
-            PhenotypeCompanionObject companionObject = companionObjectOverride != null ? companionObjectOverride
-                : Environment == CapsuleEnvironment.Terrestrial ? terrestrialCompanionObject : aquaticCompanionObject;
-            ECSAPI.Phenotype.SetPhenotypeCompanionObject(world, phenotype, companionObject);
-
             creature = new()
             {
                 Genotype = genotype,
                 Phenotype = phenotype
             };
 
+            RefreshCompanionObject();
+
             IsInitialised = true;
             OnCreatureLoaded?.Invoke(creature);
 
             SetState(CapsuleState.Loaded);
+        }
+
+        private void RefreshCompanionObject()
+        {
+            if (creature == null || creature.Phenotype == null)
+                return;
+
+            World world = GetWorld(Environment);
+
+            PhenotypeCompanionObject companionObject = companionObjectOverride != null ? companionObjectOverride
+                : Environment == CapsuleEnvironment.Terrestrial ? terrestrialCompanionObject : aquaticCompanionObject;
+            ECSAPI.Phenotype.SetPhenotypeCompanionObject(world, creature.Phenotype, companionObject);
         }
 
         private void ToggleEnvironment()
@@ -252,12 +277,12 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
             Environment = Environment == CapsuleEnvironment.Terrestrial ? CapsuleEnvironment.Aquatic : CapsuleEnvironment.Terrestrial;
 
             // Recreate entities in selected environment world.
-            StartCoroutine(InitialiseFromGenotype(genotype, Environment));
+            StartCoroutine(InitialiseFromGenotype(creature.Genotype, Environment));
         }
 
         private void DestroyPhenotype(World world)
         {
-            ECSAPI.Phenotype.MarkPhenotypeEntitiesForDestruction(world, phenotype);
+            ECSAPI.Phenotype.MarkPhenotypeEntitiesForDestruction(world, creature.Phenotype);
         }
 
         private void SetState(CapsuleState state)
@@ -294,7 +319,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
         private void OnDestroy()
         {
             World world = ECSAPI.World.GetWorld(GetWorldName(environment));
-            if (world != null && world.IsCreated)
+            if (world != null && world.IsCreated && creature != null && creature.Phenotype != null)
                 DestroyPhenotype(world);
         }
 

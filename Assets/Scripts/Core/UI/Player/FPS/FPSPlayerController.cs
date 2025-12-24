@@ -8,7 +8,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.Player.FPS
 
     public class FPSPlayerController : MonoBehaviour, IXRRayProvider
     {
-        [SerializeField] private UnityEngine.Camera playerCamera;
+        [SerializeField] private Camera playerCamera;
         [SerializeField] private CharacterController characterController;
         [SerializeField] private XRRayInteractor desktopHandInteractor;
 
@@ -28,7 +28,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.Player.FPS
 
         private RaycastHit raycastHit;
 
-        // IXRRayProvider implementation
+        // IXRRayProvider implementation.
         public Transform rayEndTransform => raycastHit.collider != null ? raycastHit.collider.transform : null;
         public Vector3 rayEndPoint => raycastHit.point;
 
@@ -40,6 +40,15 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.Player.FPS
         private Vector3 velocity;
         private bool isGrounded;
         private bool isSprinting = false;
+        private bool isUIMode = false;
+        private Transform uiModeTargetTransform;
+        private Vector3 uiModeCameraPosition;
+        private Quaternion uiModeCameraRotation;
+        private bool isTransitioningToUIMode = false;
+        private bool isTransitioningFromUIMode = false;
+        private Vector3 storedCameraLocalPosition;
+        private Quaternion storedCameraLocalRotation;
+        private readonly float uiModeLerpSpeed = 10f;
 
         public static bool KeyboardControlOverridden => EditableText.AnyEditing;
 
@@ -62,23 +71,25 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.Player.FPS
 
         private void HandleMovement()
         {
-            // Check if grounded
+            if (isUIMode || isTransitioningToUIMode || isTransitioningFromUIMode) return;
+
+            // Check if grounded.
             isGrounded = characterController.isGrounded;
             if (isGrounded && velocity.y < 0)
             {
-                velocity.y = -2f; // Keep player grounded
+                velocity.y = -2f; // Keep player grounded.
             }
 
-            // Calculate movement direction
+            // Calculate movement direction.
             Vector3 movement = Vector3.zero;
             movement += transform.forward * horizontalMovement.y;
             movement += transform.right * horizontalMovement.x;
 
-            // Apply sprint multiplier if sprinting
+            // Apply sprint multiplier if sprinting.
             float currentSpeed = isSprinting ? movementSpeed * sprintMultiplier : movementSpeed;
             movement *= currentSpeed;
 
-            // Apply gravity
+            // Apply gravity.
             velocity.y += gravity * Time.deltaTime;
             movement += velocity;
 
@@ -87,6 +98,60 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.Player.FPS
 
         private void HandleLook()
         {
+            if (isTransitioningToUIMode)
+            {
+                // Smoothly lerp camera to UI mode position.
+                Vector3 targetPos = uiModeTargetTransform != null ? uiModeTargetTransform.position : uiModeCameraPosition;
+                Quaternion targetRot = uiModeTargetTransform != null ? uiModeTargetTransform.rotation : uiModeCameraRotation;
+
+                playerCamera.transform.SetPositionAndRotation(
+                    Vector3.Lerp(playerCamera.transform.position, targetPos, Time.deltaTime * uiModeLerpSpeed),
+                    Quaternion.Slerp(playerCamera.transform.rotation, targetRot, Time.deltaTime * uiModeLerpSpeed)
+                );
+
+                // Check if lerp is complete.
+                if (Vector3.Distance(playerCamera.transform.position, targetPos) < 0.01f &&
+                    Quaternion.Angle(playerCamera.transform.rotation, targetRot) < 0.1f)
+                {
+                    isTransitioningToUIMode = false;
+                    playerCamera.transform.SetPositionAndRotation(targetPos, targetRot);
+                }
+                return;
+            }
+
+            if (isTransitioningFromUIMode)
+            {
+                // Smoothly lerp camera back to FPS position (relative to player).
+                Vector3 targetWorldPos = transform.TransformPoint(storedCameraLocalPosition);
+                Quaternion targetWorldRot = transform.rotation * storedCameraLocalRotation;
+
+                playerCamera.transform.SetPositionAndRotation(
+                    Vector3.Lerp(playerCamera.transform.position, targetWorldPos, Time.deltaTime * uiModeLerpSpeed),
+                    Quaternion.Slerp(playerCamera.transform.rotation, targetWorldRot, Time.deltaTime * uiModeLerpSpeed)
+                );
+
+                // Check if lerp is complete.
+                if (Vector3.Distance(playerCamera.transform.position, targetWorldPos) < 0.01f &&
+                    Quaternion.Angle(playerCamera.transform.rotation, targetWorldRot) < 0.1f)
+                {
+                    isTransitioningFromUIMode = false;
+                    // Snap to exact local position/rotation
+                    playerCamera.transform.localPosition = storedCameraLocalPosition;
+                    playerCamera.transform.localRotation = storedCameraLocalRotation;
+                }
+                return;
+            }
+
+            if (isUIMode)
+            {
+                // Lock camera to UI mode position.
+                Vector3 targetPos = uiModeTargetTransform != null ? uiModeTargetTransform.position : uiModeCameraPosition;
+                Quaternion targetRot = uiModeTargetTransform != null ? uiModeTargetTransform.rotation : uiModeCameraRotation;
+                
+                playerCamera.transform.SetPositionAndRotation(targetPos, targetRot);
+                return;
+            }
+
             if (!isCursorLocked || lookDeltas.sqrMagnitude < 0.01f) return;
             if (cursorSwitchedToLocked) { cursorSwitchedToLocked = false; return; }
 
@@ -160,6 +225,60 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.Player.FPS
         public bool IsCursorLocked => isCursorLocked;
         public bool IsGrounded => isGrounded;
         public bool IsSprinting => isSprinting;
+        public bool IsUIMode => isUIMode;
+        public Camera PlayerCamera => playerCamera;
+        
+        // Event fired when Escape is pressed while in UI mode.
+        public event System.Action OnUIEscapePressed;
+
+        public void SetUIMode(bool enabled, Transform targetTransform = null)
+        {
+            if (enabled)
+            {
+                // Store camera's local position/rotation before entering UI mode
+                storedCameraLocalPosition = playerCamera.transform.localPosition;
+                storedCameraLocalRotation = playerCamera.transform.localRotation;
+                
+                // Store current camera state or use target transform.
+                uiModeTargetTransform = targetTransform;
+                if (targetTransform != null)
+                {
+                    uiModeCameraPosition = targetTransform.position;
+                    uiModeCameraRotation = targetTransform.rotation;
+                }
+                else
+                {
+                    uiModeCameraPosition = playerCamera.transform.position;
+                    uiModeCameraRotation = playerCamera.transform.rotation;
+                }
+
+                // Clear any pending movement/look inputs.
+                horizontalMovement = Vector2.zero;
+                lookDeltas = Vector2.zero;
+                velocity.y = 0f; // Stop any falling motion.
+
+                // Start lerp transition.
+                isTransitioningToUIMode = true;
+                isUIMode = true;
+
+                // Unlock cursor for UI interaction.
+                UnlockCursor();
+            }
+            else
+            {
+                // Exit UI mode - start transition back to FPS mode.
+                isUIMode = false;
+                isTransitioningToUIMode = false;
+                isTransitioningFromUIMode = true;
+                uiModeTargetTransform = null;
+                
+                // Clear inputs when exiting UI mode.
+                horizontalMovement = Vector2.zero;
+                lookDeltas = Vector2.zero;
+                
+                LockCursor();
+            }
+        }
 
         public void OnMoveHorizontal(InputAction.CallbackContext context)
         {
@@ -174,6 +293,13 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.Player.FPS
 
         public void OnLook(InputAction.CallbackContext context)
         {
+            // In UI mode or transitioning, don't capture look deltas (cursor should move freely).
+            if (isUIMode || isTransitioningToUIMode || isTransitioningFromUIMode)
+            {
+                lookDeltas = Vector2.zero;
+                return;
+            }
+            
             lookDeltas = context.ReadValue<Vector2>();
         }
 
@@ -181,6 +307,14 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.Player.FPS
         {
             if (context.started)
             {
+                // In UI mode, perform raycast from camera through mouse position.
+                if (isUIMode || isTransitioningToUIMode || isTransitioningFromUIMode)
+                {
+                    if (isUIMode) // Only handle clicks when fully in UI mode.
+                        HandleUIMouseClick();
+                    return;
+                }
+                    
                 if (!isCursorLocked)
                 {
                     ToggleCursorLock();
@@ -191,6 +325,15 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.Player.FPS
                         selectable.Select();
                 }
             }
+        }
+
+        private void HandleUIMouseClick()
+        {
+            // Cast ray from camera through mouse position.
+            Ray ray = playerCamera.ScreenPointToRay(Mouse.current.position.ReadValue());
+            if (Physics.Raycast(ray, out RaycastHit hit, 100f))
+                if (hit.transform.TryGetComponent<ISelectable>(out var selectable))
+                    selectable.Select();
         }
 
         public void OnJump(InputAction.CallbackContext context)
@@ -226,32 +369,40 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.Player.FPS
 
             if (context.started)
             {
-                ToggleCursorLock();
+                // In UI mode, Escape should exit UI mode.
+                if (isUIMode || isTransitioningToUIMode)
+                {
+                    OnUIEscapePressed?.Invoke();
+                }
+                else if (!isTransitioningFromUIMode) // Don't toggle cursor while transitioning out
+                {
+                    ToggleCursorLock();
+                }
             }
         }
 
-        // IXRRayProvider method implementations
+        // IXRRayProvider method implementations.
         public Transform GetOrCreateAttachTransform()
         {
-            // Return the XRRayInteractor's attach transform
+            // Return the XRRayInteractor's attach transform.
             return desktopHandInteractor.attachTransform;
         }
 
         public void SetAttachTransform(Transform newAttach)
         {
-            // Set the XRRayInteractor's attach transform
+            // Set the XRRayInteractor's attach transform.
             desktopHandInteractor.attachTransform = newAttach;
         }
 
         public Transform GetOrCreateRayOrigin()
         {
-            // Return the camera transform as the ray origin for FPS controller
+            // Return the camera transform as the ray origin for FPS controller.
             return playerCamera.transform;
         }
 
         public void SetRayOrigin(Transform newOrigin)
         {
-            // For FPS controller, the ray origin should always be the camera
+            // For FPS controller, the ray origin should always be the camera.
             Debug.LogWarning("SetRayOrigin called on FPSPlayerController - ray origin should remain as the player camera.");
         }
     }

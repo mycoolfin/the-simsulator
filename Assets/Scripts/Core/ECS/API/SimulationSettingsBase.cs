@@ -74,7 +74,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.ECS.API
             {
                 Enabled = true,
                 Pivot = BoundingBoxPivot.BoundingBoxCenterYMin, // Bottom of the bounding box.
-                AllowedZone = new() { Center = new float3(0f, 500f, 0f), Extents = new float3(500f, 500f, 500f) }, // 1000^3 m box sitting at ground level (y=0).
+                AllowedZone = new() { Center = new float3(0f, 20f, 0f), Extents = new float3(500f, 20f, 500f) }, // Box sitting at ground level (y=0).
                 Margin = 0.1f,
                 TargetPosition = new float3(0f, 0.01f, 0f), // Just above ground level.
                 ZeroVelocitiesOnReposition = true
@@ -89,7 +89,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.ECS.API
             {
                 Enabled = true,
                 Pivot = BoundingBoxPivot.BoundingBoxCenter, // Center of the bounding box.
-                AllowedZone = new() { Center = new float3(0f, 0f, 0f), Extents = new float3(500f, 500f, 500f) }, // 1000^3 m box centered at origin.
+                AllowedZone = new() { Center = new float3(0f, 0f, 0f), Extents = new float3(500f, 500f, 500f) }, // Box centered at origin.
                 Margin = 0.1f,
                 TargetPosition = float3.zero, // Dead center.
                 ZeroVelocitiesOnReposition = true

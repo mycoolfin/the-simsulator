@@ -1,0 +1,35 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <ui:ScrollView vertical-scroller-visibility="Auto" mouse-wheel-scroll-size="100" mode="Vertical" name="connection-editor" style="flex-grow: 1; background-color: rgb(190, 190, 190);">
+        <ui:VisualElement style="background-color: rgba(0, 0, 0, 0);">
+            <ui:VisualElement style="background-color: rgba(0, 0, 0, 0); flex-direction: row;">
+                <ui:Label tabindex="-1" text="Connection ?" display-tooltip-when-elided="true" enable-rich-text="true" style="-unity-font-style: bold; flex-shrink: 1; align-self: center;"/>
+                <ui:Button text="Delete Connection" display-tooltip-when-elided="true" name="delete-connection" style="margin-left: 20px;"/>
+            </ui:VisualElement>
+            <ui:VisualElement style="background-color: rgba(0, 0, 0, 0); flex-grow: 1; max-width: 500px;">
+                <ui:DropdownField label="Source Node" index="-1" name="parent-node-id"/>
+                <ui:SliderInt picking-mode="Ignore" label="Parent Face" value="1" high-value="6" low-value="1" show-input-field="true" name="parent-face"/>
+                <ui:DropdownField label="Connects to" index="-1" name="child-node-id"/>
+                <ui:Foldout text="Position" name="position" value="false">
+                    <ui:Slider picking-mode="Ignore" label="X" value="0" low-value="-1" high-value="1" show-input-field="true" name="x" style="align-items: center;"/>
+                    <ui:Slider picking-mode="Ignore" label="Y" value="0" low-value="-1" high-value="1" show-input-field="true" name="y" style="align-items: center;"/>
+                </ui:Foldout>
+                <ui:Foldout text="Orientation" name="orientation" value="false">
+                    <ui:Slider picking-mode="Ignore" label="X" value="0" show-input-field="true" name="x" style="align-items: center;"/>
+                    <ui:Slider picking-mode="Ignore" label="Y" value="0" show-input-field="true" name="y" style="align-items: center;"/>
+                    <ui:Slider picking-mode="Ignore" label="Z" value="0" show-input-field="true" name="z" style="align-items: center;"/>
+                </ui:Foldout>
+                <ui:Foldout text="Scale" name="scale" value="false">
+                    <ui:Slider picking-mode="Ignore" label="X" value="1" show-input-field="true" name="x" style="align-items: center;"/>
+                    <ui:Slider picking-mode="Ignore" label="Y" value="1" show-input-field="true" name="y" style="align-items: center;"/>
+                    <ui:Slider picking-mode="Ignore" label="Z" value="1" show-input-field="true" name="z" style="align-items: center;"/>
+                </ui:Foldout>
+                <ui:Foldout text="Reflection" name="reflection" value="false">
+                    <ui:Toggle label="X" name="x"/>
+                    <ui:Toggle label="Y" name="y"/>
+                    <ui:Toggle label="Z" name="z"/>
+                </ui:Foldout>
+                <ui:Toggle label="Terminal Only" name="terminal-only"/>
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:ScrollView>
+</ui:UXML>
