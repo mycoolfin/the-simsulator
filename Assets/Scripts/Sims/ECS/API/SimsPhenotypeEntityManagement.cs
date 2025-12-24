@@ -127,7 +127,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.API
             ulong phenotypeGid = phenotype.Gid;
 
             // Find the root phenotype entity with matching PhenotypeGid component.
-            using EntityQuery rootQuery = entityManager.CreateEntityQuery(
+            EntityQuery rootQuery = entityManager.CreateEntityQuery(
                 ComponentType.ReadOnly<PhenotypeGid>(),
                 ComponentType.ReadOnly<PhenotypeBoundingBox>()
             );
@@ -162,7 +162,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.API
                 return new PhenotypeTransformData();
 
             // Find the limb entity with LimbIndex.Value == 0 and RootPhenotypeEntity.Value == rootEntity.
-            using EntityQuery limbQuery = entityManager.CreateEntityQuery(
+            EntityQuery limbQuery = entityManager.CreateEntityQuery(
                 ComponentType.ReadOnly<LimbIndex>(),
                 ComponentType.ReadOnly<RootPhenotypeEntity>(),
                 ComponentType.ReadOnly<LocalTransform>()
@@ -281,6 +281,119 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.API
             return false;
         }
 
+        public bool TryRaycastToLimb(World world, UnityEngine.Ray ray, float rayLength, out ulong phenotypeGid, out ulong nodeGid)
+        {
+            phenotypeGid = default;
+            nodeGid = default;
+
+            if (!world.IsCreated) return false;
+
+            EntityManager entityManager = world.EntityManager;
+            
+            // Query all limbs with their visual transforms (LocalToWorld) and metadata.
+            EntityQuery limbQuery = entityManager.CreateEntityQuery(
+                ComponentType.ReadOnly<LimbIndex>(),
+                ComponentType.ReadOnly<NodeGid>(),
+                ComponentType.ReadOnly<RootPhenotypeEntity>(),
+                ComponentType.ReadOnly<LocalToWorld>()
+            );
+
+            if (limbQuery.IsEmptyIgnoreFilter) return false;
+
+            using NativeArray<Entity> entities = limbQuery.ToEntityArray(Allocator.Temp);
+            using NativeArray<NodeGid> nodeGids = limbQuery.ToComponentDataArray<NodeGid>(Allocator.Temp);
+            using NativeArray<RootPhenotypeEntity> rootPhenotypeEntities = limbQuery.ToComponentDataArray<RootPhenotypeEntity>(Allocator.Temp);
+            using NativeArray<LocalToWorld> localToWorlds = limbQuery.ToComponentDataArray<LocalToWorld>(Allocator.Temp);
+
+            float closestDistance = float.MaxValue;
+            int closestIndex = -1;
+
+            // Validate ray direction.
+            float3 rayDir = (float3)ray.direction;
+            float rayDirLength = math.length(rayDir);
+            if (rayDirLength < 0.0001f) return false; // Invalid ray direction.
+            rayDir /= rayDirLength;
+
+            // Check ray intersection against each limb's rendered position.
+            for (int i = 0; i < entities.Length; i++)
+            {
+                // Get limb's rendered world transform.
+                float4x4 limbTransform = localToWorlds[i].Value;
+                float3 limbPosition = limbTransform.c3.xyz;
+                
+                // Extract approximate scale from transform matrix.
+                float scaleX = math.length(limbTransform.c0.xyz);
+                float scaleY = math.length(limbTransform.c1.xyz);
+                float scaleZ = math.length(limbTransform.c2.xyz);
+                float avgScale = (scaleX + scaleY + scaleZ) / 3f;
+                
+                // Create a bounding sphere around the limb (simple and robust).
+                // Use minimum radius to prevent zero-radius spheres.
+                float radius = math.max(avgScale * 0.5f, 0.01f);
+                float3 rayToLimb = limbPosition - (float3)ray.origin;
+                
+                // Ray-sphere intersection
+                float projection = math.dot(rayToLimb, rayDir);
+                if (projection < 0 || projection > rayLength) continue;
+                
+                float3 closestPoint = (float3)ray.origin + rayDir * projection;
+                float distanceToLimb = math.distance(closestPoint, limbPosition);
+                
+                if (distanceToLimb <= radius && projection < closestDistance)
+                {
+                    closestDistance = projection;
+                    closestIndex = i;
+                }
+            }
+
+            if (closestIndex >= 0)
+            {
+                Entity rootPhenotypeEntity = rootPhenotypeEntities[closestIndex].Value;
+                phenotypeGid = entityManager.GetComponentData<PhenotypeGid>(rootPhenotypeEntity).Value;
+                nodeGid = nodeGids[closestIndex].Value;
+                return true;
+            }
+
+            return false;
+        }
+
+        public void SelectLimbsByNodeGid(World world, ulong nodeGid)
+        {
+            if (!world.IsCreated) return;
+
+            EntityManager entityManager = world.EntityManager;
+            
+            // Clear all existing selections.
+            EntityQuery selectedQuery = entityManager.CreateEntityQuery(ComponentType.ReadOnly<SelectedLimbTag>());
+            entityManager.RemoveComponent<SelectedLimbTag>(selectedQuery);
+
+            // Select all limbs with matching NodeGid.
+            EntityQuery limbQuery = entityManager.CreateEntityQuery(
+                ComponentType.ReadOnly<NodeGid>(),
+                ComponentType.ReadOnly<LimbIndex>()
+            );
+
+            using NativeArray<Entity> entities = limbQuery.ToEntityArray(Allocator.Temp);
+            using NativeArray<NodeGid> nodeGids = limbQuery.ToComponentDataArray<NodeGid>(Allocator.Temp);
+
+            for (int i = 0; i < entities.Length; i++)
+            {
+                if (nodeGids[i].Value == nodeGid)
+                {
+                    entityManager.AddComponent<SelectedLimbTag>(entities[i]);
+                }
+            }
+        }
+
+        public void ClearLimbSelection(World world)
+        {
+            if (!world.IsCreated) return;
+
+            EntityManager entityManager = world.EntityManager;
+            EntityQuery selectedQuery = entityManager.CreateEntityQuery(ComponentType.ReadOnly<SelectedLimbTag>());
+            entityManager.RemoveComponent<SelectedLimbTag>(selectedQuery);
+        }
+
         private static List<LimbEntityCreationRequest> ConvertToLimbCreationRequests(PhenotypeEntityCreationInfo<SimsPhenotype> info)
         {
             List<LimbEntityCreationRequest> requests = new();
@@ -292,6 +405,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.API
                 {
                     PhenotypeGid = info.Phenotype.Gid,
                     LimbIndex = (byte)i,
+                    NodeGid = limb.NodeGid,
                     Position = limb.Position.ToFloat3(),
                     Rotation = limb.Rotation.ToQuaternion(),
                     Dimensions = limb.Dimensions.ToFloat3(),

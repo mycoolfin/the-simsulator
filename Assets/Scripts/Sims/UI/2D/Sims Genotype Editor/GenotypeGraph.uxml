@@ -9,7 +9,7 @@
             </ui:VisualElement>
         </ui:VisualElement>
         <ui:ScrollView name="graph-scroll" mode="Horizontal" style="flex-grow: 1;">
-            <ui:VisualElement name="graph-canvas" style="flex-grow: 0; padding: 20px; position: relative; justify-content: center; height: 100%;">
+            <ui:VisualElement name="graph-canvas" style="flex-grow: 0; padding: 20px; position: relative; justify-content: center; height: 100%; width: 100%;">
                 <ui:VisualElement name="connection-overlay" style="position: absolute; left: 0; top: 0; width: 100%; height: 100%; picking-mode: Ignore;"/>
             </ui:VisualElement>
         </ui:ScrollView>

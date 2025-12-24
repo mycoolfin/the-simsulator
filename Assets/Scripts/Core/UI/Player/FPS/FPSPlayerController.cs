@@ -329,12 +329,17 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.Player.FPS
 
         private void HandleUIMouseClick()
         {
+            // Invoke event for external systems to handle UI clicks.
+            OnUIMouseClicked?.Invoke(Mouse.current.position.ReadValue());
+
             // Cast ray from camera through mouse position.
             Ray ray = playerCamera.ScreenPointToRay(Mouse.current.position.ReadValue());
             if (Physics.Raycast(ray, out RaycastHit hit, 100f))
                 if (hit.transform.TryGetComponent<ISelectable>(out var selectable))
                     selectable.Select();
         }
+
+        public event System.Action<Vector2> OnUIMouseClicked;
 
         public void OnJump(InputAction.CallbackContext context)
         {

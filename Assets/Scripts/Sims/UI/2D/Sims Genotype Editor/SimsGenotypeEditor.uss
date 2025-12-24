@@ -87,6 +87,6 @@
     background-color: rgb(60, 60, 60);
 }
 
-.unity-base-slider__input {
+.unity-base-slider .unity-text-field {
     min-width: 120px;
 }

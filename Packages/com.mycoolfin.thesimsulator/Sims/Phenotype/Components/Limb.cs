@@ -13,6 +13,7 @@ namespace mycoolfin.TheSimsulator.Sims.Phenotype
         public Joint Joint { get; private set; }
         public ContactSensorArray ContactSensors { get; private set; }
         public LightSensorArray LightSensors { get; private set; }
+        public ulong NodeGid { get; private set; }
 
         public float Mass => Dimensions.X * Dimensions.Y * Dimensions.Z; // Mass is proportional to volume.
 
@@ -25,7 +26,7 @@ namespace mycoolfin.TheSimsulator.Sims.Phenotype
 
         public event Action OnTransformChanged;
 
-        public Limb(Vector3 dimensions)
+        public Limb(Vector3 dimensions, ulong nodeGid)
         {
             Dimensions = dimensions;
             Position = Vector3.Zero;
@@ -33,6 +34,7 @@ namespace mycoolfin.TheSimsulator.Sims.Phenotype
             Joint = null;
             ContactSensors = new();
             LightSensors = new();
+            NodeGid = nodeGid;
 
             neurons = new();
         }

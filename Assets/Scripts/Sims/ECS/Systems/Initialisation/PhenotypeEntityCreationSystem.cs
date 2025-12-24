@@ -27,6 +27,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Systems.Initialisati
     {
         public ulong PhenotypeGid;
         public byte LimbIndex;
+        public ulong NodeGid;
         public float3 Position;
         public quaternion Rotation;
         public float3 Dimensions;
