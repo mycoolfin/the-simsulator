@@ -1,7 +1,6 @@
 using Unity.Burst;
 using Unity.Entities;
 using Unity.Mathematics;
-using Unity.Transforms;
 
 namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Systems.Simulation.Evolution.Assessment
 {
@@ -17,6 +16,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Systems.Simulation.E
         private const float MovementAreaRadius = 20f;
         private const float LightVerticalOffset = 2f;
 
+        private EntityQuery lightSourceQuery;
         private float3 radii;
         private float3 center;
         private float timeSinceLastTargetSelection;
@@ -33,6 +33,8 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Systems.Simulation.E
             state.RequireForUpdate<Fitness>();
             state.RequireForUpdate<GroundLightFollowingAssessmentData>();
             state.RequireForUpdate<LightSourceTag>();
+
+            lightSourceQuery = state.GetEntityQuery(typeof(LightSourceTag));
 
             // Initialize light at random position within the area (flat disc on XZ plane).
             radii = new(MovementAreaRadius, 0f, MovementAreaRadius);
@@ -51,6 +53,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Systems.Simulation.E
             
             LightMovementUtility.UpdateLightPosition(
                 ref state,
+                lightSourceQuery,
                 ref random,
                 ref timeSinceLastTargetSelection,
                 ref lightSourcePosition,

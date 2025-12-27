@@ -4,8 +4,6 @@ using Unity.Transforms;
 
 namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Systems.Simulation.Evolution.Assessment
 {
-    using Core.ECS.Components.WorldObject;
-
     public static class LightMovementUtility
     {
         public const float TargetSelectionInterval = 1f;
@@ -151,18 +149,18 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Systems.Simulation.E
         // Update light position with momentum-based movement.
         public static void UpdateLightPosition(
             ref SystemState state,
+            in EntityQuery lightSourceQuery,
             ref Random random,
             ref float timeSinceLastTargetSelection,
             ref float3 lightSourcePosition,
             ref float3 lightTargetPosition,
             ref float3 lightVelocity,
             ref float3 positionAtLastTargetSelection,
-            float deltaTime,
-            float3 radii,
-            float3 center
+            in float deltaTime,
+            in float3 radii,
+            in float3 center
         )
         {
-            EntityQuery lightSourceQuery = state.GetEntityQuery(typeof(LightSourceTag));
             Entity lightSourceEntity = lightSourceQuery.GetSingletonEntity();
 
             // Select new target position every interval.
