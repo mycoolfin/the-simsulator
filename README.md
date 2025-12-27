@@ -1,22 +1,15 @@
 # The Simsulator
 
-The Simsulator is an open-source platform designed to introduce users of all skill levels to evolving virtual creatures, based on the work of [Karl Sims](https://karlsims.com).
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Discord](https://img.shields.io/discord/1413376901594087436?label=Discord&logo=discord&logoColor=white)](https://discord.gg/ygxhStrE)
 
-**No coding required** - just [install](#installation) and go. Have fun!
+The Simsulator is an open-source platform for evolving virtual creatures using genetic algorithms and neural networks, inspired by [Karl Sims' seminal 1994 paper](https://www.karlsims.com/papers/siggraph94.pdf).
+
+**No coding required** - just [install](docs/USER_GUIDE.md#getting-started) and watch evolution in action!
 
 <img src="Media/evolution_simulator.gif" width="45%"/> <img src="Media/conveyor_fire.gif" width="45%"/> 
 
-## Installation
-
-1. Download the latest release [here](https://github.com/mycoolfin/the-simsulator/releases/latest).
-2. Unzip the file and run the executable.
-
-## Build
-
-1. Clone this repository to your local machine using `git clone https://github.com/mycoolfin/the-simsulator.git`
-2. Install [Unity](https://store.unity.com/download).
-3. Open the project in Unity.
-4. Follow the instructions in the [Unity Manual](https://docs.unity3d.com/Manual/PlatformSpecific.html) to build the project for your target operating system.
+For more information, check out the [user guide](docs/USER_GUIDE.md).
 
 ## License
 
