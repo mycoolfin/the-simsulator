@@ -4,12 +4,10 @@ using System.Collections.Generic;
 namespace mycoolfin.TheSimsulator.Sims.Phenotype
 {
     using Core.Phenotype;
-    using Genotype;
 
     public class SimsPhenotype : IPhenotype<SimsPhenotype>
     {
         public const int MAX_LIMBS = 20;
-        public const int MAX_NEURONS = MAX_LIMBS * Node.MAX_NEURON_DEFINITIONS + SimsGenotype.MAX_BRAIN_NEURON_DEFINITIONS;
         public const float MIN_LIMB_DIMENSION = 0.05f;
         public const float MAX_LIMB_DIMENSION = 10f;
 

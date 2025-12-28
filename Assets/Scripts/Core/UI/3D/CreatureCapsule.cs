@@ -215,14 +215,21 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
             if (!IsInitialised)
                 yield break; // Still initializing from a previous call.
 
-            Environment = environment;
+            // Set to false immediately to prevent re-entrant calls.
+            IsInitialised = false;
 
-            if (genotype == null) yield break;
+            if (genotype == null)
+            {
+                IsInitialised = true;
+                yield break;
+            }
 
-            World world = GetWorld(Environment);
-
+            // Destroy old phenotype in the current environment before switching.
             if (creature != null && creature.Phenotype != null)
-                DestroyPhenotype(world);
+                DestroyPhenotype(GetWorld(Environment));
+
+            Environment = environment;
+            World world = GetWorld(Environment);
 
             TPhenotype phenotype;
             try
@@ -232,10 +239,9 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
             catch
             {
                 SetState(CapsuleState.InvalidGenotypeError);
+                IsInitialised = true;
                 yield break;
             }
-
-            IsInitialised = false;
             PhenotypeEntityCreationInfo<TPhenotype> creationInfo = new()
             {
                 Phenotype = phenotype,

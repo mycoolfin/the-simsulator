@@ -29,7 +29,7 @@ The headless runner automatically detects batch mode and loads a simplified simu
 ### macOS
 
 ```bash
-./TheSimsulator.app/Contents/MacOS/TheSimsulator -batchmode -nographics \
+./TheSimsulator.app/Contents/MacOS/The Simsulator -batchmode -nographics \
   -logfile - \
   -populationSize 500 \
   -maxGenerations 200 \
@@ -108,7 +108,7 @@ Available trial types:
 ### Basic Evolution Run
 
 ```bash
-./TheSimsulator.app/Contents/MacOS/TheSimsulator -batchmode -nographics \
+./TheSimsulator.app/Contents/MacOS/The Simsulator -batchmode -nographics \
   -populationSize 200 \
   -maxGenerations 50 \
   -outputDir ~/evolution_results
@@ -117,7 +117,7 @@ Available trial types:
 ### Water Evolution with Custom Parameters
 
 ```bash
-./TheSimsulator.app/Contents/MacOS/TheSimsulator -batchmode -nographics \
+./TheSimsulator.app/Contents/MacOS/The Simsulator -batchmode -nographics \
   -trialType WaterDistance \
   -populationSize 400 \
   -maxGenerations 200 \
@@ -131,7 +131,7 @@ Available trial types:
 ### Light Following Experiment
 
 ```bash
-./TheSimsulator.app/Contents/MacOS/TheSimsulator -batchmode -nographics \
+./TheSimsulator.app/Contents/MacOS/The Simsulator -batchmode -nographics \
   -trialType GroundLightFollowing \
   -populationSize 500 \
   -assessmentSeconds 30.0 \
@@ -186,7 +186,7 @@ Generation,Best Fitness,Average Fitness,Elapsed Time
 ```bash
 #!/bin/bash
 
-APP="./TheSimsulator.app/Contents/MacOS/TheSimsulator"
+APP="./TheSimsulator.app/Contents/MacOS/The Simsulator"
 OUTPUT_DIR="~/experiment_results/$(date +%Y%m%d_%H%M%S)"
 mkdir -p "$OUTPUT_DIR"
 
@@ -238,7 +238,7 @@ Write-Host "All simulations complete! Results in $OUTPUT_DIR"
 ```bash
 #!/bin/bash
 
-APP="./TheSimsulator.app/Contents/MacOS/TheSimsulator"
+APP="./TheSimsulator.app/Contents/MacOS/The Simsulator"
 OUTPUT_DIR="~/parallel_experiments"
 mkdir -p "$OUTPUT_DIR"
 
