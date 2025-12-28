@@ -29,31 +29,31 @@ The headless runner automatically detects batch mode and loads a simplified simu
 ### macOS
 
 ```bash
-./TheSimsulator.app/Contents/MacOS/The Simsulator -batchmode -nographics \
-  -logfile - \
-  -populationSize 500 \
-  -maxGenerations 200 \
-  -outputDir ./results
+./TheSimsulator.app/Contents/MacOS/The\ Simsulator -batchmode -nographics \
+  -logFile - \
+  --populationSize=500 \
+  --maxGenerations=200 \
+  --outputDir=./results
 ```
 
 ### Linux
 
 ```bash
 ./TheSimsulator.x86_64 -batchmode -nographics \
-  -logfile - \
-  -populationSize 500 \
-  -maxGenerations 200 \
-  -outputDir ./results
+  -logFile - \
+  --populationSize=500 \
+  --maxGenerations=200 \
+  --outputDir=./results
 ```
 
 ### Windows
 
 ```cmd
 TheSimsulator.exe -batchmode -nographics ^
-  -logfile - ^
-  -populationSize 500 ^
-  -maxGenerations 200 ^
-  -outputDir .\results
+  -logFile - ^
+  --populationSize=500 ^
+  --maxGenerations=200 ^
+  --outputDir=.\results
 ```
 
 ### Required Unity Arguments
@@ -108,34 +108,34 @@ Available trial types:
 ### Basic Evolution Run
 
 ```bash
-./TheSimsulator.app/Contents/MacOS/The Simsulator -batchmode -nographics \
-  -populationSize 200 \
-  -maxGenerations 50 \
-  -outputDir ~/evolution_results
+./TheSimsulator.app/Contents/MacOS/The\ Simsulator -batchmode -nographics \
+  --populationSize=200 \
+  --maxGenerations=50 \
+  --outputDir=~/evolution_results
 ```
 
 ### Water Evolution with Custom Parameters
 
 ```bash
-./TheSimsulator.app/Contents/MacOS/The Simsulator -batchmode -nographics \
-  -trialType WaterDistance \
-  -populationSize 400 \
-  -maxGenerations 200 \
-  -survivalRate 0.3 \
-  -mutationRate 2.5 \
-  -settleSeconds 2.0 \
-  -assessmentSeconds 15.0 \
-  -outputDir ~/water_evolution
+./TheSimsulator.app/Contents/MacOS/The\ Simsulator -batchmode -nographics \
+  --trialType=WaterDistance \
+  --populationSize=400 \
+  --maxGenerations=200 \
+  --survivalRate=0.3 \
+  --mutationRate=2.5 \
+  --settleSeconds=2.0 \
+  --assessmentSeconds=15.0 \
+  --outputDir=~/water_evolution
 ```
 
 ### Light Following Experiment
 
 ```bash
-./TheSimsulator.app/Contents/MacOS/The Simsulator -batchmode -nographics \
-  -trialType GroundLightFollowing \
-  -populationSize 500 \
-  -assessmentSeconds 30.0 \
-  -outputDir ~/light_following_results
+./TheSimsulator.app/Contents/MacOS/The\ Simsulator -batchmode -nographics \
+  --trialType=GroundLightFollowing \
+  --populationSize=500 \
+  --assessmentSeconds=30.0 \
+  --outputDir=~/light_following_results
 ```
 
 ## Output Format
@@ -162,7 +162,7 @@ Generation,Best Fitness,Average Fitness,Elapsed Time
 - `Generation` - Generation number (0-indexed)
 - `Best Fitness` - Fitness of the best creature in this generation
 - `Average Fitness` - Mean fitness across all creatures
-- `Elapsed Time` - Cumulative simulation time in seconds
+- `Elapsed Time` - Time taken (seconds) for generation to complete
 
 ## Performance Considerations
 
@@ -186,7 +186,7 @@ Generation,Best Fitness,Average Fitness,Elapsed Time
 ```bash
 #!/bin/bash
 
-APP="./TheSimsulator.app/Contents/MacOS/The Simsulator"
+APP="./TheSimsulator.app/Contents/MacOS/The\ Simsulator"
 OUTPUT_DIR="~/experiment_results/$(date +%Y%m%d_%H%M%S)"
 mkdir -p "$OUTPUT_DIR"
 
@@ -196,10 +196,10 @@ for POP_SIZE in 20 30 40 50; do
         echo "Running: PopSize=$POP_SIZE, Trial=$TRIAL"
         
         "$APP" -batchmode -nographics \
-            -populationSize $POP_SIZE \
-            -maxGenerations 100 \
-            -trialType $TRIAL \
-            -outputDir "$OUTPUT_DIR" \
+            --populationSize=$POP_SIZE \
+            --maxGenerations=100 \
+            --trialType=$TRIAL \
+            --outputDir="$OUTPUT_DIR" \
             -logFile "$OUTPUT_DIR/log_P${POP_SIZE}_${TRIAL}.txt"
     done
 done
@@ -222,10 +222,10 @@ foreach ($PopSize in $PopSizes) {
         Write-Host "Running: PopSize=$PopSize, Trial=$Trial"
         
         & $APP -batchmode -nographics `
-            -populationSize $PopSize `
-            -maxGenerations 100 `
-            -trialType $Trial `
-            -outputDir $OUTPUT_DIR `
+            --populationSize=$PopSize `
+            --maxGenerations=100 `
+            --trialType=$Trial `
+            --outputDir=$OUTPUT_DIR `
             -logFile "$OUTPUT_DIR\log_P${PopSize}_${Trial}.txt"
     }
 }
@@ -238,15 +238,15 @@ Write-Host "All simulations complete! Results in $OUTPUT_DIR"
 ```bash
 #!/bin/bash
 
-APP="./TheSimsulator.app/Contents/MacOS/The Simsulator"
+APP="./TheSimsulator.app/Contents/MacOS/The\ Simsulator"
 OUTPUT_DIR="~/parallel_experiments"
 mkdir -p "$OUTPUT_DIR"
 
 # Run 4 different trials in parallel
-"$APP" -batchmode -nographics -trialType GroundDistance -populationSize 30 -maxGenerations 100 -outputDir "$OUTPUT_DIR" &
-"$APP" -batchmode -nographics -trialType WaterDistance -populationSize 30 -maxGenerations 100 -outputDir "$OUTPUT_DIR" &
-"$APP" -batchmode -nographics -trialType GroundLightFollowing -populationSize 30 -maxGenerations 100 -outputDir "$OUTPUT_DIR" &
-"$APP" -batchmode -nographics -trialType WaterLightFollowing -populationSize 30 -maxGenerations 100 -outputDir "$OUTPUT_DIR" &
+"$APP" -batchmode -nographics --trialType=GroundDistance --populationSize=30 --maxGenerations=100 --outputDir="$OUTPUT_DIR" &
+"$APP" -batchmode -nographics --trialType=WaterDistance --populationSize=30 --maxGenerations=100 --outputDir="$OUTPUT_DIR" &
+"$APP" -batchmode -nographics --trialType=GroundLightFollowing --populationSize=30 --maxGenerations=100 --outputDir="$OUTPUT_DIR" &
+"$APP" -batchmode -nographics --trialType=WaterLightFollowing --populationSize=30 --maxGenerations=100 --outputDir="$OUTPUT_DIR" &
 
 # Wait for all to complete
 wait
@@ -269,7 +269,7 @@ echo "All parallel simulations complete!"
 **Issue**: Simulation completes but no CSV file is created.
 
 **Solutions**:
-- Verify `-outputDir` path exists and is writable
+- Verify `--outputDir` path exists and is writable
 - Use absolute paths instead of relative paths
 - Check application logs for permission errors
 
@@ -278,7 +278,7 @@ echo "All parallel simulations complete!"
 **Issue**: Process doesn't terminate after expected time.
 
 **Solutions**:
-- Ensure `-maxGenerations` parameter is set
+- Ensure `--maxGenerations` parameter is set
 - Check that the application isn't waiting for input
 - Use `-logFile -` to monitor progress in real-time
 
@@ -287,15 +287,15 @@ echo "All parallel simulations complete!"
 **Issue**: Process crashes with memory errors.
 
 **Solutions**:
-- Reduce `-populationSize` parameter
+- Reduce `--populationSize` parameter
 - Monitor memory usage with `top` or Task Manager
 - Run fewer parallel simulations
 
 ### Performance is Slower Than Expected
 
 **Solutions**:
-- Reduce `-settleSeconds` and `-assessmentSeconds` if possible
-- Lower `-populationSize` for faster iterations
+- Reduce `--settleSeconds` and `--assessmentSeconds` if possible
+- Lower `--populationSize` for faster iterations
 - Ensure no other CPU-intensive processes are running
 - Check that your system isn't thermal throttling
 
