@@ -76,6 +76,10 @@ crashlytics-build.properties
 /[Aa]ssets/[Ss]treamingAssets/aa.meta
 /[Aa]ssets/[Ss]treamingAssets/aa/*
 
+# Performance test settings
+/[Aa]ssets/[Rr]esources/PerformanceTestRunSettings.json
+/[Aa]ssets/[Rr]esources/PerformanceTestRunSettings.json.meta
+
 mono_crash.*.*.json
 
 .DS_Store

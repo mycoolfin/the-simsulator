@@ -5,16 +5,16 @@ EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Scenes:
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/MainMenu.unity
     guid: 7585a10b807bb46ba8d745b4b3a8af8c
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/EvolutionSimulator.unity
     guid: 7abb897da284d41b4908d8b07ef52be9
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/ZooMode.unity
     guid: 956c85e7d8f3144609432a3bab46cc5d
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/CreatureEditor.unity
     guid: ad02abc142d4d4b10bb6ce65ae3cf4a8
   m_configObjects:
