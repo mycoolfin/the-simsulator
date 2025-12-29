@@ -10,6 +10,7 @@ Welcome to The Simsulator! This guide will help you create, evolve, and explore 
 - [Evolution Parameters](#evolution-parameters)
 - [Typical Evolution Progression](#typical-evolution-progression)
 - [Tips & Best Practices](#tips--best-practices)
+- [Advanced Users](#advanced-users)
 
 ## Getting Started
 
@@ -215,7 +216,11 @@ Creatures' genes encode:
 ### Performance Optimization
 
 - Close other applications during fast-forward evolution
-- Use headless mode for long experiments (see [Headless Mode Guide](HEADLESS.md))
+- Use headless mode for long experiments (see [Headless Mode Guide](/docs/HEADLESS.md))
+
+## Advanced Users
+
+Refer to the [Parameters Guide](/docs/PARAMETERS.md) for a list of parameters that require source code recompilation.
 
 ---
 
