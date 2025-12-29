@@ -12,6 +12,7 @@ The Simsulator supports headless mode for running evolutionary simulations witho
 - [Performance Considerations](#performance-considerations)
 - [Automation & Batch Processing](#automation--batch-processing)
 - [Troubleshooting](#troubleshooting)
+- [Known Issues](#known-issues)
 
 ## Overview
 
@@ -298,5 +299,13 @@ echo "All parallel simulations complete!"
 - Lower `--populationSize` for faster iterations
 - Ensure no other CPU-intensive processes are running
 - Check that your system isn't thermal throttling
+
+## Known Issues
+
+**Issue**: Headless mode crashes on Linux, appears to be a Unity 6.3 bug.
+
+**Solution**: Run with `xvfb`, omit `-nographics` flag.
+1. `apt install xvfb`
+2. `xvfb-run ./TheSimsulator.x86_64 -batchmode <other_params>`
 
 ---

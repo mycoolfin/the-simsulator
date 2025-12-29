@@ -160,7 +160,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Systems.Initialisati
             using NativeHashSet<ColliderKey> uniqueKeys = new(requests.Length, Allocator.TempJob);
             for (int i = 0; i < requests.Length; i++)
             {
-                LimbEntityBuilder.GetCollisionFilter(requests[i], out CollisionFilter collisionFilter);
+                LimbEntityBuilder.GetCollisionFilter(requests[i], LimbEntityBuilder.PHENOTYPE_LAYER, LimbEntityBuilder.ALL_LAYERS, out CollisionFilter collisionFilter);
                 uniqueKeys.Add(new(requests[i].Dimensions, collisionFilter));
             }
             ColliderCacheManager.Cache.AddColliders(uniqueKeys);

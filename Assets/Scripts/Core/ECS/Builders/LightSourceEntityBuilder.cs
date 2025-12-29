@@ -13,13 +13,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.ECS.Builders
     public static class LightSourceEntityBuilder
     {
         public static RenderMeshArrayCreator RenderMeshArrayCreator;
-
-        public static bool IsReady()
-        {
-            RenderMeshArray renderMeshArray = RenderMeshArrayCreator.RenderMeshArray;
-            return renderMeshArray.MaterialReferences != null && renderMeshArray.MaterialReferences.Length != 0
-                && renderMeshArray.MeshReferences != null && renderMeshArray.MeshReferences.Length != 0;
-        }
+        private static bool RenderingEnabled => RenderMeshArrayCreator != null;
 
         public static void CreateLightSource(EntityManager entityManager)
         {
@@ -42,17 +36,20 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.ECS.Builders
                 Value = float4x4.identity
             });
 
-            entityManager.SetComponentData(lightSource, new URPMaterialPropertyBaseColor());
-            RenderMeshUtility.AddComponents(
-                lightSource,
-                entityManager,
-                new(
-                    shadowCastingMode: UnityEngine.Rendering.ShadowCastingMode.Off,
-                    receiveShadows: false
-                ),
-                RenderMeshArrayCreator.RenderMeshArray,
-                MaterialMeshInfo.FromRenderMeshArrayIndices(RenderMeshArrayCreator.LightSourceIndex, RenderMeshArrayCreator.LightSourceIndex)
-            );
+            if (RenderingEnabled)
+            {
+                entityManager.SetComponentData(lightSource, new URPMaterialPropertyBaseColor());
+                RenderMeshUtility.AddComponents(
+                    lightSource,
+                    entityManager,
+                    new(
+                        shadowCastingMode: UnityEngine.Rendering.ShadowCastingMode.Off,
+                        receiveShadows: false
+                    ),
+                    RenderMeshArrayCreator.RenderMeshArray,
+                    MaterialMeshInfo.FromRenderMeshArrayIndices(RenderMeshArrayCreator.LightSourceIndex, RenderMeshArrayCreator.LightSourceIndex)
+                );
+            }
         }
     }
 }
