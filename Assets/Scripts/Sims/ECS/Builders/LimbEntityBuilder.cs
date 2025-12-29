@@ -20,15 +20,15 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Builders
     [BurstCompile]
     public static class LimbEntityBuilder
     {
-        public static SimsRenderMeshArrayCreator RenderMeshArrayCreator;
-
         public const uint PHENOTYPE_LAYER = 1u << 9;
         public const uint ALL_LAYERS = ~0u;
 
-        private static readonly PhysicsDamping DefaultDamping = new() { Linear = 0.01f, Angular = 0.05f };
+        public static SimsRenderMeshArrayCreator RenderMeshArrayCreator;
+        private static bool RenderingEnabled => RenderMeshArrayCreator != null;
 
         public static bool IsReady()
         {
+            if (!RenderingEnabled) return true; // No rendering, so nothing to check.
             RenderMeshArray renderMeshArray = RenderMeshArrayCreator.RenderMeshArray;
             return renderMeshArray.MaterialReferences != null && renderMeshArray.MaterialReferences.Length != 0
                 && renderMeshArray.MeshReferences != null && renderMeshArray.MeshReferences.Length != 0;
@@ -45,7 +45,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Builders
         )
         {
             using NativeArray<Entity> limbEntities = new(limbCreationRequests.Length, Allocator.TempJob);
-            Entity limbPrototype = CreateLimbPrototype(ref state, RenderMeshArrayCreator.RenderMeshArray);
+            Entity limbPrototype = CreateLimbPrototype(ref state);
             state.EntityManager.Instantiate(limbPrototype, limbEntities);
             state.EntityManager.DestroyEntity(limbPrototype);
 
@@ -56,8 +56,11 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Builders
                 Ecb = ecb.AsParallelWriter(),
                 RequestEntities = limbCreationRequestEntities,
                 Requests = limbCreationRequests,
+                RenderingEnabled = RenderingEnabled,
                 LimbEntities = limbEntities,
                 ColliderMap = ColliderCacheManager.Cache.ReadOnlyMap,
+                PhenotypeLayer = PHENOTYPE_LAYER,
+                AllLayers = ALL_LAYERS,
                 RootPhenotypeEntityLookup = rootPhenotypeEntityLookup,
                 NeuralGraphLookup = neuralGraphLookup,
                 LimbEntityLookup = limbEntityLookup.AsParallelWriter(),
@@ -67,7 +70,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Builders
             ecb.Playback(state.EntityManager);
         }
 
-        private static Entity CreateLimbPrototype(ref SystemState state, RenderMeshArray renderMeshArray)
+        private static Entity CreateLimbPrototype(ref SystemState state)
         {
             Entity limbPrototype = state.EntityManager.CreateEntity();
 
@@ -86,43 +89,47 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Builders
             state.EntityManager.AddComponentData(limbPrototype, new PostTransformMatrix());
 
             // Rendering.
-            state.EntityManager.AddComponentData(limbPrototype, new LimbColor());
-            state.EntityManager.AddComponentData(limbPrototype, new URPMaterialPropertyBaseColor());
-            state.EntityManager.AddComponentData(limbPrototype, new LimbOutline());
-            RenderMeshUtility.AddComponents(
-                limbPrototype,
-                state.EntityManager,
-                new(
-                    shadowCastingMode: UnityEngine.Rendering.ShadowCastingMode.Off,
-                    receiveShadows: false
-                ),
-                renderMeshArray,
-                MaterialMeshInfo.FromRenderMeshArrayIndices(RenderMeshArrayCreator.LimbIndex, RenderMeshArrayCreator.LimbIndex)
-            );
+            if (RenderingEnabled)
+            {
+                state.EntityManager.AddComponentData(limbPrototype, new LimbColor());
+                state.EntityManager.AddComponentData(limbPrototype, new URPMaterialPropertyBaseColor());
+                state.EntityManager.AddComponentData(limbPrototype, new LimbOutline());
+                RenderMeshUtility.AddComponents(
+                    limbPrototype,
+                    state.EntityManager,
+                    new(
+                        shadowCastingMode: UnityEngine.Rendering.ShadowCastingMode.Off,
+                        receiveShadows: false
+                    ),
+                    RenderMeshArrayCreator.RenderMeshArray,
+                    MaterialMeshInfo.FromRenderMeshArrayIndices(RenderMeshArrayCreator.LimbIndex, RenderMeshArrayCreator.LimbIndex)
+                );
+            }
 
             // Physics.
             state.EntityManager.AddSharedComponent(limbPrototype, new PhysicsWorldIndex(0));
             state.EntityManager.AddComponentData(limbPrototype, new PhysicsCollider());
             state.EntityManager.AddComponentData(limbPrototype, new PhysicsMass());
             state.EntityManager.AddComponentData(limbPrototype, new PhysicsVelocity());
-            state.EntityManager.AddComponentData(limbPrototype, DefaultDamping);
+            state.EntityManager.AddComponentData(limbPrototype, new PhysicsDamping() { Linear = 0.01f, Angular = 0.05f });
 
             return limbPrototype;
         }
 
         [BurstCompile]
-        public static void GetCollisionFilter(in LimbEntityCreationRequest request, out CollisionFilter filter)
+        public static void GetCollisionFilter(in LimbEntityCreationRequest request, in uint phenotypeLayer, in uint allLayers, out CollisionFilter filter)
         {
             filter = new CollisionFilter
             {
-                BelongsTo = PHENOTYPE_LAYER,
+                BelongsTo = phenotypeLayer,
                 CollidesWith = request.AllowInterPhenotypeCollisions == 1
-                    ? ALL_LAYERS
-                    : ~PHENOTYPE_LAYER,
+                    ? allLayers
+                    : ~phenotypeLayer,
                 GroupIndex = GetNegativeGroupIndex(request.PhenotypeGid)
             };
         }
 
+        [BurstCompile]
         private static int GetNegativeGroupIndex(ulong gid)
         {
             // Split into two 32-bit uints.
@@ -135,77 +142,83 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Builders
             // Force high bit = 1 to make it negative when cast to int.
             return (int)(hash | 0x80000000);
         }
+    }
 
-        [BurstCompile]
-        private partial struct SetUpLimbEntityJob : IJobFor
+    [BurstCompile]
+    public partial struct SetUpLimbEntityJob : IJobFor
+    {
+        public EntityCommandBuffer.ParallelWriter Ecb;
+        [ReadOnly] public NativeArray<Entity> RequestEntities;
+        [ReadOnly] public NativeArray<LimbEntityCreationRequest> Requests;
+        [ReadOnly] public bool RenderingEnabled;
+        [ReadOnly] public NativeArray<Entity> LimbEntities;
+        [ReadOnly] public NativeParallelHashMap<ColliderKey, BlobAssetReference<Collider>>.ReadOnly ColliderMap;
+        [ReadOnly] public uint PhenotypeLayer;
+        [ReadOnly] public uint AllLayers;
+        [ReadOnly] public NativeParallelHashMap<ulong, Entity>.ReadOnly RootPhenotypeEntityLookup;
+        [ReadOnly] public NativeParallelHashMap<ulong, NeuralGraphRef>.ReadOnly NeuralGraphLookup;
+        public NativeParallelHashMap<PhenotypeLimbKey, Entity>.ParallelWriter LimbEntityLookup;
+        public NativeParallelHashMap<PhenotypeLimbKey, LocalTransform>.ParallelWriter LimbLocalTransformLookup;
+
+        public void Execute(int index)
         {
-            public EntityCommandBuffer.ParallelWriter Ecb;
-            [ReadOnly] public NativeArray<Entity> RequestEntities;
-            [ReadOnly] public NativeArray<LimbEntityCreationRequest> Requests;
-            [ReadOnly] public NativeArray<Entity> LimbEntities;
-            [ReadOnly] public NativeParallelHashMap<ColliderKey, BlobAssetReference<Collider>>.ReadOnly ColliderMap;
-            [ReadOnly] public NativeParallelHashMap<ulong, Entity>.ReadOnly RootPhenotypeEntityLookup;
-            [ReadOnly] public NativeParallelHashMap<ulong, NeuralGraphRef>.ReadOnly NeuralGraphLookup;
-            public NativeParallelHashMap<PhenotypeLimbKey, Entity>.ParallelWriter LimbEntityLookup;
-            public NativeParallelHashMap<PhenotypeLimbKey, LocalTransform>.ParallelWriter LimbLocalTransformLookup;
+            LimbEntityCreationRequest requestData = Requests[index];
+            Entity limbEntity = LimbEntities[index];
 
-            public void Execute(int index)
+            // Root phenotype entity reference.
+            Ecb.SetComponent(index, limbEntity, new RootPhenotypeEntity
             {
-                LimbEntityCreationRequest requestData = Requests[index];
-                Entity limbEntity = LimbEntities[index];
+                Value = RootPhenotypeEntityLookup[requestData.PhenotypeGid]
+            });
 
-                // Root phenotype entity reference.
-                Ecb.SetComponent(index, limbEntity, new RootPhenotypeEntity
-                {
-                    Value = RootPhenotypeEntityLookup[requestData.PhenotypeGid]
-                });
+            // Limb index.
+            Ecb.SetComponent(index, limbEntity, new LimbIndex
+            {
+                Value = requestData.LimbIndex
+            });
 
-                // Limb index.
-                Ecb.SetComponent(index, limbEntity, new LimbIndex
-                {
-                    Value = requestData.LimbIndex
-                });
+            // Node Gid.
+            Ecb.SetComponent(index, limbEntity, new NodeGid
+            {
+                Value = requestData.NodeGid
+            });
 
-                // Node Gid.
-                Ecb.SetComponent(index, limbEntity, new NodeGid
-                {
-                    Value = requestData.NodeGid
-                });
+            // Sensor neural emitter indices.
+            ref CompiledNeuralGraph neuralGraph = ref NeuralGraphLookup[requestData.PhenotypeGid].Value.Value;
+            Ecb.SetComponent(index, limbEntity, new ContactSensors
+            {
+                TotalLoadSensorEmitterIndex = neuralGraph.GetEmitterIndexOfSensor(requestData.LimbIndex, SensorType.ContactTotalLoad, 0),
+                SlipSensorEmitterIndex = neuralGraph.GetEmitterIndexOfSensor(requestData.LimbIndex, SensorType.ContactSlip, 0),
+                XAxisLoadSensorEmitterIndex = neuralGraph.GetEmitterIndexOfSensor(requestData.LimbIndex, SensorType.ContactDirectionalLoad, 0),
+                YAxisLoadSensorEmitterIndex = neuralGraph.GetEmitterIndexOfSensor(requestData.LimbIndex, SensorType.ContactDirectionalLoad, 1),
+                ZAxisLoadSensorEmitterIndex = neuralGraph.GetEmitterIndexOfSensor(requestData.LimbIndex, SensorType.ContactDirectionalLoad, 2)
+            });
+            Ecb.SetComponent(index, limbEntity, new LightSensors
+            {
+                XAxisSensorEmitterIndex = neuralGraph.GetEmitterIndexOfSensor(requestData.LimbIndex, SensorType.Light, 0),
+                YAxisSensorEmitterIndex = neuralGraph.GetEmitterIndexOfSensor(requestData.LimbIndex, SensorType.Light, 1),
+                ZAxisSensorEmitterIndex = neuralGraph.GetEmitterIndexOfSensor(requestData.LimbIndex, SensorType.Light, 2)
+            });
 
-                // Sensor neural emitter indices.
-                ref CompiledNeuralGraph neuralGraph = ref NeuralGraphLookup[requestData.PhenotypeGid].Value.Value;
-                Ecb.SetComponent(index, limbEntity, new ContactSensors
-                {
-                    TotalLoadSensorEmitterIndex = neuralGraph.GetEmitterIndexOfSensor(requestData.LimbIndex, SensorType.ContactTotalLoad, 0),
-                    SlipSensorEmitterIndex = neuralGraph.GetEmitterIndexOfSensor(requestData.LimbIndex, SensorType.ContactSlip, 0),
-                    XAxisLoadSensorEmitterIndex = neuralGraph.GetEmitterIndexOfSensor(requestData.LimbIndex, SensorType.ContactDirectionalLoad, 0),
-                    YAxisLoadSensorEmitterIndex = neuralGraph.GetEmitterIndexOfSensor(requestData.LimbIndex, SensorType.ContactDirectionalLoad, 1),
-                    ZAxisLoadSensorEmitterIndex = neuralGraph.GetEmitterIndexOfSensor(requestData.LimbIndex, SensorType.ContactDirectionalLoad, 2)
-                });
-                Ecb.SetComponent(index, limbEntity, new LightSensors
-                {
-                    XAxisSensorEmitterIndex = neuralGraph.GetEmitterIndexOfSensor(requestData.LimbIndex, SensorType.Light, 0),
-                    YAxisSensorEmitterIndex = neuralGraph.GetEmitterIndexOfSensor(requestData.LimbIndex, SensorType.Light, 1),
-                    ZAxisSensorEmitterIndex = neuralGraph.GetEmitterIndexOfSensor(requestData.LimbIndex, SensorType.Light, 2)
-                });
+            // Transform.
+            quaternion rotation = requestData.Rotation;
+            if (rotation.value.w < 0f) // Canonicalise rotation: ensure W >= 0 for consistent physics behavior.
+                rotation.value = -rotation.value;
 
-                // Transform.
-                // quaternion rotation = requestData.Rotation;
-                // if (rotation.value.w < 0f) // Canonicalise rotation: ensure W >= 0 for consistent physics behavior.
-                //     rotation.value = -rotation.value;
-                
-                LocalTransform localTransform = LocalTransform.FromPositionRotationScale(
-                    requestData.Position + requestData.PhysicsPositionOffset,
-                    requestData.Rotation,
-                    1f
-                );
-                Ecb.SetComponent(index, limbEntity, localTransform);
-                Ecb.SetComponent(index, limbEntity, new PostTransformMatrix
-                {
-                    Value = float4x4.Scale(requestData.Dimensions)
-                });
+            LocalTransform localTransform = LocalTransform.FromPositionRotationScale(
+                requestData.Position + requestData.PhysicsPositionOffset,
+                rotation,
+                1f
+            );
+            Ecb.SetComponent(index, limbEntity, localTransform);
+            Ecb.SetComponent(index, limbEntity, new PostTransformMatrix
+            {
+                Value = float4x4.Scale(requestData.Dimensions)
+            });
 
-                // Rendering.
+            // Rendering.
+            if (RenderingEnabled)
+            {
                 Ecb.SetComponent(index, limbEntity, new LimbColor
                 {
                     Value = requestData.Color
@@ -222,22 +235,22 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Sims.ECS.Builders
                         Extents = requestData.Dimensions * 0.5f
                     }
                 });
-
-                // Physics.
-                GetCollisionFilter(requestData, out CollisionFilter collisionFilter);
-                ColliderMap.TryGetValue(new(requestData.Dimensions, collisionFilter), out BlobAssetReference<Collider> collider);
-                Ecb.SetComponent(index, limbEntity, new PhysicsCollider { Value = collider });
-                Ecb.SetComponent(index, limbEntity, PhysicsMass.CreateDynamic(collider.Value.MassProperties, requestData.Mass));
-
-                // Add to lookups.
-                PhenotypeLimbKey key = new(requestData.PhenotypeGid, requestData.LimbIndex);
-                LimbEntityLookup.TryAdd(key, limbEntity);
-                LimbLocalTransformLookup.TryAdd(key, localTransform);
-
-                // Destroy the request entity.
-                int disposalOffsetIndex = RequestEntities.Length;
-                Ecb.DestroyEntity(index + disposalOffsetIndex, RequestEntities[index]);
             }
+
+            // Physics.
+            LimbEntityBuilder.GetCollisionFilter(requestData, PhenotypeLayer, AllLayers, out CollisionFilter collisionFilter);
+            ColliderMap.TryGetValue(new(requestData.Dimensions, collisionFilter), out BlobAssetReference<Collider> collider);
+            Ecb.SetComponent(index, limbEntity, new PhysicsCollider { Value = collider });
+            Ecb.SetComponent(index, limbEntity, PhysicsMass.CreateDynamic(collider.Value.MassProperties, requestData.Mass));
+
+            // Add to lookups.
+            PhenotypeLimbKey key = new(requestData.PhenotypeGid, requestData.LimbIndex);
+            LimbEntityLookup.TryAdd(key, limbEntity);
+            LimbLocalTransformLookup.TryAdd(key, localTransform);
+
+            // Destroy the request entity.
+            int disposalOffsetIndex = RequestEntities.Length;
+            Ecb.DestroyEntity(index + disposalOffsetIndex, RequestEntities[index]);
         }
     }
 }
