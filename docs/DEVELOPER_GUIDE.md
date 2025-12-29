@@ -110,11 +110,11 @@ Use Unity's built-in build system:
 
 ## Headless Mode
 
-The project supports headless execution for batch simulations, see the [Headless Mode Guide](docs/HEADLESS.md) for details.
+The project supports headless execution for batch simulations, see the [Headless Mode Guide](/docs/HEADLESS.md) for details.
 
 ## Resources
 
 - [Unity ECS Documentation](https://docs.unity3d.com/Packages/com.unity.entities@latest)
 - [Karl Sims' Original Paper](https://www.karlsims.com/papers/siggraph94.pdf)
-- [User Guide](USER_GUIDE.md)
+- [User Guide](/docs/USER_GUIDE.md)
 - [Discord Community](https://discord.gg/ygxhStrE)

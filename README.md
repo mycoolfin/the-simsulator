@@ -9,7 +9,7 @@ The Simsulator is an open-source platform for evolving virtual creatures using g
 
 <img src="Media/evolution_simulator.gif" width="45%"/> <img src="Media/conveyor_fire.gif" width="45%"/> 
 
-For more information, check out the [user guide](docs/USER_GUIDE.md).
+For more information, check out the [User Guide](/docs/USER_GUIDE.md).
 
 ## License
 
