@@ -89,17 +89,17 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
 
             pauseButton.OnButtonPressed += (isActive) =>
             {
-                simulator.PauseSimulation();
+                simulator.SetSimulationPaused();
             };
 
             playButton.OnButtonPressed += (isActive) =>
             {
-                simulator.RealTimeSimulation();
+                simulator.SetSimulationRealTime();
             };
 
             fastForwardButton.OnButtonPressed += (isActive) =>
             {
-                simulator.FullSpeedSimulation();
+                simulator.SetSimulationFullSpeed();
             };
 
             zoomInButton.OnButtonPressed += (isActive) =>
@@ -129,10 +129,10 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
             fitnessGraph.AddSeries("Best Fitness", Color.cyan);
             fitnessGraph.AddSeries("Average Fitness", Color.orange);
 
-            simulator.OnGenerationComplete += (stats) =>
+            simulator.OnGenerationComplete += (_, _) =>
             {
-                fitnessGraph.SetSeriesPoints("Best Fitness", stats.Select(s => s.BestFitness).ToList());
-                fitnessGraph.SetSeriesPoints("Average Fitness", stats.Select(s => s.AverageFitness).ToList());
+                fitnessGraph.SetSeriesPoints("Best Fitness", simulator.Statistics.Select(s => s.BestFitness).ToList());
+                fitnessGraph.SetSeriesPoints("Average Fitness", simulator.Statistics.Select(s => s.AverageFitness).ToList());
             };
             simulator.OnEvolutionStop += () =>
             {

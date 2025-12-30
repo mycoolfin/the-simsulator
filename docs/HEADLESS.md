@@ -102,7 +102,8 @@ Available trial types:
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `outputDir` | string | none | Directory to save CSV results (optional) |
+| `outputDir` | string | none | Directory to save CSV results and genotypes (optional) |
+| `saveBestEvery` | int | 0 | Save best genotype every N generations (0 = disabled, requires `outputDir`) |
 
 ## Examples
 
@@ -126,7 +127,8 @@ Available trial types:
   --mutationRate=2.5 \
   --settleSeconds=2.0 \
   --assessmentSeconds=15.0 \
-  --outputDir=~/water_evolution
+  --outputDir=~/water_evolution \
+  --saveBestEvery=10
 ```
 
 ### Light Following Experiment
@@ -141,7 +143,9 @@ Available trial types:
 
 ## Output Format
 
-When you specify `-outputDir`, the simulation generates a CSV file with the following naming convention:
+### Statistics CSV
+
+When you specify `--outputDir`, the simulation generates output files with the following naming convention:
 
 ```
 evolution_P{pop}_G{gens}_S{survival}_M{mutation}_SS{settle}_AS{assess}_T{trial}_{timestamp}.csv
@@ -160,10 +164,24 @@ Generation,Best Fitness,Average Fitness,Elapsed Time
 ```
 
 **Columns:**
-- `Generation` - Generation number (0-indexed)
+- `Generation` - Generation number (1-indexed)
 - `Best Fitness` - Fitness of the best creature in this generation
 - `Average Fitness` - Mean fitness across all creatures
 - `Elapsed Time` - Time taken (seconds) for generation to complete
+
+### Saved Genotypes (when `--saveBestEvery` is used)
+
+Genotypes are saved in a subdirectory with the following naming convention:
+
+```
+evolution_P{pop}_G{gens}_S{survival}_M{mutation}_SS{settle}_AS{assess}_T{trial}_{timestamp}_genotypes/
+  G1.genotype
+  G2.genotype
+  G3.genotype
+  ...
+```
+
+Each `.genotype` file contains the best genotype from that generation in a serialised format, which can be loaded later for visualisation or further analysis.
 
 ## Performance Considerations
 
@@ -307,5 +325,3 @@ echo "All parallel simulations complete!"
 **Solution**: Run with `xvfb`, omit `-nographics` flag.
 1. `apt install xvfb`
 2. `xvfb-run ./TheSimsulator.x86_64 -batchmode <other_params>`
-
----

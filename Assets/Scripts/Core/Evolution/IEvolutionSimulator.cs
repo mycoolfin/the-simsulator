@@ -32,7 +32,6 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.Evolution
         float PhenotypeCreationProgress { get; }
         float SettleProgress { get; }
         float AssessmentProgress { get; }
-        IReadOnlyList<IAssessableCreature> Population { get; }
         IReadOnlyList<EvolutionStatistics> Statistics { get; }
 
         // Events.
@@ -40,7 +39,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.Evolution
         event Action OnEvolutionStop;
         event Action<World> OnEcsWorldCreated;
         event Action<int> OnGenerationStart;
-        event Action<IReadOnlyList<EvolutionStatistics>> OnGenerationComplete;
+        event Action<EvolutionStatistics, IAssessableCreature> OnGenerationComplete;
         event Action OnEvolutionComplete;
 
         // Methods.
@@ -48,10 +47,10 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.Evolution
         void StartEvolution();
         void StopEvolution();
         void SetEvolutionLoopPaused(bool paused);
-        void PauseSimulation();
-        void RealTimeSimulation();
-        void FullSpeedSimulation();
-        void HeadlessSimulation();
+        void SetSimulationPaused();
+        void SetSimulationRealTime();
+        void SetSimulationFullSpeed();
+        void SetSimulationHeadless();
         ISimulationSettings GetSimulationSettingsAPI();
         IPresentationSettings GetPresentationSettingsAPI();
     }

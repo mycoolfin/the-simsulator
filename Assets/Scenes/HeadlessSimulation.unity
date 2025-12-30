@@ -175,8 +175,8 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 8b0e12a6b7f3c45cba2c859e1cc50bbd, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: 
-  populationSize: 500
+  m_EditorClassIdentifier: Assembly-CSharp::mycoolfin.TheSimsulator.UnityIntegration.Sims.Evolution.SimsEvolutionSimulator
+  populationSize: 300
   maxGenerations: 100
   survivalRate: 0.2
   mutationRate: 1

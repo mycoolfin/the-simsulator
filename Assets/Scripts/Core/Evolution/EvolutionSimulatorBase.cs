@@ -60,7 +60,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.Evolution
         }
 
         [Header("Evolution Parameters")]
-        [SerializeField] private int populationSize = 100;
+        [SerializeField] private int populationSize = 300;
         public int PopulationSize => populationSize;
         [SerializeField] private int maxGenerations = 100;
         public int MaxGenerations => maxGenerations;
@@ -103,7 +103,6 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.Evolution
         private Progress<float> settleProgressManager;
         public float AssessmentProgress { get; private set; }
         private Progress<float> assessmentProgressManager;
-        public IReadOnlyList<IAssessableCreature> Population => evolution?.Population.Cast<IAssessableCreature>().ToList();
         private readonly List<EvolutionStatistics> statistics = new();
         public IReadOnlyList<EvolutionStatistics> Statistics => statistics;
 
@@ -112,7 +111,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.Evolution
         public event Action OnEvolutionStop;
         public event Action<World> OnEcsWorldCreated;
         public event Action<int> OnGenerationStart;
-        public event Action<IReadOnlyList<EvolutionStatistics>> OnGenerationComplete;
+        public event Action<EvolutionStatistics, IAssessableCreature> OnGenerationComplete;
         public event Action OnEvolutionComplete;
 
         private TEvolution evolution;
@@ -191,10 +190,10 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.Evolution
 
         public void SetEvolutionLoopPaused(bool paused) => pauseEvolutionLoop = paused;
 
-        public void PauseSimulation() => simulationRate = SimulationRateMode.Paused;
-        public void RealTimeSimulation() => simulationRate = SimulationRateMode.RealTime;
-        public void FullSpeedSimulation() => simulationRate = SimulationRateMode.FullSpeed;
-        public void HeadlessSimulation() => simulationRate = SimulationRateMode.Headless;
+        public void SetSimulationPaused() => simulationRate = SimulationRateMode.Paused;
+        public void SetSimulationRealTime() => simulationRate = SimulationRateMode.RealTime;
+        public void SetSimulationFullSpeed() => simulationRate = SimulationRateMode.FullSpeed;
+        public void SetSimulationHeadless() => simulationRate = SimulationRateMode.Headless;
 
         public ECS.API.ISimulationSettings GetSimulationSettingsAPI() => ecsApi.Simulation;
         public ECS.API.IPresentationSettings GetPresentationSettingsAPI() => ecsApi.Presentation;
@@ -245,18 +244,19 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.Evolution
 
                 yield return Utilities.AsyncUtils.TaskAsCoroutine(evolution.IterateAsync());
 
+                AssessableCreature<TGenotype, TPhenotype> bestIndividual = GetBestIndividual(evolution.Population);
                 EvolutionStatistics stats = new()
                 {
                     Generation = CurrentGeneration,
-                    BestFitness = GetBestFitness(evolution.Population),
+                    BestFitness = bestIndividual?.Fitness ?? 0f,
                     AverageFitness = GetAverageFitness(evolution.Population),
-                    ElapsedTime = Time.time - startTime
+                    ElapsedTime = Time.time - startTime,
                 };
                 statistics.Add(stats);
 
                 string maxGenerationsString = runForever ? "∞" : maxGenerations.ToString();
                 Debug.Log($"Generation {CurrentGeneration}/{maxGenerationsString} complete. Best fitness: {stats.BestFitness}. Average fitness: {stats.AverageFitness}. Elapsed time: {stats.ElapsedTime:F2} seconds.");
-                OnGenerationComplete?.Invoke(statistics);
+                OnGenerationComplete?.Invoke(stats, bestIndividual);
 
                 while (pauseEvolutionLoop && IsRunning)
                     yield return null; // Wait until unpaused.
@@ -330,12 +330,12 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.Evolution
             return currentPopulation.Average(i => i.Fitness);
         }
 
-        private static float GetBestFitness(IReadOnlyList<AssessableCreature<TGenotype, TPhenotype>> currentPopulation)
+        private static AssessableCreature<TGenotype, TPhenotype> GetBestIndividual(IReadOnlyList<AssessableCreature<TGenotype, TPhenotype>> currentPopulation)
         {
             if (currentPopulation == null || currentPopulation.Count == 0)
-                return 0f;
+                return null;
 
-            return currentPopulation.Max(i => i.Fitness);
+            return currentPopulation.OrderByDescending(i => i.Fitness).First();
         }
 
         private void OnDestroy()
