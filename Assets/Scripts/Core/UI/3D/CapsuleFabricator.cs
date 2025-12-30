@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 using Newtonsoft.Json.Linq;
@@ -15,7 +14,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
         [SerializeField] private GameObject dockPrefab;
         [SerializeField] private AudioClip conveyorSound;
         [SerializeField] private AudioSource conveyorAudioSource;
-        [SerializeField] private ButtonGroup fabricateCountGroup;
+        [SerializeField] private ButtonGroup generationStepGroup;
         [SerializeField] private HingedPanel fabricatorLeftGate;
         [SerializeField] private HingedPanel fabricatorRightGate;
         [SerializeField] private HingedPanel incineratorLeftGate;
@@ -26,7 +25,6 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
         [SerializeField] private Transform destroyPoint;
         [SerializeField] private int conveyorCapacity = 5;
         [SerializeField] private float conveyorSpeed = 1.0f;
-        [SerializeField] private float generationStep = 1;
 
         private readonly Queue<Func<CapsuleDock>> fabricationQueue = new();
         private readonly List<CapsuleDock> docksOnConveyor = new();
@@ -37,13 +35,13 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
         [Serializable]
         private class CapsuleFabricatorData
         {
-            public int FabricateCountIndex;
+            public int GenerationStepIndex;
         }
         public override object CaptureState()
         {
             return new CapsuleFabricatorData
             {
-                FabricateCountIndex = fabricateCountGroup.ActiveButtonIndex
+                GenerationStepIndex = generationStepGroup.ActiveButtonIndex
             };
         }
         public override void RestoreState(JObject payload, int version)
@@ -55,7 +53,7 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
                 return;
             }
 
-            fabricateCountGroup.SetActiveButton(data.FabricateCountIndex);
+            generationStepGroup.SetActiveButton(data.GenerationStepIndex);
         }
 
         private void Awake()
@@ -67,19 +65,16 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
                 return;
             }
 
-            simulator.OnGenerationComplete += (stats) =>
+            simulator.OnGenerationComplete += (stats, bestIndividual) =>
             {
-                int generation = stats.Count;
-                if (generation % generationStep != 0)
+                if (stats.Generation % GenerationStep != 0)
                     return;
 
-                int fabCount = GetFabricateCount();
-                IReadOnlyList<IAssessableCreature> creatures = GetBestCreatures(simulator, fabCount);
-                for (int i = 0; i < creatures.Count; i++)
+                if (bestIndividual != null)
                 {
                     bool isAquatic = simulator.TrialType == TrialType.WaterDistance || simulator.TrialType == TrialType.WaterLightFollowing;
                     CapsuleEnvironment environment = isAquatic ? CapsuleEnvironment.Aquatic : CapsuleEnvironment.Terrestrial;
-                    FabricateDockedCapsule(creatures[i], environment);
+                    FabricateDockedCapsule(bestIndividual, environment);
                 }
             };
 
@@ -150,17 +145,17 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
 
         private void InitialiseButtons()
         {
-            fabricateCountGroup.OnButtonPressed += (index) => NotifyChanged();
+            generationStepGroup.OnButtonPressed += (index) => NotifyChanged();
         }
 
         private void ResetToDefaults()
         {
-            SetFabricateCountToDefaultValue();
+            SetGenerationStepToDefaultValue();
         }
 
-        private readonly int[] FabricateCountOptions = { 0, 1, 2, 5 };
-        private int GetFabricateCount() => FabricateCountOptions[fabricateCountGroup.ActiveButtonIndex];
-        private void SetFabricateCountToDefaultValue() => fabricateCountGroup.SetActiveButton(1);
+        private readonly int[] GenerationStepOptions = { 1, 5, 10, 100 };
+        private int GenerationStep => GenerationStepOptions[generationStepGroup.ActiveButtonIndex];
+        private void SetGenerationStepToDefaultValue() => generationStepGroup.SetActiveButton(0);
 
         private void FabricateDockedCapsule(ICreature creature, CapsuleEnvironment environment)
         {
@@ -200,15 +195,6 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.UI.ThreeD
 
             float t = Mathf.Clamp01((float)waypointIndex / (conveyorCapacity - 1));
             return Vector3.Lerp(start, end, t);
-        }
-
-        private IReadOnlyList<IAssessableCreature> GetBestCreatures(IEvolutionSimulator simulator, int count)
-        {
-            return simulator.Population?
-                .OrderByDescending(i => i.Fitness)
-                .Take(count)
-                .Cast<IAssessableCreature>()
-                .ToList() ?? new();
         }
     }
 }

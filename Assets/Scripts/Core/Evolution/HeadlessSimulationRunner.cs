@@ -1,3 +1,4 @@
+using System.Collections;
 using System.IO;
 using UnityEngine;
 
@@ -10,6 +11,9 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.Evolution
         private IEvolutionSimulator evolutionSimulator;
         private EvolutionParameters evolutionParameters;
         private string outputDir;
+        private int saveBestEvery = 0;
+        private string runName;
+        private bool pendingGenotypeSave = false;
 
         private void Awake()
         {
@@ -17,40 +21,71 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.Evolution
             if (evolutionSimulator == null)
             {
                 Debug.LogError("IEvolutionSimulator component not found on this GameObject.");
+                enabled = false;
                 return;
             }
         }
 
         private void Start()
         {
+            ParseOutputParameters();
             evolutionParameters = ParseEvolutionParameters();
-            outputDir = ParseOutputDir();
+
+            runName = GenerateRunNameFromParameters(evolutionParameters);
+
             evolutionSimulator.SetEvolutionParameters(evolutionParameters);
-            evolutionSimulator.HeadlessSimulation();
+            evolutionSimulator.OnGenerationComplete += FinishGeneration;
             evolutionSimulator.OnEvolutionComplete += FinishSimulation;
+            evolutionSimulator.SetSimulationHeadless();
             evolutionSimulator.StartEvolution();
         }
 
-        private void SaveEvolutionStatistics()
+        private void OnDestroy()
         {
-            if (outputDir == null)
-                return;
+            if (evolutionSimulator != null)
+            {
+                evolutionSimulator.OnGenerationComplete -= FinishGeneration;
+                evolutionSimulator.OnEvolutionComplete -= FinishSimulation;
+            }
+        }
 
-            // Save statistics to a CSV file.
-            string filePath = Path.Combine(outputDir, GenerateFilenameFromParameters(evolutionSimulator));
-            using StreamWriter writer = new(filePath, true);
-            writer.WriteLine("Generation,Best Fitness,Average Fitness,Elapsed Time");
-            foreach (EvolutionStatistics stat in evolutionSimulator.Statistics)
-                writer.WriteLine($"{stat.Generation},{stat.BestFitness},{stat.AverageFitness},{stat.ElapsedTime}");
-
-            Debug.Log($"Run statistics saved to {filePath}");
+        private void FinishGeneration(EvolutionStatistics stats, IAssessableCreature bestIndividual)
+        {
+            AppendEvolutionStatistics(runName, stats);
+            SaveBestGenotype(runName, stats, bestIndividual);
         }
 
         private void FinishSimulation()
         {
+            StartCoroutine(QuitWhenDone());
+        }
+
+        private IEnumerator QuitWhenDone()
+        {
+            while (pendingGenotypeSave)
+                yield return null;
+
             Debug.Log("Headless simulation completed.");
-            SaveEvolutionStatistics();
+
             Application.Quit(0);
+        }
+
+        private void ParseOutputParameters()
+        {
+            if (CommandLineArgs.TryGet("outputDir", out string outputDir))
+                this.outputDir = outputDir;
+            if (CommandLineArgs.TryGet("saveBestEvery", out string saveBestEveryStr) && int.TryParse(saveBestEveryStr, out int saveBestEvery))
+                this.saveBestEvery = saveBestEvery;
+
+            if (this.outputDir == null && this.saveBestEvery > 0)
+            {
+                Debug.LogError("Argument Error: 'saveBestEvery' is greater than 0 but no outputDir was specified.");
+                Application.Quit(1);
+            }
+
+            Debug.Log($"Run statistics will be saved to: {this.outputDir}.");
+            if (this.saveBestEvery > 0)
+                Debug.Log($"Best genotypes will be saved every {this.saveBestEvery} generations.");
         }
 
         private static EvolutionParameters ParseEvolutionParameters()
@@ -74,18 +109,51 @@ namespace mycoolfin.TheSimsulator.UnityIntegration.Core.Evolution
             return evolutionParameters;
         }
 
-        private static string ParseOutputDir()
+        private void AppendEvolutionStatistics(string runName, EvolutionStatistics stats)
         {
-            if (CommandLineArgs.TryGet("outputDir", out string outputDir))
-                return outputDir;
-            else
-                return null;
+            if (outputDir == null)
+                return;
+
+            string filePath = Path.Combine(outputDir, $"{runName}.csv");
+            bool shouldWriteHeader = !File.Exists(filePath);
+            using StreamWriter writer = new(filePath, append: true);
+            if (shouldWriteHeader)
+                writer.WriteLine("Generation,Best Fitness,Average Fitness,Elapsed Time");
+            writer.WriteLine($"{stats.Generation},{stats.BestFitness},{stats.AverageFitness},{stats.ElapsedTime}");
         }
 
-        private static string GenerateFilenameFromParameters(IEvolutionSimulator s)
+        private void SaveBestGenotype(string runName, EvolutionStatistics stats, IAssessableCreature bestIndividual)
+        {
+            if (outputDir == null || saveBestEvery <= 0)
+                return;
+
+            string genotypeDir = Path.Combine(outputDir, $"{runName}_genotypes");
+
+            if (!Directory.Exists(genotypeDir))
+                Directory.CreateDirectory(genotypeDir);
+
+            if (stats.Generation % saveBestEvery == 0)
+            {
+                if (bestIndividual == null)
+                {
+                    Debug.LogWarning($"Cannot save genotype for generation {stats.Generation}: bestIndividual is null");
+                    return;
+                }
+
+                string genotypePath = Path.Combine(genotypeDir, $"G{stats.Generation}.genotype");
+                pendingGenotypeSave = true;
+                bestIndividual.SaveGenotypeToFile((result, filePath) =>
+                {
+                    Debug.Log($"Saved genotype to {filePath}");
+                    pendingGenotypeSave = false;
+                }, genotypePath);
+            }
+        }
+
+        private static string GenerateRunNameFromParameters(EvolutionParameters s)
         {
             string timestamp = System.DateTime.Now.ToString("yyyyMMdd_HHmmss");
-            return $"evolution_P{s.PopulationSize}_G{s.MaxGenerations}_S{s.SurvivalRate}_M{s.MutationRate}_SS{s.SettleSeconds:F1}_AS{s.AssessmentSeconds:F1}_T{s.TrialType}_{timestamp}.csv";
+            return $"evolution_P{s.PopulationSize}_G{s.MaxGenerations}_S{s.SurvivalRate}_M{s.MutationRate}_SS{s.SettleSeconds:F1}_AS{s.AssessmentSeconds:F1}_T{s.TrialType}_{timestamp}";
         }
     }
 }
