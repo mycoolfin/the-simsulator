@@ -8,5 +8,5 @@ codesign --deep --force --verify --verbose --timestamp --options runtime --entit
 ditto -c -k --sequesterRsrc --keepParent "$APP" "$APP.zip"
 
 echo "Uploading compressed app to Apple for notarisation..."
-xcrun notarytool submit --wait --apple-id $APPLE_ID --password $APPLE_APP_SPECIFIC_PASSWORD --team-id=$TEAM_ID "$APP".zip
+xcrun notarytool submit "$APP".zip --wait --keychain-profile $NOTARY_PROFILE
 spctl -a -v "$APP"
