@@ -5,7 +5,7 @@
 
 The Simsulator is an open-source platform for evolving virtual creatures using genetic algorithms and neural networks, inspired by [Karl Sims' seminal 1994 paper](https://www.karlsims.com/papers/siggraph94.pdf).
 
-**No coding required** - just [install](docs/USER_GUIDE.md#getting-started) and watch evolution in action!
+**No coding required** - just [install](https://github.com/mycoolfin/the-simsulator/releases/latest) and watch evolution in action!
 
 <img src="Media/evolution_simulator.gif" width="45%"/> <img src="Media/conveyor_fire.gif" width="45%"/> 
 
